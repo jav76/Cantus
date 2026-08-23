@@ -1,0 +1,906 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Cantus",
+    "languages": [
+      "csharp",
+      "desktop",
+      "dockerfile",
+      "html",
+      "iss",
+      "json",
+      "markdown",
+      "props",
+      "shell",
+      "slnx",
+      "xaml",
+      "yaml"
+    ],
+    "frameworks": [
+      "ASP.NET Core",
+      "Entity Framework Core",
+      "SignalR",
+      "Uno Platform",
+      "Docker",
+      "Docker Compose",
+      "GitHub Actions"
+    ],
+    "description": "Self-hosted, real-time synchronized lyrics display platform integrating Spotify playback, LRCLIB lyrics caching, sub-millisecond NTP interpolation, and Uno Platform multi-client streaming.",
+    "analyzedAt": "2026-08-23T15:31:24.933Z",
+    "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e"
+  },
+  "nodes": [
+    {
+      "id": "domain:spotify-authentication-and-session-management",
+      "type": "domain",
+      "name": "Spotify Authentication & Session Management",
+      "summary": "Handles Spotify OAuth 2.0 PKCE authentication flows, secure token encryption at rest via ASP.NET Core Data Protection, automated token renewal cycles, and user session persistence.",
+      "tags": [
+        "auth",
+        "security",
+        "spotify",
+        "session-management"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "UserSession",
+          "SpotifyAuthTokens",
+          "PKCEChallenge"
+        ],
+        "businessRules": [
+          "Tokens must be encrypted at rest using ASP.NET Core Data Protection",
+          "Automated background refresh occurs before access token expiry",
+          "Multi-user session isolation with unique Spotify User ID keys"
+        ],
+        "crossDomainInteractions": [
+          "Provides authorized Spotify API access tokens to the Real-Time Playback Monitoring domain"
+        ]
+      }
+    },
+    {
+      "id": "flow:spotify-pkce-login",
+      "type": "flow",
+      "name": "Spotify PKCE Login & Authorization",
+      "summary": "End-to-end OAuth PKCE flow generating challenges, redirecting to Spotify consent, exchanging authorization codes, and storing encrypted credentials.",
+      "tags": [
+        "oauth",
+        "pkce",
+        "login"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "GET /api/auth/login",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:spotify-pkce-login:generate-pkce-challenge",
+      "type": "step",
+      "name": "Generate PKCE Code Verifier & Challenge",
+      "summary": "Creates cryptographically secure random verifier and computes SHA-256 code challenge.",
+      "tags": [
+        "pkce",
+        "cryptography"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
+      "lineRange": [
+        10,
+        28
+      ]
+    },
+    {
+      "id": "step:spotify-pkce-login:redirect-spotify-auth",
+      "type": "step",
+      "name": "Construct Spotify Authorization URL",
+      "summary": "Builds Spotify OAuth consent URL with user-read-playback-state scopes and PKCE challenge.",
+      "tags": [
+        "oauth",
+        "spotify"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "lineRange": [
+        30,
+        60
+      ]
+    },
+    {
+      "id": "step:spotify-pkce-login:exchange-auth-code",
+      "type": "step",
+      "name": "Exchange Code for Tokens",
+      "summary": "Submits authorization code and verifier to Spotify token endpoint to obtain access and refresh tokens.",
+      "tags": [
+        "oauth",
+        "http"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "lineRange": [
+        65,
+        120
+      ]
+    },
+    {
+      "id": "step:spotify-pkce-login:persist-encrypted-session",
+      "type": "step",
+      "name": "Encrypt Tokens & Save User Session",
+      "summary": "Encrypts refresh tokens with ASP.NET Core Data Protection and writes user profile to SQLite database.",
+      "tags": [
+        "security",
+        "sqlite",
+        "efcore"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "lineRange": [
+        15,
+        34
+      ]
+    },
+    {
+      "id": "flow:token-refresh-lifecycle",
+      "type": "flow",
+      "name": "Session Refresh & Token Rotation",
+      "summary": "Monitors token validity, executes non-interactive refresh requests to Spotify, and updates database records.",
+      "tags": [
+        "token-refresh",
+        "lifecycle",
+        "security"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "ActiveUsersPlaybackMonitor poller loop",
+        "entryType": "cron"
+      }
+    },
+    {
+      "id": "step:token-refresh-lifecycle:check-token-expiration",
+      "type": "step",
+      "name": "Detect Impending Token Expiry",
+      "summary": "Evaluates access token UTC expiration against a 5-minute safety threshold.",
+      "tags": [
+        "auth",
+        "validation"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "lineRange": [
+        130,
+        150
+      ]
+    },
+    {
+      "id": "step:token-refresh-lifecycle:refresh-tokens-via-spotify",
+      "type": "step",
+      "name": "Request Refreshed Token Pair",
+      "summary": "Transmits decrypted refresh token to Spotify to acquire fresh access credentials.",
+      "tags": [
+        "http",
+        "spotify"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "lineRange": [
+        155,
+        195
+      ]
+    },
+    {
+      "id": "step:token-refresh-lifecycle:update-stored-session",
+      "type": "step",
+      "name": "Update SQLite Session Record",
+      "summary": "Re-encrypts new tokens and updates UserSessionEntity timestamp records in CantusDbContext.",
+      "tags": [
+        "persistence",
+        "efcore"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "lineRange": [
+        20,
+        50
+      ]
+    },
+    {
+      "id": "domain:real-time-playback-monitoring",
+      "type": "domain",
+      "name": "Real-Time Playback Monitoring & Polling",
+      "summary": "Manages intelligent adaptive background polling of active Spotify player instances, tracks track transitions and play/pause states, and coordinates broadcasts across SignalR clients.",
+      "tags": [
+        "playback",
+        "polling",
+        "real-time",
+        "signalr"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "PlaybackState",
+          "TrackInfo",
+          "UserPlaybackSnapshot"
+        ],
+        "businessRules": [
+          "Dynamic polling cadence: 500ms playing, 3000ms paused, 10000ms idle",
+          "Polling is halted when no SignalR clients are subscribed to conserve Spotify rate limits",
+          "Automatic lyric prefetching triggered on track transitions"
+        ],
+        "crossDomainInteractions": [
+          "Triggers lyrics retrieval in Synchronized Lyrics domain on track change",
+          "Pushes real-time playback timestamps to Client Clock Synchronization domain"
+        ]
+      }
+    },
+    {
+      "id": "flow:adaptive-playback-polling",
+      "type": "flow",
+      "name": "Adaptive Spotify Playback Polling",
+      "summary": "Continuous polling worker that fetches user playback, adjusts frequency according to activity, and broadcasts changes.",
+      "tags": [
+        "polling",
+        "worker",
+        "real-time"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "ActiveUsersPlaybackMonitor.ExecuteAsync",
+        "entryType": "cron"
+      }
+    },
+    {
+      "id": "step:adaptive-playback-polling:evaluate-active-listeners",
+      "type": "step",
+      "name": "Check Connected Client Subscriptions",
+      "summary": "Inspects PlaybackSessionRegistry to confirm active SignalR clients are listening to the user.",
+      "tags": [
+        "registry",
+        "state"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "lineRange": [
+        20,
+        50
+      ]
+    },
+    {
+      "id": "step:adaptive-playback-polling:query-spotify-playback",
+      "type": "step",
+      "name": "Query Spotify Web API Playback",
+      "summary": "Calls Spotify /v1/me/player endpoint using the user's valid access token.",
+      "tags": [
+        "spotify",
+        "http"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "lineRange": [
+        25,
+        60
+      ]
+    },
+    {
+      "id": "step:adaptive-playback-polling:detect-state-transitions",
+      "type": "step",
+      "name": "Detect Track Transitions & Seeks",
+      "summary": "Compares current track ID, progress delta, and play/pause state against cached snapshot.",
+      "tags": [
+        "logic",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "lineRange": [
+        80,
+        160
+      ]
+    },
+    {
+      "id": "step:adaptive-playback-polling:broadcast-playback-update",
+      "type": "step",
+      "name": "Broadcast Playback Update via SignalR",
+      "summary": "Sends PlaybackStateDto and server UTC timestamp to subscribed client rooms via PlaybackHub.",
+      "tags": [
+        "signalr",
+        "broadcast"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "lineRange": [
+        40,
+        110
+      ]
+    },
+    {
+      "id": "domain:synchronized-lyrics-retrieval-and-caching",
+      "type": "domain",
+      "name": "Synchronized Lyrics Retrieval & Caching",
+      "summary": "Orchestrates multi-tiered lyrics retrieval with local SQLite caching, LRCLIB integration with title/artist fuzzy matching, LRC parsing, and per-track latency calibration.",
+      "tags": [
+        "lyrics",
+        "lrc",
+        "caching",
+        "lrclib",
+        "database"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "SyncedLyrics",
+          "LyricLine",
+          "CachedLyricsEntity",
+          "TrackOffset"
+        ],
+        "businessRules": [
+          "Cache-first strategy: checks local SQLite before requesting external providers",
+          "7-day negative cache prevents repeated API spam for instrumental or unlisted songs",
+          "LRC parser handles standard timestamps, syllable timings, and offset metadata",
+          "Per-track manual latency offsets persist across sessions"
+        ],
+        "crossDomainInteractions": [
+          "Provides parsed and offset-adjusted lyric structures to Client Clock Synchronization domain"
+        ]
+      }
+    },
+    {
+      "id": "flow:fetch-and-cache-lyrics",
+      "type": "flow",
+      "name": "Lyrics Lookup, Retrieval & Caching",
+      "summary": "Resolves lyrics for a track by probing local cache, querying LRCLIB API with fallback search, parsing LRC content, and persisting results.",
+      "tags": [
+        "lyrics-retrieval",
+        "caching",
+        "lrc-parsing"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "GET /api/lyrics/{trackId}",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:fetch-and-cache-lyrics:check-sqlite-cache",
+      "type": "step",
+      "name": "Query SQLite Lyrics Cache",
+      "summary": "Searches SQLite CachedLyrics table for unexpired positive or negative cache entries.",
+      "tags": [
+        "sqlite",
+        "caching"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "lineRange": [
+        30,
+        75
+      ]
+    },
+    {
+      "id": "step:fetch-and-cache-lyrics:fetch-external-lrclib",
+      "type": "step",
+      "name": "Query LRCLIB API Provider",
+      "summary": "Calls LRCLIB /api/get by Spotify track ID with fallback to /api/search by title, artist, and album.",
+      "tags": [
+        "lrclib",
+        "http",
+        "fuzzy-search"
+      ],
+      "complexity": "complex",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "lineRange": [
+        40,
+        130
+      ]
+    },
+    {
+      "id": "step:fetch-and-cache-lyrics:parse-lrc-timestamps",
+      "type": "step",
+      "name": "Parse LRC Format & Syllable Timing",
+      "summary": "Decodes LRC timestamp tags [mm:ss.xx] and syllable markers into structured LyricLine objects.",
+      "tags": [
+        "parser",
+        "lrc"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "lineRange": [
+        25,
+        110
+      ]
+    },
+    {
+      "id": "step:fetch-and-cache-lyrics:save-lyrics-cache",
+      "type": "step",
+      "name": "Persist Lyrics in SQLite Database",
+      "summary": "Saves raw LRC and parsed status to CachedLyrics table with 30-day expiration.",
+      "tags": [
+        "sqlite",
+        "efcore"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "lineRange": [
+        90,
+        160
+      ]
+    },
+    {
+      "id": "flow:track-latency-offset-adjustment",
+      "type": "flow",
+      "name": "Track Latency Offset Calibration",
+      "summary": "Allows clients to nudge lyric synchronization offsets in ±50ms increments and saves persistent offsets per track.",
+      "tags": [
+        "latency",
+        "calibration",
+        "offset"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "PlaybackHub.SetTrackOffset",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:track-latency-offset-adjustment:receive-offset-nudge",
+      "type": "step",
+      "name": "Receive Client Offset Adjustment",
+      "summary": "Validates incoming track ID and millisecond offset value from SignalR client invocation.",
+      "tags": [
+        "signalr",
+        "validation"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "lineRange": [
+        120,
+        145
+      ]
+    },
+    {
+      "id": "step:track-latency-offset-adjustment:persist-track-offset",
+      "type": "step",
+      "name": "Persist Offset in TrackOffsets Table",
+      "summary": "Upserts the track's custom offset in SQLite database to apply across all future playbacks.",
+      "tags": [
+        "sqlite",
+        "efcore"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "lineRange": [
+        180,
+        230
+      ]
+    },
+    {
+      "id": "step:track-latency-offset-adjustment:broadcast-offset-sync",
+      "type": "step",
+      "name": "Broadcast Updated Offset",
+      "summary": "Emits OnTrackOffsetUpdated SignalR notification to all clients subscribed to the active room.",
+      "tags": [
+        "signalr",
+        "broadcast"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "lineRange": [
+        150,
+        170
+      ]
+    },
+    {
+      "id": "domain:client-clock-synchronization-and-rendering",
+      "type": "domain",
+      "name": "Client Clock Synchronization & Dynamic Rendering",
+      "summary": "Provides continuous NTP-based sub-millisecond clock synchronization, playback position interpolation, dynamic color scheme extraction from album art, and smooth lyric UI rendering.",
+      "tags": [
+        "ui",
+        "uno-platform",
+        "ntp",
+        "clock-sync",
+        "mvvm"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "NtpSample",
+          "AppTheme",
+          "LyricLineViewModel",
+          "DiagnosticsDto"
+        ],
+        "businessRules": [
+          "Continuous 4-timestamp NTP ping round trips calculate RTT and clock skew",
+          "Sub-millisecond interpolation smooths playback progress across network jitter",
+          "Adaptive color palette generator extracts dominant hues from cover art"
+        ],
+        "crossDomainInteractions": [
+          "Consumes PlaybackState updates from Real-Time Playback Monitoring domain",
+          "Consumes SyncedLyrics from Synchronized Lyrics Retrieval domain"
+        ]
+      }
+    },
+    {
+      "id": "flow:ntp-clock-synchronization",
+      "type": "flow",
+      "name": "NTP Clock Skew & Latency Sync",
+      "summary": "Executes periodic NTP time exchanges between client and server to eliminate clock drift and calculate network latency.",
+      "tags": [
+        "ntp",
+        "clock-sync",
+        "network"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "SignalRPlaybackClient.SyncClockAsync",
+        "entryType": "cron"
+      }
+    },
+    {
+      "id": "step:ntp-clock-synchronization:send-ntp-ping",
+      "type": "step",
+      "name": "Client Sends High-Res Timestamp Ping",
+      "summary": "Records client transmission timestamp (T1) and sends SyncClock request via SignalR.",
+      "tags": [
+        "signalr",
+        "ntp"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "lineRange": [
+        80,
+        110
+      ]
+    },
+    {
+      "id": "step:ntp-clock-synchronization:server-ntp-timestamp",
+      "type": "step",
+      "name": "Server Stamps Receive & Transmit Times",
+      "summary": "Attaches server receive timestamp (T2) and transmit timestamp (T3) before replying.",
+      "tags": [
+        "server",
+        "ntp"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "lineRange": [
+        85,
+        105
+      ]
+    },
+    {
+      "id": "step:ntp-clock-synchronization:compute-skew-and-rtt",
+      "type": "step",
+      "name": "Compute RTT & Clock Skew Offset",
+      "summary": "Calculates RTT = (T4 - T1) - (T3 - T2) and skew = ((T2 - T1) + (T3 - T4)) / 2 with rolling filter.",
+      "tags": [
+        "math",
+        "clock"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "lineRange": [
+        115,
+        150
+      ]
+    },
+    {
+      "id": "flow:real-time-lyrics-scrolling",
+      "type": "flow",
+      "name": "Real-Time Lyrics Presentation & UI Animation",
+      "summary": "Interpolates song playback progress at 60fps, calculates the active lyric line, smoothly scrolls the UI, and adjusts color themes.",
+      "tags": [
+        "ui",
+        "animation",
+        "mvvm",
+        "uno-platform"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "LyricsViewModel UI render timer loop",
+        "entryType": "cron"
+      }
+    },
+    {
+      "id": "step:real-time-lyrics-scrolling:interpolate-playback-clock",
+      "type": "step",
+      "name": "Interpolate Playback Position",
+      "summary": "Calculates current millisecond progress applying clock skew, track offset, and elapsed time.",
+      "tags": [
+        "clock",
+        "interpolation"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "lineRange": [
+        30,
+        95
+      ]
+    },
+    {
+      "id": "step:real-time-lyrics-scrolling:calculate-active-lyric-line",
+      "type": "step",
+      "name": "Determine Active Lyric Line Index",
+      "summary": "Binary searches parsed lyric lines to find current active line and next syllable highlight.",
+      "tags": [
+        "search",
+        "lyrics"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
+      "lineRange": [
+        30,
+        46
+      ]
+    },
+    {
+      "id": "step:real-time-lyrics-scrolling:update-ui-and-theme",
+      "type": "step",
+      "name": "Update UI Scroll & Dynamic Theme",
+      "summary": "Updates LyricLineViewModel opacity and font weight, scrolls XAML ListView, and triggers album art palette updates.",
+      "tags": [
+        "ui",
+        "theming",
+        "uno-platform"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "lineRange": [
+        200,
+        310
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "domain:spotify-authentication-and-session-management",
+      "target": "flow:spotify-pkce-login",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:spotify-authentication-and-session-management",
+      "target": "flow:token-refresh-lifecycle",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:real-time-playback-monitoring",
+      "target": "flow:adaptive-playback-polling",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:synchronized-lyrics-retrieval-and-caching",
+      "target": "flow:fetch-and-cache-lyrics",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:synchronized-lyrics-retrieval-and-caching",
+      "target": "flow:track-latency-offset-adjustment",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:client-clock-synchronization-and-rendering",
+      "target": "flow:ntp-clock-synchronization",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:client-clock-synchronization-and-rendering",
+      "target": "flow:real-time-lyrics-scrolling",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:spotify-pkce-login",
+      "target": "step:spotify-pkce-login:generate-pkce-challenge",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:spotify-pkce-login",
+      "target": "step:spotify-pkce-login:redirect-spotify-auth",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:spotify-pkce-login",
+      "target": "step:spotify-pkce-login:exchange-auth-code",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:spotify-pkce-login",
+      "target": "step:spotify-pkce-login:persist-encrypted-session",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:token-refresh-lifecycle",
+      "target": "step:token-refresh-lifecycle:check-token-expiration",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:token-refresh-lifecycle",
+      "target": "step:token-refresh-lifecycle:refresh-tokens-via-spotify",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:token-refresh-lifecycle",
+      "target": "step:token-refresh-lifecycle:update-stored-session",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:evaluate-active-listeners",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:query-spotify-playback",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:detect-state-transitions",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:broadcast-playback-update",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:fetch-and-cache-lyrics",
+      "target": "step:fetch-and-cache-lyrics:check-sqlite-cache",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:fetch-and-cache-lyrics",
+      "target": "step:fetch-and-cache-lyrics:fetch-external-lrclib",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:fetch-and-cache-lyrics",
+      "target": "step:fetch-and-cache-lyrics:parse-lrc-timestamps",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:fetch-and-cache-lyrics",
+      "target": "step:fetch-and-cache-lyrics:save-lyrics-cache",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:track-latency-offset-adjustment",
+      "target": "step:track-latency-offset-adjustment:receive-offset-nudge",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:track-latency-offset-adjustment",
+      "target": "step:track-latency-offset-adjustment:persist-track-offset",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:track-latency-offset-adjustment",
+      "target": "step:track-latency-offset-adjustment:broadcast-offset-sync",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:ntp-clock-synchronization",
+      "target": "step:ntp-clock-synchronization:send-ntp-ping",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:ntp-clock-synchronization",
+      "target": "step:ntp-clock-synchronization:server-ntp-timestamp",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:ntp-clock-synchronization",
+      "target": "step:ntp-clock-synchronization:compute-skew-and-rtt",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:real-time-lyrics-scrolling",
+      "target": "step:real-time-lyrics-scrolling:interpolate-playback-clock",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:real-time-lyrics-scrolling",
+      "target": "step:real-time-lyrics-scrolling:calculate-active-lyric-line",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:real-time-lyrics-scrolling",
+      "target": "step:real-time-lyrics-scrolling:update-ui-and-theme",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:spotify-authentication-and-session-management",
+      "target": "domain:real-time-playback-monitoring",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Provides valid Spotify OAuth access tokens and user session identities to background playback monitoring poller.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:real-time-playback-monitoring",
+      "target": "domain:synchronized-lyrics-retrieval-and-caching",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Triggers lyrics lookup and cache validation whenever the active track ID transitions.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:real-time-playback-monitoring",
+      "target": "domain:client-clock-synchronization-and-rendering",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Pushes real-time track progress snapshots and play/pause timestamps to connected client view models.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:synchronized-lyrics-retrieval-and-caching",
+      "target": "domain:client-clock-synchronization-and-rendering",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Supplies parsed synced lyric lines and custom track offsets to the client smooth scroll renderer.",
+      "weight": 0.6
+    }
+  ],
+  "layers": [],
+  "tour": []
+}

@@ -1,0 +1,32 @@
+services:
+  cantus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cantus
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # The canonical public URL where your browser/clients access Cantus.
+      # Used for dynamic Spotify OAuth2 PKCE callback resolution.
+      # Examples:
+      #   Direct LAN IP:  http://192.168.1.50:5000
+      #   Reverse Proxy:  https://lyrics.mydomain.com
+      #   Local Dev:      http://localhost:5000
+      - CANTUS_HOST_URL=http://localhost:5000
+
+      # Spotify Developer Credentials (from https://developer.spotify.com/dashboard)
+      - Spotify__ClientId=YOUR_SPOTIFY_CLIENT_ID
+      - Spotify__ClientSecret=YOUR_SPOTIFY_CLIENT_SECRET
+
+      # Optional overrides:
+      # - Spotify__RedirectUri=http://localhost:5000/api/auth/spotify/callback
+      # - Lrclib__BaseUrl=https://lrclib.net
+    volumes:
+      # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys
+      - cantus-data:/app/data
+
+volumes:
+  cantus-data:
+    name: cantus-data

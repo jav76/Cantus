@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Cantus - Real-Time Synced Lyrics</title>
+
+    <script type="text/javascript" src="./require.js"></script>
+    <script type="module" src="./uno-bootstrap.js"></script>
+    $(ADDITIONAL_CSS)
+    $(ADDITIONAL_HEAD)
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0c0d14;
+            color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.15), transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08), transparent 50%);
+        }
+
+        #custom-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #0c0d14;
+        }
+
+        .loader-card {
+            background: rgba(18, 20, 32, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 44px 52px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
+            max-width: 440px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.12), transparent 70%);
+            animation: pulse-glow 4s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .audio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 6px;
+            height: 48px;
+            margin-bottom: 28px;
+            z-index: 1;
+        }
+
+        .audio-bar {
+            width: 6px;
+            background: linear-gradient(180deg, #c084fc 0%, #8b5cf6 50%, #6366f1 100%);
+            border-radius: 9999px;
+            animation: wave 1.2s ease-in-out infinite alternate;
+        }
+
+        .audio-bar:nth-child(1) { height: 16px; animation-delay: 0.1s; }
+        .audio-bar:nth-child(2) { height: 32px; animation-delay: 0.3s; }
+        .audio-bar:nth-child(3) { height: 44px; animation-delay: 0.5s; }
+        .audio-bar:nth-child(4) { height: 26px; animation-delay: 0.2s; }
+        .audio-bar:nth-child(5) { height: 38px; animation-delay: 0.4s; }
+        .audio-bar:nth-child(6) { height: 20px; animation-delay: 0.15s; }
+
+        @keyframes wave {
+            0% { height: 10px; opacity: 0.5; }
+            100% { height: 46px; opacity: 1; }
+        }
+
+        .loader-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ffffff 0%, #c084fc 60%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: 1;
+        }
+
+        .loader-subtitle {
+            font-size: 13px;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 28px;
+            letter-spacing: 0.02em;
+            z-index: 1;
+        }
+
+        .loader-progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        .loader-progress-bar {
+            height: 100%;
+            width: 5%;
+            background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 50%, #34d399 100%);
+            border-radius: 9999px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+        }
+
+        .loader-status-text {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 12px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #64748b;
+            z-index: 1;
+        }
+
+        #uno-body {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .uno-loader {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="custom-loader">
+        <div class="loader-card">
+            <!-- Neon Equalizer Wavebars -->
+            <div class="audio-visualizer">
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+            </div>
+            
+            <h1 class="loader-title">Cantus</h1>
+            <div class="loader-subtitle">Real-Time Spotify Synced Lyrics</div>
+
+            <!-- Progress Bar -->
+            <div class="loader-progress-container">
+                <div id="custom-progress-bar" class="loader-progress-bar"></div>
+            </div>
+
+            <!-- Live Status & Percentage -->
+            <div class="loader-status-text">
+                <span id="loader-phase">Loading .NET 10 WASM...</span>
+                <span id="loader-percent">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="uno-body" class="container-fluid uno-body">
+        <div class="uno-loader" loading-position="bottom" loading-alert="none">
+            <img class="logo" src="" title="Uno is loading your application" />
+            <progress></progress>
+            <span class="alert"></span>
+        </div>
+    </div>
+    <noscript>
+        <p>This application requires WebAssembly to be enabled.</p>
+    </noscript>
+
+    <script>
+        (function() {
+            function initLoader() {
+                var defaultLoader = document.querySelector(".uno-loader");
+                var customLoader = document.getElementById("custom-loader");
+                var customProgressBar = document.getElementById("custom-progress-bar");
+                var loaderPhase = document.getElementById("loader-phase");
+                var loaderPercent = document.getElementById("loader-percent");
+                var unoBody = document.getElementById("uno-body");
+                var loadComplete = false;
+
+                function updateProgress(val) {
+                    var pct = Math.min(100, Math.max(0, Math.round(val)));
+                    if (customProgressBar) customProgressBar.style.width = pct + "%";
+                    if (loaderPercent) loaderPercent.innerText = pct + "%";
+
+                    if (!loaderPhase) return;
+                    if (pct < 30) {
+                        loaderPhase.innerText = "Downloading .NET 10 Assemblies...";
+                    } else if (pct < 65) {
+                        loaderPhase.innerText = "Initializing JIT & WebAssembly...";
+                    } else if (pct < 90) {
+                        loaderPhase.innerText = "Starting Lyrics Engine...";
+                    } else if (pct < 100) {
+                        loaderPhase.innerText = "Preparing UI...";
+                    } else {
+                        loaderPhase.innerText = "Ready!";
+                    }
+                }
+
+                var simulatedProgress = 12;
+                updateProgress(simulatedProgress);
+
+                var simInterval = setInterval(function() {
+                    if (loadComplete) {
+                        clearInterval(simInterval);
+                        return;
+                    }
+                    if (simulatedProgress < 85) {
+                        simulatedProgress += (88 - simulatedProgress) * 0.08;
+                        updateProgress(simulatedProgress);
+                    }
+                }, 250);
+
+                function finishLoading() {
+                    if (loadComplete) return;
+                    loadComplete = true;
+                    if (simInterval) clearInterval(simInterval);
+                    if (pollInterval) clearInterval(pollInterval);
+                    updateProgress(100);
+
+                    setTimeout(function() {
+                        if (customLoader) {
+                            customLoader.style.opacity = "0";
+                            customLoader.style.visibility = "hidden";
+                        }
+                        if (unoBody) {
+                            unoBody.style.opacity = "1";
+                        }
+                        setTimeout(function() {
+                            if (customLoader && customLoader.parentNode) {
+                                customLoader.parentNode.removeChild(customLoader);
+                            }
+                        }, 600);
+                    }, 300);
+                }
+
+                function checkUnoReadiness() {
+                    if (loadComplete) return;
+
+                    var progressElem = document.querySelector(".uno-loader progress") || document.querySelector("progress");
+                    if (progressElem && typeof progressElem.value === "number" && progressElem.max > 0) {
+                        var realPct = (progressElem.value / progressElem.max) * 100;
+                        if (realPct > 0) {
+                            updateProgress(Math.max(realPct, simulatedProgress));
+                        }
+                        if (realPct >= 100) {
+                            finishLoading();
+                            return;
+                        }
+                    }
+
+                    // Check if Uno has attached UI elements (canvas / div / visual tree) inside uno-body
+                    if (unoBody && unoBody.children.length > 0) {
+                        var hasUnoAppElements = Array.from(unoBody.children).some(function(child) {
+                            return !child.classList.contains("uno-loader") && child.tagName.toLowerCase() !== "noscript";
+                        });
+                        if (hasUnoAppElements) {
+                            finishLoading();
+                            return;
+                        }
+                    }
+
+                    // Check if default uno-loader was removed by Uno Bootstrapper cleanup
+                    if (defaultLoader && !document.body.contains(defaultLoader) && !unoBody.contains(defaultLoader)) {
+                        finishLoading();
+                        return;
+                    }
+                }
+
+                var pollInterval = setInterval(checkUnoReadiness, 200);
+
+                if (unoBody) {
+                    var bodyObserver = new MutationObserver(function(mutations) {
+                        checkUnoReadiness();
+                    });
+                    bodyObserver.observe(unoBody, { childList: true, subtree: true });
+                }
+
+                window.addEventListener("error", function(evt) {
+                    console.error("Client Runtime Error:", evt.message, evt.error);
+                });
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", initLoader);
+            } else {
+                initLoader();
+            }
+        })();
+    </script>
+</body>
+</html>

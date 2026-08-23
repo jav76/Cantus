@@ -1,0 +1,76 @@
+name: Publish Documentation (Cloudflare Pages)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.ua/**'
+      - 'scripts/generate_docs.py'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.ua/**'
+      - 'scripts/generate_docs.py'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  deployments: write
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install MkDocs & Material Theme
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs-material
+
+      - name: Deterministic Knowledge Documentation Generation
+        run: |
+          python scripts/generate_docs.py
+
+      - name: Build MkDocs Static Site
+        run: |
+          mkdocs build --strict
+
+      - name: Check Cloudflare Credentials
+        id: cf-check
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "::warning::Cloudflare Pages secrets (CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID) not configured. Skipping deploy step."
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.cf-check.outputs.configured == 'true'
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'cantus-docs'
+          directory: 'site'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref || github.ref_name }}

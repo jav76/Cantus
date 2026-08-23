@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Cantus
+Comment=Real-Time Spotify Synced Lyrics Platform
+Exec=Cantus.Client
+Icon=cantus
+Categories=AudioVideo;Audio;Player;
+Terminal=false
+StartupWMClass=Cantus.Client

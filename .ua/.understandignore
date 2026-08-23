@@ -1,0 +1,35 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+
+# --- Excluded directories ---
+tests/
+graphify-out/
+artifacts/
+all_artifacts/
+wasm_dist/
+server_dist/
+packaging/windows/Output/
+packaging/linux/AppDir/
+
+# --- Excluded secrets & local configs ---
+.env
+.env.*
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+appsettings.Secrets.json
+appsettings.*.Secrets.json
+cantus.db*
+*.pfx
+*.p12
+*.snk
+*.key
+
+# --- Test file patterns ---
+**/*Tests.cs
+**/*Test.cs
+**/*Fixture.cs
+**/*.Tests.csproj

@@ -1,0 +1,272 @@
+name: Release & Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # ============================================================================
+  # 1. Multi-Architecture Container Publishing (GHCR)
+  # ============================================================================
+  publish-docker:
+    name: Publish Multi-Arch Docker Image (GHCR)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Multi-Arch Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # 2. Cross-Platform Desktop Client Matrix Builds
+  # ============================================================================
+  build-desktop-clients:
+    name: Build Desktop Client (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            name: Windows-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+            name: Linux-x64
+          - os: macos-latest
+            rid: osx-x64
+            name: macOS-x64
+          - os: macos-latest
+            rid: osx-arm64
+            name: macOS-arm64
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determine Version
+        id: ver
+        shell: bash
+        run: |
+          RAW_VER="${{ github.event.inputs.version || github.ref_name }}"
+          CLEAN_VER="${RAW_VER#v}"
+          echo "VERSION=${CLEAN_VER:-1.0.0}" >> $GITHUB_OUTPUT
+
+      - name: Publish Self-Contained Desktop Client
+        run: >
+          dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj
+          -f net10.0-desktop
+          -r ${{ matrix.rid }}
+          -c Release
+          -p:PublishSingleFile=true
+          --self-contained true
+          -o ./publish
+
+      - name: Package Linux Artifacts
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p ./artifacts
+          tar -czvf "./artifacts/Cantus.Client-Linux-x64.tar.gz" -C ./publish .
+          ./packaging/linux/build-appimage.sh ./publish ./artifacts "${{ steps.ver.outputs.VERSION }}"
+
+      - name: Package Windows Artifacts
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ./artifacts
+          Compress-Archive -Path ./publish/* -DestinationPath ./artifacts/Cantus.Client-Windows-x64.zip
+          
+          # Compile Inno Setup Installer
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+          if (-not (Test-Path $isccPath)) {
+            choco install innosetup --yes --no-progress
+            $isccPath = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+          }
+          & $isccPath /DSourceDir="$((Get-Location).Path)\publish" /DMyAppVersion="${{ steps.ver.outputs.VERSION }}" /O"$((Get-Location).Path)\artifacts" packaging\windows\installer.iss
+
+      - name: Package macOS Artifacts
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          mkdir -p ./artifacts
+          tar -czvf "./artifacts/Cantus.Client-macOS-${{ matrix.rid }}.tar.gz" -C ./publish .
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-artifacts-${{ matrix.name }}
+          path: ./artifacts/*
+
+  # ============================================================================
+  # 3. Standalone Server Binaries Matrix (Bare-Metal Deployments)
+  # ============================================================================
+  build-server-binaries:
+    name: Build Server Binary (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            name: Linux-x64
+            archive_ext: tar.gz
+          - os: ubuntu-latest
+            rid: linux-arm64
+            name: Linux-arm64
+            archive_ext: tar.gz
+          - os: windows-latest
+            rid: win-x64
+            name: Windows-x64
+            archive_ext: zip
+          - os: macos-latest
+            rid: osx-arm64
+            name: macOS-arm64
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Uno WebAssembly Workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish WASM Client
+        run: >
+          dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj
+          -f net10.0-browserwasm
+          -c Release
+          -o ./wasm_dist
+
+      - name: Publish Standalone Server
+        run: >
+          dotnet publish src/Cantus.Server/Cantus.Server.csproj
+          -r ${{ matrix.rid }}
+          -c Release
+          -p:PublishSingleFile=true
+          --self-contained true
+          -o ./server_dist
+
+      - name: Bundle Static WASM into Server Output
+        shell: bash
+        run: |
+          mkdir -p ./server_dist/wwwroot
+          cp -r ./wasm_dist/wwwroot/* ./server_dist/wwwroot/
+
+      - name: Archive Server Package (Linux / macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p ./artifacts
+          tar -czvf "./artifacts/Cantus.Server-${{ matrix.name }}.tar.gz" -C ./server_dist .
+
+      - name: Archive Server Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ./artifacts
+          Compress-Archive -Path ./server_dist/* -DestinationPath ./artifacts/Cantus.Server-Windows-x64.zip
+
+      - name: Upload Server Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-artifacts-${{ matrix.name }}
+          path: ./artifacts/*
+
+  # ============================================================================
+  # 4. GitHub Release Publishing & Asset Aggregation
+  # ============================================================================
+  publish-release:
+    name: Create GitHub Release
+    needs: [publish-docker, build-desktop-clients, build-server-binaries]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all_artifacts
+          merge-multiple: true
+
+      - name: Generate Checksums
+        shell: bash
+        run: |
+          cd ./all_artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Determine Release Tag
+        id: release_tag
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.TAG }}
+          files: |
+            ./all_artifacts/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

@@ -1,0 +1,37 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <WasmShellIndexHtmlPath>WasmScripts\index.html</WasmShellIndexHtmlPath>
+    <TargetFrameworks Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">net10.0-browserwasm;net10.0-desktop;net10.0-windows10.0.26100</TargetFrameworks>
+    <TargetFrameworks Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'false'">net10.0-browserwasm;net10.0-desktop</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net10.0-desktop'">win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+
+    <!-- Display name -->
+    <ApplicationTitle>Cantus</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.cantus.lyrics</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>Cantus</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>Cantus - Real-Time Spotify Synced Lyrics Platform</Description>
+
+    <UnoFeatures>
+      Material;
+      Toolkit;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Cantus.Core\Cantus.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+  </ItemGroup>
+</Project>

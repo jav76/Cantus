@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+# Resolve AppDir location
+SELF=$(readlink -f "$0")
+APPDIR=$(dirname "$SELF")
+
+export APPDIR
+export PATH="${APPDIR}/usr/bin:${PATH}"
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${APPDIR}/usr/bin:${LD_LIBRARY_PATH}"
+
+# Execute Cantus Client binary
+exec "${APPDIR}/usr/bin/Cantus.Client" "$@"

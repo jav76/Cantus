@@ -1,0 +1,64 @@
+<ContentDialog x:Class="Cantus.Client.Views.DiagnosticsHudDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:vm="using:Cantus.Client.ViewModels"
+               Title="Cantus Diagnostic Telemetry"
+               PrimaryButtonText="Close"
+               DefaultButton="Primary"
+               Background="#1E1E2D"
+               CornerRadius="16">
+
+    <StackPanel Spacing="16" MinWidth="420" Margin="0,12,0,0">
+        
+        <!-- SignalR Engine & Network -->
+        <Border Background="#15FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="10" Padding="14">
+            <StackPanel Spacing="8">
+                <TextBlock Text="SIGNALR &amp; NETWORK ENGINE" FontSize="11" FontWeight="Bold" Foreground="#94A3B8" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Status:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" Foreground="#10B981" FontWeight="Bold" FontSize="13" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Transport:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.TransportType, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="RTT / NTP Skew:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetLatencySkewText(ViewModel.RttMs, ViewModel.ClockSkewMs), Mode=OneWay}" Foreground="#8B5CF6" FontWeight="SemiBold" FontSize="13" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Server Adaptive Poller -->
+        <Border Background="#15FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="10" Padding="14">
+            <StackPanel Spacing="8">
+                <TextBlock Text="SERVER POLLER &amp; SESSIONS" FontSize="11" FontWeight="Bold" Foreground="#94A3B8" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Poller Cadence:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Connected Clients:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.ConnectedClients, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Authorized Accounts:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.AuthorizedSessionsCount, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Active Spotify Device -->
+        <Border Background="#15FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="10" Padding="14">
+            <StackPanel Spacing="8">
+                <TextBlock Text="SPOTIFY DEVICE &amp; STREAM" FontSize="11" FontWeight="Bold" Foreground="#94A3B8" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Active User:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.ActiveUserName, Mode=OneWay}" Foreground="#F8FAFC" FontWeight="SemiBold" FontSize="13" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Device:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Volume:" Foreground="#94A3B8" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetVolumeText(ViewModel.VolumePercent), Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</ContentDialog>

@@ -1,0 +1,3989 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Cantus",
+    "languages": [
+      "csharp",
+      "csproj",
+      "desktop",
+      "dockerfile",
+      "html",
+      "iss",
+      "json",
+      "markdown",
+      "props",
+      "shell",
+      "slnx",
+      "unknown",
+      "xaml",
+      "yaml"
+    ],
+    "frameworks": [
+      "ASP.NET Core",
+      "Entity Framework Core",
+      "SignalR",
+      "Uno Platform",
+      "Docker",
+      "Docker Compose",
+      "GitHub Actions"
+    ],
+    "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
+    "analyzedAt": "2026-08-23T15:24:35.958Z",
+    "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e"
+  },
+  "nodes": [
+    {
+      "id": "resource:.dockerignore",
+      "type": "resource",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "Infrastructure asset for .dockerignore.",
+      "tags": [
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Multi-stage Dockerfile packaging the ASP.NET Core server and Uno WASM frontend.",
+      "tags": [
+        "containerization",
+        "docker",
+        "deployment"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Docker Compose configuration for running Cantus server and services locally.",
+      "tags": [
+        "orchestration",
+        "docker-compose",
+        "infrastructure"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "pipeline:.github/workflows/ci.yml",
+      "type": "pipeline",
+      "name": "ci.yml",
+      "filePath": ".github/workflows/ci.yml",
+      "summary": "GitHub Actions workflow configuration for ci.",
+      "tags": [
+        "ci-cd",
+        "pipeline",
+        "automation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "pipeline:.github/workflows/release.yml",
+      "type": "pipeline",
+      "name": "release.yml",
+      "filePath": ".github/workflows/release.yml",
+      "summary": "GitHub Actions workflow configuration for release.",
+      "tags": [
+        "ci-cd",
+        "pipeline",
+        "automation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+      "type": "document",
+      "name": "ADR-001-spotify-synced-lyrics-platform.md",
+      "filePath": "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+      "summary": "Architecture Decision Record documenting decisions for ADR-001-spotify-synced-lyrics-platform.",
+      "tags": [
+        "architecture",
+        "adr",
+        "documentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+      "type": "document",
+      "name": "ADR-002-docker-containerization-and-host-configuration.md",
+      "filePath": "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+      "summary": "Architecture Decision Record documenting decisions for ADR-002-docker-containerization-and-host-configuration.",
+      "tags": [
+        "architecture",
+        "adr",
+        "documentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+      "type": "document",
+      "name": "ADR-003-ci-cd-and-release-packaging.md",
+      "filePath": "docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+      "summary": "Architecture Decision Record documenting decisions for ADR-003-ci-cd-and-release-packaging.",
+      "tags": [
+        "architecture",
+        "adr",
+        "documentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:src/Cantus.Server/Cantus.Server.csproj",
+      "type": "config",
+      "name": "Cantus.Server.csproj",
+      "filePath": "src/Cantus.Server/Cantus.Server.csproj",
+      "summary": "MSBuild project definition for Cantus.Server.",
+      "tags": [
+        "configuration",
+        "dotnet",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Server/appsettings.Development.json",
+      "type": "config",
+      "name": "appsettings.Development.json",
+      "filePath": "src/Cantus.Server/appsettings.Development.json",
+      "summary": "Application configuration settings file (appsettings.Development.json).",
+      "tags": [
+        "configuration",
+        "settings",
+        "aspnetcore"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Server/appsettings.Production.json",
+      "type": "config",
+      "name": "appsettings.Production.json",
+      "filePath": "src/Cantus.Server/appsettings.Production.json",
+      "summary": "Application configuration settings file (appsettings.Production.json).",
+      "tags": [
+        "configuration",
+        "settings",
+        "aspnetcore"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Server/appsettings.json",
+      "type": "config",
+      "name": "appsettings.json",
+      "filePath": "src/Cantus.Server/appsettings.json",
+      "summary": "Application configuration settings file (appsettings.json).",
+      "tags": [
+        "configuration",
+        "settings",
+        "aspnetcore"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.agents/skills/architecture-designer/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": ".agents/skills/architecture-designer/SKILL.md",
+      "summary": "Documentation file for SKILL.md.",
+      "tags": [
+        "documentation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.ua/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".ua/.understandignore",
+      "summary": "Source file: .understandignore.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Cantus.slnx",
+      "type": "config",
+      "name": "Cantus.slnx",
+      "filePath": "Cantus.slnx",
+      "summary": "Configuration file for Cantus.slnx.",
+      "tags": [
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/ImplementationPlan.md",
+      "type": "document",
+      "name": "ImplementationPlan.md",
+      "filePath": "docs/ImplementationPlan.md",
+      "summary": "Multi-phase implementation plan and architectural breakdown for Cantus.",
+      "tags": [
+        "planning",
+        "architecture",
+        "documentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:global.json",
+      "type": "config",
+      "name": "global.json",
+      "filePath": "global.json",
+      "summary": "Configuration file for global.json.",
+      "tags": [
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/AppRun",
+      "type": "file",
+      "name": "AppRun",
+      "filePath": "packaging/linux/AppRun",
+      "summary": "Source file: AppRun.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/build-appimage.sh",
+      "type": "file",
+      "name": "build-appimage.sh",
+      "filePath": "packaging/linux/build-appimage.sh",
+      "summary": "Automation and packaging script: build-appimage.sh.",
+      "tags": [
+        "script",
+        "packaging",
+        "linux"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packaging/linux/cantus.desktop",
+      "type": "file",
+      "name": "cantus.desktop",
+      "filePath": "packaging/linux/cantus.desktop",
+      "summary": "Source file: cantus.desktop.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/windows/installer.iss",
+      "type": "file",
+      "name": "installer.iss",
+      "filePath": "packaging/windows/installer.iss",
+      "summary": "Source file: installer.iss.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/App.xaml",
+      "type": "file",
+      "name": "App.xaml",
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml",
+      "summary": "XAML UI view declaration for App.",
+      "tags": [
+        "xaml",
+        "view",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "type": "file",
+      "name": "App.xaml.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "summary": "Code-behind companion class for App.",
+      "tags": [
+        "code-behind",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/App.xaml.cs:App",
+      "type": "class",
+      "name": "App",
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "summary": "Class App providing core functionality in App.xaml.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:OnLaunched",
+      "type": "function",
+      "name": "OnLaunched",
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "summary": "Method/function OnLaunched in App.xaml.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:InitializeLogging",
+      "type": "function",
+      "name": "InitializeLogging",
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "summary": "Method/function InitializeLogging in App.xaml.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
+      "type": "config",
+      "name": "Cantus.Client.csproj",
+      "filePath": "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
+      "summary": "MSBuild project definition for Cantus.Client.",
+      "tags": [
+        "configuration",
+        "dotnet",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/GlobalUsings.cs",
+      "type": "file",
+      "name": "GlobalUsings.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/GlobalUsings.cs",
+      "summary": "Source file: GlobalUsings.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml",
+      "type": "file",
+      "name": "MainPage.xaml",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml",
+      "summary": "XAML UI view declaration for MainPage.",
+      "tags": [
+        "xaml",
+        "view",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "type": "file",
+      "name": "MainPage.xaml.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "summary": "Code-behind companion class for MainPage.",
+      "tags": [
+        "code-behind",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+      "type": "class",
+      "name": "MainPage",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "summary": "Class MainPage providing core functionality in MainPage.xaml.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+      "type": "function",
+      "name": "MainPage",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "summary": "Method/function MainPage in MainPage.xaml.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnActiveLineChanged",
+      "type": "function",
+      "name": "OnActiveLineChanged",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "summary": "Method/function OnActiveLineChanged in MainPage.xaml.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnPageKeyDown",
+      "type": "function",
+      "name": "OnPageKeyDown",
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "summary": "Method/function OnPageKeyDown in MainPage.xaml.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "type": "file",
+      "name": "AppTheme.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "summary": "Data model / entity definition: AppTheme.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs:ColorPalette",
+      "type": "class",
+      "name": "ColorPalette",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "summary": "Class ColorPalette providing core functionality in AppTheme.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "type": "file",
+      "name": "ColorExtractionHelper.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "summary": "Helper generating dynamic complementary and background palettes from album art image metadata.",
+      "tags": [
+        "color",
+        "palette",
+        "ui",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:ColorExtractionHelper",
+      "type": "class",
+      "name": "ColorExtractionHelper",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "summary": "Class ColorExtractionHelper providing core functionality in ColorExtractionHelper.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:GeneratePaletteFromMetadata",
+      "type": "function",
+      "name": "GeneratePaletteFromMetadata",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "summary": "Method/function GeneratePaletteFromMetadata in ColorExtractionHelper.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:HslToRgb",
+      "type": "function",
+      "name": "HslToRgb",
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "summary": "Method/function HslToRgb in ColorExtractionHelper.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "type": "file",
+      "name": "Program.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "summary": "Application bootstrap entry point for Desktop.",
+      "tags": [
+        "entry-point",
+        "startup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Program",
+      "type": "class",
+      "name": "Program",
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "summary": "Class Program providing core functionality in Program.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Main",
+      "type": "function",
+      "name": "Main",
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "summary": "Method/function Main in Program.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+      "type": "file",
+      "name": "Program.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+      "summary": "Application bootstrap entry point for WebAssembly.",
+      "tags": [
+        "entry-point",
+        "startup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs:Main",
+      "type": "function",
+      "name": "Main",
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+      "summary": "Method/function Main in Program.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "type": "file",
+      "name": "SignalRPlaybackClient.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "summary": "Client-side SignalR connection manager handling automatic reconnect, NTP ping/pong synchronization, and event dispatch.",
+      "tags": [
+        "signalr",
+        "client",
+        "network",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SignalRPlaybackClient",
+      "type": "class",
+      "name": "SignalRPlaybackClient",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "summary": "Class SignalRPlaybackClient providing core functionality in SignalRPlaybackClient.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:StartAsync",
+      "type": "function",
+      "name": "StartAsync",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "summary": "Method/function StartAsync in SignalRPlaybackClient.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SyncClockAsync",
+      "type": "function",
+      "name": "SyncClockAsync",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "summary": "Method/function SyncClockAsync in SignalRPlaybackClient.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:ProcessNtpSample",
+      "type": "function",
+      "name": "ProcessNtpSample",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "summary": "Method/function ProcessNtpSample in SignalRPlaybackClient.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "type": "file",
+      "name": "ThemeManager.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "summary": "Client dynamic theme manager supporting predefined dark/light color schemes and cover art palette generation.",
+      "tags": [
+        "theme",
+        "styling",
+        "ui",
+        "singleton"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ThemeManager",
+      "type": "class",
+      "name": "ThemeManager",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "summary": "Class ThemeManager providing core functionality in ThemeManager.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:UpdateTrackMetadata",
+      "type": "function",
+      "name": "UpdateTrackMetadata",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "summary": "Method/function UpdateTrackMetadata in ThemeManager.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ApplyTheme",
+      "type": "function",
+      "name": "ApplyTheme",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "summary": "Method/function ApplyTheme in ThemeManager.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "type": "file",
+      "name": "LyricLineViewModel.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "summary": "Data model / entity definition: LyricLineViewModel.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:LyricLineViewModel",
+      "type": "class",
+      "name": "LyricLineViewModel",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "summary": "Class LyricLineViewModel providing core functionality in LyricLineViewModel.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:UpdateVisualProperties",
+      "type": "function",
+      "name": "UpdateVisualProperties",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "summary": "Method/function UpdateVisualProperties in LyricLineViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "type": "file",
+      "name": "LyricsViewModel.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Uno Platform MVVM ViewModel orchestrating real-time lyrics scrolling, theme dynamic switching, and clock synchronization.",
+      "tags": [
+        "viewmodel",
+        "mvvm",
+        "ui",
+        "client"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+      "type": "class",
+      "name": "LyricsViewModel",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Class LyricsViewModel providing core functionality in LyricsViewModel.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+      "type": "function",
+      "name": "LyricsViewModel",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function LyricsViewModel in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnPlaybackStateReceived",
+      "type": "function",
+      "name": "OnPlaybackStateReceived",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function OnPlaybackStateReceived in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnLyricsReceived",
+      "type": "function",
+      "name": "OnLyricsReceived",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function OnLyricsReceived in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnDiagnosticsReceived",
+      "type": "function",
+      "name": "OnDiagnosticsReceived",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function OnDiagnosticsReceived in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnTick",
+      "type": "function",
+      "name": "OnTick",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function OnTick in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:EvaluateInstrumentalBreak",
+      "type": "function",
+      "name": "EvaluateInstrumentalBreak",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function EvaluateInstrumentalBreak in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:FindActiveLineIndex",
+      "type": "function",
+      "name": "FindActiveLineIndex",
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "summary": "Method/function FindActiveLineIndex in LyricsViewModel.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml",
+      "type": "file",
+      "name": "DiagnosticsHudDialog.xaml",
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml",
+      "summary": "XAML UI view declaration for DiagnosticsHudDialog.",
+      "tags": [
+        "xaml",
+        "view",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "type": "file",
+      "name": "DiagnosticsHudDialog.xaml.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "summary": "Code-behind companion class for DiagnosticsHudDialog.",
+      "tags": [
+        "code-behind",
+        "ui",
+        "uno-platform"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs:DiagnosticsHudDialog",
+      "type": "class",
+      "name": "DiagnosticsHudDialog",
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "summary": "Class DiagnosticsHudDialog providing core functionality in DiagnosticsHudDialog.xaml.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/WasmScripts/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "src/Cantus.Client/Cantus.Client/WasmScripts/index.html",
+      "summary": "Source file: index.html.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Client/Directory.Build.props",
+      "type": "config",
+      "name": "Directory.Build.props",
+      "filePath": "src/Cantus.Client/Directory.Build.props",
+      "summary": "Configuration file for Directory.Build.props.",
+      "tags": [
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Client/Directory.Packages.props",
+      "type": "config",
+      "name": "Directory.Packages.props",
+      "filePath": "src/Cantus.Client/Directory.Packages.props",
+      "summary": "Configuration file for Directory.Packages.props.",
+      "tags": [
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Core/Cantus.Core.csproj",
+      "type": "config",
+      "name": "Cantus.Core.csproj",
+      "filePath": "src/Cantus.Core/Cantus.Core.csproj",
+      "summary": "MSBuild project definition for Cantus.Core.",
+      "tags": [
+        "configuration",
+        "dotnet",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "type": "file",
+      "name": "ILyricsCacheRepository.cs",
+      "filePath": "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "summary": "Contract interface definition: ILyricsCacheRepository.",
+      "tags": [
+        "interface",
+        "type-definition",
+        "contract"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs:ILyricsCacheRepository",
+      "type": "class",
+      "name": "ILyricsCacheRepository",
+      "filePath": "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "summary": "Class ILyricsCacheRepository providing core functionality in ILyricsCacheRepository.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Core/Interfaces/ILyricsProvider.cs",
+      "type": "file",
+      "name": "ILyricsProvider.cs",
+      "filePath": "src/Cantus.Core/Interfaces/ILyricsProvider.cs",
+      "summary": "Contract interface definition: ILyricsProvider.",
+      "tags": [
+        "interface",
+        "type-definition",
+        "contract"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "type": "file",
+      "name": "IPlaybackInterpolator.cs",
+      "filePath": "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "summary": "Sub-millisecond playback position clock interpolator accounting for network latency, server clock skew, and drift.",
+      "tags": [
+        "clock",
+        "interpolation",
+        "sync",
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs:IPlaybackInterpolator",
+      "type": "class",
+      "name": "IPlaybackInterpolator",
+      "filePath": "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "summary": "Class IPlaybackInterpolator providing core functionality in IPlaybackInterpolator.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "type": "file",
+      "name": "ISpotifyAuthService.cs",
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "summary": "Spotify OAuth PKCE authentication service handling code exchange, token encryption, and refresh loops.",
+      "tags": [
+        "auth",
+        "spotify",
+        "security",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs:ISpotifyAuthService",
+      "type": "class",
+      "name": "ISpotifyAuthService",
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "summary": "Class ISpotifyAuthService providing core functionality in ISpotifyAuthService.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs",
+      "type": "file",
+      "name": "ISpotifyPlayerClient.cs",
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs",
+      "summary": "Client implementation for querying current user playback state via Spotify Web API.",
+      "tags": [
+        "spotify",
+        "client",
+        "http",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Core/Models/LyricLine.cs",
+      "type": "file",
+      "name": "LyricLine.cs",
+      "filePath": "src/Cantus.Core/Models/LyricLine.cs",
+      "summary": "Data model / entity definition: LyricLine.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Models/PlaybackState.cs",
+      "type": "file",
+      "name": "PlaybackState.cs",
+      "filePath": "src/Cantus.Core/Models/PlaybackState.cs",
+      "summary": "Data model / entity definition: PlaybackState.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+      "type": "file",
+      "name": "SyncedLyrics.cs",
+      "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
+      "summary": "Data model / entity definition: SyncedLyrics.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Core/Models/SyncedLyrics.cs:SyncedLyrics",
+      "type": "class",
+      "name": "SyncedLyrics",
+      "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
+      "summary": "Class SyncedLyrics providing core functionality in SyncedLyrics.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Core/Models/SyncedLyrics.cs:GetActiveLineIndex",
+      "type": "function",
+      "name": "GetActiveLineIndex",
+      "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
+      "summary": "Method/function GetActiveLineIndex in SyncedLyrics.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Core/Models/TrackInfo.cs",
+      "type": "file",
+      "name": "TrackInfo.cs",
+      "filePath": "src/Cantus.Core/Models/TrackInfo.cs",
+      "summary": "Data model / entity definition: TrackInfo.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Models/UserSession.cs",
+      "type": "file",
+      "name": "UserSession.cs",
+      "filePath": "src/Cantus.Core/Models/UserSession.cs",
+      "summary": "Data model / entity definition: UserSession.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "type": "file",
+      "name": "LrcParser.cs",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "summary": "High-performance parser for LRC timestamped format, syllable metadata, and offset adjustment.",
+      "tags": [
+        "parser",
+        "lrc",
+        "lyrics",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Core/Parsers/LrcParser.cs:LrcParser",
+      "type": "class",
+      "name": "LrcParser",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "summary": "Class LrcParser providing core functionality in LrcParser.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Core/Parsers/LrcParser.cs:Parse",
+      "type": "function",
+      "name": "Parse",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "summary": "Method/function Parse in LrcParser.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Core/Parsers/LrcParser.cs:ParseLines",
+      "type": "function",
+      "name": "ParseLines",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "summary": "Method/function ParseLines in LrcParser.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Core/Parsers/LrcParser.cs:TryParseTimestamp",
+      "type": "function",
+      "name": "TryParseTimestamp",
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "summary": "Method/function TryParseTimestamp in LrcParser.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
+      "type": "config",
+      "name": "Cantus.Infrastructure.csproj",
+      "filePath": "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
+      "summary": "MSBuild project definition for Cantus.Infrastructure.",
+      "tags": [
+        "configuration",
+        "dotnet",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "type": "file",
+      "name": "PlaybackInterpolator.cs",
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "summary": "Sub-millisecond playback position clock interpolator accounting for network latency, server clock skew, and drift.",
+      "tags": [
+        "clock",
+        "interpolation",
+        "sync",
+        "utility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:PlaybackInterpolator",
+      "type": "class",
+      "name": "PlaybackInterpolator",
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "summary": "Class PlaybackInterpolator providing core functionality in PlaybackInterpolator.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:CalculateCurrentPosition",
+      "type": "function",
+      "name": "CalculateCurrentPosition",
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "summary": "Method/function CalculateCurrentPosition in PlaybackInterpolator.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs",
+      "type": "file",
+      "name": "PlaybackInterpolatorOptions.cs",
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs",
+      "summary": "Source file: PlaybackInterpolatorOptions.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/DependencyInjection.cs",
+      "type": "file",
+      "name": "DependencyInjection.cs",
+      "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
+      "summary": "Source file: DependencyInjection.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/DependencyInjection.cs:DependencyInjection",
+      "type": "class",
+      "name": "DependencyInjection",
+      "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
+      "summary": "Class DependencyInjection providing core functionality in DependencyInjection.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/DependencyInjection.cs:AddCantusInfrastructure",
+      "type": "function",
+      "name": "AddCantusInfrastructure",
+      "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
+      "summary": "Method/function AddCantusInfrastructure in DependencyInjection.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "type": "file",
+      "name": "CachedLyricsService.cs",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "summary": "Lyrics coordination service checking local SQLite cache before fetching external lyrics from LRCLIB.",
+      "tags": [
+        "lyrics",
+        "cache",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+      "type": "class",
+      "name": "CachedLyricsService",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "summary": "Class CachedLyricsService providing core functionality in CachedLyricsService.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+      "type": "function",
+      "name": "CachedLyricsService",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "summary": "Method/function CachedLyricsService in CachedLyricsService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:GetLyricsAsync",
+      "type": "function",
+      "name": "GetLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "summary": "Method/function GetLyricsAsync in CachedLyricsService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "type": "file",
+      "name": "LrclibLyricsProvider.cs",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Provider fetching synchronized and plain lyrics from LRCLIB API with title/artist fuzzy fallback matching.",
+      "tags": [
+        "lyrics",
+        "lrclib",
+        "provider",
+        "http"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+      "type": "class",
+      "name": "LrclibLyricsProvider",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Class LrclibLyricsProvider providing core functionality in LrclibLyricsProvider.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+      "type": "function",
+      "name": "LrclibLyricsProvider",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Method/function LrclibLyricsProvider in LrclibLyricsProvider.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:GetLyricsAsync",
+      "type": "function",
+      "name": "GetLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Method/function GetLyricsAsync in LrclibLyricsProvider.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TryGetExactLyricsAsync",
+      "type": "function",
+      "name": "TryGetExactLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Method/function TryGetExactLyricsAsync in LrclibLyricsProvider.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TrySearchLyricsAsync",
+      "type": "function",
+      "name": "TrySearchLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Method/function TrySearchLyricsAsync in LrclibLyricsProvider.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:MapToDomain",
+      "type": "function",
+      "name": "MapToDomain",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "summary": "Method/function MapToDomain in LrclibLyricsProvider.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs",
+      "type": "file",
+      "name": "LrclibOptions.cs",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs",
+      "summary": "Source file: LrclibOptions.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "type": "file",
+      "name": "SqliteLyricsCacheRepository.cs",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "SQLite EF Core repository caching synced and plain lyrics, negative lookups, and per-track latency offsets.",
+      "tags": [
+        "database",
+        "sqlite",
+        "caching",
+        "efcore"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SqliteLyricsCacheRepository",
+      "type": "class",
+      "name": "SqliteLyricsCacheRepository",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Class SqliteLyricsCacheRepository providing core functionality in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetCachedLyricsAsync",
+      "type": "function",
+      "name": "GetCachedLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function GetCachedLyricsAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:IsMarkedNotFoundAsync",
+      "type": "function",
+      "name": "IsMarkedNotFoundAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function IsMarkedNotFoundAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SaveLyricsAsync",
+      "type": "function",
+      "name": "SaveLyricsAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function SaveLyricsAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:MarkNotFoundAsync",
+      "type": "function",
+      "name": "MarkNotFoundAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function MarkNotFoundAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetTrackOffsetAsync",
+      "type": "function",
+      "name": "GetTrackOffsetAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function GetTrackOffsetAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SetTrackOffsetAsync",
+      "type": "function",
+      "name": "SetTrackOffsetAsync",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function SetTrackOffsetAsync in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GenerateRawLrc",
+      "type": "function",
+      "name": "GenerateRawLrc",
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "summary": "Method/function GenerateRawLrc in SqliteLyricsCacheRepository.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "type": "file",
+      "name": "20260823130609_InitialCreate.Designer.cs",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "summary": "Source file: 20260823130609_InitialCreate.Designer.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:InitialCreate",
+      "type": "class",
+      "name": "InitialCreate",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "summary": "Class InitialCreate providing core functionality in 20260823130609_InitialCreate.Designer.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:BuildTargetModel",
+      "type": "function",
+      "name": "BuildTargetModel",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "summary": "Method/function BuildTargetModel in 20260823130609_InitialCreate.Designer.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "type": "file",
+      "name": "20260823130609_InitialCreate.cs",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "summary": "Source file: 20260823130609_InitialCreate.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:InitialCreate",
+      "type": "class",
+      "name": "InitialCreate",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "summary": "Class InitialCreate providing core functionality in 20260823130609_InitialCreate.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Up",
+      "type": "function",
+      "name": "Up",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "summary": "Method/function Up in 20260823130609_InitialCreate.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Down",
+      "type": "function",
+      "name": "Down",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "summary": "Method/function Down in 20260823130609_InitialCreate.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "type": "file",
+      "name": "CantusDbContextModelSnapshot.cs",
+      "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "summary": "Source file: CantusDbContextModelSnapshot.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:CantusDbContextModelSnapshot",
+      "type": "class",
+      "name": "CantusDbContextModelSnapshot",
+      "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "summary": "Class CantusDbContextModelSnapshot providing core functionality in CantusDbContextModelSnapshot.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:BuildModel",
+      "type": "function",
+      "name": "BuildModel",
+      "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "summary": "Method/function BuildModel in CantusDbContextModelSnapshot.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "type": "file",
+      "name": "CantusDbContext.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "summary": "Entity Framework Core database context for UserSessions, CachedLyrics, TrackOffsets, and Rooms.",
+      "tags": [
+        "database",
+        "efcore",
+        "persistence",
+        "orm"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:CantusDbContext",
+      "type": "class",
+      "name": "CantusDbContext",
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "summary": "Class CantusDbContext providing core functionality in CantusDbContext.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:OnModelCreating",
+      "type": "function",
+      "name": "OnModelCreating",
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "summary": "Method/function OnModelCreating in CantusDbContext.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs",
+      "type": "file",
+      "name": "CantusDbContextFactory.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs",
+      "summary": "Source file: CantusDbContextFactory.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "type": "file",
+      "name": "CachedLyricsEntity.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "summary": "Data model / entity definition: CachedLyricsEntity.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs:CachedLyricsEntity",
+      "type": "class",
+      "name": "CachedLyricsEntity",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "summary": "Class CachedLyricsEntity providing core functionality in CachedLyricsEntity.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs",
+      "type": "file",
+      "name": "RoomEntity.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs",
+      "summary": "Data model / entity definition: RoomEntity.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs",
+      "type": "file",
+      "name": "TrackOffsetEntity.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs",
+      "summary": "Data model / entity definition: TrackOffsetEntity.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs",
+      "type": "file",
+      "name": "UserSessionEntity.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs",
+      "summary": "Data model / entity definition: UserSessionEntity.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "type": "file",
+      "name": "DataProtectionTokenEncryptionService.cs",
+      "filePath": "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "summary": "Encryption service securing OAuth refresh tokens at rest using ASP.NET Core Data Protection.",
+      "tags": [
+        "security",
+        "encryption",
+        "dataprotection"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs:DataProtectionTokenEncryptionService",
+      "type": "class",
+      "name": "DataProtectionTokenEncryptionService",
+      "filePath": "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "summary": "Class DataProtectionTokenEncryptionService providing core functionality in DataProtectionTokenEncryptionService.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "type": "file",
+      "name": "ITokenEncryptionService.cs",
+      "filePath": "src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "summary": "Source file: ITokenEncryptionService.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs:ITokenEncryptionService",
+      "type": "class",
+      "name": "ITokenEncryptionService",
+      "filePath": "src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "summary": "Class ITokenEncryptionService providing core functionality in ITokenEncryptionService.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "type": "file",
+      "name": "SpotifyAuthService.cs",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Spotify OAuth PKCE authentication service handling code exchange, token encryption, and refresh loops.",
+      "tags": [
+        "auth",
+        "spotify",
+        "security",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+      "type": "class",
+      "name": "SpotifyAuthService",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Class SpotifyAuthService providing core functionality in SpotifyAuthService.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+      "type": "function",
+      "name": "SpotifyAuthService",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function SpotifyAuthService in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAuthorizationUri",
+      "type": "function",
+      "name": "GetAuthorizationUri",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function GetAuthorizationUri in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:ExchangeCodeAsync",
+      "type": "function",
+      "name": "ExchangeCodeAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function ExchangeCodeAsync in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RefreshTokenAsync",
+      "type": "function",
+      "name": "RefreshTokenAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function RefreshTokenAsync in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetSessionAsync",
+      "type": "function",
+      "name": "GetSessionAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function GetSessionAsync in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAllSessionsAsync",
+      "type": "function",
+      "name": "GetAllSessionsAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function GetAllSessionsAsync in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RevokeSessionAsync",
+      "type": "function",
+      "name": "RevokeSessionAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "summary": "Method/function RevokeSessionAsync in SpotifyAuthService.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs",
+      "type": "file",
+      "name": "SpotifyOptions.cs",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs",
+      "summary": "Source file: SpotifyOptions.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "type": "file",
+      "name": "SpotifyPlayerClient.cs",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "summary": "Client implementation for querying current user playback state via Spotify Web API.",
+      "tags": [
+        "spotify",
+        "client",
+        "http",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:SpotifyPlayerClient",
+      "type": "class",
+      "name": "SpotifyPlayerClient",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "summary": "Class SpotifyPlayerClient providing core functionality in SpotifyPlayerClient.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:GetCurrentPlaybackAsync",
+      "type": "function",
+      "name": "GetCurrentPlaybackAsync",
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "summary": "Method/function GetCurrentPlaybackAsync in SpotifyPlayerClient.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "type": "file",
+      "name": "ActiveUsersPlaybackMonitor.cs",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Background worker polling Spotify Web API for active users, detecting track transitions, and broadcasting playback state.",
+      "tags": [
+        "background-service",
+        "spotify",
+        "poller",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+      "type": "class",
+      "name": "ActiveUsersPlaybackMonitor",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Class ActiveUsersPlaybackMonitor providing core functionality in ActiveUsersPlaybackMonitor.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+      "type": "function",
+      "name": "ActiveUsersPlaybackMonitor",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Method/function ActiveUsersPlaybackMonitor in ActiveUsersPlaybackMonitor.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ExecuteAsync",
+      "type": "function",
+      "name": "ExecuteAsync",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Method/function ExecuteAsync in ActiveUsersPlaybackMonitor.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:PollActiveSessionsAsync",
+      "type": "function",
+      "name": "PollActiveSessionsAsync",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Method/function PollActiveSessionsAsync in ActiveUsersPlaybackMonitor.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:BroadcastDiagnosticsAsync",
+      "type": "function",
+      "name": "BroadcastDiagnosticsAsync",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "summary": "Method/function BroadcastDiagnosticsAsync in ActiveUsersPlaybackMonitor.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs",
+      "type": "file",
+      "name": "PlaybackPollerOptions.cs",
+      "filePath": "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs",
+      "summary": "Source file: PlaybackPollerOptions.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "type": "file",
+      "name": "AuthEndpoints.cs",
+      "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "summary": "Minimal API route endpoints for Spotify OAuth login redirect, callback exchange, session status, and revocation.",
+      "tags": [
+        "api-handler",
+        "endpoints",
+        "auth",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Server/Endpoints/AuthEndpoints.cs:AuthEndpoints",
+      "type": "class",
+      "name": "AuthEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "summary": "Class AuthEndpoints providing core functionality in AuthEndpoints.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/Endpoints/AuthEndpoints.cs:MapAuthEndpoints",
+      "type": "function",
+      "name": "MapAuthEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "summary": "Method/function MapAuthEndpoints in AuthEndpoints.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "type": "file",
+      "name": "LyricsEndpoints.cs",
+      "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "summary": "Minimal API route endpoints for querying track lyrics and updating track latency offsets.",
+      "tags": [
+        "api-handler",
+        "endpoints",
+        "lyrics",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:LyricsEndpoints",
+      "type": "class",
+      "name": "LyricsEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "summary": "Class LyricsEndpoints providing core functionality in LyricsEndpoints.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:MapLyricsEndpoints",
+      "type": "function",
+      "name": "MapLyricsEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "summary": "Method/function MapLyricsEndpoints in LyricsEndpoints.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "type": "file",
+      "name": "IPlaybackClient.cs",
+      "filePath": "src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "summary": "Source file: IPlaybackClient.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Server/Hubs/IPlaybackClient.cs:IPlaybackClient",
+      "type": "class",
+      "name": "IPlaybackClient",
+      "filePath": "src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "summary": "Class IPlaybackClient providing core functionality in IPlaybackClient.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "type": "file",
+      "name": "PlaybackHub.cs",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "SignalR hub managing real-time playback broadcasting, clock synchronization NTP round-trips, and room subscriptions.",
+      "tags": [
+        "signalr",
+        "hub",
+        "real-time",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+      "type": "class",
+      "name": "PlaybackHub",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "Class PlaybackHub providing core functionality in PlaybackHub.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+      "type": "function",
+      "name": "PlaybackHub",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "Method/function PlaybackHub in PlaybackHub.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:OnConnectedAsync",
+      "type": "function",
+      "name": "OnConnectedAsync",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "Method/function OnConnectedAsync in PlaybackHub.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SubscribeToUser",
+      "type": "function",
+      "name": "SubscribeToUser",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "Method/function SubscribeToUser in PlaybackHub.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SetTrackOffset",
+      "type": "function",
+      "name": "SetTrackOffset",
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "summary": "Method/function SetTrackOffset in PlaybackHub.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/AuthorizedSessionDto.cs",
+      "type": "file",
+      "name": "AuthorizedSessionDto.cs",
+      "filePath": "src/Cantus.Server/Models/AuthorizedSessionDto.cs",
+      "summary": "Data model / entity definition: AuthorizedSessionDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/ClockSyncDto.cs",
+      "type": "file",
+      "name": "ClockSyncDto.cs",
+      "filePath": "src/Cantus.Server/Models/ClockSyncDto.cs",
+      "summary": "Data model / entity definition: ClockSyncDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/DiagnosticsDto.cs",
+      "type": "file",
+      "name": "DiagnosticsDto.cs",
+      "filePath": "src/Cantus.Server/Models/DiagnosticsDto.cs",
+      "summary": "Data model / entity definition: DiagnosticsDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "type": "file",
+      "name": "DtoMappingExtensions.cs",
+      "filePath": "src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "summary": "Data model / entity definition: DtoMappingExtensions.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Server/Models/DtoMappingExtensions.cs:DtoMappingExtensions",
+      "type": "class",
+      "name": "DtoMappingExtensions",
+      "filePath": "src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "summary": "Class DtoMappingExtensions providing core functionality in DtoMappingExtensions.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Models/DtoMappingExtensions.cs:ToDto",
+      "type": "function",
+      "name": "ToDto",
+      "filePath": "src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "summary": "Method/function ToDto in DtoMappingExtensions.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/LyricLineDto.cs",
+      "type": "file",
+      "name": "LyricLineDto.cs",
+      "filePath": "src/Cantus.Server/Models/LyricLineDto.cs",
+      "summary": "Data model / entity definition: LyricLineDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/LyricsDto.cs",
+      "type": "file",
+      "name": "LyricsDto.cs",
+      "filePath": "src/Cantus.Server/Models/LyricsDto.cs",
+      "summary": "Data model / entity definition: LyricsDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/PlaybackStateDto.cs",
+      "type": "file",
+      "name": "PlaybackStateDto.cs",
+      "filePath": "src/Cantus.Server/Models/PlaybackStateDto.cs",
+      "summary": "Data model / entity definition: PlaybackStateDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/TrackInfoDto.cs",
+      "type": "file",
+      "name": "TrackInfoDto.cs",
+      "filePath": "src/Cantus.Server/Models/TrackInfoDto.cs",
+      "summary": "Data model / entity definition: TrackInfoDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Models/TrackOffsetDto.cs",
+      "type": "file",
+      "name": "TrackOffsetDto.cs",
+      "filePath": "src/Cantus.Server/Models/TrackOffsetDto.cs",
+      "summary": "Data model / entity definition: TrackOffsetDto.",
+      "tags": [
+        "data-model",
+        "domain",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Program.cs",
+      "type": "file",
+      "name": "Program.cs",
+      "filePath": "src/Cantus.Server/Program.cs",
+      "summary": "Server bootstrap entry point configuring ASP.NET Core DI container, middleware pipeline, SignalR hubs, and endpoints.",
+      "tags": [
+        "entry-point",
+        "startup",
+        "aspnetcore"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+      "type": "file",
+      "name": "HostUrlResolver.cs",
+      "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
+      "summary": "Dynamically resolves server host base URL and Spotify redirect URI from HTTP headers and configuration.",
+      "tags": [
+        "network",
+        "resolver",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Server/Services/HostUrlResolver.cs:HostUrlResolver",
+      "type": "class",
+      "name": "HostUrlResolver",
+      "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
+      "summary": "Class HostUrlResolver providing core functionality in HostUrlResolver.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveBaseUrl",
+      "type": "function",
+      "name": "ResolveBaseUrl",
+      "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
+      "summary": "Method/function ResolveBaseUrl in HostUrlResolver.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveSpotifyRedirectUri",
+      "type": "function",
+      "name": "ResolveSpotifyRedirectUri",
+      "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
+      "summary": "Method/function ResolveSpotifyRedirectUri in HostUrlResolver.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "type": "file",
+      "name": "IHostUrlResolver.cs",
+      "filePath": "src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "summary": "Dynamically resolves server host base URL and Spotify redirect URI from HTTP headers and configuration.",
+      "tags": [
+        "network",
+        "resolver",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/Cantus.Server/Services/IHostUrlResolver.cs:IHostUrlResolver",
+      "type": "class",
+      "name": "IHostUrlResolver",
+      "filePath": "src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "summary": "Class IHostUrlResolver providing core functionality in IHostUrlResolver.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "type": "file",
+      "name": "IPlaybackSessionRegistry.cs",
+      "filePath": "src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "summary": "Thread-safe in-memory session registry tracking connected SignalR clients, subscriptions, and active user playback states.",
+      "tags": [
+        "state",
+        "registry",
+        "concurrency",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs:IPlaybackSessionRegistry",
+      "type": "class",
+      "name": "IPlaybackSessionRegistry",
+      "filePath": "src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "summary": "Class IPlaybackSessionRegistry providing core functionality in IPlaybackSessionRegistry.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/PkceHelper.cs",
+      "type": "file",
+      "name": "PkceHelper.cs",
+      "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
+      "summary": "Source file: PkceHelper.cs.",
+      "tags": [
+        "code"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Server/Services/PkceHelper.cs:PkceHelper",
+      "type": "class",
+      "name": "PkceHelper",
+      "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
+      "summary": "Class PkceHelper providing core functionality in PkceHelper.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "type": "file",
+      "name": "PlaybackSessionRegistry.cs",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Thread-safe in-memory session registry tracking connected SignalR clients, subscriptions, and active user playback states.",
+      "tags": [
+        "state",
+        "registry",
+        "concurrency",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:PlaybackSessionRegistry",
+      "type": "class",
+      "name": "PlaybackSessionRegistry",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Class PlaybackSessionRegistry providing core functionality in PlaybackSessionRegistry.cs.",
+      "tags": [
+        "class",
+        "component"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:RegisterConnection",
+      "type": "function",
+      "name": "RegisterConnection",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Method/function RegisterConnection in PlaybackSessionRegistry.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UnregisterConnection",
+      "type": "function",
+      "name": "UnregisterConnection",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Method/function UnregisterConnection in PlaybackSessionRegistry.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UpdateUserState",
+      "type": "function",
+      "name": "UpdateUserState",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Method/function UpdateUserState in PlaybackSessionRegistry.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:GetActivePlaybackSnapshot",
+      "type": "function",
+      "name": "GetActivePlaybackSnapshot",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "summary": "Method/function GetActivePlaybackSnapshot in PlaybackSessionRegistry.cs.",
+      "tags": [
+        "function",
+        "method"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:Dockerfile",
+      "target": "file:src/Cantus.Server/Program.cs",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "pipeline:.github/workflows/ci.yml",
+      "target": "file:src/Cantus.Server/Program.cs",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "pipeline:.github/workflows/release.yml",
+      "target": "file:src/Cantus.Server/Program.cs",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/App.xaml.cs:App",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/App.xaml.cs:App",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:OnLaunched",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:InitializeLogging",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnActiveLineChanged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnPageKeyDown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs:ColorPalette",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs:ColorPalette",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:ColorExtractionHelper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:ColorExtractionHelper",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:GeneratePaletteFromMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:HslToRgb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Program",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Program",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs:Main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SignalRPlaybackClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SignalRPlaybackClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:StartAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SyncClockAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:ProcessNtpSample",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ThemeManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ThemeManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:UpdateTrackMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ApplyTheme",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:LyricLineViewModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:LyricLineViewModel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:UpdateVisualProperties",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnPlaybackStateReceived",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnLyricsReceived",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnDiagnosticsReceived",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnTick",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:EvaluateInstrumentalBreak",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "target": "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:FindActiveLineIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs:DiagnosticsHudDialog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "target": "class:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs:DiagnosticsHudDialog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "target": "class:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs:ILyricsCacheRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "target": "class:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs:ILyricsCacheRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "target": "class:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs:IPlaybackInterpolator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "target": "class:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs:IPlaybackInterpolator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "target": "class:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs:ISpotifyAuthService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "target": "class:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs:ISpotifyAuthService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+      "target": "class:src/Cantus.Core/Models/SyncedLyrics.cs:SyncedLyrics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+      "target": "class:src/Cantus.Core/Models/SyncedLyrics.cs:SyncedLyrics",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+      "target": "function:src/Cantus.Core/Models/SyncedLyrics.cs:GetActiveLineIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "target": "class:src/Cantus.Core/Parsers/LrcParser.cs:LrcParser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "target": "class:src/Cantus.Core/Parsers/LrcParser.cs:LrcParser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "target": "function:src/Cantus.Core/Parsers/LrcParser.cs:Parse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "target": "function:src/Cantus.Core/Parsers/LrcParser.cs:ParseLines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Core/Parsers/LrcParser.cs",
+      "target": "function:src/Cantus.Core/Parsers/LrcParser.cs:TryParseTimestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "target": "class:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:PlaybackInterpolator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "target": "class:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:PlaybackInterpolator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "target": "function:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:CalculateCurrentPosition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/DependencyInjection.cs",
+      "target": "class:src/Cantus.Infrastructure/DependencyInjection.cs:DependencyInjection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/DependencyInjection.cs",
+      "target": "class:src/Cantus.Infrastructure/DependencyInjection.cs:DependencyInjection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/DependencyInjection.cs",
+      "target": "function:src/Cantus.Infrastructure/DependencyInjection.cs:AddCantusInfrastructure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:GetLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:GetLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TryGetExactLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TrySearchLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:MapToDomain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SqliteLyricsCacheRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "class:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SqliteLyricsCacheRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetCachedLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:IsMarkedNotFoundAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SaveLyricsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:MarkNotFoundAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetTrackOffsetAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SetTrackOffsetAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "target": "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GenerateRawLrc",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:InitialCreate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:InitialCreate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "target": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:BuildTargetModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:InitialCreate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:InitialCreate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "target": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Up",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "target": "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Down",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:CantusDbContextModelSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "target": "class:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:CantusDbContextModelSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "target": "function:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:BuildModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "target": "class:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:CantusDbContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "target": "class:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:CantusDbContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "target": "function:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:OnModelCreating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "target": "class:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs:CachedLyricsEntity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "target": "class:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs:CachedLyricsEntity",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "target": "class:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs:DataProtectionTokenEncryptionService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "target": "class:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs:DataProtectionTokenEncryptionService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "target": "class:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs:ITokenEncryptionService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "target": "class:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs:ITokenEncryptionService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "class:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "class:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAuthorizationUri",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:ExchangeCodeAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RefreshTokenAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetSessionAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAllSessionsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RevokeSessionAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "target": "class:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:SpotifyPlayerClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "target": "class:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:SpotifyPlayerClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "target": "function:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:GetCurrentPlaybackAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "class:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "class:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ExecuteAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:PollActiveSessionsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "target": "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:BroadcastDiagnosticsAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/AuthEndpoints.cs:AuthEndpoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/AuthEndpoints.cs:AuthEndpoints",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "target": "function:src/Cantus.Server/Endpoints/AuthEndpoints.cs:MapAuthEndpoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:LyricsEndpoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:LyricsEndpoints",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "target": "function:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:MapLyricsEndpoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "target": "class:src/Cantus.Server/Hubs/IPlaybackClient.cs:IPlaybackClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "target": "class:src/Cantus.Server/Hubs/IPlaybackClient.cs:IPlaybackClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "class:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "class:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:OnConnectedAsync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SubscribeToUser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "target": "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SetTrackOffset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "target": "class:src/Cantus.Server/Models/DtoMappingExtensions.cs:DtoMappingExtensions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "target": "class:src/Cantus.Server/Models/DtoMappingExtensions.cs:DtoMappingExtensions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "target": "function:src/Cantus.Server/Models/DtoMappingExtensions.cs:ToDto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+      "target": "class:src/Cantus.Server/Services/HostUrlResolver.cs:HostUrlResolver",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+      "target": "class:src/Cantus.Server/Services/HostUrlResolver.cs:HostUrlResolver",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+      "target": "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveBaseUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+      "target": "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveSpotifyRedirectUri",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "target": "class:src/Cantus.Server/Services/IHostUrlResolver.cs:IHostUrlResolver",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "target": "class:src/Cantus.Server/Services/IHostUrlResolver.cs:IHostUrlResolver",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "target": "class:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs:IPlaybackSessionRegistry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "target": "class:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs:IPlaybackSessionRegistry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PkceHelper.cs",
+      "target": "class:src/Cantus.Server/Services/PkceHelper.cs:PkceHelper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PkceHelper.cs",
+      "target": "class:src/Cantus.Server/Services/PkceHelper.cs:PkceHelper",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "class:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:PlaybackSessionRegistry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "class:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:PlaybackSessionRegistry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:RegisterConnection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UnregisterConnection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UpdateUserState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "target": "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:GetActivePlaybackSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:client-ui",
+      "name": "Client Presentation (Uno Platform)",
+      "description": "Cross-platform UI views, ViewModels, dynamic theming, and real-time SignalR playback client.",
+      "nodeIds": [
+        "file:src/Cantus.Client/Cantus.Client/App.xaml",
+        "file:src/Cantus.Client/Cantus.Client/App.xaml.cs",
+        "class:src/Cantus.Client/Cantus.Client/App.xaml.cs:App",
+        "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:OnLaunched",
+        "function:src/Cantus.Client/Cantus.Client/App.xaml.cs:InitializeLogging",
+        "file:src/Cantus.Client/Cantus.Client/GlobalUsings.cs",
+        "file:src/Cantus.Client/Cantus.Client/MainPage.xaml",
+        "file:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+        "class:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+        "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:MainPage",
+        "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnActiveLineChanged",
+        "function:src/Cantus.Client/Cantus.Client/MainPage.xaml.cs:OnPageKeyDown",
+        "file:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+        "class:src/Cantus.Client/Cantus.Client/Models/AppTheme.cs:ColorPalette",
+        "file:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+        "class:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:ColorExtractionHelper",
+        "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:GeneratePaletteFromMetadata",
+        "function:src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:HslToRgb",
+        "file:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+        "class:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Program",
+        "function:src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs:Main",
+        "file:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+        "function:src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs:Main",
+        "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+        "class:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SignalRPlaybackClient",
+        "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:StartAsync",
+        "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:SyncClockAsync",
+        "function:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:ProcessNtpSample",
+        "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+        "class:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ThemeManager",
+        "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:UpdateTrackMetadata",
+        "function:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs:ApplyTheme",
+        "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+        "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:LyricLineViewModel",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs:UpdateVisualProperties",
+        "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+        "class:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:LyricsViewModel",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnPlaybackStateReceived",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnLyricsReceived",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnDiagnosticsReceived",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:OnTick",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:EvaluateInstrumentalBreak",
+        "function:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:FindActiveLineIndex",
+        "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml",
+        "file:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+        "class:src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs:DiagnosticsHudDialog",
+        "file:src/Cantus.Client/Cantus.Client/WasmScripts/index.html"
+      ]
+    },
+    {
+      "id": "layer:server-api",
+      "name": "Server Engine & Real-Time Hub",
+      "description": "ASP.NET Core Minimal APIs, SignalR PlaybackHub, active background poller, and session registry.",
+      "nodeIds": [
+        "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+        "class:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+        "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ActiveUsersPlaybackMonitor",
+        "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:ExecuteAsync",
+        "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:PollActiveSessionsAsync",
+        "function:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:BroadcastDiagnosticsAsync",
+        "file:src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs",
+        "file:src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+        "class:src/Cantus.Server/Endpoints/AuthEndpoints.cs:AuthEndpoints",
+        "function:src/Cantus.Server/Endpoints/AuthEndpoints.cs:MapAuthEndpoints",
+        "file:src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+        "class:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:LyricsEndpoints",
+        "function:src/Cantus.Server/Endpoints/LyricsEndpoints.cs:MapLyricsEndpoints",
+        "file:src/Cantus.Server/Hubs/IPlaybackClient.cs",
+        "class:src/Cantus.Server/Hubs/IPlaybackClient.cs:IPlaybackClient",
+        "file:src/Cantus.Server/Hubs/PlaybackHub.cs",
+        "class:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+        "function:src/Cantus.Server/Hubs/PlaybackHub.cs:PlaybackHub",
+        "function:src/Cantus.Server/Hubs/PlaybackHub.cs:OnConnectedAsync",
+        "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SubscribeToUser",
+        "function:src/Cantus.Server/Hubs/PlaybackHub.cs:SetTrackOffset",
+        "file:src/Cantus.Server/Models/AuthorizedSessionDto.cs",
+        "file:src/Cantus.Server/Models/ClockSyncDto.cs",
+        "file:src/Cantus.Server/Models/DiagnosticsDto.cs",
+        "file:src/Cantus.Server/Models/DtoMappingExtensions.cs",
+        "class:src/Cantus.Server/Models/DtoMappingExtensions.cs:DtoMappingExtensions",
+        "function:src/Cantus.Server/Models/DtoMappingExtensions.cs:ToDto",
+        "file:src/Cantus.Server/Models/LyricLineDto.cs",
+        "file:src/Cantus.Server/Models/LyricsDto.cs",
+        "file:src/Cantus.Server/Models/PlaybackStateDto.cs",
+        "file:src/Cantus.Server/Models/TrackInfoDto.cs",
+        "file:src/Cantus.Server/Models/TrackOffsetDto.cs",
+        "file:src/Cantus.Server/Program.cs",
+        "file:src/Cantus.Server/Services/HostUrlResolver.cs",
+        "class:src/Cantus.Server/Services/HostUrlResolver.cs:HostUrlResolver",
+        "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveBaseUrl",
+        "function:src/Cantus.Server/Services/HostUrlResolver.cs:ResolveSpotifyRedirectUri",
+        "file:src/Cantus.Server/Services/IHostUrlResolver.cs",
+        "class:src/Cantus.Server/Services/IHostUrlResolver.cs:IHostUrlResolver",
+        "file:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+        "class:src/Cantus.Server/Services/IPlaybackSessionRegistry.cs:IPlaybackSessionRegistry",
+        "file:src/Cantus.Server/Services/PkceHelper.cs",
+        "class:src/Cantus.Server/Services/PkceHelper.cs:PkceHelper",
+        "file:src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+        "class:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:PlaybackSessionRegistry",
+        "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:RegisterConnection",
+        "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UnregisterConnection",
+        "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:UpdateUserState",
+        "function:src/Cantus.Server/Services/PlaybackSessionRegistry.cs:GetActivePlaybackSnapshot"
+      ]
+    },
+    {
+      "id": "layer:core-domain",
+      "name": "Core Domain Contracts & Models",
+      "description": "Domain models (PlaybackState, SyncedLyrics, LyricLine), parser algorithms (LrcParser), and repository interfaces.",
+      "nodeIds": [
+        "file:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+        "class:src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs:ILyricsCacheRepository",
+        "file:src/Cantus.Core/Interfaces/ILyricsProvider.cs",
+        "file:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+        "class:src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs:IPlaybackInterpolator",
+        "file:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+        "class:src/Cantus.Core/Interfaces/ISpotifyAuthService.cs:ISpotifyAuthService",
+        "file:src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs",
+        "file:src/Cantus.Core/Models/LyricLine.cs",
+        "file:src/Cantus.Core/Models/PlaybackState.cs",
+        "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+        "class:src/Cantus.Core/Models/SyncedLyrics.cs:SyncedLyrics",
+        "function:src/Cantus.Core/Models/SyncedLyrics.cs:GetActiveLineIndex",
+        "file:src/Cantus.Core/Models/TrackInfo.cs",
+        "file:src/Cantus.Core/Models/UserSession.cs",
+        "file:src/Cantus.Core/Parsers/LrcParser.cs",
+        "class:src/Cantus.Core/Parsers/LrcParser.cs:LrcParser",
+        "function:src/Cantus.Core/Parsers/LrcParser.cs:Parse",
+        "function:src/Cantus.Core/Parsers/LrcParser.cs:ParseLines",
+        "function:src/Cantus.Core/Parsers/LrcParser.cs:TryParseTimestamp"
+      ]
+    },
+    {
+      "id": "layer:infrastructure-persistence",
+      "name": "Infrastructure & External Services",
+      "description": "Spotify OAuth/Web API clients, LRCLIB lyrics provider, SQLite EF Core database persistence, and token encryption.",
+      "nodeIds": [
+        "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+        "class:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:PlaybackInterpolator",
+        "function:src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs:CalculateCurrentPosition",
+        "file:src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs",
+        "file:src/Cantus.Infrastructure/DependencyInjection.cs",
+        "class:src/Cantus.Infrastructure/DependencyInjection.cs:DependencyInjection",
+        "function:src/Cantus.Infrastructure/DependencyInjection.cs:AddCantusInfrastructure",
+        "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+        "class:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+        "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:CachedLyricsService",
+        "function:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs:GetLyricsAsync",
+        "file:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+        "class:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+        "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:LrclibLyricsProvider",
+        "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:GetLyricsAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TryGetExactLyricsAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:TrySearchLyricsAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs:MapToDomain",
+        "file:src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs",
+        "file:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+        "class:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SqliteLyricsCacheRepository",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetCachedLyricsAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:IsMarkedNotFoundAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SaveLyricsAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:MarkNotFoundAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GetTrackOffsetAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:SetTrackOffsetAsync",
+        "function:src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs:GenerateRawLrc",
+        "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+        "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:InitialCreate",
+        "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs:BuildTargetModel",
+        "file:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+        "class:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:InitialCreate",
+        "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Up",
+        "function:src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs:Down",
+        "file:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+        "class:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:CantusDbContextModelSnapshot",
+        "function:src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs:BuildModel",
+        "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+        "class:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:CantusDbContext",
+        "function:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs:OnModelCreating",
+        "file:src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs",
+        "file:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+        "class:src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs:CachedLyricsEntity",
+        "file:src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs",
+        "file:src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs",
+        "file:src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs",
+        "file:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+        "class:src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs:DataProtectionTokenEncryptionService",
+        "file:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+        "class:src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs:ITokenEncryptionService",
+        "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+        "class:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:SpotifyAuthService",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAuthorizationUri",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:ExchangeCodeAsync",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RefreshTokenAsync",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetSessionAsync",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:GetAllSessionsAsync",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs:RevokeSessionAsync",
+        "file:src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs",
+        "file:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+        "class:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:SpotifyPlayerClient",
+        "function:src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs:GetCurrentPlaybackAsync"
+      ]
+    },
+    {
+      "id": "layer:devops-config",
+      "name": "DevOps, Build & Architecture Documentation",
+      "description": "Containerization (Docker), CI/CD release automation, project configuration, and ADR documentation.",
+      "nodeIds": [
+        "resource:.dockerignore",
+        "service:Dockerfile",
+        "service:docker-compose.yml",
+        "pipeline:.github/workflows/ci.yml",
+        "pipeline:.github/workflows/release.yml",
+        "document:docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+        "document:docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+        "document:docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+        "config:src/Cantus.Server/Cantus.Server.csproj",
+        "config:src/Cantus.Server/appsettings.Development.json",
+        "config:src/Cantus.Server/appsettings.Production.json",
+        "config:src/Cantus.Server/appsettings.json",
+        "document:.agents/skills/architecture-designer/SKILL.md",
+        "file:.ua/.understandignore",
+        "config:Cantus.slnx",
+        "document:docs/ImplementationPlan.md",
+        "config:global.json",
+        "file:packaging/linux/AppRun",
+        "file:packaging/linux/build-appimage.sh",
+        "file:packaging/linux/cantus.desktop",
+        "file:packaging/windows/installer.iss",
+        "config:src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
+        "config:src/Cantus.Client/Directory.Build.props",
+        "config:src/Cantus.Client/Directory.Packages.props",
+        "config:src/Cantus.Core/Cantus.Core.csproj",
+        "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "System Architecture & ADRs",
+      "description": "Explore the core design principles, containerization strategy, and release automation in the Architecture Decision Records.",
+      "nodeIds": [
+        "document:docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+        "document:docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+        "document:docs/ImplementationPlan.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Domain Models & LRC Parser",
+      "description": "Core data contracts representing Spotify playback state, synchronized lyric lines, and the high-performance timestamp parser.",
+      "nodeIds": [
+        "file:src/Cantus.Core/Models/PlaybackState.cs",
+        "file:src/Cantus.Core/Models/SyncedLyrics.cs",
+        "file:src/Cantus.Core/Parsers/LrcParser.cs"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Infrastructure, Spotify & Database",
+      "description": "Spotify PKCE authentication, LRCLIB lyrics fetching with fallback, and SQLite persistence for cached lyrics and room offsets.",
+      "nodeIds": [
+        "file:src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+        "file:src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+        "file:src/Cantus.Infrastructure/Persistence/CantusDbContext.cs"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Server Core & SignalR Hub",
+      "description": "The ASP.NET Core server hosting the ActiveUsersPlaybackMonitor background poller and PlaybackHub for sub-second synchronization.",
+      "nodeIds": [
+        "file:src/Cantus.Server/Program.cs",
+        "file:src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+        "file:src/Cantus.Server/Hubs/PlaybackHub.cs"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Uno Platform Client & Dynamic Theming",
+      "description": "Cross-platform UI presentation featuring real-time lyric scrolling, color extraction from album art, and diagnostics HUD.",
+      "nodeIds": [
+        "file:src/Cantus.Client/Cantus.Client/MainPage.xaml",
+        "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+        "file:src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+        "file:src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Docker Containerization & CI/CD",
+      "description": "Multi-stage Docker packaging and GitHub Actions workflows for continuous integration and cross-platform desktop/container releases.",
+      "nodeIds": [
+        "service:Dockerfile",
+        "service:docker-compose.yml",
+        "pipeline:.github/workflows/release.yml"
+      ]
+    }
+  ]
+}

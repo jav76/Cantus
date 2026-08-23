@@ -1,0 +1,202 @@
+## ====================================================================
+## Cantus - .gitignore
+## .NET / ASP.NET Core / Uno Platform / IDEs & Operating Systems
+## ====================================================================
+
+# ----------------------------------------------------------------------
+# Build & Compilation Outputs
+# ----------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+Generated_Files/
+[Gg]enerated [Ff]iles/
+
+# MSBuild / Roslyn / Source Generators
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+*.genruntimeconfig.cache
+*.AssemblyInfoInputs.cache
+*.FileListAbsolute.txt
+BenchmarkDotNet.Artifacts/
+
+# ----------------------------------------------------------------------
+# Uno Platform / Mobile / WebAssembly / Packaging
+# ----------------------------------------------------------------------
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.bundle
+*.apk
+*.aab
+*.ipa
+*.msix
+*.appx
+*.appxbundle
+*.msixbundle
+
+# ----------------------------------------------------------------------
+# Publish, Distribution & Cross-Platform Release Packaging (ADR-003)
+# ----------------------------------------------------------------------
+publish/
+[Pp]ublish[Oo]utput/
+dist/
+site/
+wasm_dist/
+server_dist/
+artifacts/
+all_artifacts/
+
+# Windows Inno Setup & Packaging Outputs
+packaging/windows/Output/
+Output/
+Cantus-Setup-*.exe
+*.msi
+
+# Linux AppImage & Packaging Outputs
+packaging/linux/AppDir/
+AppDir/
+squashfs-root/
+*.AppImage
+*.appimage
+appimagetool*
+
+# Release Archives & Checksums
+*.tar.gz
+*.zip
+SHA256SUMS.txt
+checksums.txt
+*.sha256
+*.sha512
+
+# ----------------------------------------------------------------------
+# Visual Studio / Visual Studio Code / JetBrains Rider
+# ----------------------------------------------------------------------
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains Rider / ReSharper
+.idea/
+*.sln.iml
+_ReSharper*/
+*.ReSharper
+*.DotSettings.user
+
+# ----------------------------------------------------------------------
+# Testing & Code Coverage
+# ----------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+*.cobertura.xml
+*.lcov
+
+# ----------------------------------------------------------------------
+# Local Databases, Persistent Data & Docker Volumes (ADR-002)
+# ----------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.db3
+cantus.db*
+data/
+cantus-data/
+
+# ----------------------------------------------------------------------
+# Environment, Secrets, Certificates & Local Settings
+# ----------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.template
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+appsettings.Secrets.json
+appsettings.*.Secrets.json
+docker-compose.override.yml
+docker-compose.local.yml
+docs/local/*
+
+# Certificates & Signing Keys
+*.pfx
+*.p12
+*.snk
+*.cer
+*.crt
+*.key
+
+# ----------------------------------------------------------------------
+# Knowledge Graphs & Codebase Understanding (Understand-Anything / Graphify)
+# ----------------------------------------------------------------------
+# Understand-Anything local caches & intermediate processing batches
+.ua/intermediate/
+.ua/.trash*/
+.ua/cache/
+.ua/temp/
+.ua/*.tmp
+
+# Legacy Understand-Anything directory paths
+.understand-anything/intermediate/
+.understand-anything/.trash*/
+.understand-anything/cache/
+.understand-anything/temp/
+
+# Graphify analysis outputs
+graphify-out/
+
+# ----------------------------------------------------------------------
+# Operating System & Temporary Files
+# ----------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux / Editors
+*~
+*.swp
+*.swo
+.directory
+
+# ----------------------------------------------------------------------
+# Diagnostics & Logs
+# ----------------------------------------------------------------------
+*.log
+*.tmp
+*.bak
+*.svclog

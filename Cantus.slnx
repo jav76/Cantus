@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cantus.Core/Cantus.Core.csproj" />
+    <Project Path="src/Cantus.Infrastructure/Cantus.Infrastructure.csproj" />
+    <Project Path="src/Cantus.Server/Cantus.Server.csproj" />
+    <Project Path="src/Cantus.Client/Cantus.Client/Cantus.Client.csproj" />
+  </Folder>
+
+  <Folder Name="/tests/">
+    <Project Path="tests/Cantus.Core.Tests/Cantus.Core.Tests.csproj" />
+    <Project Path="tests/Cantus.Infrastructure.Tests/Cantus.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Cantus.Server.Tests/Cantus.Server.Tests.csproj" />
+    <Project Path="tests/Cantus.Client.Tests/Cantus.Client.Tests.csproj" />
+  </Folder>
+</Solution>
+

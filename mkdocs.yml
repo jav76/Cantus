@@ -1,0 +1,97 @@
+site_name: Cantus
+site_description: Self-Hosted, Real-Time Synchronized Lyrics Display Platform
+site_author: Cantus Team
+site_url: https://cantus-docs.pages.dev
+repo_name: jav76/Cantus
+repo_url: https://github.com/jav76/Cantus
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+# Exclude private developer scratchpad and local notes
+exclude_docs: |
+  local/**
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - search.share
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.keys
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: getting-started/index.md
+      - Quickstart: getting-started/quickstart.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Client (Uno Platform): architecture/client.md
+      - Server & SignalR Hub: architecture/server.md
+      - Core Domain Models: architecture/core.md
+      - Infrastructure & Persistence: architecture/infrastructure.md
+  - Domain Flows:
+      - Overview & Sequence: domain-flows/index.md
+      - Spotify PKCE Auth: domain-flows/spotify-pkce-login.md
+      - Playback Polling & Broadcast: domain-flows/playback-sync.md
+      - Lyrics Caching & LRCLIB: domain-flows/lyrics-caching.md
+      - NTP Clock Interpolation: domain-flows/ntp-interpolation.md
+  - Operator Guide:
+      - Self-Hosting: operator-guide/self-hosting.md
+      - Spotify App Setup: operator-guide/spotify-setup.md
+      - Troubleshooting: operator-guide/troubleshooting.md
+  - Reference:
+      - Configuration: reference/configuration.md
+      - Docker: reference/docker.md

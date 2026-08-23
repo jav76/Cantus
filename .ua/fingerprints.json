@@ -1,0 +1,5068 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e",
+  "generatedAt": "2026-08-23T15:24:36.133Z",
+  "files": {
+    ".agents/skills/architecture-designer/SKILL.md": {
+      "filePath": ".agents/skills/architecture-designer/SKILL.md",
+      "contentHash": "f3da3c626201307287a0eca689e299e9d80de68ba02b7f161878a673c26ea292",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    ".dockerignore": {
+      "filePath": ".dockerignore",
+      "contentHash": "732edec9acd030094e964055e8b4964f02f73c7a4d47716ffeb05dfbce4d9b03",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    ".github/workflows/ci.yml": {
+      "filePath": ".github/workflows/ci.yml",
+      "contentHash": "13593f5caa1a5fc5410463992a06aede8fbdd90582c2084adaa1468f4ec59432",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/release.yml": {
+      "filePath": ".github/workflows/release.yml",
+      "contentHash": "bd125cc21d84198b3c57593fcb4e2f96b32081e5fccc785269f4b95c01d36569",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 273,
+      "hasStructuralAnalysis": true
+    },
+    ".ua/.understandignore": {
+      "filePath": ".ua/.understandignore",
+      "contentHash": "9c34be5e94481cb943d8b5e77f47e59ee05b96341ee97809ed246f6b1ad79940",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "Cantus.slnx": {
+      "filePath": "Cantus.slnx",
+      "contentHash": "84a3ca006230b66cb1dd8f63671135477ed4c67bfb60993d95546913b25675e0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "271289804bd2ff349ad28ea92c5b04a064b14611c6043596f9f88a18273f9e6f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 74,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "d1b3ec2545e599af49494a3ebba94188b9eeee30df6a96bd891a119efeef466e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ImplementationPlan.md": {
+      "filePath": "docs/ImplementationPlan.md",
+      "contentHash": "9954cb721b45538d2b49ca6e2493cffd13bed2c106576260455b9a596b7651f0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 171,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md": {
+      "filePath": "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+      "contentHash": "1f5d06a5a8c3a8b293d6367e9c4d91429891033914686977eb9754229c7782dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md": {
+      "filePath": "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+      "contentHash": "83a79196e34f01ac56f8d671d376a83ee5597bb490b6ad93665082d06a72df00",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 120,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/ADR-003-ci-cd-and-release-packaging.md": {
+      "filePath": "docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+      "contentHash": "54138f125f25cd4af85d0b0741b7707891a62335bc3c2dc5cd425f44f6f97c5e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "global.json": {
+      "filePath": "global.json",
+      "contentHash": "c27aa15df3c5d262438ed9befb11c118be70b349db2527f5e1f97f4ffdf1661e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "packaging/linux/AppRun": {
+      "filePath": "packaging/linux/AppRun",
+      "contentHash": "84c81f21b8feca12a1d88fd9002e5947acaa318da222eb3ca88dcaa72fc89f28",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/build-appimage.sh": {
+      "filePath": "packaging/linux/build-appimage.sh",
+      "contentHash": "27febf52f5a289b7a0a6eddf85f6166a0fe1b669f23d58bb06950ba2e8089a57",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "packaging/linux/cantus.desktop": {
+      "filePath": "packaging/linux/cantus.desktop",
+      "contentHash": "3747c1406db91aed014f63089e1fe034ad7a5c135a746f52c50ec2c3fa34bc53",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/windows/installer.iss": {
+      "filePath": "packaging/windows/installer.iss",
+      "contentHash": "ad1e9c158290a15f7187a3153dd213bd92bbf7b506493ce1e12705eeb688d8cb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Cantus.Client/App.xaml": {
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml",
+      "contentHash": "94925018a2d98788c179555d91a049aeb0a5e9338ab44306ffd95a0036ecec66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Cantus.Client/App.xaml.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
+      "contentHash": "51fe56910ced9e6d8516d3f12eb69df49cd6bd1e58647a49ae16b9256de3b0c4",
+      "functions": [
+        {
+          "name": "App",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "OnLaunched",
+          "params": [
+            "args"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "OnNavigationFailed",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "InitializeLogging",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [
+        {
+          "name": "App",
+          "methods": [
+            "App",
+            "OnLaunched",
+            "OnNavigationFailed",
+            "InitializeLogging"
+          ],
+          "properties": [
+            "MainWindow"
+          ],
+          "exported": true,
+          "lineCount": 60
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        }
+      ],
+      "exports": [
+        "App",
+        "InitializeLogging",
+        "App"
+      ],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
+      "contentHash": "76850947f98a090e88d0acda89182bc593dcd5c92e3d4a4a9c3ad4f1b26083b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Cantus.Client/GlobalUsings.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/GlobalUsings.cs",
+      "contentHash": "06773f6053789029141d8366745a44ee89088f3e063d0be65ccb849aff8527a0",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.IO",
+          "specifiers": [
+            "IO"
+          ]
+        },
+        {
+          "source": "System.Linq",
+          "specifiers": [
+            "Linq"
+          ]
+        },
+        {
+          "source": "System.Net.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml",
+          "specifiers": [
+            "Xaml"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Controls",
+          "specifiers": [
+            "Controls"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Navigation",
+          "specifiers": [
+            "Navigation"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Application",
+          "specifiers": [
+            "Application"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.LaunchActivatedEventArgs",
+          "specifiers": [
+            "LaunchActivatedEventArgs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/MainPage.xaml": {
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml",
+      "contentHash": "182f7660c922e3c097b35592ca9a67645fc1548266c3b5a25e47dba041b12713",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 369,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
+      "contentHash": "86493dc148686fd94da71ac732c71aa170df62a26ea091a2e419259c11deb7cc",
+      "functions": [
+        {
+          "name": "MainPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "OnActiveLineChanged",
+          "params": [
+            "idx"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "OnPageKeyDown",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "OnConnectSpotifyClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "OnCycleThemeClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnOpenDiagnosticsHudClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "OnToggleKioskClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnNudgeMinus500Clicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnNudgeMinus100Clicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnNudgePlus100Clicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnNudgePlus500Clicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnResetOffsetClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "OnSessionItemClicked",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "GetStatusColor",
+          "params": [
+            "status"
+          ],
+          "returnType": "SolidColorBrush",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "GetRttText",
+          "params": [
+            "rtt"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "GetSkewText",
+          "params": [
+            "skew"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "GetPlaybackStatus",
+          "params": [
+            "isPlaying"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "GetPlayingVisibility",
+          "params": [
+            "isPlaying"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetEmptyStateVisibility",
+          "params": [
+            "hasLyrics"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetLyricsVisibility",
+          "params": [
+            "hasLyrics"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetInstrumentalVisibility",
+          "params": [
+            "isInstrumentalBreak"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetStandardViewVisibility",
+          "params": [
+            "isKioskMode"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetKioskViewVisibility",
+          "params": [
+            "isKioskMode"
+          ],
+          "returnType": "Visibility",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "GetKioskFontSize",
+          "params": [
+            "isActive"
+          ],
+          "returnType": "double",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "GetLineColor",
+          "params": [
+            "isActive",
+            "isPast"
+          ],
+          "returnType": "SolidColorBrush",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "MainPage",
+          "methods": [
+            "MainPage",
+            "OnActiveLineChanged",
+            "OnPageKeyDown",
+            "OnConnectSpotifyClicked",
+            "OnCycleThemeClicked",
+            "OnOpenDiagnosticsHudClicked",
+            "OnToggleKioskClicked",
+            "OnNudgeMinus500Clicked",
+            "OnNudgeMinus100Clicked",
+            "OnNudgePlus100Clicked",
+            "OnNudgePlus500Clicked",
+            "OnResetOffsetClicked",
+            "OnSessionItemClicked",
+            "GetStatusColor",
+            "GetRttText",
+            "GetSkewText",
+            "GetPlaybackStatus",
+            "GetPlayingVisibility",
+            "GetEmptyStateVisibility",
+            "GetLyricsVisibility",
+            "GetInstrumentalVisibility",
+            "GetStandardViewVisibility",
+            "GetKioskViewVisibility",
+            "GetKioskFontSize",
+            "GetLineColor"
+          ],
+          "properties": [
+            "ViewModel"
+          ],
+          "exported": true,
+          "lineCount": 159
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Cantus.Client.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Cantus.Client.ViewModels",
+          "specifiers": [
+            "ViewModels"
+          ]
+        },
+        {
+          "source": "Cantus.Client.Views",
+          "specifiers": [
+            "Views"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Text",
+          "specifiers": [
+            "Text"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Media",
+          "specifiers": [
+            "Media"
+          ]
+        },
+        {
+          "source": "Windows.System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Windows.UI",
+          "specifiers": [
+            "UI"
+          ]
+        },
+        {
+          "source": "Windows.UI.Text",
+          "specifiers": [
+            "Text"
+          ]
+        }
+      ],
+      "exports": [
+        "ViewModel",
+        "MainPage",
+        "GetStatusColor",
+        "GetRttText",
+        "GetSkewText",
+        "GetPlaybackStatus",
+        "GetPlayingVisibility",
+        "GetEmptyStateVisibility",
+        "GetLyricsVisibility",
+        "GetInstrumentalVisibility",
+        "GetStandardViewVisibility",
+        "GetKioskViewVisibility",
+        "GetKioskFontSize",
+        "GetLineColor",
+        "MainPage"
+      ],
+      "totalLines": 173,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Models/AppTheme.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/AppTheme.cs",
+      "contentHash": "752f0f31835cb3d6cd3a7fc3d8fbacc7dab60fa53f6f4bb4d50625043483cec5",
+      "functions": [
+        {
+          "name": "GetPredefined",
+          "params": [
+            "mode"
+          ],
+          "returnType": "ColorPalette",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "ColorPalette",
+          "methods": [
+            "GetPredefined"
+          ],
+          "properties": [
+            "MidnightViolet",
+            "EmeraldSynth",
+            "CyberpunkSunset",
+            "NordicSlate",
+            "OLEDMonochrome"
+          ],
+          "exported": true,
+          "lineCount": 104
+        }
+      ],
+      "imports": [
+        {
+          "source": "Windows.UI",
+          "specifiers": [
+            "UI"
+          ]
+        }
+      ],
+      "exports": [
+        "MidnightViolet",
+        "EmeraldSynth",
+        "CyberpunkSunset",
+        "NordicSlate",
+        "OLEDMonochrome",
+        "GetPredefined",
+        "ColorPalette"
+      ],
+      "totalLines": 119,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs",
+      "contentHash": "248ce1f3a6546dbadc8db1461faec2f279f498693af7492645e999391d244cf7",
+      "functions": [
+        {
+          "name": "GeneratePaletteFromMetadata",
+          "params": [
+            "title",
+            "artist",
+            "albumArtUrl"
+          ],
+          "returnType": "ColorPalette",
+          "exported": true,
+          "lineCount": 51
+        },
+        {
+          "name": "HslToRgb",
+          "params": [
+            "h",
+            "s",
+            "l"
+          ],
+          "returnType": "Color",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "HueToRgb",
+          "params": [
+            "p",
+            "q",
+            "t"
+          ],
+          "returnType": "float",
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "ColorExtractionHelper",
+          "methods": [
+            "GeneratePaletteFromMetadata",
+            "HslToRgb",
+            "HueToRgb"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 89
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Security.Cryptography",
+          "specifiers": [
+            "Cryptography"
+          ]
+        },
+        {
+          "source": "System.Text",
+          "specifiers": [
+            "Text"
+          ]
+        },
+        {
+          "source": "Windows.UI",
+          "specifiers": [
+            "UI"
+          ]
+        }
+      ],
+      "exports": [
+        "GeneratePaletteFromMetadata",
+        "HslToRgb",
+        "ColorExtractionHelper"
+      ],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
+      "contentHash": "2654e86367e1937d6c4dc79f4ebc7f304e62b292330061b40541f437a4623dda",
+      "functions": [
+        {
+          "name": "Main",
+          "params": [
+            "args"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [
+        {
+          "name": "Program",
+          "methods": [
+            "Main"
+          ],
+          "properties": [],
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Uno.UI.Hosting",
+          "specifiers": [
+            "Hosting"
+          ]
+        }
+      ],
+      "exports": [
+        "Main"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
+      "contentHash": "4a82881a324556c2a2b74d4089b89113bbd5f4391854f9961fabbe0431bc33af",
+      "functions": [
+        {
+          "name": "Main",
+          "params": [
+            "args"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [
+        {
+          "name": "Program",
+          "methods": [
+            "Main"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "imports": [
+        {
+          "source": "Uno.UI.Hosting",
+          "specifiers": [
+            "Hosting"
+          ]
+        }
+      ],
+      "exports": [
+        "Main",
+        "Program"
+      ],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
+      "contentHash": "1b987c165bd11689662c12fc9583939f22400149023f5333bcf45e8f6a7ddd18",
+      "functions": [
+        {
+          "name": "SignalRPlaybackClient",
+          "params": [
+            "serverUrl"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "StartAsync",
+          "params": [
+            "cancellationToken"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "SyncClockAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "ProcessNtpSample",
+          "params": [
+            "rawRtt",
+            "rawOffset",
+            "timestampMs"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 49
+        },
+        {
+          "name": "SetTrackOffsetAsync",
+          "params": [
+            "trackId",
+            "offsetMs"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "SubscribeToUserAsync",
+          "params": [
+            "userId"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "DisposeAsync",
+          "params": [],
+          "returnType": "ValueTask",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "PlaybackStatePayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "LyricLinePayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "LyricsPayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "TrackOffsetPayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "DiagnosticsPayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "AuthorizedSessionPayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "ClockSyncResponsePayload",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "NtpSample",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "SignalRPlaybackClient",
+          "methods": [
+            "SignalRPlaybackClient",
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "_connection",
+            "_clockSyncTimer",
+            "_serverUrl",
+            "_ntpHistory",
+            "_ntpLock",
+            "MaxNtpSamples",
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType",
+            "State"
+          ],
+          "exported": true,
+          "lineCount": 181
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.Linq",
+          "specifiers": [
+            "Linq"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.SignalR.Client",
+          "specifiers": [
+            "Client"
+          ]
+        }
+      ],
+      "exports": [
+        "PlaybackStatePayload",
+        "LyricLinePayload",
+        "LyricsPayload",
+        "TrackOffsetPayload",
+        "DiagnosticsPayload",
+        "AuthorizedSessionPayload",
+        "ClockSyncResponsePayload",
+        "NtpSample",
+        "RttMs",
+        "ClockOffsetMs",
+        "TransportType",
+        "State",
+        "SignalRPlaybackClient",
+        "StartAsync",
+        "SyncClockAsync",
+        "ProcessNtpSample",
+        "SetTrackOffsetAsync",
+        "SubscribeToUserAsync",
+        "DisposeAsync",
+        "SignalRPlaybackClient"
+      ],
+      "totalLines": 242,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
+      "contentHash": "a334418ab7b7735346a043fc5ce4e7dce918a6cd2534299a3f19dd1bf22ffc01",
+      "functions": [
+        {
+          "name": "ThemeManager",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "SetThemeMode",
+          "params": [
+            "mode"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "CycleNextTheme",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "UpdateTrackMetadata",
+          "params": [
+            "title",
+            "artist",
+            "albumArtUrl"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "ApplyTheme",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "OnPropertyChanged",
+          "params": [
+            "propertyName"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "ThemeManager",
+          "methods": [
+            "ThemeManager",
+            "SetThemeMode",
+            "CycleNextTheme",
+            "UpdateTrackMetadata",
+            "ApplyTheme",
+            "OnPropertyChanged"
+          ],
+          "properties": [
+            "_instance",
+            "Instance",
+            "_currentMode",
+            "_activePalette",
+            "_lastTitle",
+            "_lastArtist",
+            "_lastAlbumArtUrl",
+            "CurrentMode",
+            "ActivePalette",
+            "BackgroundBrush",
+            "SurfaceCardBrush",
+            "CardBorderBrush",
+            "PrimaryAccentBrush",
+            "SecondaryAccentBrush",
+            "TextPrimaryBrush",
+            "TextSecondaryBrush",
+            "TextMutedBrush",
+            "GlowBrush",
+            "ActiveLyricBrush",
+            "PastLyricBrush",
+            "UpcomingLyricBrush"
+          ],
+          "exported": true,
+          "lineCount": 109
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.ComponentModel",
+          "specifiers": [
+            "ComponentModel"
+          ]
+        },
+        {
+          "source": "System.Runtime.CompilerServices",
+          "specifiers": [
+            "CompilerServices"
+          ]
+        },
+        {
+          "source": "Cantus.Client.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml.Media",
+          "specifiers": [
+            "Media"
+          ]
+        },
+        {
+          "source": "Windows.UI",
+          "specifiers": [
+            "UI"
+          ]
+        }
+      ],
+      "exports": [
+        "Instance",
+        "CurrentMode",
+        "ActivePalette",
+        "BackgroundBrush",
+        "SurfaceCardBrush",
+        "CardBorderBrush",
+        "PrimaryAccentBrush",
+        "SecondaryAccentBrush",
+        "TextPrimaryBrush",
+        "TextSecondaryBrush",
+        "TextMutedBrush",
+        "GlowBrush",
+        "ActiveLyricBrush",
+        "PastLyricBrush",
+        "UpcomingLyricBrush",
+        "ThemeManager",
+        "SetThemeMode",
+        "CycleNextTheme",
+        "UpdateTrackMetadata",
+        "ThemeManager"
+      ],
+      "totalLines": 119,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
+      "contentHash": "246db9827b4b2bb08e7127b5d96f4eea534229e6b422a939f6449fda2910d82f",
+      "functions": [
+        {
+          "name": "UpdateVisualProperties",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "OnPropertyChanged",
+          "params": [
+            "propertyName"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "LyricLineViewModel",
+          "methods": [
+            "UpdateVisualProperties",
+            "OnPropertyChanged"
+          ],
+          "properties": [
+            "_isActive",
+            "_isPast",
+            "_fontSize",
+            "_fontWeight",
+            "_opacity",
+            "TimestampMs",
+            "Text",
+            "IsActive",
+            "IsPast",
+            "FontSize",
+            "FontWeight",
+            "Opacity"
+          ],
+          "exported": true,
+          "lineCount": 104
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.ComponentModel",
+          "specifiers": [
+            "ComponentModel"
+          ]
+        },
+        {
+          "source": "System.Runtime.CompilerServices",
+          "specifiers": [
+            "CompilerServices"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Text",
+          "specifiers": [
+            "Text"
+          ]
+        },
+        {
+          "source": "Windows.UI.Text",
+          "specifiers": [
+            "Text"
+          ]
+        }
+      ],
+      "exports": [
+        "TimestampMs",
+        "Text",
+        "IsActive",
+        "IsPast",
+        "FontSize",
+        "FontWeight",
+        "Opacity",
+        "LyricLineViewModel"
+      ],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
+      "contentHash": "d3b12be76d25143e599b85231033f3d0faf3ab79a43d50eec0ca3a6e7dcac081",
+      "functions": [
+        {
+          "name": "LyricsViewModel",
+          "params": [
+            "client",
+            "themeManager"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "InitializeAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ToggleKioskMode",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "OnPlaybackStateReceived",
+          "params": [
+            "state"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 53
+        },
+        {
+          "name": "OnLyricsReceived",
+          "params": [
+            "lyrics"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "OnTrackOffsetReceived",
+          "params": [
+            "offset"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "OnSessionsReceived",
+          "params": [
+            "sessions"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "OnDiagnosticsReceived",
+          "params": [
+            "diag"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "OnTick",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 62
+        },
+        {
+          "name": "EvaluateInstrumentalBreak",
+          "params": [
+            "activeIdx",
+            "currentMs"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "FindActiveLineIndex",
+          "params": [
+            "currentMs"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "UpdateLyricLineStates",
+          "params": [
+            "activeIdx"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "NudgeOffsetAsync",
+          "params": [
+            "deltaMs"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "ResetOffsetAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "SubscribeToUserAsync",
+          "params": [
+            "userId"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "FormatTime",
+          "params": [
+            "ms"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "OnPropertyChanged",
+          "params": [
+            "propertyName"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 2
+        }
+      ],
+      "classes": [
+        {
+          "name": "LyricsViewModel",
+          "methods": [
+            "LyricsViewModel",
+            "InitializeAsync",
+            "ToggleKioskMode",
+            "OnPlaybackStateReceived",
+            "OnLyricsReceived",
+            "OnTrackOffsetReceived",
+            "OnSessionsReceived",
+            "OnDiagnosticsReceived",
+            "OnTick",
+            "EvaluateInstrumentalBreak",
+            "FindActiveLineIndex",
+            "UpdateLyricLineStates",
+            "NudgeOffsetAsync",
+            "ResetOffsetAsync",
+            "SubscribeToUserAsync",
+            "FormatTime",
+            "OnPropertyChanged"
+          ],
+          "properties": [
+            "_client",
+            "_ticker",
+            "_themeManager",
+            "_lastPlaybackState",
+            "_lastLyrics",
+            "_userOffsetMs",
+            "_activeLineIndex",
+            "_interpolatedProgressMs",
+            "_connectionStatus",
+            "_rttMs",
+            "_clockSkewMs",
+            "_pollerStatus",
+            "_activeUserName",
+            "_activeUserId",
+            "_connectedClients",
+            "_authorizedSessionsCount",
+            "_activePollIntervalMs",
+            "_transportType",
+            "_currentTitle",
+            "_currentArtist",
+            "_currentAlbum",
+            "_albumArtUrl",
+            "_isPlaying",
+            "_deviceName",
+            "_volumePercent",
+            "_progressFraction",
+            "_progressText",
+            "_totalDurationText",
+            "_offsetText",
+            "_hasLyrics",
+            "_isInstrumental",
+            "_isInstrumentalBreak",
+            "_instrumentalBreakText",
+            "_isKioskMode",
+            "LyricLines",
+            "Sessions",
+            "Theme",
+            "SelectedThemeMode",
+            "ConnectionStatus",
+            "RttMs",
+            "ClockSkewMs",
+            "PollerStatus",
+            "ActiveUserName",
+            "ActiveUserId",
+            "ConnectedClients",
+            "AuthorizedSessionsCount",
+            "ActivePollIntervalMs",
+            "TransportType",
+            "CurrentTitle",
+            "CurrentArtist",
+            "CurrentAlbum",
+            "AlbumArtUrl",
+            "IsPlaying",
+            "DeviceName",
+            "VolumePercent",
+            "ProgressFraction",
+            "ProgressText",
+            "TotalDurationText",
+            "OffsetText",
+            "HasLyrics",
+            "IsInstrumental",
+            "IsInstrumentalBreak",
+            "InstrumentalBreakText",
+            "IsKioskMode",
+            "ActiveLineIndex"
+          ],
+          "exported": true,
+          "lineCount": 536
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.Collections.ObjectModel",
+          "specifiers": [
+            "ObjectModel"
+          ]
+        },
+        {
+          "source": "System.ComponentModel",
+          "specifiers": [
+            "ComponentModel"
+          ]
+        },
+        {
+          "source": "System.Runtime.CompilerServices",
+          "specifiers": [
+            "CompilerServices"
+          ]
+        },
+        {
+          "source": "Cantus.Client.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Client.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.UI.Xaml",
+          "specifiers": [
+            "Xaml"
+          ]
+        }
+      ],
+      "exports": [
+        "LyricLines",
+        "Sessions",
+        "Theme",
+        "SelectedThemeMode",
+        "ConnectionStatus",
+        "RttMs",
+        "ClockSkewMs",
+        "PollerStatus",
+        "ActiveUserName",
+        "ActiveUserId",
+        "ConnectedClients",
+        "AuthorizedSessionsCount",
+        "ActivePollIntervalMs",
+        "TransportType",
+        "CurrentTitle",
+        "CurrentArtist",
+        "CurrentAlbum",
+        "AlbumArtUrl",
+        "IsPlaying",
+        "DeviceName",
+        "VolumePercent",
+        "ProgressFraction",
+        "ProgressText",
+        "TotalDurationText",
+        "OffsetText",
+        "HasLyrics",
+        "IsInstrumental",
+        "IsInstrumentalBreak",
+        "InstrumentalBreakText",
+        "IsKioskMode",
+        "ActiveLineIndex",
+        "LyricsViewModel",
+        "InitializeAsync",
+        "ToggleKioskMode",
+        "FindActiveLineIndex",
+        "NudgeOffsetAsync",
+        "ResetOffsetAsync",
+        "SubscribeToUserAsync",
+        "LyricsViewModel"
+      ],
+      "totalLines": 549,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml",
+      "contentHash": "c672af1058cd67f36e3c37597fd7b13616b2fffabdc06142bc8abe9fe53cc049",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
+      "contentHash": "5c208ecfa6609e409b7e8e6044b9a3fdd5a0da374b5d9a93e4ad7461715af659",
+      "functions": [
+        {
+          "name": "DiagnosticsHudDialog",
+          "params": [
+            "viewModel"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "GetLatencySkewText",
+          "params": [
+            "rtt",
+            "skew"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "GetPollerCadenceText",
+          "params": [
+            "status",
+            "intervalMs"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GetVolumeText",
+          "params": [
+            "volume"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "DiagnosticsHudDialog",
+          "methods": [
+            "DiagnosticsHudDialog",
+            "GetLatencySkewText",
+            "GetPollerCadenceText",
+            "GetVolumeText"
+          ],
+          "properties": [
+            "ViewModel"
+          ],
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Client.ViewModels",
+          "specifiers": [
+            "ViewModels"
+          ]
+        }
+      ],
+      "exports": [
+        "ViewModel",
+        "DiagnosticsHudDialog",
+        "GetLatencySkewText",
+        "GetPollerCadenceText",
+        "GetVolumeText",
+        "DiagnosticsHudDialog"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/WasmScripts/index.html": {
+      "filePath": "src/Cantus.Client/Cantus.Client/WasmScripts/index.html",
+      "contentHash": "d39bed3d3bbdb4a9a535e315f8513b5c618e1fcae0c935bc577cace05dd7c069",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 346,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Directory.Build.props": {
+      "filePath": "src/Cantus.Client/Directory.Build.props",
+      "contentHash": "41cfa9ea98f1d766c4e5a876c7dee95e0d310e7648316fc9ca83fbf9305d5d4b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Client/Directory.Packages.props": {
+      "filePath": "src/Cantus.Client/Directory.Packages.props",
+      "contentHash": "17d66d45d3ca793c14def26f86d7ffd1b75e151c5395564aae11d5b5112efa64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Core/Cantus.Core.csproj": {
+      "filePath": "src/Cantus.Core/Cantus.Core.csproj",
+      "contentHash": "11c0c110e19c9eaeaef66a0382f7a3e4ff6ab395d99ca6664e1ba378371cc47c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
+      "contentHash": "b1ea1b5b05a0ad13e53a1d81ff5b07a1125bf5fdf1277de88c0ddc798ee39df9",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ILyricsCacheRepository",
+          "methods": [
+            "GetCachedLyricsAsync",
+            "IsMarkedNotFoundAsync",
+            "SaveLyricsAsync",
+            "MarkNotFoundAsync",
+            "GetTrackOffsetAsync",
+            "SetTrackOffsetAsync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ILyricsCacheRepository"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Interfaces/ILyricsProvider.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/ILyricsProvider.cs",
+      "contentHash": "7fff780b347b97e74ca2fea9e71e58bfe71efd977583a8a8dd9953154199c9b0",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ILyricsProvider",
+          "methods": [
+            "GetLyricsAsync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ILyricsProvider"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs",
+      "contentHash": "9ca9f576a810bf464202bdd4663794a952c9164eef95ae57b442537ddad2541a",
+      "functions": [],
+      "classes": [
+        {
+          "name": "IPlaybackInterpolator",
+          "methods": [
+            "CalculateCurrentPosition",
+            "Reset"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "IPlaybackInterpolator"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "contentHash": "ddd783dc0bc99277dbdfa121a6b16d8cb375b16f524054ee7be22d25c2438b71",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ISpotifyAuthService",
+          "methods": [
+            "GetAuthorizationUri",
+            "ExchangeCodeAsync",
+            "RefreshTokenAsync",
+            "GetSessionAsync",
+            "GetAllSessionsAsync",
+            "RevokeSessionAsync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ISpotifyAuthService"
+      ],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs",
+      "contentHash": "9dccc2e79ef66a0dce9420444efbccbfb9268556e447ebf91087e23d37daf00c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ISpotifyPlayerClient",
+          "methods": [
+            "GetCurrentPlaybackAsync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ISpotifyPlayerClient"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Models/LyricLine.cs": {
+      "filePath": "src/Cantus.Core/Models/LyricLine.cs",
+      "contentHash": "73ebd9b982bd411b999adc2be1a1a1af762c2d14b0fbd09c152e4acdc140d493",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LyricSyllable",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "LyricLine",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "LyricSyllable",
+        "LyricLine"
+      ],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Models/PlaybackState.cs": {
+      "filePath": "src/Cantus.Core/Models/PlaybackState.cs",
+      "contentHash": "56a8633e93dd607b0f2cd703193d6b78e31ac0ede381fdf2b8576848001cebfc",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PlaybackState",
+          "methods": [],
+          "properties": [
+            "CurrentTrack",
+            "Progress",
+            "IsPlaying",
+            "TimestampUtc",
+            "DeviceName",
+            "VolumePercent"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "CurrentTrack",
+        "Progress",
+        "IsPlaying",
+        "TimestampUtc",
+        "DeviceName",
+        "VolumePercent",
+        "PlaybackState"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Models/SyncedLyrics.cs": {
+      "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
+      "contentHash": "3d5a8cc68d1a2a67e421517e5eaefeeef6bafa147181731d95bd9a7ce5a6fda2",
+      "functions": [
+        {
+          "name": "GetActiveLineIndex",
+          "params": [
+            "position"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "GetActiveLine",
+          "params": [
+            "position"
+          ],
+          "returnType": "LyricLine?",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "SyncedLyrics",
+          "methods": [
+            "GetActiveLineIndex",
+            "GetActiveLine"
+          ],
+          "properties": [
+            "TrackId",
+            "Title",
+            "Artist",
+            "Album",
+            "Lines",
+            "IsSynced",
+            "IsInstrumental",
+            "PlainLyrics"
+          ],
+          "exported": true,
+          "lineCount": 45
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TrackId",
+        "Title",
+        "Artist",
+        "Album",
+        "Lines",
+        "IsSynced",
+        "IsInstrumental",
+        "PlainLyrics",
+        "GetActiveLineIndex",
+        "GetActiveLine",
+        "SyncedLyrics"
+      ],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Models/TrackInfo.cs": {
+      "filePath": "src/Cantus.Core/Models/TrackInfo.cs",
+      "contentHash": "087cc25e85c73e649b97ca47c15a9c9806d840fd05ae2e2825d917a9dc3b28e2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TrackInfo",
+          "methods": [],
+          "properties": [
+            "Id",
+            "Title",
+            "Artist",
+            "Album",
+            "AlbumArtUrl",
+            "Duration",
+            "IsExplicit"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Id",
+        "Title",
+        "Artist",
+        "Album",
+        "AlbumArtUrl",
+        "Duration",
+        "IsExplicit",
+        "TrackInfo"
+      ],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Models/UserSession.cs": {
+      "filePath": "src/Cantus.Core/Models/UserSession.cs",
+      "contentHash": "2d692aa6e8923d1dd3ca045430dd94e2c2993b1d563070731d52dbff7ed51e9d",
+      "functions": [],
+      "classes": [
+        {
+          "name": "UserSession",
+          "methods": [],
+          "properties": [
+            "Id",
+            "SpotifyUserId",
+            "DisplayName",
+            "Email",
+            "ProfileImageUrl",
+            "AccessToken",
+            "RefreshToken",
+            "ExpiresAtUtc",
+            "CreatedAtUtc",
+            "UpdatedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Id",
+        "SpotifyUserId",
+        "DisplayName",
+        "Email",
+        "ProfileImageUrl",
+        "AccessToken",
+        "RefreshToken",
+        "ExpiresAtUtc",
+        "CreatedAtUtc",
+        "UpdatedAtUtc",
+        "UserSession"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Parsers/LrcParser.cs": {
+      "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
+      "contentHash": "77cb40b211daaa51b23a29702d20b62ddaf597c1e0e5a9e327edbb53a197b336",
+      "functions": [
+        {
+          "name": "Parse",
+          "params": [
+            "rawLrc",
+            "trackId",
+            "title",
+            "artist",
+            "album",
+            "plainLyrics"
+          ],
+          "returnType": "SyncedLyrics",
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "ParseLines",
+          "params": [
+            "rawLrc"
+          ],
+          "returnType": "IReadOnlyList<LyricLine>",
+          "exported": true,
+          "lineCount": 58
+        },
+        {
+          "name": "TryParseTimestamp",
+          "params": [
+            "span",
+            "timestamp"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 60
+        }
+      ],
+      "classes": [
+        {
+          "name": "LrcParser",
+          "methods": [
+            "Parse",
+            "ParseLines",
+            "TryParseTimestamp"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 159
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Globalization",
+          "specifiers": [
+            "Globalization"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "Parse",
+        "ParseLines",
+        "TryParseTimestamp",
+        "LrcParser"
+      ],
+      "totalLines": 165,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
+      "filePath": "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
+      "contentHash": "c8d5b919dab69dd055d7d38b607fb90fe60b6d1087cd6d3b639063863f178969",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs": {
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
+      "contentHash": "2a51192d448bbbbfbe068337005379e023d6ca010ab5304e33e23adc4b664f7c",
+      "functions": [
+        {
+          "name": "PlaybackInterpolator",
+          "params": [
+            "timeProvider",
+            "options"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "CalculateCurrentPosition",
+          "params": [
+            "state",
+            "userOffset"
+          ],
+          "returnType": "TimeSpan",
+          "exported": true,
+          "lineCount": 93
+        },
+        {
+          "name": "Reset",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "PlaybackInterpolator",
+          "methods": [
+            "PlaybackInterpolator",
+            "CalculateCurrentPosition",
+            "Reset"
+          ],
+          "properties": [
+            "_timeProvider",
+            "_options",
+            "_lastTrackId",
+            "_lastPosition",
+            "_lastCalculationTime"
+          ],
+          "exported": true,
+          "lineCount": 117
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "PlaybackInterpolator",
+        "CalculateCurrentPosition",
+        "Reset",
+        "PlaybackInterpolator"
+      ],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs": {
+      "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs",
+      "contentHash": "6e851489f5b895add34f90bc68285dbfda331514e54c7039f640d7872156b1d9",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PlaybackInterpolatorOptions",
+          "methods": [],
+          "properties": [
+            "SectionName",
+            "SeekThresholdMs",
+            "DriftToleranceMs"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SectionName",
+        "SeekThresholdMs",
+        "DriftToleranceMs",
+        "PlaybackInterpolatorOptions"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/DependencyInjection.cs": {
+      "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
+      "contentHash": "83c79fe697391d36d517a267a1ce88e17f9fd28866dadc646d551c2aa91db595",
+      "functions": [
+        {
+          "name": "AddCantusInfrastructure",
+          "params": [
+            "services",
+            "configuration"
+          ],
+          "returnType": "IServiceCollection",
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [
+        {
+          "name": "DependencyInjection",
+          "methods": [
+            "AddCantusInfrastructure"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Clock",
+          "specifiers": [
+            "Clock"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Lyrics",
+          "specifiers": [
+            "Lyrics"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Security",
+          "specifiers": [
+            "Security"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Spotify",
+          "specifiers": [
+            "Spotify"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Configuration",
+          "specifiers": [
+            "Configuration"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.DependencyInjection",
+          "specifiers": [
+            "DependencyInjection"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "AddCantusInfrastructure",
+        "DependencyInjection"
+      ],
+      "totalLines": 63,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs": {
+      "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
+      "contentHash": "6282c45a590f11e10d3fecd1ef21be2124e2f9d8a23f0c6ca41981b1dc6e1295",
+      "functions": [
+        {
+          "name": "CachedLyricsService",
+          "params": [
+            "cacheRepository",
+            "lrclibProvider",
+            "options",
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "GetLyricsAsync",
+          "params": [
+            "track",
+            "cancellationToken"
+          ],
+          "returnType": "Task<SyncedLyrics?>",
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [
+        {
+          "name": "CachedLyricsService",
+          "methods": [
+            "CachedLyricsService",
+            "GetLyricsAsync"
+          ],
+          "properties": [
+            "_cacheRepository",
+            "_lrclibProvider",
+            "_options",
+            "_logger"
+          ],
+          "exported": true,
+          "lineCount": 66
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "CachedLyricsService",
+        "GetLyricsAsync",
+        "CachedLyricsService"
+      ],
+      "totalLines": 74,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs": {
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
+      "contentHash": "3f88fa64322ba0d9d6d122f196e81f30c01f75aa7182fd714d74d0f92abf2856",
+      "functions": [
+        {
+          "name": "LrclibLyricsProvider",
+          "params": [
+            "httpClient",
+            "options",
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "GetLyricsAsync",
+          "params": [
+            "track",
+            "cancellationToken"
+          ],
+          "returnType": "Task<SyncedLyrics?>",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "TryGetExactLyricsAsync",
+          "params": [
+            "track",
+            "ct"
+          ],
+          "returnType": "Task<LrclibResponseDto?>",
+          "exported": false,
+          "lineCount": 25
+        },
+        {
+          "name": "TrySearchLyricsAsync",
+          "params": [
+            "track",
+            "ct"
+          ],
+          "returnType": "Task<LrclibResponseDto?>",
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "MapToDomain",
+          "params": [
+            "dto",
+            "track"
+          ],
+          "returnType": "SyncedLyrics",
+          "exported": false,
+          "lineCount": 20
+        }
+      ],
+      "classes": [
+        {
+          "name": "LrclibLyricsProvider",
+          "methods": [
+            "LrclibLyricsProvider",
+            "GetLyricsAsync",
+            "TryGetExactLyricsAsync",
+            "TrySearchLyricsAsync",
+            "MapToDomain"
+          ],
+          "properties": [
+            "_httpClient",
+            "_logger"
+          ],
+          "exported": true,
+          "lineCount": 166
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Net",
+          "specifiers": [
+            "Net"
+          ]
+        },
+        {
+          "source": "System.Net.Http.Json",
+          "specifiers": [
+            "Json"
+          ]
+        },
+        {
+          "source": "System.Text.Json.Serialization",
+          "specifiers": [
+            "Serialization"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Parsers",
+          "specifiers": [
+            "Parsers"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "LrclibLyricsProvider",
+        "GetLyricsAsync",
+        "LrclibLyricsProvider"
+      ],
+      "totalLines": 178,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs": {
+      "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs",
+      "contentHash": "452ad0ebd8e1aced6ae7506b6d76bd840312f36efed9c413389bfb1d4dfb789c",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LrclibOptions",
+          "methods": [],
+          "properties": [
+            "SectionName",
+            "BaseUrl",
+            "UserAgent",
+            "TimeoutSeconds",
+            "NegativeCacheDays"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SectionName",
+        "BaseUrl",
+        "UserAgent",
+        "TimeoutSeconds",
+        "NegativeCacheDays",
+        "LrclibOptions"
+      ],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs": {
+      "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
+      "contentHash": "f61ff6efd3b2bd8b6ebc4666bb06003588282e54c2ef8f6c32cd5e2d71eed0d6",
+      "functions": [
+        {
+          "name": "SqliteLyricsCacheRepository",
+          "params": [
+            "dbContext"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GetCachedLyricsAsync",
+          "params": [
+            "trackId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<SyncedLyrics?>",
+          "exported": true,
+          "lineCount": 53
+        },
+        {
+          "name": "IsMarkedNotFoundAsync",
+          "params": [
+            "trackId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<bool>",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "SaveLyricsAsync",
+          "params": [
+            "lyrics",
+            "timeToLive",
+            "cancellationToken"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "MarkNotFoundAsync",
+          "params": [
+            "trackId",
+            "trackName",
+            "artistName",
+            "albumName",
+            "durationMs",
+            "timeToLive",
+            "cancellationToken"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "GetTrackOffsetAsync",
+          "params": [
+            "trackId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<int>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "SetTrackOffsetAsync",
+          "params": [
+            "trackId",
+            "offsetMs",
+            "cancellationToken"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "GenerateRawLrc",
+          "params": [
+            "lyrics"
+          ],
+          "returnType": "string?",
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "classes": [
+        {
+          "name": "SqliteLyricsCacheRepository",
+          "methods": [
+            "SqliteLyricsCacheRepository",
+            "GetCachedLyricsAsync",
+            "IsMarkedNotFoundAsync",
+            "SaveLyricsAsync",
+            "MarkNotFoundAsync",
+            "GetTrackOffsetAsync",
+            "SetTrackOffsetAsync",
+            "GenerateRawLrc"
+          ],
+          "properties": [
+            "_dbContext"
+          ],
+          "exported": true,
+          "lineCount": 247
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Text",
+          "specifiers": [
+            "Text"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Parsers",
+          "specifiers": [
+            "Parsers"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence.Entities",
+          "specifiers": [
+            "Entities"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        }
+      ],
+      "exports": [
+        "SqliteLyricsCacheRepository",
+        "GetCachedLyricsAsync",
+        "IsMarkedNotFoundAsync",
+        "SaveLyricsAsync",
+        "MarkNotFoundAsync",
+        "GetTrackOffsetAsync",
+        "SetTrackOffsetAsync",
+        "SqliteLyricsCacheRepository"
+      ],
+      "totalLines": 259,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs": {
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
+      "contentHash": "b33dbc79d519c2a3da576176e5085a94267d6a257c6bb89f50113136b2eb354d",
+      "functions": [
+        {
+          "name": "BuildTargetModel",
+          "params": [
+            "modelBuilder"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 146
+        }
+      ],
+      "classes": [
+        {
+          "name": "InitialCreate",
+          "methods": [
+            "BuildTargetModel"
+          ],
+          "properties": [],
+          "exported": false,
+          "lineCount": 152
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Infrastructure",
+          "specifiers": [
+            "Infrastructure"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Migrations",
+          "specifiers": [
+            "Migrations"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Storage.ValueConversion",
+          "specifiers": [
+            "ValueConversion"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 166,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs": {
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
+      "contentHash": "316c1986f12098fcc30b46b3c12b681706314e8cda27535e73aa55639e9aa4f6",
+      "functions": [
+        {
+          "name": "Up",
+          "params": [
+            "migrationBuilder"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 93
+        },
+        {
+          "name": "Down",
+          "params": [
+            "migrationBuilder"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "InitialCreate",
+          "methods": [
+            "Up",
+            "Down"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 113
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Migrations",
+          "specifiers": [
+            "Migrations"
+          ]
+        }
+      ],
+      "exports": [
+        "InitialCreate"
+      ],
+      "totalLines": 123,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs": {
+      "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
+      "contentHash": "12e2b41f6ec0f4d068981946c3c806ca17ff8019ac752ee0224026ca09c55c3f",
+      "functions": [
+        {
+          "name": "BuildModel",
+          "params": [
+            "modelBuilder"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 146
+        }
+      ],
+      "classes": [
+        {
+          "name": "CantusDbContextModelSnapshot",
+          "methods": [
+            "BuildModel"
+          ],
+          "properties": [],
+          "exported": false,
+          "lineCount": 150
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Infrastructure",
+          "specifiers": [
+            "Infrastructure"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Storage.ValueConversion",
+          "specifiers": [
+            "ValueConversion"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 163,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
+      "contentHash": "879f946b8295d07c57258bf29fd09c4c23bbb30d98e433eeceb695f9cf942ac4",
+      "functions": [
+        {
+          "name": "CantusDbContext",
+          "params": [
+            "options"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "OnModelCreating",
+          "params": [
+            "modelBuilder"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 34
+        }
+      ],
+      "classes": [
+        {
+          "name": "CantusDbContext",
+          "methods": [
+            "CantusDbContext",
+            "OnModelCreating"
+          ],
+          "properties": [
+            "UserSessions",
+            "CachedLyrics",
+            "TrackOffsets",
+            "Rooms"
+          ],
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Infrastructure.Persistence.Entities",
+          "specifiers": [
+            "Entities"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        }
+      ],
+      "exports": [
+        "CantusDbContext",
+        "UserSessions",
+        "CachedLyrics",
+        "TrackOffsets",
+        "Rooms",
+        "CantusDbContext"
+      ],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs",
+      "contentHash": "ff3972c00263e117c331140c4631d1cd9a89d39906fab920c39e37cf07e882e9",
+      "functions": [
+        {
+          "name": "CreateDbContext",
+          "params": [
+            "args"
+          ],
+          "returnType": "CantusDbContext",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "CantusDbContextFactory",
+          "methods": [
+            "CreateDbContext"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Design",
+          "specifiers": [
+            "Design"
+          ]
+        }
+      ],
+      "exports": [
+        "CreateDbContext",
+        "CantusDbContextFactory"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs",
+      "contentHash": "14c5bbacb40cb47e37c74e974768de2a42fe901ffdcd7343597af6d8738ab05f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CachedLyricsEntity",
+          "methods": [],
+          "properties": [
+            "TrackId",
+            "TrackName",
+            "ArtistName",
+            "AlbumName",
+            "DurationMs",
+            "PlainLyrics",
+            "RawSyncedLrc",
+            "IsSynced",
+            "IsInstrumental",
+            "IsNotFound",
+            "FetchedAtUtc",
+            "ExpiresAtUtc",
+            "LastAccessedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TrackId",
+        "TrackName",
+        "ArtistName",
+        "AlbumName",
+        "DurationMs",
+        "PlainLyrics",
+        "RawSyncedLrc",
+        "IsSynced",
+        "IsInstrumental",
+        "IsNotFound",
+        "FetchedAtUtc",
+        "ExpiresAtUtc",
+        "LastAccessedAtUtc",
+        "CachedLyricsEntity"
+      ],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs",
+      "contentHash": "4e1121124564d063eba1d6a4960954c9eb9a879aed92aa2af373d79ae2cf9476",
+      "functions": [],
+      "classes": [
+        {
+          "name": "RoomEntity",
+          "methods": [],
+          "properties": [
+            "RoomCode",
+            "HostUserId",
+            "IsActive",
+            "CreatedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "RoomCode",
+        "HostUserId",
+        "IsActive",
+        "CreatedAtUtc",
+        "RoomEntity"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs",
+      "contentHash": "4041e01072fafda79752800d64b648aa4fc72bf3e1adb894dda79a8419edd475",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TrackOffsetEntity",
+          "methods": [],
+          "properties": [
+            "TrackId",
+            "OffsetMs",
+            "UpdatedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TrackId",
+        "OffsetMs",
+        "UpdatedAtUtc",
+        "TrackOffsetEntity"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs",
+      "contentHash": "e0540151be40989b01ed348cac5c2fea2c0316719760aa49b1fe8bdb3d6fbf24",
+      "functions": [],
+      "classes": [
+        {
+          "name": "UserSessionEntity",
+          "methods": [],
+          "properties": [
+            "Id",
+            "SpotifyUserId",
+            "DisplayName",
+            "Email",
+            "ProfileImageUrl",
+            "EncryptedAccessToken",
+            "EncryptedRefreshToken",
+            "ExpiresAtUtc",
+            "CreatedAtUtc",
+            "UpdatedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Id",
+        "SpotifyUserId",
+        "DisplayName",
+        "Email",
+        "ProfileImageUrl",
+        "EncryptedAccessToken",
+        "EncryptedRefreshToken",
+        "ExpiresAtUtc",
+        "CreatedAtUtc",
+        "UpdatedAtUtc",
+        "UserSessionEntity"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs": {
+      "filePath": "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs",
+      "contentHash": "30e555b1f4669569379a3a67ad96fd6f4c5ecc8cebddb2012bf5dd8b0f43d785",
+      "functions": [
+        {
+          "name": "DataProtectionTokenEncryptionService",
+          "params": [
+            "dataProtectionProvider"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "Encrypt",
+          "params": [
+            "plainText"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "Decrypt",
+          "params": [
+            "cipherText"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "DataProtectionTokenEncryptionService",
+          "methods": [
+            "DataProtectionTokenEncryptionService",
+            "Encrypt",
+            "Decrypt"
+          ],
+          "properties": [
+            "_protector"
+          ],
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "imports": [
+        {
+          "source": "Microsoft.AspNetCore.DataProtection",
+          "specifiers": [
+            "DataProtection"
+          ]
+        }
+      ],
+      "exports": [
+        "DataProtectionTokenEncryptionService",
+        "Encrypt",
+        "Decrypt",
+        "DataProtectionTokenEncryptionService"
+      ],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs": {
+      "filePath": "src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs",
+      "contentHash": "d6e7addceaa11e65bd5dc043307aee87979514f1b4c5e2c843ccd3a7bf37a661",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ITokenEncryptionService",
+          "methods": [
+            "Encrypt",
+            "Decrypt"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "ITokenEncryptionService"
+      ],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs": {
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
+      "contentHash": "c223da2f38df196ff9c39413e3d0920b55aac1df3a9e47b4f37d49c8eb49bba8",
+      "functions": [
+        {
+          "name": "SpotifyAuthService",
+          "params": [
+            "dbContext",
+            "encryptionService",
+            "options",
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "GetAuthorizationUri",
+          "params": [
+            "state",
+            "codeChallenge",
+            "redirectUri"
+          ],
+          "returnType": "Uri",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "ExchangeCodeAsync",
+          "params": [
+            "code",
+            "codeVerifier",
+            "redirectUri",
+            "cancellationToken"
+          ],
+          "returnType": "Task<UserSession>",
+          "exported": true,
+          "lineCount": 63
+        },
+        {
+          "name": "RefreshTokenAsync",
+          "params": [
+            "userId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<UserSession>",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "GetSessionAsync",
+          "params": [
+            "userId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<UserSession?>",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "GetAllSessionsAsync",
+          "params": [
+            "cancellationToken"
+          ],
+          "returnType": "Task<IReadOnlyList<UserSession>>",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "RevokeSessionAsync",
+          "params": [
+            "userId",
+            "cancellationToken"
+          ],
+          "returnType": "Task<bool>",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "SpotifyAuthService",
+          "methods": [
+            "SpotifyAuthService",
+            "GetAuthorizationUri",
+            "ExchangeCodeAsync",
+            "RefreshTokenAsync",
+            "GetSessionAsync",
+            "GetAllSessionsAsync",
+            "RevokeSessionAsync"
+          ],
+          "properties": [
+            "_dbContext",
+            "_encryptionService",
+            "_options",
+            "_logger"
+          ],
+          "exported": true,
+          "lineCount": 218
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence.Entities",
+          "specifiers": [
+            "Entities"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Security",
+          "specifiers": [
+            "Security"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        },
+        {
+          "source": "SpotifyAPI.Web",
+          "specifiers": [
+            "Web"
+          ]
+        }
+      ],
+      "exports": [
+        "SpotifyAuthService",
+        "GetAuthorizationUri",
+        "ExchangeCodeAsync",
+        "RefreshTokenAsync",
+        "GetSessionAsync",
+        "GetAllSessionsAsync",
+        "RevokeSessionAsync",
+        "SpotifyAuthService"
+      ],
+      "totalLines": 232,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs": {
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs",
+      "contentHash": "eab1db5d576702c41db7f0c70e1cf8f778e6904930ad1567bbf3c17b5dc5b459",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SpotifyOptions",
+          "methods": [],
+          "properties": [
+            "SectionName",
+            "ClientId",
+            "ClientSecret",
+            "RedirectUri",
+            "Scopes"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SectionName",
+        "ClientId",
+        "ClientSecret",
+        "RedirectUri",
+        "Scopes",
+        "SpotifyOptions"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs": {
+      "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
+      "contentHash": "34b8f00d20eb5a20269eff3ad7277ebf457b09f30c6b7d4edd6f92a54f774eb2",
+      "functions": [
+        {
+          "name": "SpotifyPlayerClient",
+          "params": [
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GetCurrentPlaybackAsync",
+          "params": [
+            "accessToken",
+            "cancellationToken"
+          ],
+          "returnType": "Task<PlaybackState?>",
+          "exported": true,
+          "lineCount": 79
+        }
+      ],
+      "classes": [
+        {
+          "name": "SpotifyPlayerClient",
+          "methods": [
+            "SpotifyPlayerClient",
+            "GetCurrentPlaybackAsync"
+          ],
+          "properties": [
+            "_logger"
+          ],
+          "exported": true,
+          "lineCount": 89
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "SpotifyAPI.Web",
+          "specifiers": [
+            "Web"
+          ]
+        }
+      ],
+      "exports": [
+        "SpotifyPlayerClient",
+        "GetCurrentPlaybackAsync",
+        "SpotifyPlayerClient"
+      ],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs": {
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "contentHash": "84ccd0c4c192cf519a380f981141fa7cc1ccc5ed731034e27b2c7405fdea3fce",
+      "functions": [
+        {
+          "name": "ActiveUsersPlaybackMonitor",
+          "params": [
+            "scopeFactory",
+            "registry",
+            "hubContext",
+            "options",
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "ExecuteAsync",
+          "params": [
+            "stoppingToken"
+          ],
+          "returnType": "Task",
+          "exported": false,
+          "lineCount": 33
+        },
+        {
+          "name": "PollActiveSessionsAsync",
+          "params": [
+            "cancellationToken"
+          ],
+          "returnType": "Task<int>",
+          "exported": false,
+          "lineCount": 145
+        },
+        {
+          "name": "BroadcastDiagnosticsAsync",
+          "params": [
+            "sessions",
+            "activeUserId",
+            "pollerStatus",
+            "cancellationToken"
+          ],
+          "returnType": "Task",
+          "exported": false,
+          "lineCount": 25
+        }
+      ],
+      "classes": [
+        {
+          "name": "ActiveUsersPlaybackMonitor",
+          "methods": [
+            "ActiveUsersPlaybackMonitor",
+            "ExecuteAsync",
+            "PollActiveSessionsAsync",
+            "BroadcastDiagnosticsAsync"
+          ],
+          "properties": [
+            "_scopeFactory",
+            "_registry",
+            "_hubContext",
+            "_options",
+            "_logger",
+            "_lastDiagnosticsBroadcast"
+          ],
+          "exported": true,
+          "lineCount": 229
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Hubs",
+          "specifiers": [
+            "Hubs"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.SignalR",
+          "specifiers": [
+            "SignalR"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.DependencyInjection",
+          "specifiers": [
+            "DependencyInjection"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Hosting",
+          "specifiers": [
+            "Hosting"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "ActiveUsersPlaybackMonitor",
+        "ActiveUsersPlaybackMonitor"
+      ],
+      "totalLines": 243,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs": {
+      "filePath": "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs",
+      "contentHash": "d209beed8b9ac6dd413b532d7b8f38b990e5d7b1020d61af151d4a5d03f7bc61",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PlaybackPollerOptions",
+          "methods": [],
+          "properties": [
+            "SectionName",
+            "ActivePollIntervalMs",
+            "PausedPollIntervalMs",
+            "IdlePollIntervalMs",
+            "DiagnosticsBroadcastIntervalMs"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SectionName",
+        "ActivePollIntervalMs",
+        "PausedPollIntervalMs",
+        "IdlePollIntervalMs",
+        "DiagnosticsBroadcastIntervalMs",
+        "PlaybackPollerOptions"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Cantus.Server.csproj": {
+      "filePath": "src/Cantus.Server/Cantus.Server.csproj",
+      "contentHash": "5dd6bbe8fb1939ff5d9cb8ec743dfba1665e6192d4d774e6c7253244901298e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Server/Endpoints/AuthEndpoints.cs": {
+      "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
+      "contentHash": "1b2aa3c9744081bf09e1b62d93640822d0bd4a80cac94c59ca1957407966e920",
+      "functions": [
+        {
+          "name": "MapAuthEndpoints",
+          "params": [
+            "endpoints"
+          ],
+          "returnType": "IEndpointRouteBuilder",
+          "exported": true,
+          "lineCount": 176
+        }
+      ],
+      "classes": [
+        {
+          "name": "AuthEndpoints",
+          "methods": [
+            "MapAuthEndpoints"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 179
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Security.Cryptography",
+          "specifiers": [
+            "Cryptography"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Builder",
+          "specifiers": [
+            "Builder"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Mvc",
+          "specifiers": [
+            "Mvc"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Routing",
+          "specifiers": [
+            "Routing"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "SpotifyAPI.Web",
+          "specifiers": [
+            "Web"
+          ]
+        }
+      ],
+      "exports": [
+        "MapAuthEndpoints",
+        "AuthEndpoints"
+      ],
+      "totalLines": 193,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Endpoints/LyricsEndpoints.cs": {
+      "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
+      "contentHash": "8d1bac5e17a83da8b4663ddf59b612633aa016415fc79dc0e3b9803cee045c4f",
+      "functions": [
+        {
+          "name": "MapLyricsEndpoints",
+          "params": [
+            "endpoints"
+          ],
+          "returnType": "IEndpointRouteBuilder",
+          "exported": true,
+          "lineCount": 54
+        }
+      ],
+      "classes": [
+        {
+          "name": "LyricsEndpoints",
+          "methods": [
+            "MapLyricsEndpoints"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 57
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Hubs",
+          "specifiers": [
+            "Hubs"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Builder",
+          "specifiers": [
+            "Builder"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Mvc",
+          "specifiers": [
+            "Mvc"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Routing",
+          "specifiers": [
+            "Routing"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.SignalR",
+          "specifiers": [
+            "SignalR"
+          ]
+        }
+      ],
+      "exports": [
+        "MapLyricsEndpoints",
+        "LyricsEndpoints"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Hubs/IPlaybackClient.cs": {
+      "filePath": "src/Cantus.Server/Hubs/IPlaybackClient.cs",
+      "contentHash": "b7c9cc2720a29852c3a6f6c2c1be5c72a2d4b35c5ea3946578af73507cdca38d",
+      "functions": [],
+      "classes": [
+        {
+          "name": "IPlaybackClient",
+          "methods": [
+            "ReceivePlaybackState",
+            "ReceiveLyrics",
+            "ReceiveTrackOffset",
+            "ReceiveSessions",
+            "ReceiveDiagnostics",
+            "ReceiveClockSync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Server.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "IPlaybackClient"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Hubs/PlaybackHub.cs": {
+      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "contentHash": "f190be4f54cbbcac575e42337334025f3a326c9ebbc5ec27cf357309ef1ab8ac",
+      "functions": [
+        {
+          "name": "PlaybackHub",
+          "params": [
+            "registry",
+            "lyricsCache",
+            "authService",
+            "logger"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "OnConnectedAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 62
+        },
+        {
+          "name": "OnDisconnectedAsync",
+          "params": [
+            "exception"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "SyncClock",
+          "params": [
+            "clientSendTimeMs"
+          ],
+          "returnType": "Task<ClockSyncResponse>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "SubscribeToUser",
+          "params": [
+            "userId"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "SetTrackOffset",
+          "params": [
+            "trackId",
+            "offsetMs"
+          ],
+          "returnType": "Task",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [
+        {
+          "name": "PlaybackHub",
+          "methods": [
+            "PlaybackHub",
+            "OnConnectedAsync",
+            "OnDisconnectedAsync",
+            "SyncClock",
+            "SubscribeToUser",
+            "SetTrackOffset"
+          ],
+          "properties": [
+            "_registry",
+            "_lyricsCache",
+            "_authService",
+            "_logger"
+          ],
+          "exported": true,
+          "lineCount": 165
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Interfaces",
+          "specifiers": [
+            "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.SignalR",
+          "specifiers": [
+            "SignalR"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        }
+      ],
+      "exports": [
+        "PlaybackHub",
+        "OnConnectedAsync",
+        "OnDisconnectedAsync",
+        "SyncClock",
+        "SubscribeToUser",
+        "SetTrackOffset",
+        "PlaybackHub"
+      ],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/AuthorizedSessionDto.cs": {
+      "filePath": "src/Cantus.Server/Models/AuthorizedSessionDto.cs",
+      "contentHash": "297705633dd65b9a6bc38292a08357697e0e09bb9ed5d47de292aec3a27f34b2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AuthorizedSessionDto",
+          "methods": [],
+          "properties": [
+            "Id",
+            "SpotifyUserId",
+            "DisplayName",
+            "Email",
+            "ProfileImageUrl",
+            "IsCurrentlyPlaying",
+            "CreatedAtUtc",
+            "UpdatedAtUtc"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Id",
+        "SpotifyUserId",
+        "DisplayName",
+        "Email",
+        "ProfileImageUrl",
+        "IsCurrentlyPlaying",
+        "CreatedAtUtc",
+        "UpdatedAtUtc",
+        "AuthorizedSessionDto"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/ClockSyncDto.cs": {
+      "filePath": "src/Cantus.Server/Models/ClockSyncDto.cs",
+      "contentHash": "5de97e4ac61908b4b44671b98e8e42585761b4185397ff57f3128b6cbc5bd305",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ClockSyncRequest",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "ClockSyncResponse",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "ClockSyncRequest",
+        "ClockSyncResponse"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/DiagnosticsDto.cs": {
+      "filePath": "src/Cantus.Server/Models/DiagnosticsDto.cs",
+      "contentHash": "837da41879a470643ad80c35d6b9fb7e5876e675729e55900459e87d9bb4e4df",
+      "functions": [],
+      "classes": [
+        {
+          "name": "DiagnosticsDto",
+          "methods": [],
+          "properties": [
+            "ConnectedClients",
+            "AuthorizedSessions",
+            "PollerStatus",
+            "ActivePollIntervalMs",
+            "ActiveUserId",
+            "ActiveUserName",
+            "ServerTimeUtc"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "ConnectedClients",
+        "AuthorizedSessions",
+        "PollerStatus",
+        "ActivePollIntervalMs",
+        "ActiveUserId",
+        "ActiveUserName",
+        "ServerTimeUtc",
+        "DiagnosticsDto"
+      ],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/DtoMappingExtensions.cs": {
+      "filePath": "src/Cantus.Server/Models/DtoMappingExtensions.cs",
+      "contentHash": "e55c294ba440db483730cf0f4f5d22c0eababcc3247c4644df550d390b651590",
+      "functions": [
+        {
+          "name": "ToDto",
+          "params": [
+            "track"
+          ],
+          "returnType": "TrackInfoDto",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "ToDto",
+          "params": [
+            "state",
+            "activeUserId",
+            "activeUserName"
+          ],
+          "returnType": "PlaybackStateDto",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "ToDto",
+          "params": [
+            "lyrics"
+          ],
+          "returnType": "LyricsDto",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "ToDto",
+          "params": [
+            "session",
+            "isCurrentlyPlaying"
+          ],
+          "returnType": "AuthorizedSessionDto",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "DtoMappingExtensions",
+          "methods": [
+            "ToDto",
+            "ToDto",
+            "ToDto",
+            "ToDto"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 67
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ToDto",
+        "ToDto",
+        "ToDto",
+        "ToDto",
+        "DtoMappingExtensions"
+      ],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/LyricLineDto.cs": {
+      "filePath": "src/Cantus.Server/Models/LyricLineDto.cs",
+      "contentHash": "f88990a96a39d1194c4e28b2d3833810b7045ce1ab765f1a694c19b5bb953092",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LyricLineDto",
+          "methods": [],
+          "properties": [
+            "TimestampMs",
+            "Text"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TimestampMs",
+        "Text",
+        "LyricLineDto"
+      ],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/LyricsDto.cs": {
+      "filePath": "src/Cantus.Server/Models/LyricsDto.cs",
+      "contentHash": "8f078176af0a3bc3cbaf9299198943d23c44698115b6ca953a777b1d24037722",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LyricsDto",
+          "methods": [],
+          "properties": [
+            "TrackId",
+            "Title",
+            "Artist",
+            "Album",
+            "IsSynced",
+            "IsInstrumental",
+            "Lines",
+            "PlainLyrics"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TrackId",
+        "Title",
+        "Artist",
+        "Album",
+        "IsSynced",
+        "IsInstrumental",
+        "Lines",
+        "PlainLyrics",
+        "LyricsDto"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/PlaybackStateDto.cs": {
+      "filePath": "src/Cantus.Server/Models/PlaybackStateDto.cs",
+      "contentHash": "f1781f3800b5d3e4eafbbbd21baa52882f671f8f2e1f41b15567fdfc88e559f7",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PlaybackStateDto",
+          "methods": [],
+          "properties": [
+            "CurrentTrack",
+            "ProgressMs",
+            "IsPlaying",
+            "TimestampUtc",
+            "DeviceName",
+            "VolumePercent",
+            "ActiveUserId",
+            "ActiveUserDisplayName"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "CurrentTrack",
+        "ProgressMs",
+        "IsPlaying",
+        "TimestampUtc",
+        "DeviceName",
+        "VolumePercent",
+        "ActiveUserId",
+        "ActiveUserDisplayName",
+        "PlaybackStateDto"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/TrackInfoDto.cs": {
+      "filePath": "src/Cantus.Server/Models/TrackInfoDto.cs",
+      "contentHash": "3c5ae8c47250f3c8c005f41287ecef7a0fec5753684d7deccc25729b8bf44590",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TrackInfoDto",
+          "methods": [],
+          "properties": [
+            "Id",
+            "Title",
+            "Artist",
+            "Album",
+            "AlbumArtUrl",
+            "DurationMs",
+            "IsExplicit"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Id",
+        "Title",
+        "Artist",
+        "Album",
+        "AlbumArtUrl",
+        "DurationMs",
+        "IsExplicit",
+        "TrackInfoDto"
+      ],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Models/TrackOffsetDto.cs": {
+      "filePath": "src/Cantus.Server/Models/TrackOffsetDto.cs",
+      "contentHash": "ba48f398d26da4c4f7a6dae240d2e36baa7bc687c30d5b3dc25eddacd97e7e4e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TrackOffsetDto",
+          "methods": [],
+          "properties": [
+            "TrackId",
+            "OffsetMs"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "TrackId",
+        "OffsetMs",
+        "TrackOffsetDto"
+      ],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Program.cs": {
+      "filePath": "src/Cantus.Server/Program.cs",
+      "contentHash": "5328e0571a4b6f6ceb9f2122c3e932b2c84dfb315b0dfe6999fabdc1c2f957de",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Program",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Text.RegularExpressions",
+          "specifiers": [
+            "RegularExpressions"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure",
+          "specifiers": [
+            "Infrastructure"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Cantus.Server.BackgroundServices",
+          "specifiers": [
+            "BackgroundServices"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Endpoints",
+          "specifiers": [
+            "Endpoints"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Hubs",
+          "specifiers": [
+            "Hubs"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.DataProtection",
+          "specifiers": [
+            "DataProtection"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.HttpOverrides",
+          "specifiers": [
+            "HttpOverrides"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Scalar.AspNetCore",
+          "specifiers": [
+            "AspNetCore"
+          ]
+        }
+      ],
+      "exports": [
+        "Program"
+      ],
+      "totalLines": 150,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/HostUrlResolver.cs": {
+      "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
+      "contentHash": "889d078283dd4aa3785c7f862cd9d26c46d2b5363a04b5ec266dbe5f359d314e",
+      "functions": [
+        {
+          "name": "HostUrlResolver",
+          "params": [
+            "configuration",
+            "spotifyOptions"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "ResolveBaseUrl",
+          "params": [
+            "context"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "ResolveSpotifyRedirectUri",
+          "params": [
+            "context"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "NormalizeUrl",
+          "params": [
+            "url"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "HostUrlResolver",
+          "methods": [
+            "HostUrlResolver",
+            "ResolveBaseUrl",
+            "ResolveSpotifyRedirectUri",
+            "NormalizeUrl"
+          ],
+          "properties": [
+            "_configuration",
+            "_spotifyOptions",
+            "DefaultLocalhostBase"
+          ],
+          "exported": true,
+          "lineCount": 65
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Infrastructure.Spotify",
+          "specifiers": [
+            "Spotify"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Configuration",
+          "specifiers": [
+            "Configuration"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Options",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "HostUrlResolver",
+        "ResolveBaseUrl",
+        "ResolveSpotifyRedirectUri",
+        "HostUrlResolver"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/IHostUrlResolver.cs": {
+      "filePath": "src/Cantus.Server/Services/IHostUrlResolver.cs",
+      "contentHash": "e6a2241d6a7dd02f485b1c7697b58053bb6c16db5c4ed85726142b5bc796c8af",
+      "functions": [],
+      "classes": [
+        {
+          "name": "IHostUrlResolver",
+          "methods": [
+            "ResolveBaseUrl",
+            "ResolveSpotifyRedirectUri"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "imports": [
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        }
+      ],
+      "exports": [
+        "IHostUrlResolver"
+      ],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/IPlaybackSessionRegistry.cs": {
+      "filePath": "src/Cantus.Server/Services/IPlaybackSessionRegistry.cs",
+      "contentHash": "bb1f509ee47b7b93af048f8fddc42ae43a66bbc045b0e6c99a38bbfc138cb278",
+      "functions": [],
+      "classes": [
+        {
+          "name": "UserPlaybackSnapshot",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "IPlaybackSessionRegistry",
+          "methods": [
+            "RegisterConnection",
+            "UnregisterConnection",
+            "SetConnectionSubscription",
+            "GetConnectionSubscription",
+            "UpdateUserState",
+            "GetUserState",
+            "GetActivePlaybackSnapshot",
+            "GetAllSnapshots"
+          ],
+          "properties": [
+            "ConnectedClientsCount",
+            "HasConnectedClients"
+          ],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "UserPlaybackSnapshot",
+        "IPlaybackSessionRegistry"
+      ],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/PkceHelper.cs": {
+      "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
+      "contentHash": "75cdfc3ec22248f2b7750e3d32685482b1c7f65e02c9c30208bb0c5bd6f681fa",
+      "functions": [
+        {
+          "name": "GenerateCodeVerifier",
+          "params": [
+            "byteLength"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "GenerateCodeChallenge",
+          "params": [
+            "codeVerifier"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "Base64UrlEncode",
+          "params": [
+            "input"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "PkceHelper",
+          "methods": [
+            "GenerateCodeVerifier",
+            "GenerateCodeChallenge",
+            "Base64UrlEncode"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Security.Cryptography",
+          "specifiers": [
+            "Cryptography"
+          ]
+        },
+        {
+          "source": "System.Text",
+          "specifiers": [
+            "Text"
+          ]
+        }
+      ],
+      "exports": [
+        "GenerateCodeVerifier",
+        "GenerateCodeChallenge",
+        "PkceHelper"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/PlaybackSessionRegistry.cs": {
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "contentHash": "17190655154f49e0476302024066abe9d3629c5adb48ee3eddbacd6f0de07f91",
+      "functions": [
+        {
+          "name": "RegisterConnection",
+          "params": [
+            "connectionId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "UnregisterConnection",
+          "params": [
+            "connectionId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "SetConnectionSubscription",
+          "params": [
+            "connectionId",
+            "targetUserId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "GetConnectionSubscription",
+          "params": [
+            "connectionId"
+          ],
+          "returnType": "string?",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "UpdateUserState",
+          "params": [
+            "userId",
+            "displayName",
+            "playbackState",
+            "lyrics",
+            "offsetMs"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "GetUserState",
+          "params": [
+            "userId"
+          ],
+          "returnType": "UserPlaybackSnapshot?",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GetActivePlaybackSnapshot",
+          "params": [],
+          "returnType": "UserPlaybackSnapshot?",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "GetAllSnapshots",
+          "params": [],
+          "returnType": "IReadOnlyList<UserPlaybackSnapshot>",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "PlaybackSessionRegistry",
+          "methods": [
+            "RegisterConnection",
+            "UnregisterConnection",
+            "SetConnectionSubscription",
+            "GetConnectionSubscription",
+            "UpdateUserState",
+            "GetUserState",
+            "GetActivePlaybackSnapshot",
+            "GetAllSnapshots"
+          ],
+          "properties": [
+            "_connectionSubscriptions",
+            "_userSnapshots",
+            "_connectionLock",
+            "ConnectedClientsCount",
+            "HasConnectedClients"
+          ],
+          "exported": true,
+          "lineCount": 101
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Collections.Concurrent",
+          "specifiers": [
+            "Concurrent"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
+        "ConnectedClientsCount",
+        "HasConnectedClients",
+        "RegisterConnection",
+        "UnregisterConnection",
+        "SetConnectionSubscription",
+        "GetConnectionSubscription",
+        "UpdateUserState",
+        "GetUserState",
+        "GetActivePlaybackSnapshot",
+        "GetAllSnapshots",
+        "PlaybackSessionRegistry"
+      ],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/appsettings.Development.json": {
+      "filePath": "src/Cantus.Server/appsettings.Development.json",
+      "contentHash": "6eca48a38aea32116fa2f23d97dede59be700144669c76610fc58a19efb0dbb2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/appsettings.Production.json": {
+      "filePath": "src/Cantus.Server/appsettings.Production.json",
+      "contentHash": "01ed62928f50d8bb0cd1c2d19dc6a155578e13c8a59589e3f291980b054ef56c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/appsettings.json": {
+      "filePath": "src/Cantus.Server/appsettings.json",
+      "contentHash": "af64ef07f1edd2ee494e093adb0e43c83b224d5092a26b29a520cf1bf57cafbf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
