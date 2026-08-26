@@ -40,11 +40,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: 'docs/requirements.txt'
 
-      - name: Install MkDocs & Material Theme
+      - name: Install MkDocs & Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs-material
+          pip install -r docs/requirements.txt
 
       - name: Deterministic Knowledge Documentation Generation
         run: |
