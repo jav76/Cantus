@@ -9,7 +9,8 @@ public enum ThemeMode
     EmeraldSynth,
     CyberpunkSunset,
     NordicSlate,
-    OLEDMonochrome
+    OLEDMonochrome,
+    SolarizedDark
 }
 
 public sealed record ColorPalette(
@@ -107,12 +108,29 @@ public sealed record ColorPalette(
         UpcomingLyricColor: Color.FromArgb(180, 200, 200, 200)
     );
 
+    public static ColorPalette SolarizedDark { get; } = new(
+        Name: "Solarized Dark",
+        Background: Color.FromArgb(255, 0, 43, 54),           // #002B36 (base03)
+        SurfaceCard: Color.FromArgb(204, 7, 54, 66),          // #CC073642 (base02)
+        CardBorder: Color.FromArgb(34, 38, 139, 210),         // #22268BD2 (Solarized Blue)
+        PrimaryAccent: Color.FromArgb(255, 38, 139, 210),      // #268BD2 (Solarized Blue)
+        SecondaryAccent: Color.FromArgb(255, 42, 161, 152),   // #2AA198 (Solarized Cyan)
+        TextPrimary: Color.FromArgb(255, 253, 246, 227),      // #FDF6E3 (base3)
+        TextSecondary: Color.FromArgb(255, 147, 161, 161),    // #93A1A1 (base1)
+        TextMuted: Color.FromArgb(255, 101, 123, 131),        // #657B83 (base00)
+        GlowColor: Color.FromArgb(60, 38, 139, 210),          // Soft blue glow
+        ActiveLyricColor: Color.FromArgb(255, 253, 246, 227), // #FDF6E3
+        PastLyricColor: Color.FromArgb(120, 88, 110, 117),    // #586E75 (base01)
+        UpcomingLyricColor: Color.FromArgb(200, 147, 161, 161) // #93A1A1 (base1)
+    );
+
     public static ColorPalette GetPredefined(ThemeMode mode) => mode switch
     {
         ThemeMode.EmeraldSynth => EmeraldSynth,
         ThemeMode.CyberpunkSunset => CyberpunkSunset,
         ThemeMode.NordicSlate => NordicSlate,
         ThemeMode.OLEDMonochrome => OLEDMonochrome,
+        ThemeMode.SolarizedDark => SolarizedDark,
         _ => MidnightViolet
     };
 }

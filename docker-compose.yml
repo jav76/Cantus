@@ -25,7 +25,13 @@ services:
     volumes:
       # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys
       - cantus-data:/app/data
+    networks:
+      - proxy-net
 
 volumes:
   cantus-data:
     name: cantus-data
+
+networks:
+  proxy-net:
+    external: true
