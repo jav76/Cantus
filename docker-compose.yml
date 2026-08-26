@@ -14,14 +14,13 @@ services:
       #   Direct LAN IP:  http://192.168.1.50:5000
       #   Reverse Proxy:  https://lyrics.mydomain.com
       #   Local Dev:      http://localhost:5000
-      - CANTUS_HOST_URL=http://localhost:5000
+      - CANTUS_HOST_URL=${CANTUS_HOST_URL}
 
       # Spotify Developer Credentials (from https://developer.spotify.com/dashboard)
-      - Spotify__ClientId=YOUR_SPOTIFY_CLIENT_ID
-      - Spotify__ClientSecret=YOUR_SPOTIFY_CLIENT_SECRET
-
+      - Spotify__ClientId=${Spotify__ClientId}
+      - Spotify__ClientSecret=${Spotify__ClientSecret}
       # Optional overrides:
-      # - Spotify__RedirectUri=http://localhost:5000/api/auth/spotify/callback
+      - Spotify__RedirectUri=${CANTUS_HOST_URL}/api/auth/spotify/callback
       # - Lrclib__BaseUrl=https://lrclib.net
     volumes:
       # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys
