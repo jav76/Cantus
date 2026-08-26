@@ -19,7 +19,23 @@ This guide provides solutions to common setup, authentication, and network issue
 
 ---
 
-## 2. Real-Time WebSocket / SignalR Issues
+## 2. WebAssembly Client & Browser Caching
+
+### Symptom: Frontend appears blank or does not reflect newly authorized accounts
+- **Cause**: Browsers aggressively cache WebAssembly scripts, `.wasm` binaries, and application manifest files across deployments.
+- **Solution**:
+  1. Perform a hard refresh in your browser to bypass the cache:
+     - **Windows / Linux**: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> or <kbd>Ctrl</kbd> + <kbd>F5</kbd>
+     - **macOS**: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
+  2. Open Developer Tools (<kbd>F12</kbd>), navigate to the **Application** / **Storage** tab, and click **Clear Site Data**.
+  3. Ensure the backend container is running and healthy:
+     ```bash
+     curl -i http://localhost:5000/api/health
+     ```
+
+---
+
+## 3. Real-Time WebSocket / SignalR Issues
 
 ### Symptom: Client shows "Reconnecting..." or drops every 60 seconds
 - **Cause**: The reverse proxy is killing idle WebSocket connections or failing to send upgrade headers.

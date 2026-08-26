@@ -97,3 +97,5 @@ nav:
       - SignalR PlaybackHub Protocol: reference/signalr-api.md
       - REST API Endpoints: reference/rest-api.md
       - Configuration & Environment: reference/configuration.md
+  - Contributing:
+      - CI & Branch Protection: contributing/github-branch-protection.md
