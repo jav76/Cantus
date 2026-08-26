@@ -52,6 +52,18 @@ public sealed partial class AdaptiveTrackCard : UserControl
         if (ViewModel != null) await ViewModel.NudgeOffsetAsync(500);
     }
 
+    private void OnToggleCalibrationClicked(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.ToggleCalibrationMode();
+    }
+
+    public Microsoft.UI.Xaml.Media.SolidColorBrush GetCalibrateButtonBackground(bool isCalibrationMode)
+    {
+        return isCalibrationMode
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(60, 59, 130, 246))
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(32, 255, 255, 255));
+    }
+
     private async void OnSessionItemClicked(object sender, ItemClickEventArgs e)
     {
         if (e.ClickedItem is AuthorizedSessionPayload session && ViewModel != null)

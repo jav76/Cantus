@@ -55,6 +55,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isInstrumentalBreak;
     private string _instrumentalBreakText = string.Empty;
     private bool _isKioskMode;
+    private bool _isCalibrationMode;
+    private int? _previousOffsetMs;
+    private string? _calibrationToastMessage;
+    private bool _isCalibrationToastVisible;
+    private DispatcherTimer? _toastDismissTimer;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
@@ -276,6 +281,73 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             }
         }
     }
+
+    public bool IsCalibrationMode
+    {
+        get => _isCalibrationMode;
+        set
+        {
+            if (_isCalibrationMode != value)
+            {
+                _isCalibrationMode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CalibrationModeVisibility));
+                OnPropertyChanged(nameof(CalibrationButtonBrush));
+                foreach (var line in LyricLines)
+                {
+                    line.IsCalibrationMode = value;
+                }
+            }
+        }
+    }
+
+    public Visibility CalibrationModeVisibility => _isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush CalibrationButtonBrush => _isCalibrationMode ? PrimaryAccentBrush : TextPrimaryBrush;
+
+    public int? PreviousOffsetMs
+    {
+        get => _previousOffsetMs;
+        private set
+        {
+            if (_previousOffsetMs != value)
+            {
+                _previousOffsetMs = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanUndoCalibration));
+            }
+        }
+    }
+
+    public bool CanUndoCalibration => _previousOffsetMs.HasValue;
+
+    public string? CalibrationToastMessage
+    {
+        get => _calibrationToastMessage;
+        set
+        {
+            if (_calibrationToastMessage != value)
+            {
+                _calibrationToastMessage = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsCalibrationToastVisible
+    {
+        get => _isCalibrationToastVisible;
+        set
+        {
+            if (_isCalibrationToastVisible != value)
+            {
+                _isCalibrationToastVisible = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CalibrationToastVisibility));
+            }
+        }
+    }
+
+    public Visibility CalibrationToastVisibility => _isCalibrationToastVisible ? Visibility.Visible : Visibility.Collapsed;
 
     public int ActiveLineIndex
     {
@@ -528,14 +600,26 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             double inactive = _layoutManager.InactiveLyricsFontSize;
             double past = _layoutManager.PastLyricsFontSize;
 
-            foreach (var line in lyrics.Lines)
+            for (int i = 0; i < lyrics.Lines.Count; i++)
             {
+                var line = lyrics.Lines[i];
                 if (line is null) continue;
                 var lineVm = new LyricLineViewModel
                 {
                     TimestampMs = line.TimestampMs,
-                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
+                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text,
+                    IsCalibrationMode = _isCalibrationMode
                 };
+
+                long nextTimestamp = (i < lyrics.Lines.Count - 1 && lyrics.Lines[i + 1] != null)
+                    ? lyrics.Lines[i + 1].TimestampMs
+                    : line.TimestampMs + 4000;
+                TimeSpan lineDuration = TimeSpan.FromMilliseconds(Math.Max(1000, nextTimestamp - line.TimestampMs));
+                lineVm.PopulateWords(lineDuration);
+
+                lineVm.LineClicked += async l => await CalibrateToTimestampAsync(l.TimestampMs);
+                lineVm.WordClicked += async w => await CalibrateToTimestampAsync(w.TimestampMs);
+
                 lineVm.RefreshFontSizes(active, inactive, past);
                 LyricLines.Add(lineVm);
             }
@@ -551,7 +635,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         {
             _userOffsetMs = offset.OffsetMs;
             double seconds = _userOffsetMs / 1000.0;
-            OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
+            OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
         }
     }
 
@@ -765,6 +849,75 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _userOffsetMs = 0;
         OffsetText = "+0.0s";
         await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, 0);
+    }
+
+    public void ToggleCalibrationMode()
+    {
+        IsCalibrationMode = !IsCalibrationMode;
+    }
+
+    public async Task CalibrateToTimestampAsync(long targetLyricTimestampMs)
+    {
+        if (_lastPlaybackState?.CurrentTrack is null) return;
+
+        int currentProgress = (int)_interpolatedProgressMs;
+        int newOffset = (int)(targetLyricTimestampMs - currentProgress);
+        int delta = newOffset - _userOffsetMs;
+
+        PreviousOffsetMs = _userOffsetMs;
+        _userOffsetMs = newOffset;
+        double seconds = _userOffsetMs / 1000.0;
+        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+
+        double deltaSec = delta / 1000.0;
+        string deltaStr = $"{(delta >= 0 ? "+" : "")}{deltaSec:0.1}s";
+        CalibrationToastMessage = $"Offset calibrated: {OffsetText} (Δ {deltaStr})";
+        IsCalibrationToastVisible = true;
+        StartToastTimer();
+
+        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, newOffset);
+    }
+
+    public async Task UndoLastCalibrationAsync()
+    {
+        if (!_previousOffsetMs.HasValue || _lastPlaybackState?.CurrentTrack is null) return;
+
+        _userOffsetMs = _previousOffsetMs.Value;
+        PreviousOffsetMs = null;
+        double seconds = _userOffsetMs / 1000.0;
+        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+        CalibrationToastMessage = $"Reverted offset to {OffsetText}";
+        IsCalibrationToastVisible = true;
+        StartToastTimer();
+
+        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, _userOffsetMs);
+    }
+
+    public void DismissCalibrationToast()
+    {
+        IsCalibrationToastVisible = false;
+        _toastDismissTimer?.Stop();
+    }
+
+    private void StartToastTimer()
+    {
+        if (_toastDismissTimer is null)
+        {
+            _toastDismissTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(5)
+            };
+            _toastDismissTimer.Tick += (s, e) =>
+            {
+                _toastDismissTimer.Stop();
+                IsCalibrationToastVisible = false;
+            };
+        }
+        else
+        {
+            _toastDismissTimer.Stop();
+        }
+        _toastDismissTimer.Start();
     }
 
     public async Task SubscribeToUserAsync(string? userId)

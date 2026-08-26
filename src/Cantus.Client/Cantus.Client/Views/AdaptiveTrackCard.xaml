@@ -98,9 +98,15 @@
                     <!-- Manual Sync Offset Adjuster -->
                     <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                         <StackPanel Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Click="OnToggleCalibrationClicked" Background="{x:Bind GetCalibrateButtonBackground(ViewModel.IsCalibrationMode), Mode=OneWay}" Foreground="{x:Bind ViewModel.CalibrationButtonBrush, Mode=OneWay}" CornerRadius="6" Padding="8,3" FontSize="11" ToolTipService.ToolTip="Interactive Click-to-Sync Calibration">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <FontIcon Glyph="&#xE706;" FontSize="11" />
+                                        <TextBlock Text="Calibrate" FontSize="11" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
                             </Grid>
                             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
                                 <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
