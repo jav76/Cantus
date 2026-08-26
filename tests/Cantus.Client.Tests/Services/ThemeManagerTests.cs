@@ -32,6 +32,12 @@ public sealed class ThemeManagerTests
         tm.SetThemeMode(ThemeMode.OLEDMonochrome);
         tm.ActivePalette.Name.Should().Be("OLED Monochrome");
         tm.ActivePalette.Background.Should().Be(Color.FromArgb(255, 0, 0, 0));
+
+        // Act - SolarizedDark
+        tm.SetThemeMode(ThemeMode.SolarizedDark);
+        tm.ActivePalette.Name.Should().Be("Solarized Dark");
+        tm.ActivePalette.Background.Should().Be(Color.FromArgb(255, 0, 43, 54));
+        tm.ActivePalette.PrimaryAccent.Should().Be(Color.FromArgb(255, 38, 139, 210));
     }
 
     [Fact]
@@ -73,6 +79,9 @@ public sealed class ThemeManagerTests
 
         tm.CycleNextTheme();
         tm.CurrentMode.Should().Be(ThemeMode.OLEDMonochrome);
+
+        tm.CycleNextTheme();
+        tm.CurrentMode.Should().Be(ThemeMode.SolarizedDark);
 
         tm.CycleNextTheme();
         tm.CurrentMode.Should().Be(ThemeMode.Dynamic);
