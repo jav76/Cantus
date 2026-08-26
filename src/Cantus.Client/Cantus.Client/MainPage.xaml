@@ -5,7 +5,7 @@
       xmlns:views="using:Cantus.Client.Views"
       xmlns:vm="using:Cantus.Client.ViewModels"
       xmlns:models="using:Cantus.Client.Models"
-      Background="{x:Bind ViewModel.Theme.BackgroundBrush, Mode=OneWay}"
+      Background="{x:Bind ViewModel.BackgroundBrush, Mode=OneWay}"
       SizeChanged="OnPageSizeChanged">
 
     <Grid>
@@ -13,17 +13,17 @@
         <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.35">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="{x:Bind ViewModel.Theme.ActivePalette.PrimaryAccent, Mode=OneWay}" Offset="0.0" />
-                    <GradientStop Color="{x:Bind ViewModel.Theme.ActivePalette.Background, Mode=OneWay}" Offset="0.8" />
+                    <GradientStop Color="{x:Bind ViewModel.ActivePrimaryAccentColor, Mode=OneWay}" Offset="0.0" />
+                    <GradientStop Color="{x:Bind ViewModel.ActiveBackgroundColor, Mode=OneWay}" Offset="0.8" />
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
 
         <!-- Main Responsive Content Container -->
-        <Grid Padding="{x:Bind ViewModel.Layout.ContentPadding, Mode=OneWay}">
+        <Grid Padding="{x:Bind ViewModel.ContentPadding, Mode=OneWay}">
             
             <!-- Standard / Large & Medium Desktop & Tablet Layout -->
-            <Grid Visibility="{x:Bind GetStandardDesktopViewVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetStandardDesktopViewVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   RowDefinitions="Auto,*">
                 
                 <!-- Adaptive Header Bar -->
@@ -32,11 +32,11 @@
                 <!-- Main Work Area: Left Sidebar (Track Card) + Right (Lyrics Stage) -->
                 <Grid Grid.Row="1"
                       ColumnDefinitions="Auto,*"
-                      ColumnSpacing="{x:Bind GetColumnSpacing(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
+                      ColumnSpacing="{x:Bind GetColumnSpacing(ViewModel.CurrentBreakpoint), Mode=OneWay}">
                     
                     <!-- Left Rail: Track Metadata & Controls Card -->
                     <views:AdaptiveTrackCard Grid.Column="0"
-                                            Width="{x:Bind ViewModel.Layout.SidePanelWidth, Mode=OneWay}"
+                                            Width="{x:Bind ViewModel.SidePanelWidth, Mode=OneWay}"
                                             ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
 
                     <!-- Right Stage: Real-Time Karaoke Lyrics Stage -->
@@ -47,7 +47,7 @@
             </Grid>
 
             <!-- Small / Mobile Responsive Layout -->
-            <Grid Visibility="{x:Bind GetMobileViewVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetMobileViewVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   RowDefinitions="Auto,*,Auto">
                 
                 <!-- Mobile Compact Header -->
@@ -56,7 +56,7 @@
                 <!-- Mobile Active View Switcher -->
                 <Grid Grid.Row="1">
                     <!-- Tab 1: Lyrics Mode with Compact Top Strip -->
-                    <Grid Visibility="{x:Bind GetMobileLyricsVisibility(ViewModel.Layout.MobileView), Mode=OneWay}"
+                    <Grid Visibility="{x:Bind GetMobileLyricsVisibility(ViewModel.MobileView), Mode=OneWay}"
                           RowDefinitions="Auto,*"
                           RowSpacing="10">
                         <views:AdaptiveTrackCard Grid.Row="0" ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
@@ -64,12 +64,12 @@
                     </Grid>
 
                     <!-- Tab 2: Full Track / Now Playing Mode -->
-                    <Grid Visibility="{x:Bind GetMobileNowPlayingVisibility(ViewModel.Layout.MobileView), Mode=OneWay}">
+                    <Grid Visibility="{x:Bind GetMobileNowPlayingVisibility(ViewModel.MobileView), Mode=OneWay}">
                         <views:AdaptiveTrackCard ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
                     </Grid>
 
                     <!-- Tab 3: Settings & Precision Sync Mode -->
-                    <Grid Visibility="{x:Bind GetMobileSettingsVisibility(ViewModel.Layout.MobileView), Mode=OneWay}">
+                    <Grid Visibility="{x:Bind GetMobileSettingsVisibility(ViewModel.MobileView), Mode=OneWay}">
                         <views:MobileSettingsView ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
                     </Grid>
                 </Grid>
@@ -79,7 +79,7 @@
             </Grid>
 
             <!-- Fullscreen / 10-Foot TV Kiosk Presentation Mode -->
-            <Grid Visibility="{x:Bind GetKioskViewVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetKioskViewVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   RowDefinitions="*,Auto">
                 
                 <!-- Center-Anchored 10-Foot Lyrics Stage -->

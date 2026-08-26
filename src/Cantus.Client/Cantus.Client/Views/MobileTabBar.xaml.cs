@@ -44,18 +44,20 @@ public sealed partial class MobileTabBar : UserControl
         ViewModel?.SetMobileView(MobileViewMode.SyncAndSettings);
     }
 
-    public Brush GetTabBackground(MobileViewMode activeMode, MobileViewMode currentTab)
+    public Brush GetTabBackground(MobileViewMode? activeMode = null, MobileViewMode currentTab = MobileViewMode.Lyrics)
     {
-        if (activeMode == currentTab)
+        var active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        if (active == currentTab)
         {
             return ThemeManager.Instance.PrimaryAccentBrush;
         }
         return new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
     }
 
-    public Brush GetTabForeground(MobileViewMode activeMode, MobileViewMode currentTab)
+    public Brush GetTabForeground(MobileViewMode? activeMode = null, MobileViewMode currentTab = MobileViewMode.Lyrics)
     {
-        if (activeMode == currentTab)
+        var active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        if (active == currentTab)
         {
             return new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
         }

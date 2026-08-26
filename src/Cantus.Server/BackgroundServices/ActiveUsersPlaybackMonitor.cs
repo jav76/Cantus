@@ -18,6 +18,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly IHubContext<PlaybackHub, IPlaybackClient> _hubContext;
     private readonly PlaybackPollerOptions _options;
     private readonly ILogger<ActiveUsersPlaybackMonitor> _logger;
+    private readonly SemaphoreSlim _wakeSignal = new(0, 1);
     private DateTimeOffset _lastDiagnosticsBroadcast = DateTimeOffset.MinValue;
 
     public ActiveUsersPlaybackMonitor(
@@ -32,6 +33,23 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         _hubContext = hubContext;
         _options = options.Value;
         _logger = logger;
+
+        _registry.OnClientsConnected += (_, _) => TriggerImmediatePoll();
+        _registry.OnSessionsChanged += (_, _) => TriggerImmediatePoll();
+    }
+
+    public void TriggerImmediatePoll()
+    {
+        if (_wakeSignal.CurrentCount == 0)
+        {
+            try
+            {
+                _wakeSignal.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -42,17 +60,35 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         {
             try
             {
-                // If zero connected clients, sleep until someone connects
+                // If zero connected clients, wait for someone to connect
                 if (!_registry.HasConnectedClients)
                 {
-                    await Task.Delay(1000, stoppingToken);
+                    try
+                    {
+                        await Task.WhenAny(
+                            Task.Delay(1000, stoppingToken),
+                            _wakeSignal.WaitAsync(stoppingToken));
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
                     continue;
                 }
 
                 int pollDelayMs = await PollActiveSessionsAsync(stoppingToken);
 
-                // Delay according to adaptive rate
-                await Task.Delay(pollDelayMs, stoppingToken);
+                // Delay according to adaptive rate or immediate wake signal
+                try
+                {
+                    await Task.WhenAny(
+                        Task.Delay(pollDelayMs, stoppingToken),
+                        _wakeSignal.WaitAsync(stoppingToken));
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -192,12 +228,12 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             }
         }
 
-        // Periodic diagnostics & session broadcasting
+        // Diagnostics & session broadcasting (broadcast on activity or periodic interval)
         var now = DateTimeOffset.UtcNow;
-        if (now - _lastDiagnosticsBroadcast >= TimeSpan.FromMilliseconds(_options.DiagnosticsBroadcastIntervalMs))
+        string pollerStatus = anyPlaying ? "Active (Playing)" : (anyActive ? "Paused" : "Idle");
+        if (anyActive || anyPlaying || now - _lastDiagnosticsBroadcast >= TimeSpan.FromMilliseconds(_options.DiagnosticsBroadcastIntervalMs))
         {
             _lastDiagnosticsBroadcast = now;
-            string pollerStatus = anyPlaying ? "Active (Playing)" : (anyActive ? "Paused" : "Idle");
             await BroadcastDiagnosticsAsync(sessions, activeUserId, pollerStatus, cancellationToken);
         }
 

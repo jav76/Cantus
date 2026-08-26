@@ -11,6 +11,7 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
 
     public event EventHandler? OnClientsConnected;
     public event EventHandler? OnClientsEmpty;
+    public event EventHandler? OnSessionsChanged;
 
     public int ConnectedClientsCount => _connectionSubscriptions.Count;
     public bool HasConnectedClients => !_connectionSubscriptions.IsEmpty;
@@ -74,6 +75,7 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
             DateTimeOffset.UtcNow);
 
         _userSnapshots[userId] = snapshot;
+        OnSessionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public UserPlaybackSnapshot? GetUserState(string userId)

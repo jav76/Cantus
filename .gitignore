@@ -46,6 +46,8 @@ _pkginfo.txt
 publish/
 [Pp]ublish[Oo]utput/
 dist/
+dist_test/
+[Dd]ist_test/
 site/
 wasm_dist/
 server_dist/
@@ -200,3 +202,4 @@ $RECYCLE.BIN/
 *.tmp
 *.bak
 *.svclog
+TODO.md

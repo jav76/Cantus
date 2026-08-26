@@ -38,57 +38,77 @@ public sealed partial class LyricsStageView : UserControl
         }
     }
 
-    public Visibility GetEmptyStateVisibility(bool hasLyrics)
-        => hasLyrics ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility GetEmptyStateVisibility(bool? hasLyrics = null)
+        => hasLyrics.GetValueOrDefault() ? Visibility.Collapsed : Visibility.Visible;
 
-    public Visibility GetLyricsVisibility(bool hasLyrics)
-        => hasLyrics ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetLyricsVisibility(bool? hasLyrics = null)
+        => hasLyrics.GetValueOrDefault() ? Visibility.Visible : Visibility.Collapsed;
 
-    public Thickness GetStagePadding(LayoutBreakpoint breakpoint) => breakpoint switch
+    public Thickness GetStagePadding(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => new Thickness(16, 12, 16, 12),
-        LayoutBreakpoint.Medium => new Thickness(24, 18, 24, 18),
-        LayoutBreakpoint.FullscreenTv => new Thickness(48, 24, 48, 24),
-        _ => new Thickness(32)
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => new Thickness(16, 12, 16, 12),
+            LayoutBreakpoint.Medium => new Thickness(24, 18, 24, 18),
+            LayoutBreakpoint.FullscreenTv => new Thickness(48, 24, 48, 24),
+            _ => new Thickness(32)
+        };
+    }
 
-    public double GetEmptyIconSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public double GetEmptyIconSize(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => 40.0,
-        LayoutBreakpoint.Medium => 48.0,
-        _ => 56.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => 40.0,
+            LayoutBreakpoint.Medium => 48.0,
+            _ => 56.0
+        };
+    }
 
-    public double GetEmptyTitleSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public double GetEmptyTitleSize(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => 16.0,
-        LayoutBreakpoint.Medium => 18.0,
-        _ => 20.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => 16.0,
+            LayoutBreakpoint.Medium => 18.0,
+            _ => 20.0
+        };
+    }
 
-    public double GetEmptySubtitleSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public double GetEmptySubtitleSize(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => 12.0,
-        _ => 14.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => 12.0,
+            _ => 14.0
+        };
+    }
 
-    public HorizontalAlignment GetListHorizontalAlignment(LayoutBreakpoint breakpoint) => breakpoint switch
+    public HorizontalAlignment GetListHorizontalAlignment(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.FullscreenTv => HorizontalAlignment.Center,
-        _ => HorizontalAlignment.Stretch
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.FullscreenTv => HorizontalAlignment.Center,
+            _ => HorizontalAlignment.Stretch
+        };
+    }
 
-    public static TextAlignment GetLineTextAlignment(bool isActive)
+    public static TextAlignment GetLineTextAlignment(bool? isActive = null)
     {
         var bp = ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.FullscreenTv ? TextAlignment.Center : TextAlignment.Left;
     }
 
-    public static SolidColorBrush GetLineColor(bool isActive, bool isPast)
+    public static SolidColorBrush GetLineColor(bool? isActive = null, bool? isPast = null)
     {
         var tm = ThemeManager.Instance;
-        if (isActive) return tm.ActiveLyricBrush;
-        if (isPast) return tm.PastLyricBrush;
+        if (isActive.GetValueOrDefault()) return tm.ActiveLyricBrush;
+        if (isPast.GetValueOrDefault()) return tm.PastLyricBrush;
         return tm.UpcomingLyricBrush;
     }
 }

@@ -77,21 +77,34 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         }
     }
 
-    public Visibility GetLargeHeaderVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Large ? Visibility.Visible : Visibility.Collapsed;
-
-    public Visibility GetMediumHeaderVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Medium ? Visibility.Visible : Visibility.Collapsed;
-
-    public Visibility GetSmallHeaderVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
-
-    public Thickness GetHeaderPadding(LayoutBreakpoint breakpoint) => breakpoint switch
+    public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => new Thickness(12, 8, 12, 8),
-        LayoutBreakpoint.Medium => new Thickness(14, 10, 14, 10),
-        _ => new Thickness(16, 12, 16, 12)
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Large ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public Visibility GetMediumHeaderVisibility(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Medium ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public Visibility GetSmallHeaderVisibility(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public Thickness GetHeaderPadding(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => new Thickness(12, 8, 12, 8),
+            LayoutBreakpoint.Medium => new Thickness(14, 10, 14, 10),
+            _ => new Thickness(16, 12, 16, 12)
+        };
+    }
 
     public SolidColorBrush GetStatusColor(string? status) => status switch
     {
@@ -100,6 +113,10 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         _ => new SolidColorBrush(Color.FromArgb(255, 239, 68, 68))
     };
 
-    public string GetRttText(long rtt) => $"RTT: {rtt}ms";
-    public string GetSkewText(long skew) => $"Skew: {(skew >= 0 ? "+" : "")}{skew}ms";
+    public string GetRttText(long? rtt = null) => $"RTT: {rtt.GetValueOrDefault()}ms";
+    public string GetSkewText(long? skew = null)
+    {
+        long s = skew.GetValueOrDefault();
+        return $"Skew: {(s >= 0 ? "+" : "")}{s}ms";
+    }
 }

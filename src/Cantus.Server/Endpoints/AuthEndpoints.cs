@@ -57,6 +57,7 @@ public static class AuthEndpoints
             [FromQuery] string? state,
             [FromQuery] string? error,
             ISpotifyAuthService authService,
+            IPlaybackSessionRegistry registry,
             IHostUrlResolver hostUrlResolver,
             HttpContext context,
             ILoggerFactory loggerFactory,
@@ -98,6 +99,7 @@ public static class AuthEndpoints
             try
             {
                 var session = await authService.ExchangeCodeAsync(code, verifier, effectiveRedirectUri, cancellationToken);
+                registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
 
                 // Set session cookie
                 context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions

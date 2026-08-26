@@ -60,48 +60,80 @@ public sealed partial class AdaptiveTrackCard : UserControl
         }
     }
 
-    public Visibility GetStandardCardVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint != LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
-
-    public Visibility GetMobileStripVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
-
-    public Thickness GetCardPadding(LayoutBreakpoint breakpoint) => breakpoint switch
+    public Visibility GetStandardCardVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Small => new Thickness(12, 10, 12, 10),
-        LayoutBreakpoint.Medium => new Thickness(16),
-        _ => new Thickness(24)
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp != LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public double GetCardSpacing(LayoutBreakpoint breakpoint) => breakpoint switch
+    public Visibility GetMobileStripVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Medium => 12.0,
-        _ => 18.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public double GetAlbumIconSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public Thickness GetCardPadding(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Medium => 48.0,
-        _ => 64.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Small => new Thickness(12, 10, 12, 10),
+            LayoutBreakpoint.Medium => new Thickness(16),
+            _ => new Thickness(24)
+        };
+    }
 
-    public double GetTitleFontSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public double GetCardSpacing(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Medium => 18.0,
-        _ => 22.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Medium => 12.0,
+            _ => 18.0
+        };
+    }
 
-    public double GetArtistFontSize(LayoutBreakpoint breakpoint) => breakpoint switch
+    public double GetAlbumIconSize(LayoutBreakpoint? breakpoint = null)
     {
-        LayoutBreakpoint.Medium => 13.0,
-        _ => 15.0
-    };
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Medium => 48.0,
+            _ => 64.0
+        };
+    }
 
-    public Visibility GetInstrumentalVisibility(bool isInstrumentalBreak)
-        => isInstrumentalBreak ? Visibility.Visible : Visibility.Collapsed;
+    public double GetTitleFontSize(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Medium => 18.0,
+            _ => 22.0
+        };
+    }
 
-    public string GetPlaybackStatus(bool isPlaying) => isPlaying ? "Playing" : "Paused";
+    public double GetArtistFontSize(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp switch
+        {
+            LayoutBreakpoint.Medium => 13.0,
+            _ => 15.0
+        };
+    }
+
+    public Visibility GetInstrumentalVisibility(bool? isInstrumentalBreak = null)
+        => isInstrumentalBreak.GetValueOrDefault() ? Visibility.Visible : Visibility.Collapsed;
+
+    public string GetPlaybackStatus(bool? isPlaying = null) => isPlaying.GetValueOrDefault() ? "Playing" : "Paused";
 
     public static Visibility GetPlayingVisibility(bool isPlaying)
         => isPlaying ? Visibility.Visible : Visibility.Collapsed;
+
+    public static Visibility GetNoSessionsVisibility(int count)
+        => count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public static Visibility GetHasSessionsVisibility(int count)
+        => count > 0 ? Visibility.Visible : Visibility.Collapsed;
 }
