@@ -10,6 +10,9 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
 {
     private bool _isActive;
     private bool _isPast;
+    private double _activeFontSize = 32.0;
+    private double _inactiveFontSize = 22.0;
+    private double _pastFontSize = 20.0;
     private double _fontSize = 22.0;
     private FontWeight _fontWeight = FontWeights.Normal;
     private double _opacity = 0.75;
@@ -84,23 +87,31 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
         }
     }
 
+    public void RefreshFontSizes(double activeSize, double inactiveSize, double pastSize)
+    {
+        _activeFontSize = activeSize;
+        _inactiveFontSize = inactiveSize;
+        _pastFontSize = pastSize;
+        UpdateVisualProperties();
+    }
+
     private void UpdateVisualProperties()
     {
         if (IsActive)
         {
-            FontSize = 32.0;
+            FontSize = _activeFontSize;
             FontWeight = FontWeights.Bold;
             Opacity = 1.0;
         }
         else if (IsPast)
         {
-            FontSize = 20.0;
+            FontSize = _pastFontSize;
             FontWeight = FontWeights.Normal;
             Opacity = 0.45;
         }
         else
         {
-            FontSize = 22.0;
+            FontSize = _inactiveFontSize;
             FontWeight = FontWeights.Medium;
             Opacity = 0.75;
         }

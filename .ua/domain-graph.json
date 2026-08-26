@@ -648,6 +648,24 @@
         378,
         515
       ]
+    },
+    {
+      "id": "step:real-time-lyrics-scrolling:adaptive-ui-layout",
+      "type": "step",
+      "name": "Dynamic Responsive Layout Scaling",
+      "summary": "Dynamically scales UI across mobile, tablet, desktop, and 10-foot TV layouts with smooth typography and layout transitions.",
+      "tags": [
+        "ui",
+        "responsive-design",
+        "uno-platform",
+        "layout"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs",
+      "lineRange": [
+        1,
+        220
+      ]
     }
   ],
   "edges": [
@@ -864,6 +882,13 @@
     {
       "source": "flow:real-time-lyrics-scrolling",
       "target": "step:real-time-lyrics-scrolling:update-ui-and-theme",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:real-time-lyrics-scrolling",
+      "target": "step:real-time-lyrics-scrolling:adaptive-ui-layout",
       "type": "flow_step",
       "direction": "forward",
       "weight": 1

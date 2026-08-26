@@ -4,29 +4,32 @@ Cantus is engineered to deliver a seamless, distraction-free lyrics display acro
 
 ---
 
-## Interface Layout
+## Responsive Multi-Form-Factor Layouts
 
-The Cantus display interface is split into two harmonious zones designed for high legibility from across the room:
+Cantus features a dynamic responsive layout engine that automatically and fluidly adapts to any screen size and aspect ratio:
 
 ```mermaid
-flowchart LR
-    subgraph Now Playing Sidebar
-        Art[Album Artwork]
-        Title[Track Title]
-        Artist[Artist & Album]
-        Bar[Progress Indicator]
-    end
-    subgraph Real-Time Lyrics Viewport
-        Past[Past Lyrics - Dimmed]
-        Active[Active Singing Line - Highlighted & Enlarged]
-        Upcoming[Upcoming Lyrics - Readable]
-    end
-    Now Playing Sidebar --- Real-Time Lyrics Viewport
+flowchart TD
+    Screen[Screen Size & Form Factor] --> RLM[Responsive Layout Engine]
+    RLM --> Small[Small / Mobile &lt;680px]
+    RLM --> Medium[Medium / Tablet 680-1080px]
+    RLM --> Large[Large / Desktop 1080-1920px]
+    RLM --> TV[Fullscreen / TV 10-Foot &gt;=1920px]
+
+    Small --> S_View[Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip]
+    Medium --> M_View[Streamlined Dual-Column + 230px Album Art + Compact Telemetry]
+    Large --> L_View[Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills]
+    TV --> TV_View[Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar]
 ```
 
-1. **Now Playing Section**: Shows high-resolution album cover art, track title, artist name, and a smooth playback progress bar.
-2. **Lyrics Viewport**: Displays vertically scrolling synchronized lyrics. The currently sung line is scaled, highlighted in high contrast with the theme's vibrant accent color, and centered on the screen.
-3. **Instrumental Indicator**: When a song contains an extended instrumental section (> 8 seconds without lyrics), an ambient pulsing musical indicator appears so you know when vocals will resume.
+### Form Factor Specifications
+
+| Form Factor | Breakpoint | Header Mode | Track Card | Lyrics Stage | Navigation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Small (Mobile)** | `< 680px` | Minimal + Overflow Flyout | Compact 56px thumbnail strip or dedicated tab | Touch-focused, 24px active line | 3-Tab Bottom Bar (Lyrics / Track / Sync & Info) |
+| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork | Balanced 32px active line | Direct dual-pane or adaptive portrait flow |
+| **Large (Desktop)** | `1080px - 1919px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
+| **Fullscreen (TV)** | `>= 1920px` / Kiosk | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
 
 ---
 

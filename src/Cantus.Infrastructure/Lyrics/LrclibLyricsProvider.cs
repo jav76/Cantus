@@ -64,6 +64,12 @@ public class LrclibLyricsProvider : ILyricsProvider
         }
     }
 
+    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals
+    };
+
     private async Task<LrclibResponseDto?> TryGetExactLyricsAsync(TrackInfo track, CancellationToken ct)
     {
         int durationSec = (int)Math.Round(track.Duration.TotalSeconds);
@@ -87,7 +93,7 @@ public class LrclibLyricsProvider : ILyricsProvider
         }
 
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LrclibResponseDto>(cancellationToken: ct);
+        return await response.Content.ReadFromJsonAsync<LrclibResponseDto>(JsonOptions, cancellationToken: ct);
     }
 
     private async Task<LrclibResponseDto?> TrySearchLyricsAsync(TrackInfo track, CancellationToken ct)
@@ -101,7 +107,7 @@ public class LrclibLyricsProvider : ILyricsProvider
             return null;
         }
 
-        var results = await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(cancellationToken: ct);
+        var results = await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(JsonOptions, cancellationToken: ct);
         if (results is null || results.Count == 0)
         {
             return null;
@@ -151,7 +157,7 @@ public class LrclibLyricsProvider : ILyricsProvider
     internal sealed class LrclibResponseDto
     {
         [JsonPropertyName("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [JsonPropertyName("trackName")]
         public string? TrackName { get; set; }
@@ -163,7 +169,7 @@ public class LrclibLyricsProvider : ILyricsProvider
         public string? AlbumName { get; set; }
 
         [JsonPropertyName("duration")]
-        public int? Duration { get; set; }
+        public double? Duration { get; set; }
 
         [JsonPropertyName("instrumental")]
         public bool Instrumental { get; set; }

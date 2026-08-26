@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
@@ -15,6 +18,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly SignalRPlaybackClient _client;
     private readonly DispatcherTimer _ticker;
     private readonly ThemeManager _themeManager;
+    private readonly ResponsiveLayoutManager _layoutManager;
 
     private PlaybackStatePayload? _lastPlaybackState;
     private LyricsPayload? _lastLyrics;
@@ -54,6 +58,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
     public ThemeManager Theme => _themeManager;
+    public ResponsiveLayoutManager Layout => _layoutManager;
 
     public ThemeMode SelectedThemeMode
     {
@@ -218,10 +223,22 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_instrumentalBreakText != value) { _instrumentalBreakText = value; OnPropertyChanged(); } }
     }
 
+    public bool IsAuthorized => AuthorizedSessionsCount > 0 || (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
+    public string ConnectButtonText => IsAuthorized ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName) ? $"Connected: {ActiveUserName}" : "Connected") : "Connect Spotify";
+    public string ConnectButtonGlyph => IsAuthorized ? "\uE73E" : "\uE8D6";
+
     public bool IsKioskMode
     {
         get => _isKioskMode;
-        set { if (_isKioskMode != value) { _isKioskMode = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_isKioskMode != value)
+            {
+                _isKioskMode = value;
+                _layoutManager.IsKioskMode = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public int ActiveLineIndex
@@ -240,10 +257,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public event Action<int>? ActiveLineChanged;
 
-    public LyricsViewModel(SignalRPlaybackClient client, ThemeManager? themeManager = null)
+    public LyricsViewModel(
+        SignalRPlaybackClient client,
+        ThemeManager? themeManager = null,
+        ResponsiveLayoutManager? layoutManager = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
+        _layoutManager = layoutManager ?? ResponsiveLayoutManager.Instance;
+
+        _layoutManager.LayoutChanged += OnLayoutManagerChanged;
+        _layoutManager.BreakpointChanged += OnLayoutBreakpointChanged;
+
+        LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
         _client.ConnectionStateChanged += state => ConnectionStatus = state;
         _client.PlaybackStateReceived += OnPlaybackStateReceived;
@@ -260,14 +286,75 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _ticker.Start();
     }
 
+    private void OnLyricLinesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            double active = _layoutManager.ActiveLyricsFontSize;
+            double inactive = _layoutManager.InactiveLyricsFontSize;
+            double past = _layoutManager.PastLyricsFontSize;
+            foreach (LyricLineViewModel item in e.NewItems)
+            {
+                item.RefreshFontSizes(active, inactive, past);
+            }
+        }
+    }
+
     public async Task InitializeAsync()
     {
         await _client.StartAsync();
     }
 
+    public async Task SetSyncOffsetAsync(int offsetMs)
+    {
+        if (_lastPlaybackState?.CurrentTrack?.Id is string trackId)
+        {
+            await _client.SetTrackOffsetAsync(trackId, offsetMs);
+        }
+    }
+
+    public async Task SwitchUserSubscriptionAsync(string? userId)
+    {
+        await _client.SubscribeToUserAsync(userId);
+    }
+
     public void ToggleKioskMode()
     {
         IsKioskMode = !IsKioskMode;
+    }
+
+    public void SetMobileView(MobileViewMode mode)
+    {
+        _layoutManager.MobileView = mode;
+    }
+
+    public void CycleMobileView()
+    {
+        _layoutManager.CycleMobileView();
+    }
+
+    private void OnLayoutManagerChanged()
+    {
+        RefreshLyricLineSizes();
+        OnPropertyChanged(nameof(Layout));
+    }
+
+    private void OnLayoutBreakpointChanged(LayoutBreakpoint breakpoint)
+    {
+        RefreshLyricLineSizes();
+        OnPropertyChanged(nameof(Layout));
+    }
+
+    public void RefreshLyricLineSizes()
+    {
+        double active = _layoutManager.ActiveLyricsFontSize;
+        double inactive = _layoutManager.InactiveLyricsFontSize;
+        double past = _layoutManager.PastLyricsFontSize;
+
+        foreach (var line in LyricLines)
+        {
+            line.RefreshFontSizes(active, inactive, past);
+        }
     }
 
     private void OnPlaybackStateReceived(PlaybackStatePayload state)
@@ -304,6 +391,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         ActiveUserId = state.ActiveUserId;
 
+        OnPropertyChanged(nameof(IsAuthorized));
+        OnPropertyChanged(nameof(ConnectButtonText));
+        OnPropertyChanged(nameof(ConnectButtonGlyph));
+
         // Update Theme Manager for Dynamic Palette Sampling
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
@@ -331,13 +422,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         IsInstrumental = lyrics.IsInstrumental;
 
         LyricLines.Clear();
+        double active = _layoutManager.ActiveLyricsFontSize;
+        double inactive = _layoutManager.InactiveLyricsFontSize;
+        double past = _layoutManager.PastLyricsFontSize;
+
         foreach (var line in lyrics.Lines)
         {
-            LyricLines.Add(new LyricLineViewModel
+            var lineVm = new LyricLineViewModel
             {
                 TimestampMs = line.TimestampMs,
                 Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
-            });
+            };
+            lineVm.RefreshFontSizes(active, inactive, past);
+            LyricLines.Add(lineVm);
         }
         ActiveLineIndex = -1;
     }
@@ -360,6 +457,17 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             Sessions.Add(s);
         }
         AuthorizedSessionsCount = sessions.Count;
+
+        if ((ActiveUserName == "None" || string.IsNullOrEmpty(ActiveUserName)) && sessions.Count > 0)
+        {
+            var playing = sessions.FirstOrDefault(s => s.IsCurrentlyPlaying) ?? sessions.First();
+            ActiveUserName = playing.DisplayName;
+            ActiveUserId = playing.Id;
+        }
+
+        OnPropertyChanged(nameof(IsAuthorized));
+        OnPropertyChanged(nameof(ConnectButtonText));
+        OnPropertyChanged(nameof(ConnectButtonGlyph));
     }
 
     private void OnDiagnosticsReceived(DiagnosticsPayload diag)
@@ -373,6 +481,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             ActiveUserName = diag.ActiveUserName;
         }
         ActiveUserId = diag.ActiveUserId;
+
+        OnPropertyChanged(nameof(IsAuthorized));
+        OnPropertyChanged(nameof(ConnectButtonText));
+        OnPropertyChanged(nameof(ConnectButtonGlyph));
     }
 
     private void OnTick(object? sender, object e)
@@ -387,7 +499,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
 
         var track = _lastPlaybackState.CurrentTrack;
-        long durationMs = (long)track.Duration.TotalMilliseconds;
+        long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
         long targetMs = _lastPlaybackState.ProgressMs;

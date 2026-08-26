@@ -79,23 +79,77 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void ToggleKioskMode_TogglesState()
+    public void ToggleKioskMode_TogglesState_AndSynchronizesWithLayoutManager()
     {
         // Arrange
         var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        var layout = new ResponsiveLayoutManager();
+        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
         vm.IsKioskMode.Should().BeFalse();
+        layout.IsKioskMode.Should().BeFalse();
 
         // Act
         vm.ToggleKioskMode();
 
         // Assert
         vm.IsKioskMode.Should().BeTrue();
+        layout.IsKioskMode.Should().BeTrue();
+        layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.FullscreenTv);
 
         // Act
         vm.ToggleKioskMode();
 
         // Assert
         vm.IsKioskMode.Should().BeFalse();
+        layout.IsKioskMode.Should().BeFalse();
+    }
+
+    [Fact]
+    public void LayoutManagerBreakpointChange_UpdatesLyricLineFontSizes()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var layout = new ResponsiveLayoutManager();
+        layout.UpdateDimensions(1440, 900); // Large
+        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
+
+        var line = new LyricLineViewModel { TimestampMs = 1000, Text = "Sing along" };
+        vm.LyricLines.Add(line);
+
+        line.IsActive = true;
+        line.FontSize.Should().Be(38.0); // Large active font size
+
+        // Act - Switch to Small
+        layout.UpdateDimensions(375, 667);
+
+        // Assert
+        line.FontSize.Should().Be(24.0); // Small active font size
+
+        // Act - Switch to FullscreenTv
+        layout.UpdateDimensions(1920, 1080);
+
+        // Assert
+        line.FontSize.Should().Be(50.0); // TV active font size
+    }
+
+    [Fact]
+    public void MobileView_Switching_UpdatesViewModelAndLayout()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var layout = new ResponsiveLayoutManager();
+        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
+
+        // Act
+        vm.SetMobileView(MobileViewMode.NowPlaying);
+
+        // Assert
+        layout.MobileView.Should().Be(MobileViewMode.NowPlaying);
+
+        // Act
+        vm.CycleMobileView();
+
+        // Assert
+        layout.MobileView.Should().Be(MobileViewMode.SyncAndSettings);
     }
 }

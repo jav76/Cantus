@@ -8,8 +8,17 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Cantus.Client.Services;
 
+public sealed record TrackInfoPayload(
+    string Id,
+    string Title,
+    string Artist,
+    string? Album,
+    string? AlbumArtUrl,
+    long DurationMs,
+    bool IsExplicit);
+
 public sealed record PlaybackStatePayload(
-    TrackInfo? CurrentTrack,
+    TrackInfoPayload? CurrentTrack,
     long ProgressMs,
     bool IsPlaying,
     DateTimeOffset TimestampUtc,
@@ -62,7 +71,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 {
     private HubConnection? _connection;
     private Timer? _clockSyncTimer;
-    private readonly string _serverUrl;
+    private readonly string? _configuredServerUrl;
 
     private readonly List<NtpSample> _ntpHistory = new();
     private readonly object _ntpLock = new();
@@ -82,34 +91,36 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 
     public SignalRPlaybackClient(string? serverUrl = null)
     {
+        _configuredServerUrl = serverUrl;
+    }
+
+    private string ResolveServerUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(_configuredServerUrl))
+        {
+            return _configuredServerUrl;
+        }
+
 #if __WASM__
-        if (string.IsNullOrEmpty(serverUrl))
+        string origin = WasmInterop.GetCurrentOrigin();
+        if (!string.IsNullOrWhiteSpace(origin))
         {
-            string? origin = null;
-            try
-            {
-                origin = Uno.Foundation.WebAssemblyRuntime.InvokeJS("window.location.origin");
-            }
-            catch
-            {
-            }
-            _serverUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin.TrimEnd('/')}/hubs/playback"
-                : "/hubs/playback";
+            return $"{origin}/hubs/playback";
         }
-        else
-        {
-            _serverUrl = serverUrl;
-        }
-#else
-        _serverUrl = string.IsNullOrEmpty(serverUrl) ? "http://localhost:5000/hubs/playback" : serverUrl;
 #endif
+        return "http://localhost:5000/hubs/playback";
     }
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
+        string effectiveUrl = ResolveServerUrl();
+
+#if __WASM__
+        WasmInterop.CleanAuthQuery();
+#endif
+
         _connection = new HubConnectionBuilder()
-            .WithUrl(_serverUrl)
+            .WithUrl(effectiveUrl)
             .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
             .Build();
 
