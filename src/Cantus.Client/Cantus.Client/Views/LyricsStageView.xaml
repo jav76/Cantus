@@ -1,0 +1,59 @@
+<UserControl x:Class="Cantus.Client.Views.LyricsStageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Cantus.Client"
+             xmlns:views="using:Cantus.Client.Views"
+             xmlns:vm="using:Cantus.Client.ViewModels"
+             xmlns:models="using:Cantus.Client.Models">
+
+    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+            BorderThickness="1"
+            CornerRadius="20"
+            Padding="{x:Bind GetStagePadding(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
+        <Grid>
+            <!-- Empty / No Lyrics Placeholder -->
+            <StackPanel Visibility="{x:Bind GetEmptyStateVisibility(ViewModel.HasLyrics), Mode=OneWay}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="16">
+                <FontIcon Glyph="&#xEC4F;"
+                          FontSize="{x:Bind GetEmptyIconSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                          Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                          HorizontalAlignment="Center" />
+                <TextBlock Text="Waiting for Synced Lyrics..."
+                           FontSize="{x:Bind GetEmptyTitleSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                           FontWeight="Bold"
+                           Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Connect Spotify and play music to see live time-synchronized lyrics."
+                           FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                           Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center" />
+            </StackPanel>
+
+            <!-- Active Lyrics List View -->
+            <ListView x:Name="LyricsListView"
+                      ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}"
+                      SelectionMode="None"
+                      HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                      MaxWidth="{x:Bind ViewModel.Layout.LyricsMaxWidth, Mode=OneWay}"
+                      Visibility="{x:Bind GetLyricsVisibility(ViewModel.HasLyrics), Mode=OneWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LyricLineViewModel">
+                        <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                                   FontSize="{x:Bind FontSize, Mode=OneWay}"
+                                   FontWeight="{x:Bind FontWeight, Mode=OneWay}"
+                                   Opacity="{x:Bind Opacity, Mode=OneWay}"
+                                   Foreground="{x:Bind views:LyricsStageView.GetLineColor(IsActive, IsPast), Mode=OneWay}"
+                                   Margin="0,10"
+                                   TextAlignment="{x:Bind views:LyricsStageView.GetLineTextAlignment(IsActive), Mode=OneWay}"
+                                   TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Border>
+</UserControl>

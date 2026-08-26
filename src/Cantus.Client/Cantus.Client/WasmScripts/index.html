@@ -221,6 +221,21 @@
     </noscript>
 
     <script>
+        window.CantusInterop = {
+            getOrigin: function() {
+                return window.location.origin || (window.location.protocol + "//" + window.location.host);
+            },
+            navigateTo: function(url) {
+                window.location.href = url;
+            },
+            cleanAuthQuery: function() {
+                if (window.location.search && (window.location.search.indexOf("auth=") !== -1)) {
+                    var cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+            }
+        };
+
         (function() {
             function initLoader() {
                 var defaultLoader = document.querySelector(".uno-loader");

@@ -1,0 +1,58 @@
+<UserControl x:Class="Cantus.Client.Views.MobileTabBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Cantus.Client"
+             xmlns:vm="using:Cantus.Client.ViewModels"
+             xmlns:models="using:Cantus.Client.Models">
+
+    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+            BorderThickness="1"
+            CornerRadius="16"
+            Padding="8,6"
+            Margin="0,8,0,0">
+        <Grid ColumnDefinitions="*,*,*">
+            <!-- Lyrics Tab -->
+            <Button Grid.Column="0"
+                    Click="OnLyricsTabClicked"
+                    Background="{x:Bind GetTabBackground(ViewModel.Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    Padding="6,8">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xEC4F;" FontSize="15" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
+                    <TextBlock Text="Lyrics" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
+                </StackPanel>
+            </Button>
+
+            <!-- Now Playing Tab -->
+            <Button Grid.Column="1"
+                    Click="OnNowPlayingTabClicked"
+                    Background="{x:Bind GetTabBackground(ViewModel.Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    Padding="6,8">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE8D6;" FontSize="15" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
+                    <TextBlock Text="Track" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
+                </StackPanel>
+            </Button>
+
+            <!-- Settings & Sync Tab -->
+            <Button Grid.Column="2"
+                    Click="OnSyncTabClicked"
+                    Background="{x:Bind GetTabBackground(ViewModel.Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    Padding="6,8">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE713;" FontSize="15" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
+                    <TextBlock Text="Sync &amp; Info" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(ViewModel.Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>
