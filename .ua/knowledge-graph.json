@@ -28,8 +28,8 @@
       "GitHub Actions"
     ],
     "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
-    "analyzedAt": "2026-08-23T15:24:35.958Z",
-    "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e"
+    "analyzedAt": "2026-08-26T00:21:53.330Z",
+    "gitCommitHash": "52d9db76480dd5921918b162e5ac6a4d927c5aa1"
   },
   "nodes": [
     {
@@ -96,10 +96,10 @@
       "complexity": "moderate"
     },
     {
-      "id": "document:docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+      "id": "document:docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
       "type": "document",
       "name": "ADR-001-spotify-synced-lyrics-platform.md",
-      "filePath": "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+      "filePath": "docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
       "summary": "Architecture Decision Record documenting decisions for ADR-001-spotify-synced-lyrics-platform.",
       "tags": [
         "architecture",
@@ -109,10 +109,10 @@
       "complexity": "moderate"
     },
     {
-      "id": "document:docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+      "id": "document:docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md",
       "type": "document",
       "name": "ADR-002-docker-containerization-and-host-configuration.md",
-      "filePath": "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+      "filePath": "docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md",
       "summary": "Architecture Decision Record documenting decisions for ADR-002-docker-containerization-and-host-configuration.",
       "tags": [
         "architecture",
@@ -122,10 +122,10 @@
       "complexity": "moderate"
     },
     {
-      "id": "document:docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+      "id": "document:docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md",
       "type": "document",
       "name": "ADR-003-ci-cd-and-release-packaging.md",
-      "filePath": "docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+      "filePath": "docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md",
       "summary": "Architecture Decision Record documenting decisions for ADR-003-ci-cd-and-release-packaging.",
       "tags": [
         "architecture",
@@ -220,10 +220,10 @@
       "complexity": "simple"
     },
     {
-      "id": "document:docs/ImplementationPlan.md",
+      "id": "document:docs/local/ImplementationPlan.md",
       "type": "document",
       "name": "ImplementationPlan.md",
-      "filePath": "docs/ImplementationPlan.md",
+      "filePath": "docs/local/ImplementationPlan.md",
       "summary": "Multi-phase implementation plan and architectural breakdown for Cantus.",
       "tags": [
         "planning",
@@ -2583,6 +2583,330 @@
         "method"
       ],
       "complexity": "moderate"
+    },
+    {
+      "id": "document:.agents/rules/understand-context.md",
+      "type": "document",
+      "name": "understand-context.md",
+      "filePath": ".agents/rules/understand-context.md",
+      "summary": "Understand-Anything agent rule defining architecture layers and domain flow guidelines.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "pipeline:.github/workflows/docs.yml",
+      "type": "pipeline",
+      "name": "docs.yml",
+      "filePath": ".github/workflows/docs.yml",
+      "summary": "Project infra asset for docs.yml.",
+      "tags": [
+        "infra",
+        "yaml"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.gitignore",
+      "type": "file",
+      "name": ".gitignore",
+      "filePath": ".gitignore",
+      "summary": "Project infra asset for .gitignore.",
+      "tags": [
+        "infra",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:LICENSE",
+      "type": "document",
+      "name": "LICENSE",
+      "filePath": "LICENSE",
+      "summary": "Project docs asset for LICENSE.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.docs.yml",
+      "type": "service",
+      "name": "docker-compose.docs.yml",
+      "filePath": "docker-compose.docs.yml",
+      "summary": "Docker Compose manifest for previewing MkDocs Material documentation locally.",
+      "tags": [
+        "infra",
+        "yaml"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/architecture/client.md",
+      "type": "document",
+      "name": "client.md",
+      "filePath": "docs/architecture/client.md",
+      "summary": "Project docs asset for client.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/architecture/core.md",
+      "type": "document",
+      "name": "core.md",
+      "filePath": "docs/architecture/core.md",
+      "summary": "Project docs asset for core.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/architecture/infrastructure.md",
+      "type": "document",
+      "name": "infrastructure.md",
+      "filePath": "docs/architecture/infrastructure.md",
+      "summary": "Project docs asset for infrastructure.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/architecture/overview.md",
+      "type": "document",
+      "name": "overview.md",
+      "filePath": "docs/architecture/overview.md",
+      "summary": "Project docs asset for overview.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/architecture/server.md",
+      "type": "document",
+      "name": "server.md",
+      "filePath": "docs/architecture/server.md",
+      "summary": "Project docs asset for server.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/domain-flows/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "docs/domain-flows/index.md",
+      "summary": "Project docs asset for index.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/domain-flows/lyrics-caching.md",
+      "type": "document",
+      "name": "lyrics-caching.md",
+      "filePath": "docs/domain-flows/lyrics-caching.md",
+      "summary": "Project docs asset for lyrics-caching.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/domain-flows/ntp-interpolation.md",
+      "type": "document",
+      "name": "ntp-interpolation.md",
+      "filePath": "docs/domain-flows/ntp-interpolation.md",
+      "summary": "Project docs asset for ntp-interpolation.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/domain-flows/playback-sync.md",
+      "type": "document",
+      "name": "playback-sync.md",
+      "filePath": "docs/domain-flows/playback-sync.md",
+      "summary": "Project docs asset for playback-sync.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/domain-flows/spotify-pkce-login.md",
+      "type": "document",
+      "name": "spotify-pkce-login.md",
+      "filePath": "docs/domain-flows/spotify-pkce-login.md",
+      "summary": "Project docs asset for spotify-pkce-login.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/getting-started/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "docs/getting-started/index.md",
+      "summary": "Project docs asset for index.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/getting-started/quickstart.md",
+      "type": "document",
+      "name": "quickstart.md",
+      "filePath": "docs/getting-started/quickstart.md",
+      "summary": "Quickstart onboarding guide for Cantus self-hosting and client connection.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "docs/index.md",
+      "summary": "Project docs asset for index.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/local/keysetup.md",
+      "type": "document",
+      "name": "keysetup.md",
+      "filePath": "docs/local/keysetup.md",
+      "summary": "Local key management and cryptographic secret setup instructions.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/operator-guide/self-hosting.md",
+      "type": "document",
+      "name": "self-hosting.md",
+      "filePath": "docs/operator-guide/self-hosting.md",
+      "summary": "Operator guide detailing self-hosted Docker and bare-metal deployment procedures.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/operator-guide/spotify-setup.md",
+      "type": "document",
+      "name": "spotify-setup.md",
+      "filePath": "docs/operator-guide/spotify-setup.md",
+      "summary": "Operator guide for configuring Spotify Developer Dashboard and OAuth PKCE redirect URIs.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/operator-guide/troubleshooting.md",
+      "type": "document",
+      "name": "troubleshooting.md",
+      "filePath": "docs/operator-guide/troubleshooting.md",
+      "summary": "Operational runbook for diagnosing SignalR connectivity, NTP skew, and Spotify token renewal.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/reference/configuration.md",
+      "type": "document",
+      "name": "configuration.md",
+      "filePath": "docs/reference/configuration.md",
+      "summary": "Project docs asset for configuration.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/reference/docker.md",
+      "type": "document",
+      "name": "docker.md",
+      "filePath": "docs/reference/docker.md",
+      "summary": "Project docs asset for docker.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:mkdocs.yml",
+      "type": "file",
+      "name": "mkdocs.yml",
+      "filePath": "mkdocs.yml",
+      "summary": "MkDocs Material site configuration, navigation structure, and markdown extension setup.",
+      "tags": [
+        "infra",
+        "yaml"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/generate_docs.py",
+      "type": "file",
+      "name": "generate_docs.py",
+      "filePath": "scripts/generate_docs.py",
+      "summary": "Deterministic markdown generator producing architecture and domain flow documentation from .ua graphs.",
+      "tags": [
+        "script",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/update_understand_context.py",
+      "type": "file",
+      "name": "update_understand_context.py",
+      "filePath": "scripts/update_understand_context.py",
+      "summary": "Project script asset for update_understand_context.py.",
+      "tags": [
+        "script",
+        "python"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -3894,32 +4218,59 @@
       "name": "DevOps, Build & Architecture Documentation",
       "description": "Containerization (Docker), CI/CD release automation, project configuration, and ADR documentation.",
       "nodeIds": [
-        "resource:.dockerignore",
-        "service:Dockerfile",
-        "service:docker-compose.yml",
-        "pipeline:.github/workflows/ci.yml",
-        "pipeline:.github/workflows/release.yml",
-        "document:docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
-        "document:docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
-        "document:docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
-        "config:src/Cantus.Server/Cantus.Server.csproj",
-        "config:src/Cantus.Server/appsettings.Development.json",
-        "config:src/Cantus.Server/appsettings.Production.json",
-        "config:src/Cantus.Server/appsettings.json",
-        "document:.agents/skills/architecture-designer/SKILL.md",
-        "file:.ua/.understandignore",
         "config:Cantus.slnx",
-        "document:docs/ImplementationPlan.md",
         "config:global.json",
-        "file:packaging/linux/AppRun",
-        "file:packaging/linux/build-appimage.sh",
-        "file:packaging/linux/cantus.desktop",
-        "file:packaging/windows/installer.iss",
         "config:src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
         "config:src/Cantus.Client/Directory.Build.props",
         "config:src/Cantus.Client/Directory.Packages.props",
         "config:src/Cantus.Core/Cantus.Core.csproj",
-        "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj"
+        "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
+        "config:src/Cantus.Server/Cantus.Server.csproj",
+        "config:src/Cantus.Server/appsettings.Development.json",
+        "config:src/Cantus.Server/appsettings.Production.json",
+        "config:src/Cantus.Server/appsettings.json",
+        "document:.agents/rules/understand-context.md",
+        "document:.agents/skills/architecture-designer/SKILL.md",
+        "document:LICENSE",
+        "document:docs/architecture/client.md",
+        "document:docs/architecture/core.md",
+        "document:docs/architecture/infrastructure.md",
+        "document:docs/architecture/overview.md",
+        "document:docs/architecture/server.md",
+        "document:docs/domain-flows/index.md",
+        "document:docs/domain-flows/lyrics-caching.md",
+        "document:docs/domain-flows/ntp-interpolation.md",
+        "document:docs/domain-flows/playback-sync.md",
+        "document:docs/domain-flows/spotify-pkce-login.md",
+        "document:docs/getting-started/index.md",
+        "document:docs/getting-started/quickstart.md",
+        "document:docs/index.md",
+        "document:docs/local/ImplementationPlan.md",
+        "document:docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+        "document:docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+        "document:docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md",
+        "document:docs/local/keysetup.md",
+        "document:docs/operator-guide/self-hosting.md",
+        "document:docs/operator-guide/spotify-setup.md",
+        "document:docs/operator-guide/troubleshooting.md",
+        "document:docs/reference/configuration.md",
+        "document:docs/reference/docker.md",
+        "file:.gitignore",
+        "file:.ua/.understandignore",
+        "file:mkdocs.yml",
+        "file:packaging/linux/AppRun",
+        "file:packaging/linux/build-appimage.sh",
+        "file:packaging/linux/cantus.desktop",
+        "file:packaging/windows/installer.iss",
+        "file:scripts/generate_docs.py",
+        "file:scripts/update_understand_context.py",
+        "pipeline:.github/workflows/ci.yml",
+        "pipeline:.github/workflows/docs.yml",
+        "pipeline:.github/workflows/release.yml",
+        "resource:.dockerignore",
+        "service:Dockerfile",
+        "service:docker-compose.docs.yml",
+        "service:docker-compose.yml"
       ]
     }
   ],

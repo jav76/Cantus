@@ -1,8 +1,18 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e",
-  "generatedAt": "2026-08-23T15:24:36.133Z",
+  "gitCommitHash": "52d9db76480dd5921918b162e5ac6a4d927c5aa1",
+  "generatedAt": "2026-08-26T00:21:53.330Z",
   "files": {
+    ".agents/rules/understand-context.md": {
+      "filePath": ".agents/rules/understand-context.md",
+      "contentHash": "571aefb42bdc4c939d43667a882697c17f33b3fb41ce1f395496f099fc16aca8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
     ".agents/skills/architecture-designer/SKILL.md": {
       "filePath": ".agents/skills/architecture-designer/SKILL.md",
       "contentHash": "f3da3c626201307287a0eca689e299e9d80de68ba02b7f161878a673c26ea292",
@@ -15,12 +25,12 @@
     },
     ".dockerignore": {
       "filePath": ".dockerignore",
-      "contentHash": "732edec9acd030094e964055e8b4964f02f73c7a4d47716ffeb05dfbce4d9b03",
+      "contentHash": "525588e3e1e212c62f52b7e1274944891d4ac2181a858cd1f3a303feb84beefc",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 14,
+      "totalLines": 27,
       "hasStructuralAnalysis": false
     },
     ".github/workflows/ci.yml": {
@@ -30,7 +40,17 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 62,
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/docs.yml": {
+      "filePath": ".github/workflows/docs.yml",
+      "contentHash": "67bdec174ae5e888eaa80bd833d9bff43131089e0f91c5695fba73184a05944f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 76,
       "hasStructuralAnalysis": true
     },
     ".github/workflows/release.yml": {
@@ -40,17 +60,27 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 273,
+      "totalLines": 272,
       "hasStructuralAnalysis": true
     },
-    ".ua/.understandignore": {
-      "filePath": ".ua/.understandignore",
-      "contentHash": "9c34be5e94481cb943d8b5e77f47e59ee05b96341ee97809ed246f6b1ad79940",
+    ".gitignore": {
+      "filePath": ".gitignore",
+      "contentHash": "98e98187c6c22d74858f2935c443cd632749858bea2ddf5dbc220b4dc5294747",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 26,
+      "totalLines": 202,
+      "hasStructuralAnalysis": false
+    },
+    ".ua/.understandignore": {
+      "filePath": ".ua/.understandignore",
+      "contentHash": "5af1f712fad0ae101aa52e6501f7f2ab4a36e33db19af935e35372457177fbbe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
       "hasStructuralAnalysis": false
     },
     "Cantus.slnx": {
@@ -60,7 +90,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 17,
+      "totalLines": 16,
       "hasStructuralAnalysis": false
     },
     "Dockerfile": {
@@ -70,57 +100,267 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 74,
-      "hasStructuralAnalysis": true
+      "totalLines": 73,
+      "hasStructuralAnalysis": false
     },
-    "docker-compose.yml": {
-      "filePath": "docker-compose.yml",
-      "contentHash": "d1b3ec2545e599af49494a3ebba94188b9eeee30df6a96bd891a119efeef466e",
+    "LICENSE": {
+      "filePath": "LICENSE",
+      "contentHash": "f737cfe68b139b568417d95a84c26c2b21c3b998ea631d3fb12e190e196b25f2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 33,
+      "totalLines": 21,
       "hasStructuralAnalysis": true
     },
-    "docs/ImplementationPlan.md": {
-      "filePath": "docs/ImplementationPlan.md",
+    "docker-compose.docs.yml": {
+      "filePath": "docker-compose.docs.yml",
+      "contentHash": "c8c03a424ece36dd34515dce282e065303675389ca7eca89f9b922e3f43dbac3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "148da4790eb179083bc9952b8f2a685bae82a3c9b3dc1c0b01c3a8b753f3c557",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/client.md": {
+      "filePath": "docs/architecture/client.md",
+      "contentHash": "de0c0928072fb749e5bbd483fa3f3e8757cd50f119a61a4127d63ded04725149",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/core.md": {
+      "filePath": "docs/architecture/core.md",
+      "contentHash": "827ea7e6472f1501eabafd9abf396603ae809e4822e7f57aa2a21b86f056f46d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/infrastructure.md": {
+      "filePath": "docs/architecture/infrastructure.md",
+      "contentHash": "653d3319e53687fd1e43465d37d381f499d724b1f75b4e16410395c756c9a6cc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/overview.md": {
+      "filePath": "docs/architecture/overview.md",
+      "contentHash": "f6214f548c559fb50f2e8a8de46d16d446729f1aaeeaecc95d66f4cd61853ed0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture/server.md": {
+      "filePath": "docs/architecture/server.md",
+      "contentHash": "9a48e287f28f368f6c6797833935910357354fcf404a5fca6cea2f770723a868",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 68,
+      "hasStructuralAnalysis": true
+    },
+    "docs/domain-flows/index.md": {
+      "filePath": "docs/domain-flows/index.md",
+      "contentHash": "3b267420ad187dbed3585059cbbec10ba24f87fb3879652b86927a40c8d5135e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "docs/domain-flows/lyrics-caching.md": {
+      "filePath": "docs/domain-flows/lyrics-caching.md",
+      "contentHash": "89987485dd7ac14ad4e5bbfba29dcc2e3436ad7b4569a4cb03a8a5d9146cf3a7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
+      "hasStructuralAnalysis": true
+    },
+    "docs/domain-flows/ntp-interpolation.md": {
+      "filePath": "docs/domain-flows/ntp-interpolation.md",
+      "contentHash": "ef1ddbbd7da153546f53e480f65a3f3325e39a69c7293d2c537d9785c44e8506",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "docs/domain-flows/playback-sync.md": {
+      "filePath": "docs/domain-flows/playback-sync.md",
+      "contentHash": "5eeff5c7db360e052ec027b6bc291b9e4b4deb7d9a51754d799a1eecc8c3ec7e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "docs/domain-flows/spotify-pkce-login.md": {
+      "filePath": "docs/domain-flows/spotify-pkce-login.md",
+      "contentHash": "20a8d88797aef23d13345d245ca916087594e04591a8a43f922a1b2dc028a576",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "docs/getting-started/index.md": {
+      "filePath": "docs/getting-started/index.md",
+      "contentHash": "4bb11e07ece6f80117610329b916f3200e3229807f7f7d47984e1f543fd66d53",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "docs/getting-started/quickstart.md": {
+      "filePath": "docs/getting-started/quickstart.md",
+      "contentHash": "8a2270258aa50bfb532bb74aed8aa20f79fb9e7fe2ec6443e37aa2055da07d8a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "docs/index.md": {
+      "filePath": "docs/index.md",
+      "contentHash": "e86ed2669bde0e19d0fb3ed83928feb5ffbc72cfd3166a5a8bb4f16e4009373e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "docs/local/ImplementationPlan.md": {
+      "filePath": "docs/local/ImplementationPlan.md",
       "contentHash": "9954cb721b45538d2b49ca6e2493cffd13bed2c106576260455b9a596b7651f0",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 171,
+      "totalLines": 170,
       "hasStructuralAnalysis": true
     },
-    "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md": {
-      "filePath": "docs/architecture/ADR-001-spotify-synced-lyrics-platform.md",
+    "docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md": {
+      "filePath": "docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
       "contentHash": "1f5d06a5a8c3a8b293d6367e9c4d91429891033914686977eb9754229c7782dc",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 145,
+      "totalLines": 144,
       "hasStructuralAnalysis": true
     },
-    "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md": {
-      "filePath": "docs/architecture/ADR-002-docker-containerization-and-host-configuration.md",
+    "docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md": {
+      "filePath": "docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md",
       "contentHash": "83a79196e34f01ac56f8d671d376a83ee5597bb490b6ad93665082d06a72df00",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 120,
+      "totalLines": 119,
       "hasStructuralAnalysis": true
     },
-    "docs/architecture/ADR-003-ci-cd-and-release-packaging.md": {
-      "filePath": "docs/architecture/ADR-003-ci-cd-and-release-packaging.md",
+    "docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md": {
+      "filePath": "docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md",
       "contentHash": "54138f125f25cd4af85d0b0741b7707891a62335bc3c2dc5cd425f44f6f97c5e",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 174,
+      "totalLines": 173,
+      "hasStructuralAnalysis": true
+    },
+    "docs/local/keysetup.md": {
+      "filePath": "docs/local/keysetup.md",
+      "contentHash": "59bf07fbdd77738de1185cb5662b2c69b1e9a8098357c1ce8fef9890f4475d89",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 202,
+      "hasStructuralAnalysis": true
+    },
+    "docs/operator-guide/self-hosting.md": {
+      "filePath": "docs/operator-guide/self-hosting.md",
+      "contentHash": "84b454a91b034d8dbfa5c182b6c936620050e1ea6ddf55eadb2ad3c58c2b554c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": true
+    },
+    "docs/operator-guide/spotify-setup.md": {
+      "filePath": "docs/operator-guide/spotify-setup.md",
+      "contentHash": "2864245ecf6ad932d053ca4ebc74ab44a281cc1860ad26b398f6124adaf31491",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "docs/operator-guide/troubleshooting.md": {
+      "filePath": "docs/operator-guide/troubleshooting.md",
+      "contentHash": "06c6cba78f7eb6b15e55621c424a23ad6c97ab04b93ac6f17ef6bd27cb270548",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "docs/reference/configuration.md": {
+      "filePath": "docs/reference/configuration.md",
+      "contentHash": "7278289b0d2226b3f9e6f1386e66ba536ca36e0c800c76cd1bb2533c75766cc3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "docs/reference/docker.md": {
+      "filePath": "docs/reference/docker.md",
+      "contentHash": "d46feeb8783e0ed323853cb0a07075debd690ec57811eee5102f8026cd673a7d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
       "hasStructuralAnalysis": true
     },
     "global.json": {
@@ -130,7 +370,17 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 11,
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "mkdocs.yml": {
+      "filePath": "mkdocs.yml",
+      "contentHash": "3631467d4adf99eaa3b928b4716aa1a392985799f03747ba17433b09c41b6b02",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "packaging/linux/AppRun": {
@@ -140,7 +390,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": false
     },
     "packaging/linux/build-appimage.sh": {
@@ -150,8 +400,8 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 52,
-      "hasStructuralAnalysis": true
+      "totalLines": 51,
+      "hasStructuralAnalysis": false
     },
     "packaging/linux/cantus.desktop": {
       "filePath": "packaging/linux/cantus.desktop",
@@ -160,7 +410,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 10,
+      "totalLines": 9,
       "hasStructuralAnalysis": false
     },
     "packaging/windows/installer.iss": {
@@ -170,7 +420,27 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 45,
+      "totalLines": 44,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/generate_docs.py": {
+      "filePath": "scripts/generate_docs.py",
+      "contentHash": "b1e263f0aa824aa7ad119f12e60b386c161d536de471aa955e3acffbaa98e72c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 390,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/update_understand_context.py": {
+      "filePath": "scripts/update_understand_context.py",
+      "contentHash": "a39e633be9790759ff3891ecdecf1a3f758daf491f815e18c62bf1883e9b106c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 480,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/App.xaml": {
@@ -180,60 +450,30 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 32,
-      "hasStructuralAnalysis": false
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/App.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
       "contentHash": "51fe56910ced9e6d8516d3f12eb69df49cd6bd1e58647a49ae16b9256de3b0c4",
       "functions": [
         {
-          "name": "App",
-          "params": [],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "OnLaunched",
-          "params": [
-            "args"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 21
-        },
-        {
-          "name": "OnNavigationFailed",
-          "params": [
-            "sender",
-            "e"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 4
-        },
-        {
           "name": "InitializeLogging",
           "params": [],
           "returnType": "void",
           "exported": true,
-          "lineCount": 23
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "App",
-          "methods": [
-            "App",
-            "OnLaunched",
-            "OnNavigationFailed",
-            "InitializeLogging"
-          ],
+          "methods": [],
           "properties": [
             "MainWindow"
           ],
           "exported": true,
-          "lineCount": 60
+          "lineCount": 65
         }
       ],
       "imports": [
@@ -252,10 +492,9 @@
       ],
       "exports": [
         "App",
-        "InitializeLogging",
-        "App"
+        "InitializeLogging"
       ],
-      "totalLines": 66,
+      "totalLines": 65,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj": {
@@ -265,7 +504,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 38,
+      "totalLines": 37,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/GlobalUsings.cs": {
@@ -273,88 +512,9 @@
       "contentHash": "06773f6053789029141d8366745a44ee89088f3e063d0be65ccb849aff8527a0",
       "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "System",
-          "specifiers": [
-            "System"
-          ]
-        },
-        {
-          "source": "System.Collections.Generic",
-          "specifiers": [
-            "Generic"
-          ]
-        },
-        {
-          "source": "System.IO",
-          "specifiers": [
-            "IO"
-          ]
-        },
-        {
-          "source": "System.Linq",
-          "specifiers": [
-            "Linq"
-          ]
-        },
-        {
-          "source": "System.Net.Http",
-          "specifiers": [
-            "Http"
-          ]
-        },
-        {
-          "source": "System.Threading",
-          "specifiers": [
-            "Threading"
-          ]
-        },
-        {
-          "source": "System.Threading.Tasks",
-          "specifiers": [
-            "Tasks"
-          ]
-        },
-        {
-          "source": "Microsoft.Extensions.Logging",
-          "specifiers": [
-            "Logging"
-          ]
-        },
-        {
-          "source": "Microsoft.UI.Xaml",
-          "specifiers": [
-            "Xaml"
-          ]
-        },
-        {
-          "source": "Microsoft.UI.Xaml.Controls",
-          "specifiers": [
-            "Controls"
-          ]
-        },
-        {
-          "source": "Microsoft.UI.Xaml.Navigation",
-          "specifiers": [
-            "Navigation"
-          ]
-        },
-        {
-          "source": "Microsoft.UI.Xaml.Application",
-          "specifiers": [
-            "Application"
-          ]
-        },
-        {
-          "source": "Microsoft.UI.Xaml.LaunchActivatedEventArgs",
-          "specifiers": [
-            "LaunchActivatedEventArgs"
-          ]
-        }
-      ],
+      "imports": [],
       "exports": [],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/MainPage.xaml": {
@@ -364,19 +524,13 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 369,
-      "hasStructuralAnalysis": false
+      "totalLines": 368,
+      "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
       "contentHash": "86493dc148686fd94da71ac732c71aa170df62a26ea091a2e419259c11deb7cc",
       "functions": [
-        {
-          "name": "MainPage",
-          "params": [],
-          "exported": true,
-          "lineCount": 15
-        },
         {
           "name": "OnActiveLineChanged",
           "params": [
@@ -384,7 +538,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 15
+          "lineCount": 10
         },
         {
           "name": "OnPageKeyDown",
@@ -394,7 +548,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 18
+          "lineCount": 10
         },
         {
           "name": "OnConnectSpotifyClicked",
@@ -404,7 +558,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "OnCycleThemeClicked",
@@ -414,7 +568,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnOpenDiagnosticsHudClicked",
@@ -424,7 +578,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "OnToggleKioskClicked",
@@ -434,7 +588,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnNudgeMinus500Clicked",
@@ -444,7 +598,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnNudgeMinus100Clicked",
@@ -454,7 +608,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnNudgePlus100Clicked",
@@ -464,7 +618,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnNudgePlus500Clicked",
@@ -474,143 +628,13 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 4
-        },
-        {
-          "name": "OnResetOffsetClicked",
-          "params": [
-            "sender",
-            "e"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 4
-        },
-        {
-          "name": "OnSessionItemClicked",
-          "params": [
-            "sender",
-            "e"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 7
-        },
-        {
-          "name": "GetStatusColor",
-          "params": [
-            "status"
-          ],
-          "returnType": "SolidColorBrush",
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "GetRttText",
-          "params": [
-            "rtt"
-          ],
-          "returnType": "string",
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "GetSkewText",
-          "params": [
-            "skew"
-          ],
-          "returnType": "string",
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "GetPlaybackStatus",
-          "params": [
-            "isPlaying"
-          ],
-          "returnType": "string",
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "GetPlayingVisibility",
-          "params": [
-            "isPlaying"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetEmptyStateVisibility",
-          "params": [
-            "hasLyrics"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetLyricsVisibility",
-          "params": [
-            "hasLyrics"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetInstrumentalVisibility",
-          "params": [
-            "isInstrumentalBreak"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetStandardViewVisibility",
-          "params": [
-            "isKioskMode"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetKioskViewVisibility",
-          "params": [
-            "isKioskMode"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "GetKioskFontSize",
-          "params": [
-            "isActive"
-          ],
-          "returnType": "double",
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "GetLineColor",
-          "params": [
-            "isActive",
-            "isPast"
-          ],
-          "returnType": "SolidColorBrush",
-          "exported": true,
-          "lineCount": 6
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "MainPage",
           "methods": [
-            "MainPage",
             "OnActiveLineChanged",
             "OnPageKeyDown",
             "OnConnectSpotifyClicked",
@@ -623,24 +647,15 @@
             "OnNudgePlus500Clicked",
             "OnResetOffsetClicked",
             "OnSessionItemClicked",
-            "GetStatusColor",
             "GetRttText",
             "GetSkewText",
-            "GetPlaybackStatus",
-            "GetPlayingVisibility",
-            "GetEmptyStateVisibility",
-            "GetLyricsVisibility",
-            "GetInstrumentalVisibility",
-            "GetStandardViewVisibility",
-            "GetKioskViewVisibility",
-            "GetKioskFontSize",
-            "GetLineColor"
+            "GetPlaybackStatus"
           ],
           "properties": [
             "ViewModel"
           ],
           "exported": true,
-          "lineCount": 159
+          "lineCount": 172
         }
       ],
       "imports": [
@@ -706,23 +721,22 @@
         }
       ],
       "exports": [
-        "ViewModel",
-        "MainPage",
-        "GetStatusColor",
-        "GetRttText",
-        "GetSkewText",
+        "GetEmptyStateVisibility",
+        "GetInstrumentalVisibility",
+        "GetKioskFontSize",
+        "GetKioskViewVisibility",
+        "GetLineColor",
+        "GetLyricsVisibility",
         "GetPlaybackStatus",
         "GetPlayingVisibility",
-        "GetEmptyStateVisibility",
-        "GetLyricsVisibility",
-        "GetInstrumentalVisibility",
+        "GetRttText",
+        "GetSkewText",
         "GetStandardViewVisibility",
-        "GetKioskViewVisibility",
-        "GetKioskFontSize",
-        "GetLineColor",
-        "MainPage"
+        "GetStatusColor",
+        "MainPage",
+        "ViewModel"
       ],
-      "totalLines": 173,
+      "totalLines": 172,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Models/AppTheme.cs": {
@@ -736,24 +750,23 @@
           ],
           "returnType": "ColorPalette",
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         }
       ],
       "classes": [
         {
-          "name": "ColorPalette",
-          "methods": [
-            "GetPredefined"
-          ],
-          "properties": [
-            "MidnightViolet",
-            "EmeraldSynth",
-            "CyberpunkSunset",
-            "NordicSlate",
-            "OLEDMonochrome"
-          ],
+          "name": "ThemeMode",
+          "methods": [],
+          "properties": [],
           "exported": true,
-          "lineCount": 104
+          "lineCount": 118
+        },
+        {
+          "name": "ColorPalette",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 118
         }
       ],
       "imports": [
@@ -765,15 +778,11 @@
         }
       ],
       "exports": [
-        "MidnightViolet",
-        "EmeraldSynth",
-        "CyberpunkSunset",
-        "NordicSlate",
-        "OLEDMonochrome",
+        "ColorPalette",
         "GetPredefined",
-        "ColorPalette"
+        "ThemeMode"
       ],
-      "totalLines": 119,
+      "totalLines": 118,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs": {
@@ -789,7 +798,7 @@
           ],
           "returnType": "ColorPalette",
           "exported": true,
-          "lineCount": 51
+          "lineCount": 10
         },
         {
           "name": "HslToRgb",
@@ -800,7 +809,7 @@
           ],
           "returnType": "Color",
           "exported": true,
-          "lineCount": 24
+          "lineCount": 10
         },
         {
           "name": "HueToRgb",
@@ -811,20 +820,16 @@
           ],
           "returnType": "float",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "ColorExtractionHelper",
-          "methods": [
-            "GeneratePaletteFromMetadata",
-            "HslToRgb",
-            "HueToRgb"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 89
+          "lineCount": 96
         }
       ],
       "imports": [
@@ -854,11 +859,11 @@
         }
       ],
       "exports": [
+        "ColorExtractionHelper",
         "GeneratePaletteFromMetadata",
-        "HslToRgb",
-        "ColorExtractionHelper"
+        "HslToRgb"
       ],
-      "totalLines": 97,
+      "totalLines": 96,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs": {
@@ -872,18 +877,16 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 15
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "Program",
-          "methods": [
-            "Main"
-          ],
+          "methods": [],
           "properties": [],
-          "exported": false,
-          "lineCount": 18
+          "exported": true,
+          "lineCount": 23
         }
       ],
       "imports": [
@@ -901,9 +904,10 @@
         }
       ],
       "exports": [
-        "Main"
+        "Main",
+        "Program"
       ],
-      "totalLines": 24,
+      "totalLines": 23,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs": {
@@ -917,18 +921,16 @@
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 11
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "Program",
-          "methods": [
-            "Main"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 14
+          "lineCount": 18
         }
       ],
       "imports": [
@@ -943,7 +945,7 @@
         "Main",
         "Program"
       ],
-      "totalLines": 19,
+      "totalLines": 18,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs": {
@@ -951,28 +953,20 @@
       "contentHash": "1b987c165bd11689662c12fc9583939f22400149023f5333bcf45e8f6a7ddd18",
       "functions": [
         {
-          "name": "SignalRPlaybackClient",
-          "params": [
-            "serverUrl"
-          ],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
           "name": "StartAsync",
           "params": [
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 47
+          "lineCount": 10
         },
         {
           "name": "SyncClockAsync",
           "params": [],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 26
+          "lineCount": 10
         },
         {
           "name": "ProcessNtpSample",
@@ -983,7 +977,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 49
+          "lineCount": 10
         },
         {
           "name": "SetTrackOffsetAsync",
@@ -993,7 +987,7 @@
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 10
         },
         {
           "name": "SubscribeToUserAsync",
@@ -1002,77 +996,20 @@
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 10
         },
         {
           "name": "DisposeAsync",
           "params": [],
           "returnType": "ValueTask",
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "PlaybackStatePayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "LyricLinePayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "LyricsPayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "TrackOffsetPayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "DiagnosticsPayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "AuthorizedSessionPayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "ClockSyncResponsePayload",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "NtpSample",
-          "methods": [],
-          "properties": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "SignalRPlaybackClient",
           "methods": [
-            "SignalRPlaybackClient",
             "StartAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
@@ -1081,19 +1018,156 @@
             "DisposeAsync"
           ],
           "properties": [
-            "_connection",
-            "_clockSyncTimer",
-            "_serverUrl",
-            "_ntpHistory",
-            "_ntpLock",
-            "MaxNtpSamples",
             "RttMs",
             "ClockOffsetMs",
-            "TransportType",
-            "State"
+            "TransportType"
           ],
           "exported": true,
-          "lineCount": 181
+          "lineCount": 241
+        },
+        {
+          "name": "LyricLinePayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "LyricsPayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "TrackOffsetPayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "DiagnosticsPayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "AuthorizedSessionPayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "ClockSyncResponsePayload",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "NtpSample",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
+        },
+        {
+          "name": "SignalRPlaybackClient",
+          "methods": [
+            "StartAsync",
+            "SyncClockAsync",
+            "ProcessNtpSample",
+            "SetTrackOffsetAsync",
+            "SubscribeToUserAsync",
+            "DisposeAsync"
+          ],
+          "properties": [
+            "RttMs",
+            "ClockOffsetMs",
+            "TransportType"
+          ],
+          "exported": true,
+          "lineCount": 241
         }
       ],
       "imports": [
@@ -1141,28 +1215,26 @@
         }
       ],
       "exports": [
-        "PlaybackStatePayload",
+        "AuthorizedSessionPayload",
+        "ClockOffsetMs",
+        "ClockSyncResponsePayload",
+        "DiagnosticsPayload",
+        "DisposeAsync",
         "LyricLinePayload",
         "LyricsPayload",
-        "TrackOffsetPayload",
-        "DiagnosticsPayload",
-        "AuthorizedSessionPayload",
-        "ClockSyncResponsePayload",
         "NtpSample",
+        "PlaybackStatePayload",
+        "ProcessNtpSample",
         "RttMs",
-        "ClockOffsetMs",
-        "TransportType",
-        "State",
+        "SetTrackOffsetAsync",
         "SignalRPlaybackClient",
         "StartAsync",
-        "SyncClockAsync",
-        "ProcessNtpSample",
-        "SetTrackOffsetAsync",
         "SubscribeToUserAsync",
-        "DisposeAsync",
-        "SignalRPlaybackClient"
+        "SyncClockAsync",
+        "TrackOffsetPayload",
+        "TransportType"
       ],
-      "totalLines": 242,
+      "totalLines": 241,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs": {
@@ -1170,26 +1242,20 @@
       "contentHash": "a334418ab7b7735346a043fc5ce4e7dce918a6cd2534299a3f19dd1bf22ffc01",
       "functions": [
         {
-          "name": "ThemeManager",
-          "params": [],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
           "name": "SetThemeMode",
           "params": [
             "mode"
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "CycleNextTheme",
           "params": [],
           "returnType": "void",
           "exported": true,
-          "lineCount": 6
+          "lineCount": 10
         },
         {
           "name": "UpdateTrackMetadata",
@@ -1200,61 +1266,38 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 11
+          "lineCount": 10
         },
         {
           "name": "ApplyTheme",
           "params": [],
           "returnType": "void",
           "exported": false,
-          "lineCount": 11
+          "lineCount": 10
         },
         {
           "name": "OnPropertyChanged",
           "params": [
-            "propertyName"
+            "null"
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 2
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "ThemeManager",
           "methods": [
-            "ThemeManager",
             "SetThemeMode",
             "CycleNextTheme",
             "UpdateTrackMetadata",
             "ApplyTheme",
             "OnPropertyChanged"
           ],
-          "properties": [
-            "_instance",
-            "Instance",
-            "_currentMode",
-            "_activePalette",
-            "_lastTitle",
-            "_lastArtist",
-            "_lastAlbumArtUrl",
-            "CurrentMode",
-            "ActivePalette",
-            "BackgroundBrush",
-            "SurfaceCardBrush",
-            "CardBorderBrush",
-            "PrimaryAccentBrush",
-            "SecondaryAccentBrush",
-            "TextPrimaryBrush",
-            "TextSecondaryBrush",
-            "TextMutedBrush",
-            "GlowBrush",
-            "ActiveLyricBrush",
-            "PastLyricBrush",
-            "UpcomingLyricBrush"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 109
+          "lineCount": 118
         }
       ],
       "imports": [
@@ -1296,28 +1339,12 @@
         }
       ],
       "exports": [
-        "Instance",
-        "CurrentMode",
-        "ActivePalette",
-        "BackgroundBrush",
-        "SurfaceCardBrush",
-        "CardBorderBrush",
-        "PrimaryAccentBrush",
-        "SecondaryAccentBrush",
-        "TextPrimaryBrush",
-        "TextSecondaryBrush",
-        "TextMutedBrush",
-        "GlowBrush",
-        "ActiveLyricBrush",
-        "PastLyricBrush",
-        "UpcomingLyricBrush",
-        "ThemeManager",
-        "SetThemeMode",
         "CycleNextTheme",
-        "UpdateTrackMetadata",
-        "ThemeManager"
+        "SetThemeMode",
+        "ThemeManager",
+        "UpdateTrackMetadata"
       ],
-      "totalLines": 119,
+      "totalLines": 118,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs": {
@@ -1329,16 +1356,16 @@
           "params": [],
           "returnType": "void",
           "exported": false,
-          "lineCount": 21
+          "lineCount": 10
         },
         {
           "name": "OnPropertyChanged",
           "params": [
-            "propertyName"
+            "null"
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 2
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -1349,21 +1376,11 @@
             "OnPropertyChanged"
           ],
           "properties": [
-            "_isActive",
-            "_isPast",
-            "_fontSize",
-            "_fontWeight",
-            "_opacity",
             "TimestampMs",
-            "Text",
-            "IsActive",
-            "IsPast",
-            "FontSize",
-            "FontWeight",
-            "Opacity"
+            "Text"
           ],
           "exported": true,
-          "lineCount": 104
+          "lineCount": 112
         }
       ],
       "imports": [
@@ -1399,16 +1416,11 @@
         }
       ],
       "exports": [
-        "TimestampMs",
+        "LyricLineViewModel",
         "Text",
-        "IsActive",
-        "IsPast",
-        "FontSize",
-        "FontWeight",
-        "Opacity",
-        "LyricLineViewModel"
+        "TimestampMs"
       ],
-      "totalLines": 113,
+      "totalLines": 112,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs": {
@@ -1416,27 +1428,18 @@
       "contentHash": "d3b12be76d25143e599b85231033f3d0faf3ab79a43d50eec0ca3a6e7dcac081",
       "functions": [
         {
-          "name": "LyricsViewModel",
-          "params": [
-            "client",
-            "themeManager"
-          ],
-          "exported": true,
-          "lineCount": 19
-        },
-        {
           "name": "InitializeAsync",
           "params": [],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "ToggleKioskMode",
           "params": [],
           "returnType": "void",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "OnPlaybackStateReceived",
@@ -1445,7 +1448,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 53
+          "lineCount": 10
         },
         {
           "name": "OnLyricsReceived",
@@ -1454,7 +1457,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 17
+          "lineCount": 10
         },
         {
           "name": "OnTrackOffsetReceived",
@@ -1463,7 +1466,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "OnSessionsReceived",
@@ -1472,7 +1475,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "OnDiagnosticsReceived",
@@ -1481,7 +1484,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 12
+          "lineCount": 10
         },
         {
           "name": "OnTick",
@@ -1491,7 +1494,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 62
+          "lineCount": 10
         },
         {
           "name": "EvaluateInstrumentalBreak",
@@ -1501,7 +1504,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 41
+          "lineCount": 10
         },
         {
           "name": "FindActiveLineIndex",
@@ -1510,66 +1513,13 @@
           ],
           "returnType": "int",
           "exported": true,
-          "lineCount": 24
-        },
-        {
-          "name": "UpdateLyricLineStates",
-          "params": [
-            "activeIdx"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 8
-        },
-        {
-          "name": "NudgeOffsetAsync",
-          "params": [
-            "deltaMs"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "ResetOffsetAsync",
-          "params": [],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "SubscribeToUserAsync",
-          "params": [
-            "userId"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "FormatTime",
-          "params": [
-            "ms"
-          ],
-          "returnType": "string",
-          "exported": false,
-          "lineCount": 5
-        },
-        {
-          "name": "OnPropertyChanged",
-          "params": [
-            "propertyName"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 2
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "LyricsViewModel",
           "methods": [
-            "LyricsViewModel",
             "InitializeAsync",
             "ToggleKioskMode",
             "OnPlaybackStateReceived",
@@ -1584,78 +1534,14 @@
             "NudgeOffsetAsync",
             "ResetOffsetAsync",
             "SubscribeToUserAsync",
-            "FormatTime",
             "OnPropertyChanged"
           ],
           "properties": [
-            "_client",
-            "_ticker",
-            "_themeManager",
-            "_lastPlaybackState",
-            "_lastLyrics",
-            "_userOffsetMs",
-            "_activeLineIndex",
-            "_interpolatedProgressMs",
-            "_connectionStatus",
-            "_rttMs",
-            "_clockSkewMs",
-            "_pollerStatus",
-            "_activeUserName",
-            "_activeUserId",
-            "_connectedClients",
-            "_authorizedSessionsCount",
-            "_activePollIntervalMs",
-            "_transportType",
-            "_currentTitle",
-            "_currentArtist",
-            "_currentAlbum",
-            "_albumArtUrl",
-            "_isPlaying",
-            "_deviceName",
-            "_volumePercent",
-            "_progressFraction",
-            "_progressText",
-            "_totalDurationText",
-            "_offsetText",
-            "_hasLyrics",
-            "_isInstrumental",
-            "_isInstrumentalBreak",
-            "_instrumentalBreakText",
-            "_isKioskMode",
             "LyricLines",
-            "Sessions",
-            "Theme",
-            "SelectedThemeMode",
-            "ConnectionStatus",
-            "RttMs",
-            "ClockSkewMs",
-            "PollerStatus",
-            "ActiveUserName",
-            "ActiveUserId",
-            "ConnectedClients",
-            "AuthorizedSessionsCount",
-            "ActivePollIntervalMs",
-            "TransportType",
-            "CurrentTitle",
-            "CurrentArtist",
-            "CurrentAlbum",
-            "AlbumArtUrl",
-            "IsPlaying",
-            "DeviceName",
-            "VolumePercent",
-            "ProgressFraction",
-            "ProgressText",
-            "TotalDurationText",
-            "OffsetText",
-            "HasLyrics",
-            "IsInstrumental",
-            "IsInstrumentalBreak",
-            "InstrumentalBreakText",
-            "IsKioskMode",
-            "ActiveLineIndex"
+            "Sessions"
           ],
           "exported": true,
-          "lineCount": 536
+          "lineCount": 548
         }
       ],
       "imports": [
@@ -1715,47 +1601,17 @@
         }
       ],
       "exports": [
-        "LyricLines",
-        "Sessions",
-        "Theme",
-        "SelectedThemeMode",
-        "ConnectionStatus",
-        "RttMs",
-        "ClockSkewMs",
-        "PollerStatus",
-        "ActiveUserName",
-        "ActiveUserId",
-        "ConnectedClients",
-        "AuthorizedSessionsCount",
-        "ActivePollIntervalMs",
-        "TransportType",
-        "CurrentTitle",
-        "CurrentArtist",
-        "CurrentAlbum",
-        "AlbumArtUrl",
-        "IsPlaying",
-        "DeviceName",
-        "VolumePercent",
-        "ProgressFraction",
-        "ProgressText",
-        "TotalDurationText",
-        "OffsetText",
-        "HasLyrics",
-        "IsInstrumental",
-        "IsInstrumentalBreak",
-        "InstrumentalBreakText",
-        "IsKioskMode",
-        "ActiveLineIndex",
-        "LyricsViewModel",
-        "InitializeAsync",
-        "ToggleKioskMode",
         "FindActiveLineIndex",
+        "InitializeAsync",
+        "LyricLines",
+        "LyricsViewModel",
         "NudgeOffsetAsync",
         "ResetOffsetAsync",
+        "Sessions",
         "SubscribeToUserAsync",
-        "LyricsViewModel"
+        "ToggleKioskMode"
       ],
-      "totalLines": 549,
+      "totalLines": 548,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml": {
@@ -1765,21 +1621,13 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 65,
-      "hasStructuralAnalysis": false
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml.cs",
       "contentHash": "5c208ecfa6609e409b7e8e6044b9a3fdd5a0da374b5d9a93e4ad7461715af659",
       "functions": [
-        {
-          "name": "DiagnosticsHudDialog",
-          "params": [
-            "viewModel"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
         {
           "name": "GetLatencySkewText",
           "params": [
@@ -1788,7 +1636,7 @@
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 5
+          "lineCount": 10
         },
         {
           "name": "GetPollerCadenceText",
@@ -1798,7 +1646,7 @@
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "GetVolumeText",
@@ -1807,14 +1655,13 @@
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "DiagnosticsHudDialog",
           "methods": [
-            "DiagnosticsHudDialog",
             "GetLatencySkewText",
             "GetPollerCadenceText",
             "GetVolumeText"
@@ -1823,7 +1670,7 @@
             "ViewModel"
           ],
           "exported": true,
-          "lineCount": 26
+          "lineCount": 30
         }
       ],
       "imports": [
@@ -1835,14 +1682,13 @@
         }
       ],
       "exports": [
-        "ViewModel",
         "DiagnosticsHudDialog",
         "GetLatencySkewText",
         "GetPollerCadenceText",
         "GetVolumeText",
-        "DiagnosticsHudDialog"
+        "ViewModel"
       ],
-      "totalLines": 31,
+      "totalLines": 30,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/WasmScripts/index.html": {
@@ -1852,8 +1698,8 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 346,
-      "hasStructuralAnalysis": false
+      "totalLines": 345,
+      "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Directory.Build.props": {
       "filePath": "src/Cantus.Client/Directory.Build.props",
@@ -1862,7 +1708,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 16,
+      "totalLines": 15,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Directory.Packages.props": {
@@ -1872,7 +1718,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Core/Cantus.Core.csproj": {
@@ -1882,7 +1728,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 10,
+      "totalLines": 9,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs": {
@@ -1892,17 +1738,10 @@
       "classes": [
         {
           "name": "ILyricsCacheRepository",
-          "methods": [
-            "GetCachedLyricsAsync",
-            "IsMarkedNotFoundAsync",
-            "SaveLyricsAsync",
-            "MarkNotFoundAsync",
-            "GetTrackOffsetAsync",
-            "SetTrackOffsetAsync"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 9
+          "lineCount": 15
         }
       ],
       "imports": [
@@ -1916,7 +1755,7 @@
       "exports": [
         "ILyricsCacheRepository"
       ],
-      "totalLines": 16,
+      "totalLines": 15,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ILyricsProvider.cs": {
@@ -1926,12 +1765,10 @@
       "classes": [
         {
           "name": "ILyricsProvider",
-          "methods": [
-            "GetLyricsAsync"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 4
+          "lineCount": 8
         }
       ],
       "imports": [
@@ -1945,7 +1782,7 @@
       "exports": [
         "ILyricsProvider"
       ],
-      "totalLines": 9,
+      "totalLines": 8,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs": {
@@ -1955,44 +1792,7 @@
       "classes": [
         {
           "name": "IPlaybackInterpolator",
-          "methods": [
-            "CalculateCurrentPosition",
-            "Reset"
-          ],
-          "properties": [],
-          "exported": true,
-          "lineCount": 5
-        }
-      ],
-      "imports": [
-        {
-          "source": "Cantus.Core.Models",
-          "specifiers": [
-            "Models"
-          ]
-        }
-      ],
-      "exports": [
-        "IPlaybackInterpolator"
-      ],
-      "totalLines": 10,
-      "hasStructuralAnalysis": true
-    },
-    "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs": {
-      "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
-      "contentHash": "ddd783dc0bc99277dbdfa121a6b16d8cb375b16f524054ee7be22d25c2438b71",
-      "functions": [],
-      "classes": [
-        {
-          "name": "ISpotifyAuthService",
-          "methods": [
-            "GetAuthorizationUri",
-            "ExchangeCodeAsync",
-            "RefreshTokenAsync",
-            "GetSessionAsync",
-            "GetAllSessionsAsync",
-            "RevokeSessionAsync"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
           "lineCount": 9
@@ -2007,9 +1807,36 @@
         }
       ],
       "exports": [
+        "IPlaybackInterpolator"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs": {
+      "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
+      "contentHash": "ddd783dc0bc99277dbdfa121a6b16d8cb375b16f524054ee7be22d25c2438b71",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ISpotifyAuthService",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "imports": [
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        }
+      ],
+      "exports": [
         "ISpotifyAuthService"
       ],
-      "totalLines": 15,
+      "totalLines": 14,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs": {
@@ -2019,12 +1846,10 @@
       "classes": [
         {
           "name": "ISpotifyPlayerClient",
-          "methods": [
-            "GetCurrentPlaybackAsync"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 4
+          "lineCount": 8
         }
       ],
       "imports": [
@@ -2038,7 +1863,7 @@
       "exports": [
         "ISpotifyPlayerClient"
       ],
-      "totalLines": 9,
+      "totalLines": 8,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/LyricLine.cs": {
@@ -2051,22 +1876,22 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 1
+          "lineCount": 5
         },
         {
           "name": "LyricLine",
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 1
+          "lineCount": 5
         }
       ],
       "imports": [],
       "exports": [
-        "LyricSyllable",
-        "LyricLine"
+        "LyricLine",
+        "LyricSyllable"
       ],
-      "totalLines": 6,
+      "totalLines": 5,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/PlaybackState.cs": {
@@ -2086,20 +1911,20 @@
             "VolumePercent"
           ],
           "exported": true,
-          "lineCount": 9
+          "lineCount": 11
         }
       ],
       "imports": [],
       "exports": [
         "CurrentTrack",
-        "Progress",
-        "IsPlaying",
-        "TimestampUtc",
         "DeviceName",
-        "VolumePercent",
-        "PlaybackState"
+        "IsPlaying",
+        "PlaybackState",
+        "Progress",
+        "TimestampUtc",
+        "VolumePercent"
       ],
-      "totalLines": 12,
+      "totalLines": 11,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/SyncedLyrics.cs": {
@@ -2113,7 +1938,7 @@
           ],
           "returnType": "int",
           "exported": true,
-          "lineCount": 27
+          "lineCount": 10
         },
         {
           "name": "GetActiveLine",
@@ -2122,15 +1947,14 @@
           ],
           "returnType": "LyricLine?",
           "exported": true,
-          "lineCount": 5
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "SyncedLyrics",
           "methods": [
-            "GetActiveLineIndex",
-            "GetActiveLine"
+            "GetActiveLineIndex"
           ],
           "properties": [
             "TrackId",
@@ -2143,24 +1967,24 @@
             "PlainLyrics"
           ],
           "exported": true,
-          "lineCount": 45
+          "lineCount": 47
         }
       ],
       "imports": [],
       "exports": [
-        "TrackId",
-        "Title",
-        "Artist",
         "Album",
-        "Lines",
-        "IsSynced",
-        "IsInstrumental",
-        "PlainLyrics",
-        "GetActiveLineIndex",
+        "Artist",
         "GetActiveLine",
-        "SyncedLyrics"
+        "GetActiveLineIndex",
+        "IsInstrumental",
+        "IsSynced",
+        "Lines",
+        "PlainLyrics",
+        "SyncedLyrics",
+        "Title",
+        "TrackId"
       ],
-      "totalLines": 48,
+      "totalLines": 47,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/TrackInfo.cs": {
@@ -2181,21 +2005,21 @@
             "IsExplicit"
           ],
           "exported": true,
-          "lineCount": 10
+          "lineCount": 12
         }
       ],
       "imports": [],
       "exports": [
-        "Id",
-        "Title",
-        "Artist",
         "Album",
         "AlbumArtUrl",
+        "Artist",
         "Duration",
+        "Id",
         "IsExplicit",
+        "Title",
         "TrackInfo"
       ],
-      "totalLines": 13,
+      "totalLines": 12,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/UserSession.cs": {
@@ -2219,24 +2043,24 @@
             "UpdatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 13
+          "lineCount": 15
         }
       ],
       "imports": [],
       "exports": [
-        "Id",
-        "SpotifyUserId",
+        "AccessToken",
+        "CreatedAtUtc",
         "DisplayName",
         "Email",
-        "ProfileImageUrl",
-        "AccessToken",
-        "RefreshToken",
         "ExpiresAtUtc",
-        "CreatedAtUtc",
+        "Id",
+        "ProfileImageUrl",
+        "RefreshToken",
+        "SpotifyUserId",
         "UpdatedAtUtc",
         "UserSession"
       ],
-      "totalLines": 16,
+      "totalLines": 15,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Parsers/LrcParser.cs": {
@@ -2247,15 +2071,15 @@
           "name": "Parse",
           "params": [
             "rawLrc",
-            "trackId",
-            "title",
-            "artist",
-            "album",
-            "plainLyrics"
+            "\"\"",
+            "\"\"",
+            "\"\"",
+            "null",
+            "null"
           ],
           "returnType": "SyncedLyrics",
           "exported": true,
-          "lineCount": 36
+          "lineCount": 10
         },
         {
           "name": "ParseLines",
@@ -2264,7 +2088,7 @@
           ],
           "returnType": "IReadOnlyList<LyricLine>",
           "exported": true,
-          "lineCount": 58
+          "lineCount": 10
         },
         {
           "name": "TryParseTimestamp",
@@ -2274,20 +2098,16 @@
           ],
           "returnType": "bool",
           "exported": true,
-          "lineCount": 60
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "LrcParser",
-          "methods": [
-            "Parse",
-            "ParseLines",
-            "TryParseTimestamp"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 159
+          "lineCount": 164
         }
       ],
       "imports": [
@@ -2305,12 +2125,12 @@
         }
       ],
       "exports": [
+        "LrcParser",
         "Parse",
         "ParseLines",
-        "TryParseTimestamp",
-        "LrcParser"
+        "TryParseTimestamp"
       ],
-      "totalLines": 165,
+      "totalLines": 164,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
@@ -2320,22 +2140,13 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 26,
+      "totalLines": 25,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs": {
       "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
       "contentHash": "2a51192d448bbbbfbe068337005379e023d6ca010ab5304e33e23adc4b664f7c",
       "functions": [
-        {
-          "name": "PlaybackInterpolator",
-          "params": [
-            "timeProvider",
-            "options"
-          ],
-          "exported": true,
-          "lineCount": 7
-        },
         {
           "name": "CalculateCurrentPosition",
           "params": [
@@ -2344,33 +2155,26 @@
           ],
           "returnType": "TimeSpan",
           "exported": true,
-          "lineCount": 93
+          "lineCount": 10
         },
         {
           "name": "Reset",
           "params": [],
           "returnType": "void",
           "exported": true,
-          "lineCount": 6
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "PlaybackInterpolator",
           "methods": [
-            "PlaybackInterpolator",
             "CalculateCurrentPosition",
             "Reset"
           ],
-          "properties": [
-            "_timeProvider",
-            "_options",
-            "_lastTrackId",
-            "_lastPosition",
-            "_lastCalculationTime"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 117
+          "lineCount": 123
         }
       ],
       "imports": [
@@ -2394,12 +2198,11 @@
         }
       ],
       "exports": [
-        "PlaybackInterpolator",
         "CalculateCurrentPosition",
-        "Reset",
-        "PlaybackInterpolator"
+        "PlaybackInterpolator",
+        "Reset"
       ],
-      "totalLines": 124,
+      "totalLines": 123,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs": {
@@ -2411,22 +2214,20 @@
           "name": "PlaybackInterpolatorOptions",
           "methods": [],
           "properties": [
-            "SectionName",
             "SeekThresholdMs",
             "DriftToleranceMs"
           ],
           "exported": true,
-          "lineCount": 6
+          "lineCount": 8
         }
       ],
       "imports": [],
       "exports": [
-        "SectionName",
-        "SeekThresholdMs",
         "DriftToleranceMs",
-        "PlaybackInterpolatorOptions"
+        "PlaybackInterpolatorOptions",
+        "SeekThresholdMs"
       ],
-      "totalLines": 9,
+      "totalLines": 8,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/DependencyInjection.cs": {
@@ -2441,18 +2242,16 @@
           ],
           "returnType": "IServiceCollection",
           "exported": true,
-          "lineCount": 46
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "DependencyInjection",
-          "methods": [
-            "AddCantusInfrastructure"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 49
+          "lineCount": 62
         }
       ],
       "imports": [
@@ -2521,7 +2320,7 @@
         "AddCantusInfrastructure",
         "DependencyInjection"
       ],
-      "totalLines": 63,
+      "totalLines": 62,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs": {
@@ -2529,42 +2328,25 @@
       "contentHash": "6282c45a590f11e10d3fecd1ef21be2124e2f9d8a23f0c6ca41981b1dc6e1295",
       "functions": [
         {
-          "name": "CachedLyricsService",
-          "params": [
-            "cacheRepository",
-            "lrclibProvider",
-            "options",
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 11
-        },
-        {
           "name": "GetLyricsAsync",
           "params": [
             "track",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<SyncedLyrics?>",
           "exported": true,
-          "lineCount": 46
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "CachedLyricsService",
           "methods": [
-            "CachedLyricsService",
             "GetLyricsAsync"
           ],
-          "properties": [
-            "_cacheRepository",
-            "_lrclibProvider",
-            "_options",
-            "_logger"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 66
+          "lineCount": 73
         }
       ],
       "imports": [
@@ -2595,36 +2377,15 @@
       ],
       "exports": [
         "CachedLyricsService",
-        "GetLyricsAsync",
-        "CachedLyricsService"
+        "GetLyricsAsync"
       ],
-      "totalLines": 74,
+      "totalLines": 73,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
       "contentHash": "3f88fa64322ba0d9d6d122f196e81f30c01f75aa7182fd714d74d0f92abf2856",
       "functions": [
-        {
-          "name": "LrclibLyricsProvider",
-          "params": [
-            "httpClient",
-            "options",
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 19
-        },
-        {
-          "name": "GetLyricsAsync",
-          "params": [
-            "track",
-            "cancellationToken"
-          ],
-          "returnType": "Task<SyncedLyrics?>",
-          "exported": true,
-          "lineCount": 29
-        },
         {
           "name": "TryGetExactLyricsAsync",
           "params": [
@@ -2633,7 +2394,7 @@
           ],
           "returnType": "Task<LrclibResponseDto?>",
           "exported": false,
-          "lineCount": 25
+          "lineCount": 10
         },
         {
           "name": "TrySearchLyricsAsync",
@@ -2643,7 +2404,7 @@
           ],
           "returnType": "Task<LrclibResponseDto?>",
           "exported": false,
-          "lineCount": 36
+          "lineCount": 10
         },
         {
           "name": "MapToDomain",
@@ -2653,25 +2414,47 @@
           ],
           "returnType": "SyncedLyrics",
           "exported": false,
-          "lineCount": 20
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "LrclibLyricsProvider",
           "methods": [
-            "LrclibLyricsProvider",
-            "GetLyricsAsync",
             "TryGetExactLyricsAsync",
-            "TrySearchLyricsAsync",
-            "MapToDomain"
+            "TrySearchLyricsAsync"
           ],
           "properties": [
-            "_httpClient",
-            "_logger"
+            "Id",
+            "TrackName",
+            "ArtistName",
+            "AlbumName",
+            "Duration",
+            "Instrumental",
+            "PlainLyrics",
+            "SyncedLyrics"
           ],
           "exported": true,
-          "lineCount": 166
+          "lineCount": 177
+        },
+        {
+          "name": "LrclibResponseDto",
+          "methods": [
+            "TryGetExactLyricsAsync",
+            "TrySearchLyricsAsync"
+          ],
+          "properties": [
+            "Id",
+            "TrackName",
+            "ArtistName",
+            "AlbumName",
+            "Duration",
+            "Instrumental",
+            "PlainLyrics",
+            "SyncedLyrics"
+          ],
+          "exported": true,
+          "lineCount": 177
         }
       ],
       "imports": [
@@ -2722,14 +2505,33 @@
           "specifiers": [
             "Options"
           ]
+        },
+        {
+          "source": "var response = await _httpClient.GetAsync(url, ct)",
+          "specifiers": [
+            "GetAsync(url, ct)"
+          ]
+        },
+        {
+          "source": "var response = await _httpClient.GetAsync(url, ct)",
+          "specifiers": [
+            "GetAsync(url, ct)"
+          ]
         }
       ],
       "exports": [
+        "AlbumName",
+        "ArtistName",
+        "Duration",
+        "Id",
+        "Instrumental",
         "LrclibLyricsProvider",
-        "GetLyricsAsync",
-        "LrclibLyricsProvider"
+        "LrclibResponseDto",
+        "PlainLyrics",
+        "SyncedLyrics",
+        "TrackName"
       ],
-      "totalLines": 178,
+      "totalLines": 177,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs": {
@@ -2741,26 +2543,24 @@
           "name": "LrclibOptions",
           "methods": [],
           "properties": [
-            "SectionName",
             "BaseUrl",
             "UserAgent",
             "TimeoutSeconds",
             "NegativeCacheDays"
           ],
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         }
       ],
       "imports": [],
       "exports": [
-        "SectionName",
         "BaseUrl",
-        "UserAgent",
-        "TimeoutSeconds",
+        "LrclibOptions",
         "NegativeCacheDays",
-        "LrclibOptions"
+        "TimeoutSeconds",
+        "UserAgent"
       ],
-      "totalLines": 11,
+      "totalLines": 10,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs": {
@@ -2768,43 +2568,35 @@
       "contentHash": "f61ff6efd3b2bd8b6ebc4666bb06003588282e54c2ef8f6c32cd5e2d71eed0d6",
       "functions": [
         {
-          "name": "SqliteLyricsCacheRepository",
-          "params": [
-            "dbContext"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
           "name": "GetCachedLyricsAsync",
           "params": [
             "trackId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<SyncedLyrics?>",
           "exported": true,
-          "lineCount": 53
+          "lineCount": 10
         },
         {
           "name": "IsMarkedNotFoundAsync",
           "params": [
             "trackId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<bool>",
           "exported": true,
-          "lineCount": 19
+          "lineCount": 10
         },
         {
           "name": "SaveLyricsAsync",
           "params": [
             "lyrics",
-            "timeToLive",
-            "cancellationToken"
+            "null",
+            "default"
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 48
+          "lineCount": 10
         },
         {
           "name": "MarkNotFoundAsync",
@@ -2815,32 +2607,32 @@
             "albumName",
             "durationMs",
             "timeToLive",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 52
+          "lineCount": 10
         },
         {
           "name": "GetTrackOffsetAsync",
           "params": [
             "trackId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<int>",
           "exported": true,
-          "lineCount": 12
+          "lineCount": 10
         },
         {
           "name": "SetTrackOffsetAsync",
           "params": [
             "trackId",
             "offsetMs",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 29
+          "lineCount": 10
         },
         {
           "name": "GenerateRawLrc",
@@ -2849,27 +2641,23 @@
           ],
           "returnType": "string?",
           "exported": false,
-          "lineCount": 18
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "SqliteLyricsCacheRepository",
           "methods": [
-            "SqliteLyricsCacheRepository",
             "GetCachedLyricsAsync",
             "IsMarkedNotFoundAsync",
             "SaveLyricsAsync",
             "MarkNotFoundAsync",
             "GetTrackOffsetAsync",
-            "SetTrackOffsetAsync",
-            "GenerateRawLrc"
+            "SetTrackOffsetAsync"
           ],
-          "properties": [
-            "_dbContext"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 247
+          "lineCount": 258
         }
       ],
       "imports": [
@@ -2917,41 +2705,28 @@
         }
       ],
       "exports": [
-        "SqliteLyricsCacheRepository",
         "GetCachedLyricsAsync",
-        "IsMarkedNotFoundAsync",
-        "SaveLyricsAsync",
-        "MarkNotFoundAsync",
         "GetTrackOffsetAsync",
+        "IsMarkedNotFoundAsync",
+        "MarkNotFoundAsync",
+        "SaveLyricsAsync",
         "SetTrackOffsetAsync",
         "SqliteLyricsCacheRepository"
       ],
-      "totalLines": 259,
+      "totalLines": 258,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs": {
       "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs",
       "contentHash": "b33dbc79d519c2a3da576176e5085a94267d6a257c6bb89f50113136b2eb354d",
-      "functions": [
-        {
-          "name": "BuildTargetModel",
-          "params": [
-            "modelBuilder"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 146
-        }
-      ],
+      "functions": [],
       "classes": [
         {
           "name": "InitialCreate",
-          "methods": [
-            "BuildTargetModel"
-          ],
+          "methods": [],
           "properties": [],
-          "exported": false,
-          "lineCount": 152
+          "exported": true,
+          "lineCount": 165
         }
       ],
       "imports": [
@@ -2992,52 +2767,26 @@
           ]
         }
       ],
-      "exports": [],
-      "totalLines": 166,
+      "exports": [
+        "InitialCreate"
+      ],
+      "totalLines": 165,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs": {
       "filePath": "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.cs",
       "contentHash": "316c1986f12098fcc30b46b3c12b681706314e8cda27535e73aa55639e9aa4f6",
-      "functions": [
-        {
-          "name": "Up",
-          "params": [
-            "migrationBuilder"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 93
-        },
-        {
-          "name": "Down",
-          "params": [
-            "migrationBuilder"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 14
-        }
-      ],
+      "functions": [],
       "classes": [
         {
           "name": "InitialCreate",
-          "methods": [
-            "Up",
-            "Down"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 113
+          "lineCount": 122
         }
       ],
       "imports": [
-        {
-          "source": "System",
-          "specifiers": [
-            "System"
-          ]
-        },
         {
           "source": "Microsoft.EntityFrameworkCore.Migrations",
           "specifiers": [
@@ -3048,32 +2797,20 @@
       "exports": [
         "InitialCreate"
       ],
-      "totalLines": 123,
+      "totalLines": 122,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs": {
       "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
       "contentHash": "12e2b41f6ec0f4d068981946c3c806ca17ff8019ac752ee0224026ca09c55c3f",
-      "functions": [
-        {
-          "name": "BuildModel",
-          "params": [
-            "modelBuilder"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 146
-        }
-      ],
+      "functions": [],
       "classes": [
         {
           "name": "CantusDbContextModelSnapshot",
-          "methods": [
-            "BuildModel"
-          ],
+          "methods": [],
           "properties": [],
-          "exported": false,
-          "lineCount": 150
+          "exported": true,
+          "lineCount": 162
         }
       ],
       "imports": [
@@ -3108,47 +2845,23 @@
           ]
         }
       ],
-      "exports": [],
-      "totalLines": 163,
+      "exports": [
+        "CantusDbContextModelSnapshot"
+      ],
+      "totalLines": 162,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs": {
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
       "contentHash": "879f946b8295d07c57258bf29fd09c4c23bbb30d98e433eeceb695f9cf942ac4",
-      "functions": [
-        {
-          "name": "CantusDbContext",
-          "params": [
-            "options"
-          ],
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "OnModelCreating",
-          "params": [
-            "modelBuilder"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 34
-        }
-      ],
+      "functions": [],
       "classes": [
         {
           "name": "CantusDbContext",
-          "methods": [
-            "CantusDbContext",
-            "OnModelCreating"
-          ],
-          "properties": [
-            "UserSessions",
-            "CachedLyrics",
-            "TrackOffsets",
-            "Rooms"
-          ],
+          "methods": [],
+          "properties": [],
           "exported": true,
-          "lineCount": 46
+          "lineCount": 51
         }
       ],
       "imports": [
@@ -3166,14 +2879,9 @@
         }
       ],
       "exports": [
-        "CantusDbContext",
-        "UserSessions",
-        "CachedLyrics",
-        "TrackOffsets",
-        "Rooms",
         "CantusDbContext"
       ],
-      "totalLines": 52,
+      "totalLines": 51,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs": {
@@ -3187,18 +2895,16 @@
           ],
           "returnType": "CantusDbContext",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "CantusDbContextFactory",
-          "methods": [
-            "CreateDbContext"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 10
+          "lineCount": 15
         }
       ],
       "imports": [
@@ -3216,10 +2922,10 @@
         }
       ],
       "exports": [
-        "CreateDbContext",
-        "CantusDbContextFactory"
+        "CantusDbContextFactory",
+        "CreateDbContext"
       ],
-      "totalLines": 16,
+      "totalLines": 15,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/Entities/CachedLyricsEntity.cs": {
@@ -3246,27 +2952,27 @@
             "LastAccessedAtUtc"
           ],
           "exported": true,
-          "lineCount": 16
+          "lineCount": 18
         }
       ],
       "imports": [],
       "exports": [
-        "TrackId",
-        "TrackName",
-        "ArtistName",
         "AlbumName",
+        "ArtistName",
+        "CachedLyricsEntity",
         "DurationMs",
-        "PlainLyrics",
-        "RawSyncedLrc",
-        "IsSynced",
+        "ExpiresAtUtc",
+        "FetchedAtUtc",
         "IsInstrumental",
         "IsNotFound",
-        "FetchedAtUtc",
-        "ExpiresAtUtc",
+        "IsSynced",
         "LastAccessedAtUtc",
-        "CachedLyricsEntity"
+        "PlainLyrics",
+        "RawSyncedLrc",
+        "TrackId",
+        "TrackName"
       ],
-      "totalLines": 19,
+      "totalLines": 18,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs": {
@@ -3284,18 +2990,18 @@
             "CreatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 7
+          "lineCount": 9
         }
       ],
       "imports": [],
       "exports": [
-        "RoomCode",
+        "CreatedAtUtc",
         "HostUserId",
         "IsActive",
-        "CreatedAtUtc",
+        "RoomCode",
         "RoomEntity"
       ],
-      "totalLines": 10,
+      "totalLines": 9,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/Entities/TrackOffsetEntity.cs": {
@@ -3312,17 +3018,17 @@
             "UpdatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 6
+          "lineCount": 8
         }
       ],
       "imports": [],
       "exports": [
-        "TrackId",
         "OffsetMs",
-        "UpdatedAtUtc",
-        "TrackOffsetEntity"
+        "TrackId",
+        "TrackOffsetEntity",
+        "UpdatedAtUtc"
       ],
-      "totalLines": 9,
+      "totalLines": 8,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/Entities/UserSessionEntity.cs": {
@@ -3346,24 +3052,24 @@
             "UpdatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 13
+          "lineCount": 15
         }
       ],
       "imports": [],
       "exports": [
-        "Id",
-        "SpotifyUserId",
+        "CreatedAtUtc",
         "DisplayName",
         "Email",
-        "ProfileImageUrl",
         "EncryptedAccessToken",
         "EncryptedRefreshToken",
         "ExpiresAtUtc",
-        "CreatedAtUtc",
+        "Id",
+        "ProfileImageUrl",
+        "SpotifyUserId",
         "UpdatedAtUtc",
         "UserSessionEntity"
       ],
-      "totalLines": 16,
+      "totalLines": 15,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs": {
@@ -3371,21 +3077,13 @@
       "contentHash": "30e555b1f4669569379a3a67ad96fd6f4c5ecc8cebddb2012bf5dd8b0f43d785",
       "functions": [
         {
-          "name": "DataProtectionTokenEncryptionService",
-          "params": [
-            "dataProtectionProvider"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
           "name": "Encrypt",
           "params": [
             "plainText"
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 9
+          "lineCount": 10
         },
         {
           "name": "Decrypt",
@@ -3394,22 +3092,19 @@
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 9
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "DataProtectionTokenEncryptionService",
           "methods": [
-            "DataProtectionTokenEncryptionService",
             "Encrypt",
             "Decrypt"
           ],
-          "properties": [
-            "_protector"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 30
+          "lineCount": 34
         }
       ],
       "imports": [
@@ -3422,11 +3117,10 @@
       ],
       "exports": [
         "DataProtectionTokenEncryptionService",
-        "Encrypt",
         "Decrypt",
-        "DataProtectionTokenEncryptionService"
+        "Encrypt"
       ],
-      "totalLines": 35,
+      "totalLines": 34,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Security/ITokenEncryptionService.cs": {
@@ -3436,20 +3130,17 @@
       "classes": [
         {
           "name": "ITokenEncryptionService",
-          "methods": [
-            "Encrypt",
-            "Decrypt"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 5
+          "lineCount": 7
         }
       ],
       "imports": [],
       "exports": [
         "ITokenEncryptionService"
       ],
-      "totalLines": 8,
+      "totalLines": 7,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs": {
@@ -3457,84 +3148,72 @@
       "contentHash": "c223da2f38df196ff9c39413e3d0920b55aac1df3a9e47b4f37d49c8eb49bba8",
       "functions": [
         {
-          "name": "SpotifyAuthService",
-          "params": [
-            "dbContext",
-            "encryptionService",
-            "options",
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 11
-        },
-        {
           "name": "GetAuthorizationUri",
           "params": [
             "state",
             "codeChallenge",
-            "redirectUri"
+            "null"
           ],
           "returnType": "Uri",
           "exported": true,
-          "lineCount": 13
+          "lineCount": 10
         },
         {
           "name": "ExchangeCodeAsync",
           "params": [
             "code",
             "codeVerifier",
-            "redirectUri",
-            "cancellationToken"
+            "null",
+            "default"
           ],
           "returnType": "Task<UserSession>",
           "exported": true,
-          "lineCount": 63
+          "lineCount": 10
         },
         {
           "name": "RefreshTokenAsync",
           "params": [
             "userId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<UserSession>",
           "exported": true,
-          "lineCount": 40
+          "lineCount": 10
         },
         {
           "name": "GetSessionAsync",
           "params": [
             "userId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<UserSession?>",
           "exported": true,
-          "lineCount": 37
+          "lineCount": 10
         },
         {
           "name": "GetAllSessionsAsync",
           "params": [
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<IReadOnlyList<UserSession>>",
           "exported": true,
-          "lineCount": 26
+          "lineCount": 10
         },
         {
           "name": "RevokeSessionAsync",
           "params": [
             "userId",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<bool>",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "SpotifyAuthService",
           "methods": [
-            "SpotifyAuthService",
             "GetAuthorizationUri",
             "ExchangeCodeAsync",
             "RefreshTokenAsync",
@@ -3542,14 +3221,9 @@
             "GetAllSessionsAsync",
             "RevokeSessionAsync"
           ],
-          "properties": [
-            "_dbContext",
-            "_encryptionService",
-            "_options",
-            "_logger"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 218
+          "lineCount": 231
         }
       ],
       "imports": [
@@ -3609,16 +3283,15 @@
         }
       ],
       "exports": [
-        "SpotifyAuthService",
-        "GetAuthorizationUri",
         "ExchangeCodeAsync",
-        "RefreshTokenAsync",
-        "GetSessionAsync",
         "GetAllSessionsAsync",
+        "GetAuthorizationUri",
+        "GetSessionAsync",
+        "RefreshTokenAsync",
         "RevokeSessionAsync",
         "SpotifyAuthService"
       ],
-      "totalLines": 232,
+      "totalLines": 231,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs": {
@@ -3630,26 +3303,24 @@
           "name": "SpotifyOptions",
           "methods": [],
           "properties": [
-            "SectionName",
             "ClientId",
             "ClientSecret",
             "RedirectUri",
             "Scopes"
           ],
           "exported": true,
-          "lineCount": 14
+          "lineCount": 16
         }
       ],
       "imports": [],
       "exports": [
-        "SectionName",
         "ClientId",
         "ClientSecret",
         "RedirectUri",
         "Scopes",
         "SpotifyOptions"
       ],
-      "totalLines": 17,
+      "totalLines": 16,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs": {
@@ -3657,36 +3328,25 @@
       "contentHash": "34b8f00d20eb5a20269eff3ad7277ebf457b09f30c6b7d4edd6f92a54f774eb2",
       "functions": [
         {
-          "name": "SpotifyPlayerClient",
-          "params": [
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
           "name": "GetCurrentPlaybackAsync",
           "params": [
             "accessToken",
-            "cancellationToken"
+            "default"
           ],
           "returnType": "Task<PlaybackState?>",
           "exported": true,
-          "lineCount": 79
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "SpotifyPlayerClient",
           "methods": [
-            "SpotifyPlayerClient",
             "GetCurrentPlaybackAsync"
           ],
-          "properties": [
-            "_logger"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 89
+          "lineCount": 96
         }
       ],
       "imports": [
@@ -3716,11 +3376,10 @@
         }
       ],
       "exports": [
-        "SpotifyPlayerClient",
         "GetCurrentPlaybackAsync",
         "SpotifyPlayerClient"
       ],
-      "totalLines": 97,
+      "totalLines": 96,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs": {
@@ -3728,34 +3387,13 @@
       "contentHash": "84ccd0c4c192cf519a380f981141fa7cc1ccc5ed731034e27b2c7405fdea3fce",
       "functions": [
         {
-          "name": "ActiveUsersPlaybackMonitor",
-          "params": [
-            "scopeFactory",
-            "registry",
-            "hubContext",
-            "options",
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 13
-        },
-        {
-          "name": "ExecuteAsync",
-          "params": [
-            "stoppingToken"
-          ],
-          "returnType": "Task",
-          "exported": false,
-          "lineCount": 33
-        },
-        {
           "name": "PollActiveSessionsAsync",
           "params": [
             "cancellationToken"
           ],
           "returnType": "Task<int>",
           "exported": false,
-          "lineCount": 145
+          "lineCount": 10
         },
         {
           "name": "BroadcastDiagnosticsAsync",
@@ -3767,28 +3405,19 @@
           ],
           "returnType": "Task",
           "exported": false,
-          "lineCount": 25
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "ActiveUsersPlaybackMonitor",
           "methods": [
-            "ActiveUsersPlaybackMonitor",
-            "ExecuteAsync",
             "PollActiveSessionsAsync",
             "BroadcastDiagnosticsAsync"
           ],
-          "properties": [
-            "_scopeFactory",
-            "_registry",
-            "_hubContext",
-            "_options",
-            "_logger",
-            "_lastDiagnosticsBroadcast"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 229
+          "lineCount": 242
         }
       ],
       "imports": [
@@ -3851,13 +3480,18 @@
           "specifiers": [
             "Options"
           ]
+        },
+        {
+          "source": "var scope = _scopeFactory.CreateScope()",
+          "specifiers": [
+            "CreateScope()"
+          ]
         }
       ],
       "exports": [
-        "ActiveUsersPlaybackMonitor",
         "ActiveUsersPlaybackMonitor"
       ],
-      "totalLines": 243,
+      "totalLines": 242,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs": {
@@ -3869,26 +3503,24 @@
           "name": "PlaybackPollerOptions",
           "methods": [],
           "properties": [
-            "SectionName",
             "ActivePollIntervalMs",
             "PausedPollIntervalMs",
             "IdlePollIntervalMs",
             "DiagnosticsBroadcastIntervalMs"
           ],
           "exported": true,
-          "lineCount": 9
+          "lineCount": 11
         }
       ],
       "imports": [],
       "exports": [
-        "SectionName",
         "ActivePollIntervalMs",
-        "PausedPollIntervalMs",
-        "IdlePollIntervalMs",
         "DiagnosticsBroadcastIntervalMs",
+        "IdlePollIntervalMs",
+        "PausedPollIntervalMs",
         "PlaybackPollerOptions"
       ],
-      "totalLines": 12,
+      "totalLines": 11,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Cantus.Server.csproj": {
@@ -3898,7 +3530,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 20,
+      "totalLines": 19,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Server/Endpoints/AuthEndpoints.cs": {
@@ -3912,18 +3544,16 @@
           ],
           "returnType": "IEndpointRouteBuilder",
           "exported": true,
-          "lineCount": 176
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "AuthEndpoints",
-          "methods": [
-            "MapAuthEndpoints"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 179
+          "lineCount": 192
         }
       ],
       "imports": [
@@ -3989,10 +3619,10 @@
         }
       ],
       "exports": [
-        "MapAuthEndpoints",
-        "AuthEndpoints"
+        "AuthEndpoints",
+        "MapAuthEndpoints"
       ],
-      "totalLines": 193,
+      "totalLines": 192,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Endpoints/LyricsEndpoints.cs": {
@@ -4006,18 +3636,16 @@
           ],
           "returnType": "IEndpointRouteBuilder",
           "exported": true,
-          "lineCount": 54
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "LyricsEndpoints",
-          "methods": [
-            "MapLyricsEndpoints"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 57
+          "lineCount": 69
         }
       ],
       "imports": [
@@ -4077,10 +3705,10 @@
         }
       ],
       "exports": [
-        "MapLyricsEndpoints",
-        "LyricsEndpoints"
+        "LyricsEndpoints",
+        "MapLyricsEndpoints"
       ],
-      "totalLines": 70,
+      "totalLines": 69,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Hubs/IPlaybackClient.cs": {
@@ -4090,17 +3718,10 @@
       "classes": [
         {
           "name": "IPlaybackClient",
-          "methods": [
-            "ReceivePlaybackState",
-            "ReceiveLyrics",
-            "ReceiveTrackOffset",
-            "ReceiveSessions",
-            "ReceiveDiagnostics",
-            "ReceiveClockSync"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 9
+          "lineCount": 13
         }
       ],
       "imports": [
@@ -4114,40 +3735,13 @@
       "exports": [
         "IPlaybackClient"
       ],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Hubs/PlaybackHub.cs": {
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "contentHash": "f190be4f54cbbcac575e42337334025f3a326c9ebbc5ec27cf357309ef1ab8ac",
       "functions": [
-        {
-          "name": "PlaybackHub",
-          "params": [
-            "registry",
-            "lyricsCache",
-            "authService",
-            "logger"
-          ],
-          "exported": true,
-          "lineCount": 11
-        },
-        {
-          "name": "OnConnectedAsync",
-          "params": [],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 62
-        },
-        {
-          "name": "OnDisconnectedAsync",
-          "params": [
-            "exception"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 8
-        },
         {
           "name": "SyncClock",
           "params": [
@@ -4164,7 +3758,7 @@
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 31
+          "lineCount": 10
         },
         {
           "name": "SetTrackOffset",
@@ -4174,28 +3768,20 @@
           ],
           "returnType": "Task",
           "exported": true,
-          "lineCount": 30
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "PlaybackHub",
           "methods": [
-            "PlaybackHub",
-            "OnConnectedAsync",
-            "OnDisconnectedAsync",
             "SyncClock",
             "SubscribeToUser",
             "SetTrackOffset"
           ],
-          "properties": [
-            "_registry",
-            "_lyricsCache",
-            "_authService",
-            "_logger"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 165
+          "lineCount": 173
         }
       ],
       "imports": [
@@ -4232,14 +3818,11 @@
       ],
       "exports": [
         "PlaybackHub",
-        "OnConnectedAsync",
-        "OnDisconnectedAsync",
-        "SyncClock",
-        "SubscribeToUser",
         "SetTrackOffset",
-        "PlaybackHub"
+        "SubscribeToUser",
+        "SyncClock"
       ],
-      "totalLines": 174,
+      "totalLines": 173,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/AuthorizedSessionDto.cs": {
@@ -4261,22 +3844,22 @@
             "UpdatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 11
+          "lineCount": 13
         }
       ],
       "imports": [],
       "exports": [
-        "Id",
-        "SpotifyUserId",
+        "AuthorizedSessionDto",
+        "CreatedAtUtc",
         "DisplayName",
         "Email",
-        "ProfileImageUrl",
+        "Id",
         "IsCurrentlyPlaying",
-        "CreatedAtUtc",
-        "UpdatedAtUtc",
-        "AuthorizedSessionDto"
+        "ProfileImageUrl",
+        "SpotifyUserId",
+        "UpdatedAtUtc"
       ],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/ClockSyncDto.cs": {
@@ -4289,14 +3872,14 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 1
+          "lineCount": 8
         },
         {
           "name": "ClockSyncResponse",
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 4
+          "lineCount": 8
         }
       ],
       "imports": [],
@@ -4304,7 +3887,7 @@
         "ClockSyncRequest",
         "ClockSyncResponse"
       ],
-      "totalLines": 9,
+      "totalLines": 8,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/DiagnosticsDto.cs": {
@@ -4325,21 +3908,21 @@
             "ServerTimeUtc"
           ],
           "exported": true,
-          "lineCount": 10
+          "lineCount": 12
         }
       ],
       "imports": [],
       "exports": [
-        "ConnectedClients",
-        "AuthorizedSessions",
-        "PollerStatus",
         "ActivePollIntervalMs",
         "ActiveUserId",
         "ActiveUserName",
-        "ServerTimeUtc",
-        "DiagnosticsDto"
+        "AuthorizedSessions",
+        "ConnectedClients",
+        "DiagnosticsDto",
+        "PollerStatus",
+        "ServerTimeUtc"
       ],
-      "totalLines": 13,
+      "totalLines": 12,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/DtoMappingExtensions.cs": {
@@ -4353,18 +3936,18 @@
           ],
           "returnType": "TrackInfoDto",
           "exported": true,
-          "lineCount": 13
+          "lineCount": 10
         },
         {
           "name": "ToDto",
           "params": [
             "state",
-            "activeUserId",
-            "activeUserName"
+            "null",
+            "null"
           ],
           "returnType": "PlaybackStateDto",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 10
         },
         {
           "name": "ToDto",
@@ -4373,31 +3956,26 @@
           ],
           "returnType": "LyricsDto",
           "exported": true,
-          "lineCount": 20
+          "lineCount": 10
         },
         {
           "name": "ToDto",
           "params": [
             "session",
-            "isCurrentlyPlaying"
+            "false"
           ],
           "returnType": "AuthorizedSessionDto",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "DtoMappingExtensions",
-          "methods": [
-            "ToDto",
-            "ToDto",
-            "ToDto",
-            "ToDto"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 67
+          "lineCount": 71
         }
       ],
       "imports": [
@@ -4409,13 +3987,10 @@
         }
       ],
       "exports": [
-        "ToDto",
-        "ToDto",
-        "ToDto",
-        "ToDto",
-        "DtoMappingExtensions"
+        "DtoMappingExtensions",
+        "ToDto"
       ],
-      "totalLines": 72,
+      "totalLines": 71,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/LyricLineDto.cs": {
@@ -4431,16 +4006,16 @@
             "Text"
           ],
           "exported": true,
-          "lineCount": 5
+          "lineCount": 7
         }
       ],
       "imports": [],
       "exports": [
-        "TimestampMs",
+        "LyricLineDto",
         "Text",
-        "LyricLineDto"
+        "TimestampMs"
       ],
-      "totalLines": 8,
+      "totalLines": 7,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/LyricsDto.cs": {
@@ -4462,22 +4037,22 @@
             "PlainLyrics"
           ],
           "exported": true,
-          "lineCount": 11
+          "lineCount": 13
         }
       ],
       "imports": [],
       "exports": [
-        "TrackId",
-        "Title",
-        "Artist",
         "Album",
-        "IsSynced",
+        "Artist",
         "IsInstrumental",
+        "IsSynced",
         "Lines",
+        "LyricsDto",
         "PlainLyrics",
-        "LyricsDto"
+        "Title",
+        "TrackId"
       ],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/PlaybackStateDto.cs": {
@@ -4499,22 +4074,22 @@
             "ActiveUserDisplayName"
           ],
           "exported": true,
-          "lineCount": 11
+          "lineCount": 13
         }
       ],
       "imports": [],
       "exports": [
-        "CurrentTrack",
-        "ProgressMs",
-        "IsPlaying",
-        "TimestampUtc",
-        "DeviceName",
-        "VolumePercent",
-        "ActiveUserId",
         "ActiveUserDisplayName",
-        "PlaybackStateDto"
+        "ActiveUserId",
+        "CurrentTrack",
+        "DeviceName",
+        "IsPlaying",
+        "PlaybackStateDto",
+        "ProgressMs",
+        "TimestampUtc",
+        "VolumePercent"
       ],
-      "totalLines": 14,
+      "totalLines": 13,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/TrackInfoDto.cs": {
@@ -4535,21 +4110,21 @@
             "IsExplicit"
           ],
           "exported": true,
-          "lineCount": 10
+          "lineCount": 12
         }
       ],
       "imports": [],
       "exports": [
-        "Id",
-        "Title",
-        "Artist",
         "Album",
         "AlbumArtUrl",
+        "Artist",
         "DurationMs",
+        "Id",
         "IsExplicit",
+        "Title",
         "TrackInfoDto"
       ],
-      "totalLines": 13,
+      "totalLines": 12,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/TrackOffsetDto.cs": {
@@ -4565,16 +4140,16 @@
             "OffsetMs"
           ],
           "exported": true,
-          "lineCount": 5
+          "lineCount": 7
         }
       ],
       "imports": [],
       "exports": [
-        "TrackId",
         "OffsetMs",
+        "TrackId",
         "TrackOffsetDto"
       ],
-      "totalLines": 8,
+      "totalLines": 7,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Program.cs": {
@@ -4587,7 +4162,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 1
+          "lineCount": 149
         }
       ],
       "imports": [
@@ -4656,12 +4231,18 @@
           "specifiers": [
             "AspNetCore"
           ]
+        },
+        {
+          "source": "(var scope = app.Services.CreateScope())\n{\n    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>()",
+          "specifiers": [
+            "GetRequiredService<IConfiguration>()"
+          ]
         }
       ],
       "exports": [
         "Program"
       ],
-      "totalLines": 150,
+      "totalLines": 149,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/HostUrlResolver.cs": {
@@ -4669,31 +4250,22 @@
       "contentHash": "889d078283dd4aa3785c7f862cd9d26c46d2b5363a04b5ec266dbe5f359d314e",
       "functions": [
         {
-          "name": "HostUrlResolver",
-          "params": [
-            "configuration",
-            "spotifyOptions"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
           "name": "ResolveBaseUrl",
           "params": [
-            "context"
+            "null"
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 24
+          "lineCount": 10
         },
         {
           "name": "ResolveSpotifyRedirectUri",
           "params": [
-            "context"
+            "null"
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 17
+          "lineCount": 10
         },
         {
           "name": "NormalizeUrl",
@@ -4702,25 +4274,19 @@
           ],
           "returnType": "string",
           "exported": false,
-          "lineCount": 9
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "HostUrlResolver",
           "methods": [
-            "HostUrlResolver",
             "ResolveBaseUrl",
-            "ResolveSpotifyRedirectUri",
-            "NormalizeUrl"
+            "ResolveSpotifyRedirectUri"
           ],
-          "properties": [
-            "_configuration",
-            "_spotifyOptions",
-            "DefaultLocalhostBase"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 65
+          "lineCount": 72
         }
       ],
       "imports": [
@@ -4752,26 +4318,32 @@
       "exports": [
         "HostUrlResolver",
         "ResolveBaseUrl",
-        "ResolveSpotifyRedirectUri",
-        "HostUrlResolver"
+        "ResolveSpotifyRedirectUri"
       ],
-      "totalLines": 73,
+      "totalLines": 72,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/IHostUrlResolver.cs": {
       "filePath": "src/Cantus.Server/Services/IHostUrlResolver.cs",
       "contentHash": "e6a2241d6a7dd02f485b1c7697b58053bb6c16db5c4ed85726142b5bc796c8af",
-      "functions": [],
+      "functions": [
+        {
+          "name": "URL",
+          "params": [
+            "\"http://192.168.1.50:5000\""
+          ],
+          "returnType": "base",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
       "classes": [
         {
           "name": "IHostUrlResolver",
-          "methods": [
-            "ResolveBaseUrl",
-            "ResolveSpotifyRedirectUri"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 13
+          "lineCount": 17
         }
       ],
       "imports": [
@@ -4783,9 +4355,10 @@
         }
       ],
       "exports": [
-        "IHostUrlResolver"
+        "IHostUrlResolver",
+        "URL"
       ],
-      "totalLines": 18,
+      "totalLines": 17,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/IPlaybackSessionRegistry.cs": {
@@ -4798,26 +4371,14 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 7
+          "lineCount": 36
         },
         {
           "name": "IPlaybackSessionRegistry",
-          "methods": [
-            "RegisterConnection",
-            "UnregisterConnection",
-            "SetConnectionSubscription",
-            "GetConnectionSubscription",
-            "UpdateUserState",
-            "GetUserState",
-            "GetActivePlaybackSnapshot",
-            "GetAllSnapshots"
-          ],
-          "properties": [
-            "ConnectedClientsCount",
-            "HasConnectedClients"
-          ],
+          "methods": [],
+          "properties": [],
           "exported": true,
-          "lineCount": 24
+          "lineCount": 36
         }
       ],
       "imports": [
@@ -4829,10 +4390,10 @@
         }
       ],
       "exports": [
-        "UserPlaybackSnapshot",
-        "IPlaybackSessionRegistry"
+        "IPlaybackSessionRegistry",
+        "UserPlaybackSnapshot"
       ],
-      "totalLines": 37,
+      "totalLines": 36,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/PkceHelper.cs": {
@@ -4842,11 +4403,11 @@
         {
           "name": "GenerateCodeVerifier",
           "params": [
-            "byteLength"
+            "32"
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 6
+          "lineCount": 10
         },
         {
           "name": "GenerateCodeChallenge",
@@ -4855,7 +4416,7 @@
           ],
           "returnType": "string",
           "exported": true,
-          "lineCount": 5
+          "lineCount": 10
         },
         {
           "name": "Base64UrlEncode",
@@ -4864,20 +4425,16 @@
           ],
           "returnType": "string",
           "exported": false,
-          "lineCount": 7
+          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "PkceHelper",
-          "methods": [
-            "GenerateCodeVerifier",
-            "GenerateCodeChallenge",
-            "Base64UrlEncode"
-          ],
+          "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 23
+          "lineCount": 28
         }
       ],
       "imports": [
@@ -4895,11 +4452,11 @@
         }
       ],
       "exports": [
-        "GenerateCodeVerifier",
         "GenerateCodeChallenge",
+        "GenerateCodeVerifier",
         "PkceHelper"
       ],
-      "totalLines": 29,
+      "totalLines": 28,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/PlaybackSessionRegistry.cs": {
@@ -4913,7 +4470,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 10
         },
         {
           "name": "UnregisterConnection",
@@ -4922,7 +4479,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 10
         },
         {
           "name": "SetConnectionSubscription",
@@ -4932,7 +4489,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 10
         },
         {
           "name": "GetConnectionSubscription",
@@ -4941,7 +4498,7 @@
           ],
           "returnType": "string?",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "UpdateUserState",
@@ -4954,7 +4511,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 17
+          "lineCount": 10
         },
         {
           "name": "GetUserState",
@@ -4963,21 +4520,21 @@
           ],
           "returnType": "UserPlaybackSnapshot?",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         },
         {
           "name": "GetActivePlaybackSnapshot",
           "params": [],
           "returnType": "UserPlaybackSnapshot?",
           "exported": true,
-          "lineCount": 17
+          "lineCount": 10
         },
         {
           "name": "GetAllSnapshots",
           "params": [],
           "returnType": "IReadOnlyList<UserPlaybackSnapshot>",
           "exported": true,
-          "lineCount": 4
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -4987,21 +4544,12 @@
             "RegisterConnection",
             "UnregisterConnection",
             "SetConnectionSubscription",
-            "GetConnectionSubscription",
             "UpdateUserState",
-            "GetUserState",
-            "GetActivePlaybackSnapshot",
             "GetAllSnapshots"
           ],
-          "properties": [
-            "_connectionSubscriptions",
-            "_userSnapshots",
-            "_connectionLock",
-            "ConnectedClientsCount",
-            "HasConnectedClients"
-          ],
+          "properties": [],
           "exported": true,
-          "lineCount": 101
+          "lineCount": 106
         }
       ],
       "imports": [
@@ -5019,19 +4567,17 @@
         }
       ],
       "exports": [
-        "ConnectedClientsCount",
-        "HasConnectedClients",
-        "RegisterConnection",
-        "UnregisterConnection",
-        "SetConnectionSubscription",
-        "GetConnectionSubscription",
-        "UpdateUserState",
-        "GetUserState",
         "GetActivePlaybackSnapshot",
         "GetAllSnapshots",
-        "PlaybackSessionRegistry"
+        "GetConnectionSubscription",
+        "GetUserState",
+        "PlaybackSessionRegistry",
+        "RegisterConnection",
+        "SetConnectionSubscription",
+        "UnregisterConnection",
+        "UpdateUserState"
       ],
-      "totalLines": 107,
+      "totalLines": 106,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/appsettings.Development.json": {
@@ -5041,8 +4587,8 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 11,
-      "hasStructuralAnalysis": true
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
     },
     "src/Cantus.Server/appsettings.Production.json": {
       "filePath": "src/Cantus.Server/appsettings.Production.json",
@@ -5051,18 +4597,18 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 13,
-      "hasStructuralAnalysis": true
+      "totalLines": 12,
+      "hasStructuralAnalysis": false
     },
     "src/Cantus.Server/appsettings.json": {
       "filePath": "src/Cantus.Server/appsettings.json",
-      "contentHash": "af64ef07f1edd2ee494e093adb0e43c83b224d5092a26b29a520cf1bf57cafbf",
+      "contentHash": "55f87a2635bd159256392830ca99edd333053589151e65d5cf49b338846f5cb9",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 42,
-      "hasStructuralAnalysis": true
+      "totalLines": 41,
+      "hasStructuralAnalysis": false
     }
   }
 }

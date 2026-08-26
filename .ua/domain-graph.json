@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Self-hosted, real-time synchronized lyrics display platform integrating Spotify playback, LRCLIB lyrics caching, sub-millisecond NTP interpolation, and Uno Platform multi-client streaming.",
-    "analyzedAt": "2026-08-23T15:31:24.933Z",
-    "gitCommitHash": "25c90c9183f6c0f97aac7febdb9742ffdf97756e"
+    "analyzedAt": "2026-08-26T00:21:53.330Z",
+    "gitCommitHash": "52d9db76480dd5921918b162e5ac6a4d927c5aa1"
   },
   "nodes": [
     {
@@ -102,8 +102,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        30,
-        60
+        32,
+        44
       ]
     },
     {
@@ -118,8 +118,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        65,
-        120
+        46,
+        108
       ]
     },
     {
@@ -167,7 +167,7 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        130,
+        110,
         150
       ]
     },
@@ -183,8 +183,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        155,
-        195
+        115,
+        149
       ]
     },
     {
@@ -199,8 +199,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
       "lineRange": [
-        20,
-        50
+        1,
+        51
       ]
     },
     {
@@ -260,8 +260,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
       "lineRange": [
-        20,
-        50
+        18,
+        59
       ]
     },
     {
@@ -276,8 +276,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
       "lineRange": [
-        25,
-        60
+        17,
+        95
       ]
     },
     {
@@ -292,8 +292,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
       "lineRange": [
-        80,
-        160
+        71,
+        215
       ]
     },
     {
@@ -308,8 +308,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        40,
-        110
+        28,
+        90
       ]
     },
     {
@@ -371,8 +371,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        30,
-        75
+        20,
+        72
       ]
     },
     {
@@ -388,8 +388,8 @@
       "complexity": "complex",
       "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
       "lineRange": [
-        40,
-        130
+        37,
+        128
       ]
     },
     {
@@ -404,8 +404,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
       "lineRange": [
-        25,
-        110
+        8,
+        164
       ]
     },
     {
@@ -420,15 +420,15 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        90,
-        160
+        94,
+        194
       ]
     },
     {
       "id": "flow:track-latency-offset-adjustment",
       "type": "flow",
       "name": "Track Latency Offset Calibration",
-      "summary": "Allows clients to nudge lyric synchronization offsets in ±50ms increments and saves persistent offsets per track.",
+      "summary": "Allows clients to nudge lyric synchronization offsets in \u00b150ms increments and saves persistent offsets per track.",
       "tags": [
         "latency",
         "calibration",
@@ -452,8 +452,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        120,
-        145
+        143,
+        172
       ]
     },
     {
@@ -468,8 +468,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        180,
-        230
+        209,
+        237
       ]
     },
     {
@@ -484,8 +484,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        150,
-        170
+        165,
+        171
       ]
     },
     {
@@ -547,8 +547,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
       "lineRange": [
-        80,
-        110
+        140,
+        165
       ]
     },
     {
@@ -563,8 +563,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        85,
-        105
+        100,
+        109
       ]
     },
     {
@@ -579,8 +579,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
       "lineRange": [
-        115,
-        150
+        167,
+        215
       ]
     },
     {
@@ -612,8 +612,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
       "lineRange": [
-        30,
-        95
+        23,
+        115
       ]
     },
     {
@@ -628,7 +628,7 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Core/Models/SyncedLyrics.cs",
       "lineRange": [
-        30,
+        14,
         46
       ]
     },
@@ -645,8 +645,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
       "lineRange": [
-        200,
-        310
+        378,
+        515
       ]
     }
   ],

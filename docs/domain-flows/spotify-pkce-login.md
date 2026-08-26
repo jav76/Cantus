@@ -29,8 +29,8 @@ End-to-end OAuth PKCE flow generating challenges, redirecting to Spotify consent
 | Step | Name | Summary | Source Location |
 | :---: | :--- | :--- | :--- |
 | 1 | **Generate PKCE Code Verifier & Challenge** | Creates cryptographically secure random verifier and computes SHA-256 code challenge. | `src/Cantus.Server/Services/PkceHelper.cs#L10-L28` |
-| 2 | **Construct Spotify Authorization URL** | Builds Spotify OAuth consent URL with user-read-playback-state scopes and PKCE challenge. | `src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs#L30-L60` |
-| 3 | **Exchange Code for Tokens** | Submits authorization code and verifier to Spotify token endpoint to obtain access and refresh tokens. | `src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs#L65-L120` |
+| 2 | **Construct Spotify Authorization URL** | Builds Spotify OAuth consent URL with user-read-playback-state scopes and PKCE challenge. | `src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs#L32-L44` |
+| 3 | **Exchange Code for Tokens** | Submits authorization code and verifier to Spotify token endpoint to obtain access and refresh tokens. | `src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs#L46-L108` |
 | 4 | **Encrypt Tokens & Save User Session** | Encrypts refresh tokens with ASP.NET Core Data Protection and writes user profile to SQLite database. | `src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs#L15-L34` |
 
 ### Execution Flowchart

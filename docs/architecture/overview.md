@@ -33,11 +33,11 @@ graph TB
 | **Server Engine & Real-Time Hub** | ASP.NET Core Minimal APIs, SignalR PlaybackHub, active background poller, and session registry. | 49 | [Server Engine & Real-Time Hub](server.md) |
 | **Core Domain Contracts & Models** | Domain models (PlaybackState, SyncedLyrics, LyricLine), parser algorithms (LrcParser), and repository interfaces. | 20 | [Core Domain Contracts & Models](core.md) |
 | **Infrastructure & External Services** | Spotify OAuth/Web API clients, LRCLIB lyrics provider, SQLite EF Core database persistence, and token encryption. | 64 | [Infrastructure & External Services](infrastructure.md) |
-| **DevOps & Release Packaging** | Containerization (Docker), CI/CD release automation, project configuration, and ADR documentation. | 26 | [DevOps & Release Packaging](../reference/docker.md) |
+| **DevOps & Release Packaging** | Containerization (Docker), CI/CD release automation, project configuration, and ADR documentation. | 53 | [DevOps & Release Packaging](../reference/docker.md) |
 
 ## Knowledge Graph Statistics
 
-- **Total Extracted Nodes**: 207
+- **Total Extracted Nodes**: 234
 - **Total Relationships / Edges**: 156
 - **Architectural Layers**: 5
-- **Last Analysis Timestamp**: `2026-08-23T15:24:35.958Z`
+- **Last Analysis Timestamp**: `2026-08-26T00:21:53.330Z`

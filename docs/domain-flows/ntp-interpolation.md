@@ -29,9 +29,9 @@ Executes periodic NTP time exchanges between client and server to eliminate cloc
 
 | Step | Name | Summary | Source Location |
 | :---: | :--- | :--- | :--- |
-| 1 | **Client Sends High-Res Timestamp Ping** | Records client transmission timestamp (T1) and sends SyncClock request via SignalR. | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs#L80-L110` |
-| 2 | **Server Stamps Receive & Transmit Times** | Attaches server receive timestamp (T2) and transmit timestamp (T3) before replying. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L85-L105` |
-| 3 | **Compute RTT & Clock Skew Offset** | Calculates RTT = (T4 - T1) - (T3 - T2) and skew = ((T2 - T1) + (T3 - T4)) / 2 with rolling filter. | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs#L115-L150` |
+| 1 | **Client Sends High-Res Timestamp Ping** | Records client transmission timestamp (T1) and sends SyncClock request via SignalR. | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs#L140-L165` |
+| 2 | **Server Stamps Receive & Transmit Times** | Attaches server receive timestamp (T2) and transmit timestamp (T3) before replying. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L100-L109` |
+| 3 | **Compute RTT & Clock Skew Offset** | Calculates RTT = (T4 - T1) - (T3 - T2) and skew = ((T2 - T1) + (T3 - T4)) / 2 with rolling filter. | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs#L167-L215` |
 
 ### Execution Flowchart
 

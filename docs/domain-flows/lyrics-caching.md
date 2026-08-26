@@ -30,10 +30,10 @@ Resolves lyrics for a track by probing local cache, querying LRCLIB API with fal
 
 | Step | Name | Summary | Source Location |
 | :---: | :--- | :--- | :--- |
-| 1 | **Query SQLite Lyrics Cache** | Searches SQLite CachedLyrics table for unexpired positive or negative cache entries. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L30-L75` |
-| 2 | **Query LRCLIB API Provider** | Calls LRCLIB /api/get by Spotify track ID with fallback to /api/search by title, artist, and album. | `src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs#L40-L130` |
-| 3 | **Parse LRC Format & Syllable Timing** | Decodes LRC timestamp tags [mm:ss.xx] and syllable markers into structured LyricLine objects. | `src/Cantus.Core/Parsers/LrcParser.cs#L25-L110` |
-| 4 | **Persist Lyrics in SQLite Database** | Saves raw LRC and parsed status to CachedLyrics table with 30-day expiration. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L90-L160` |
+| 1 | **Query SQLite Lyrics Cache** | Searches SQLite CachedLyrics table for unexpired positive or negative cache entries. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L20-L72` |
+| 2 | **Query LRCLIB API Provider** | Calls LRCLIB /api/get by Spotify track ID with fallback to /api/search by title, artist, and album. | `src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs#L37-L128` |
+| 3 | **Parse LRC Format & Syllable Timing** | Decodes LRC timestamp tags [mm:ss.xx] and syllable markers into structured LyricLine objects. | `src/Cantus.Core/Parsers/LrcParser.cs#L8-L164` |
+| 4 | **Persist Lyrics in SQLite Database** | Saves raw LRC and parsed status to CachedLyrics table with 30-day expiration. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L94-L194` |
 
 ### Execution Flowchart
 
@@ -61,9 +61,9 @@ Allows clients to nudge lyric synchronization offsets in ±50ms increments and s
 
 | Step | Name | Summary | Source Location |
 | :---: | :--- | :--- | :--- |
-| 1 | **Receive Client Offset Adjustment** | Validates incoming track ID and millisecond offset value from SignalR client invocation. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L120-L145` |
-| 2 | **Persist Offset in TrackOffsets Table** | Upserts the track's custom offset in SQLite database to apply across all future playbacks. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L180-L230` |
-| 3 | **Broadcast Updated Offset** | Emits OnTrackOffsetUpdated SignalR notification to all clients subscribed to the active room. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L150-L170` |
+| 1 | **Receive Client Offset Adjustment** | Validates incoming track ID and millisecond offset value from SignalR client invocation. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L143-L172` |
+| 2 | **Persist Offset in TrackOffsets Table** | Upserts the track's custom offset in SQLite database to apply across all future playbacks. | `src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs#L209-L237` |
+| 3 | **Broadcast Updated Offset** | Emits OnTrackOffsetUpdated SignalR notification to all clients subscribed to the active room. | `src/Cantus.Server/Hubs/PlaybackHub.cs#L165-L171` |
 
 ### Execution Flowchart
 
