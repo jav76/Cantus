@@ -1,54 +1,43 @@
-# Configuration Reference
+# Configuration & Environment Reference
 
-Complete reference of configuration options, environment variables, and `appsettings.json` schemas for Cantus.
+This document lists all environment variables and configuration options supported by the Cantus server.
 
 ---
 
 ## Environment Variables
 
-| Variable | Type | Default | Description |
-| :--- | :---: | :---: | :--- |
-| `SPOTIFY_CLIENT_ID` | `string` | *(Required)* | Spotify Developer Application Client ID. |
-| `CANTUS_HOST_URL` | `string` | `http://localhost:5000` | Publicly accessible URL of the Cantus server used for OAuth callback resolution. |
-| `ASPNETCORE_ENVIRONMENT` | `string` | `Production` | ASP.NET Core environment mode (`Development`, `Staging`, `Production`). |
-| `ConnectionStrings__DefaultConnection` | `string` | `Data Source=/app/data/cantus.db` | SQLite connection string. |
-| `PlaybackPoller__ActiveIntervalMs` | `int` | `500` | Spotify polling cadence during active playback (milliseconds). |
-| `PlaybackPoller__PausedIntervalMs` | `int` | `3000` | Spotify polling cadence when playback is paused (milliseconds). |
-| `PlaybackPoller__IdleIntervalMs` | `int` | `10000` | Spotify polling cadence when no playback is active (milliseconds). |
-| `LyricsCache__CacheDurationDays` | `int` | `30` | Expiration lifetime for cached positive lyric entries (days). |
-| `LyricsCache__NegativeCacheDurationDays` | `int` | `7` | Expiration lifetime for tracks with no available lyrics (days). |
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`SPOTIFY_CLIENT_ID`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
+| **`CANTUS_HOST_URL`** | `string` | `http://localhost:5000` | Public root URL of your Cantus instance (used for OAuth redirect callbacks). | **Yes** |
+| **`ASPNETCORE_ENVIRONMENT`** | `string` | `Production` | ASP.NET Core environment mode (`Development`, `Staging`, `Production`). | No |
+| **`ASPNETCORE_URLS`** | `string` | `http://+:5000` | Listening binding address and port. | No |
+| **`CANTUS_DEFAULT_LATENCY_OFFSET_MS`** | `int` | `0` | Base latency offset in milliseconds applied to all lyric renders (useful for persistent Bluetooth delay). | No |
+| **`CANTUS_DB_PATH`** | `string` | `/app/data/cantus.db` | Absolute or relative file path to the SQLite database. | No |
+| **`CANTUS_DATA_PROTECTION_DIR`** | `string` | `/app/data/DataProtection-Keys` | Directory path where ASP.NET Core Data Protection cryptographic keys are stored. | No |
+| **`CANTUS_POLL_INTERVAL_PLAYING_MS`** | `int` | `500` | Polling cadence when Spotify is actively playing. | No |
+| **`CANTUS_POLL_INTERVAL_PAUSED_MS`** | `int` | `3000` | Polling cadence when Spotify playback is paused. | No |
+| **`CANTUS_POLL_INTERVAL_IDLE_MS`** | `int` | `10000` | Polling cadence when Spotify has been inactive > 60s. | No |
 
 ---
 
-## `appsettings.json` Schema
+## Storage & File Layout
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning",
-      "Microsoft.EntityFrameworkCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*",
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=/app/data/cantus.db"
-  },
-  "Spotify": {
-    "ClientId": ""
-  },
-  "Cantus": {
-    "HostUrl": "http://localhost:5000"
-  },
-  "PlaybackPoller": {
-    "ActiveIntervalMs": 500,
-    "PausedIntervalMs": 3000,
-    "IdleIntervalMs": 10000
-  },
-  "LyricsCache": {
-    "CacheDurationDays": 30,
-    "NegativeCacheDurationDays": 7
-  }
-}
+When running Cantus, the application expects the `/app/data` volume to be writable:
+
 ```
+/app/data/
+├── cantus.db                 # SQLite database (Sessions, Cache, Track Offsets)
+├── cantus.db-shm             # SQLite shared memory file (WAL mode)
+├── cantus.db-wal             # SQLite write-ahead log
+└── DataProtection-Keys/      # XML Keyring for OAuth token encryption at rest
+    └── key-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xml
+```
+
+---
+
+## Ports & Networking
+
+| Port | Protocol | Default Purpose |
+| :---: | :---: | :--- |
+| **`5000`** | `TCP (HTTP/WS)` | Web server listening port for both REST APIs, SignalR PlaybackHub, and static WebAssembly client assets. |

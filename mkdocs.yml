@@ -17,21 +17,21 @@ theme:
   name: material
   language: en
   palette:
-    # Palette toggle for light mode
-    - scheme: default
-      primary: indigo
-      accent: deep purple
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-
-    # Palette toggle for dark mode
+    # Palette toggle for dark mode (default)
     - scheme: slate
-      primary: indigo
-      accent: deep purple
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+
+    # Palette toggle for light mode
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
   features:
     - navigation.instant
@@ -44,6 +44,9 @@ theme:
     - search.suggest
     - search.highlight
     - search.share
+
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
@@ -73,25 +76,24 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Getting Started:
-      - Overview: getting-started/index.md
-      - Quickstart: getting-started/quickstart.md
+  - User Guide:
+      - Overview: user-guide/index.md
+      - Playback & Display: user-guide/playback-and-display.md
+      - Timing & Latency Calibration: user-guide/timing-and-calibration.md
+      - Dynamic Theming: user-guide/theming.md
+  - Operator Guide:
+      - Overview: operator-guide/index.md
+      - Self-Hosting with Docker: operator-guide/self-hosting.md
+      - Spotify App Setup: operator-guide/spotify-setup.md
+      - Reverse Proxy Setup: operator-guide/reverse-proxy.md
+      - Troubleshooting: operator-guide/troubleshooting.md
   - Architecture:
       - Overview: architecture/overview.md
-      - Client (Uno Platform): architecture/client.md
-      - Server & SignalR Hub: architecture/server.md
-      - Core Domain Models: architecture/core.md
-      - Infrastructure & Persistence: architecture/infrastructure.md
-  - Domain Flows:
-      - Overview & Sequence: domain-flows/index.md
-      - Spotify PKCE Auth: domain-flows/spotify-pkce-login.md
-      - Playback Polling & Broadcast: domain-flows/playback-sync.md
-      - Lyrics Caching & LRCLIB: domain-flows/lyrics-caching.md
-      - NTP Clock Interpolation: domain-flows/ntp-interpolation.md
-  - Operator Guide:
-      - Self-Hosting: operator-guide/self-hosting.md
-      - Spotify App Setup: operator-guide/spotify-setup.md
-      - Troubleshooting: operator-guide/troubleshooting.md
+      - NTP Clock Synchronization: architecture/ntp-clock-sync.md
+      - Adaptive Polling Engine: architecture/adaptive-polling.md
+      - Multi-Tier Lyrics Caching: architecture/lyrics-caching.md
+      - Client & Uno Platform: architecture/client-uno.md
   - Reference:
-      - Configuration: reference/configuration.md
-      - Docker: reference/docker.md
+      - SignalR PlaybackHub Protocol: reference/signalr-api.md
+      - REST API Endpoints: reference/rest-api.md
+      - Configuration & Environment: reference/configuration.md

@@ -1,0 +1,169 @@
+/* Cantus Documentation Custom Styles */
+
+:root {
+  --cantus-primary: #1DB954;
+  --cantus-accent: #1ed760;
+  --cantus-dark-bg: #121212;
+  --cantus-card-bg: #181818;
+  --cantus-card-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1DB954;
+  --md-primary-fg-color--light: #1ed760;
+  --md-primary-fg-color--dark: #15883e;
+  --md-accent-fg-color: #1ed760;
+  --md-default-bg-color: #0f1117;
+  --md-default-bg-color--light: #161922;
+  --md-default-bg-color--lighter: #1e2230;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #15883e;
+  --md-primary-fg-color--light: #1DB954;
+  --md-accent-fg-color: #1DB954;
+}
+
+/* Hero Section */
+.cantus-hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem 1rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.12) 0%, rgba(30, 215, 96, 0.03) 100%);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+}
+
+.cantus-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #1DB954 0%, #20e367 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cantus-hero p.tagline {
+  font-size: 1.25rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 700px;
+  margin: 0 auto 1.5rem auto;
+  line-height: 1.5;
+}
+
+.cantus-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.cantus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cantus-btn:hover {
+  transform: translateY(-2px);
+}
+
+.cantus-btn-primary {
+  background-color: #1DB954;
+  color: #000000 !important;
+  box-shadow: 0 4px 14px rgba(29, 185, 84, 0.35);
+}
+
+.cantus-btn-primary:hover {
+  background-color: #1ed760;
+  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.5);
+}
+
+.cantus-btn-secondary {
+  background-color: var(--md-default-bg-color--lighter);
+  color: var(--md-default-fg-color) !important;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.cantus-btn-secondary:hover {
+  background-color: var(--md-default-bg-color--light);
+}
+
+/* Feature Grid */
+.cantus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+
+.cantus-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background-color: var(--md-default-bg-color--light);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.cantus-card:hover {
+  border-color: var(--cantus-primary);
+  transform: translateY(-3px);
+}
+
+.cantus-card-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cantus-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.cantus-card p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 1rem;
+}
+
+.cantus-card a.card-link {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Badge Pills */
+.badge-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 20px;
+  background-color: rgba(29, 185, 84, 0.15);
+  color: #1DB954;
+  margin-right: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive Mermaid adjustments */
+.mermaid {
+  background: var(--md-default-bg-color--light);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}

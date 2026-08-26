@@ -1,25 +1,12 @@
-# Self-Hosting Guide
+# Self-Hosting with Docker
 
-Deploying Cantus in your home lab, Raspberry Pi, server, or cloud VM with Docker Compose.
-
----
-
-## Architecture Overview
-
-In a self-hosted environment, Cantus runs as a single lightweight multi-arch container (`linux/amd64` and `linux/arm64`) that serves both the ASP.NET Core API backend, SignalR WebSocket server, and static Uno WebAssembly frontend on port `5000`.
-
-```mermaid
-flowchart TD
-    Internet([Internet / LAN]) -->|Port 80/443| ReverseProxy[Reverse Proxy / Caddy / Traefik / Nginx]
-    ReverseProxy -->|Port 5000| Cantus[Cantus Container]
-    Cantus --> DataVolume[(/app/data) SQLite DB & Encrypted Keys]
-```
+Cantus is designed to be completely zero-maintenance once deployed. This guide walks you through setting up a self-hosted instance using Docker Compose.
 
 ---
 
-## 1. Docker Compose Setup
+## 1. Quickstart with Docker Compose
 
-Create a `docker-compose.yml` file:
+Create a directory on your server or Raspberry Pi and add a `docker-compose.yml` file:
 
 ```yaml
 version: '3.8'
@@ -33,7 +20,7 @@ services:
       - "5000:5000"
     environment:
       - SPOTIFY_CLIENT_ID=your_spotify_client_id_here
-      - CANTUS_HOST_URL=https://lyrics.yourdomain.com
+      - CANTUS_HOST_URL=https://cantus.yourdomain.com
       - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - cantus_data:/app/data
@@ -43,56 +30,77 @@ volumes:
     name: cantus_data
 ```
 
----
+Start the container:
 
-## 2. Reverse Proxy Configuration
-
-When hosting Cantus behind a reverse proxy with HTTPS, ensure WebSocket headers (`Upgrade` and `Connection`) and forwarded headers are passed.
-
-### Caddyfile Example
-
-```caddy
-lyrics.yourdomain.com {
-    reverse_proxy cantus:5000
-}
+```bash
+docker compose up -d
 ```
 
-### Nginx Example
+View the live logs:
 
-```nginx
-server {
-    listen 80;
-    server_name lyrics.yourdomain.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name lyrics.yourdomain.com;
-
-    ssl_certificate /etc/letsencrypt/live/lyrics.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/lyrics.yourdomain.com/privkey.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+```bash
+docker compose logs -f cantus
 ```
+
+Navigate to `http://<your-server-ip>:5000` (or your reverse-proxied HTTPS domain) in your browser.
 
 ---
 
-## 3. Data Persistence & Security
+## 2. Multi-Architecture Support
 
-The container stores persistent state in `/app/data`:
-- `cantus.db`: SQLite database storing user sessions, positive/negative lyrics cache, and manual track latency calibration.
-- `DataProtection-Keys/`: ASP.NET Core Data Protection XML encryption keys protecting OAuth refresh tokens at rest.
+Cantus Docker images are published as multi-arch manifests supporting:
+- `linux/amd64` (x86_64 servers, desktops, cloud VMs)
+- `linux/arm64` (Raspberry Pi 4/5, Apple Silicon via Docker Desktop, ARM64 servers)
+
+Docker will automatically pull the correct architecture for your host.
+
+---
+
+## 3. Persistent Data & Volume Layout
+
+Cantus stores all state inside the `/app/data` directory within the container:
+
+| Path | Purpose | Importance |
+| :--- | :--- | :--- |
+| `/app/data/cantus.db` | SQLite database storing user sessions, LRCLIB cache, and track latency calibrations. | Critical |
+| `/app/data/DataProtection-Keys/` | XML cryptographic key ring used by ASP.NET Core Data Protection to encrypt Spotify OAuth refresh tokens. | Critical |
 
 > [!CAUTION]
-> Always mount a persistent volume at `/app/data`. If this directory is lost, active user sessions will be invalidated and users will need to re-authenticate with Spotify.
+> Always mount a persistent volume (such as `cantus_data:/app/data` or a host bind mount `./data:/app/data`).
+> If this volume is destroyed or lost, stored sessions will become unreadable and users will need to re-authenticate with Spotify.
+
+---
+
+## 4. Backup and Restore
+
+### Creating a Backup
+
+To back up your active Cantus database and encryption keys:
+
+```bash
+# Create a timestamped backup archive
+docker compose exec cantus tar -czf /tmp/cantus-backup.tar.gz -C /app/data .
+docker compose cp cantus:/tmp/cantus-backup.tar.gz ./cantus-backup-$(date +%Y%m%d).tar.gz
+```
+
+### Restoring from Backup
+
+To restore on a new server:
+
+```bash
+# Start container once to initialize directory structure, then stop it
+docker compose down
+docker run --rm -v cantus_data:/app/data -v $(pwd):/backup alpine sh -c "tar -xzf /backup/cantus-backup-*.tar.gz -C /app/data"
+docker compose up -d
+```
+
+---
+
+## 5. Updating to the Latest Release
+
+To update your Cantus container to the newest release:
+
+```bash
+docker compose pull
+docker compose up -d --remove-orphans
+```
