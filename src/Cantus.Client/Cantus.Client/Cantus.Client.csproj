@@ -23,8 +23,9 @@
     <UnoFeatures>
       Material;
       Toolkit;
-      SkiaRenderer;
     </UnoFeatures>
+    <WasmOpt>false</WasmOpt>
+    <WasmNativeStrip>false</WasmNativeStrip>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,5 +34,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <EmbeddedResource Include="WasmScripts\AppManifest.js" />
   </ItemGroup>
 </Project>

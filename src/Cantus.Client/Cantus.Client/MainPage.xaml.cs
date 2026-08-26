@@ -83,26 +83,47 @@ public sealed partial class MainPage : Page
         }
     }
 
-    public Visibility GetStandardDesktopViewVisibility(LayoutBreakpoint breakpoint)
-        => (breakpoint == LayoutBreakpoint.Large || breakpoint == LayoutBreakpoint.Medium)
+    public Visibility GetStandardDesktopViewVisibility(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return (bp == LayoutBreakpoint.Large || bp == LayoutBreakpoint.Medium)
             ? Visibility.Visible
             : Visibility.Collapsed;
+    }
 
-    public Visibility GetMobileViewVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetMobileViewVisibility(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public Visibility GetKioskViewVisibility(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.FullscreenTv ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetKioskViewVisibility(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.FullscreenTv ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public Visibility GetMobileLyricsVisibility(MobileViewMode viewMode)
-        => viewMode == MobileViewMode.Lyrics ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetMobileLyricsVisibility(MobileViewMode? viewMode = null)
+    {
+        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        return vm == MobileViewMode.Lyrics ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public Visibility GetMobileNowPlayingVisibility(MobileViewMode viewMode)
-        => viewMode == MobileViewMode.NowPlaying ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetMobileNowPlayingVisibility(MobileViewMode? viewMode = null)
+    {
+        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        return vm == MobileViewMode.NowPlaying ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public Visibility GetMobileSettingsVisibility(MobileViewMode viewMode)
-        => viewMode == MobileViewMode.SyncAndSettings ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GetMobileSettingsVisibility(MobileViewMode? viewMode = null)
+    {
+        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        return vm == MobileViewMode.SyncAndSettings ? Visibility.Visible : Visibility.Collapsed;
+    }
 
-    public double GetColumnSpacing(LayoutBreakpoint breakpoint)
-        => breakpoint == LayoutBreakpoint.Medium ? 16.0 : 24.0;
+    public double GetColumnSpacing(LayoutBreakpoint? breakpoint = null)
+    {
+        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        return bp == LayoutBreakpoint.Medium ? 16.0 : 24.0;
+    }
 }

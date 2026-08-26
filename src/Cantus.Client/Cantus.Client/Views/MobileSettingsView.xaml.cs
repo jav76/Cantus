@@ -65,6 +65,10 @@ public sealed partial class MobileSettingsView : UserControl
         }
     }
 
-    public string GetRttText(long rtt) => $"{rtt}ms";
-    public string GetSkewText(long skew) => $"{(skew >= 0 ? "+" : "")}{skew}ms";
+    public string GetRttText(long? rtt = null) => $"{rtt.GetValueOrDefault()}ms";
+    public string GetSkewText(long? skew = null)
+    {
+        long s = skew.GetValueOrDefault();
+        return $"{(s >= 0 ? "+" : "")}{s}ms";
+    }
 }

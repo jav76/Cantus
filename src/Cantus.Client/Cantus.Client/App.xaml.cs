@@ -7,6 +7,7 @@ public partial class App : Application
 {
     public App()
     {
+        InitializeLogging();
         this.InitializeComponent();
     }
 
@@ -14,7 +15,9 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        MainWindow = new Window();
+        base.OnLaunched(args);
+
+        MainWindow ??= Microsoft.UI.Xaml.Window.Current ?? new Window();
 
         if (MainWindow.Content is not Frame rootFrame)
         {
@@ -41,25 +44,29 @@ public partial class App : Application
 
     public static void InitializeLogging()
     {
-#if DEBUG
-        var factory = LoggerFactory.Create(builder =>
+        try
         {
+            var factory = LoggerFactory.Create(builder =>
+            {
 #if __WASM__
-            builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
+                builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
 #else
-            builder.AddConsole();
+                builder.AddConsole();
 #endif
-            builder.SetMinimumLevel(LogLevel.Information);
-            builder.AddFilter("Uno", LogLevel.Warning);
-            builder.AddFilter("Windows", LogLevel.Warning);
-            builder.AddFilter("Microsoft", LogLevel.Warning);
-        });
+                builder.SetMinimumLevel(LogLevel.Information);
+                builder.AddFilter("Uno", LogLevel.Warning);
+                builder.AddFilter("Windows", LogLevel.Warning);
+                builder.AddFilter("Microsoft", LogLevel.Warning);
+            });
 
-        global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
+            global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
 
 #if HAS_UNO
-        global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
+            global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
-#endif
+        }
+        catch
+        {
+        }
     }
 }

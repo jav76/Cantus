@@ -2,12 +2,18 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Text;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using Windows.UI.Text;
 
 namespace Cantus.Client.ViewModels;
 
 public sealed class LyricLineViewModel : INotifyPropertyChanged
 {
+    private static readonly SolidColorBrush ActiveBrush = new(Windows.UI.Color.FromArgb(255, 248, 250, 252));
+    private static readonly SolidColorBrush PastBrush = new(Windows.UI.Color.FromArgb(120, 148, 163, 184));
+    private static readonly SolidColorBrush InactiveBrush = new(Windows.UI.Color.FromArgb(200, 203, 213, 225));
+
     private bool _isActive;
     private bool _isPast;
     private double _activeFontSize = 32.0;
@@ -19,6 +25,9 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
 
     public long TimestampMs { get; init; }
     public string Text { get; init; } = string.Empty;
+
+    public SolidColorBrush LineBrush => IsActive ? ActiveBrush : (IsPast ? PastBrush : InactiveBrush);
+    public TextAlignment Alignment => TextAlignment.Center;
 
     public bool IsActive
     {
@@ -115,6 +124,7 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
             FontWeight = FontWeights.Medium;
             Opacity = 0.75;
         }
+        OnPropertyChanged(nameof(LineBrush));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

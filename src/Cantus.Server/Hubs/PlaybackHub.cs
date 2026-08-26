@@ -33,8 +33,27 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
         try
         {
+            HttpContext? httpContext = null;
+            try
+            {
+                httpContext = Context.GetHttpContext();
+            }
+            catch
+            {
+            }
+
+            string? currentSessionId = null;
+            if (httpContext != null && httpContext.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) && !string.IsNullOrWhiteSpace(cookieSessionId))
+            {
+                currentSessionId = cookieSessionId;
+                _registry.SetConnectionSubscription(Context.ConnectionId, currentSessionId);
+            }
+
             // 1. Send initial active playback snapshot if available
-            var snapshot = _registry.GetActivePlaybackSnapshot();
+            var snapshot = !string.IsNullOrEmpty(currentSessionId)
+                ? _registry.GetUserState(currentSessionId) ?? _registry.GetActivePlaybackSnapshot()
+                : _registry.GetActivePlaybackSnapshot();
+
             if (snapshot is not null)
             {
                 if (snapshot.PlaybackState is not null)
@@ -69,14 +88,15 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
             await Clients.Caller.ReceiveSessions(sessionDtos);
 
-            // 3. Send initial diagnostics
+            // 3. Send initial diagnostics with active user info
+            var activeSession = sessions.FirstOrDefault(s => s.Id == (currentSessionId ?? snapshot?.UserId)) ?? sessions.FirstOrDefault();
             await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
             {
                 ConnectedClients = _registry.ConnectedClientsCount,
                 AuthorizedSessions = sessions.Count,
                 PollerStatus = "Running",
-                ActiveUserId = snapshot?.UserId,
-                ActiveUserName = snapshot?.DisplayName,
+                ActiveUserId = activeSession?.Id ?? snapshot?.UserId,
+                ActiveUserName = activeSession?.DisplayName ?? snapshot?.DisplayName,
                 ServerTimeUtc = DateTimeOffset.UtcNow
             });
         }

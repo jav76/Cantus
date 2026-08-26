@@ -5,8 +5,8 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+    <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="16"
             Padding="20,12">
@@ -17,8 +17,8 @@
                     <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                 </StackPanel>
             </StackPanel>
 
@@ -27,20 +27,20 @@
                 <ProgressBar Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                              Minimum="0"
                              Maximum="1"
-                             Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                             Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                              Background="#1AFFFFFF"
                              Height="4"
                              CornerRadius="2" />
             </StackPanel>
 
             <!-- Timestamps -->
-            <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,16,0" />
 
             <!-- Exit Kiosk Button -->
             <Button Grid.Column="3"
                     Click="OnToggleKioskClicked"
                     Background="#22FFFFFF"
-                    Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                     CornerRadius="8"
                     Padding="12,6">
                 <StackPanel Orientation="Horizontal" Spacing="6">

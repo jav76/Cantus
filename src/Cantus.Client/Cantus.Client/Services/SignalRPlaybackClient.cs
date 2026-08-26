@@ -1,69 +1,190 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Core.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Cantus.Client.Services;
 
-public sealed record TrackInfoPayload(
-    string Id,
-    string Title,
-    string Artist,
-    string? Album,
-    string? AlbumArtUrl,
-    long DurationMs,
-    bool IsExplicit);
+public sealed class TrackInfoPayload
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
 
-public sealed record PlaybackStatePayload(
-    TrackInfoPayload? CurrentTrack,
-    long ProgressMs,
-    bool IsPlaying,
-    DateTimeOffset TimestampUtc,
-    string? DeviceName,
-    int? VolumePercent,
-    string? ActiveUserId,
-    string? ActiveUserDisplayName);
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
 
-public sealed record LyricLinePayload(long TimestampMs, string Text);
+    [JsonPropertyName("artist")]
+    public string Artist { get; set; } = string.Empty;
 
-public sealed record LyricsPayload(
-    string TrackId,
-    string Title,
-    string Artist,
-    string? Album,
-    bool IsSynced,
-    bool IsInstrumental,
-    IReadOnlyList<LyricLinePayload> Lines,
-    string? PlainLyrics);
+    [JsonPropertyName("album")]
+    public string? Album { get; set; }
 
-public sealed record TrackOffsetPayload(string TrackId, int OffsetMs);
+    [JsonPropertyName("albumArtUrl")]
+    public string? AlbumArtUrl { get; set; }
 
-public sealed record DiagnosticsPayload(
-    int ConnectedClients,
-    int AuthorizedSessions,
-    string PollerStatus,
-    int ActivePollIntervalMs,
-    string? ActiveUserId,
-    string? ActiveUserName,
-    DateTimeOffset ServerTimeUtc);
+    [JsonPropertyName("durationMs")]
+    public long DurationMs { get; set; }
 
-public sealed record AuthorizedSessionPayload(
-    string Id,
-    string SpotifyUserId,
-    string DisplayName,
-    string? Email,
-    string? ProfileImageUrl,
-    bool IsCurrentlyPlaying,
-    DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    [JsonPropertyName("isExplicit")]
+    public bool IsExplicit { get; set; }
+}
 
-public sealed record ClockSyncResponsePayload(
-    long ClientSendTimeMs,
-    long ServerReceiveTimeMs,
-    long ServerSendTimeMs);
+public sealed class PlaybackStatePayload
+{
+    [JsonPropertyName("currentTrack")]
+    public TrackInfoPayload? CurrentTrack { get; set; }
+
+    [JsonPropertyName("progressMs")]
+    public long ProgressMs { get; set; }
+
+    [JsonPropertyName("isPlaying")]
+    public bool IsPlaying { get; set; }
+
+    [JsonPropertyName("timestampUtc")]
+    public DateTimeOffset TimestampUtc { get; set; }
+
+    [JsonPropertyName("deviceName")]
+    public string? DeviceName { get; set; }
+
+    [JsonPropertyName("volumePercent")]
+    public int? VolumePercent { get; set; }
+
+    [JsonPropertyName("activeUserId")]
+    public string? ActiveUserId { get; set; }
+
+    [JsonPropertyName("activeUserDisplayName")]
+    public string? ActiveUserDisplayName { get; set; }
+}
+
+public sealed class LyricLinePayload
+{
+    [JsonPropertyName("timestampMs")]
+    public long TimestampMs { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+}
+
+public sealed class LyricsPayload
+{
+    [JsonPropertyName("trackId")]
+    public string TrackId { get; set; } = string.Empty;
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+
+    [JsonPropertyName("artist")]
+    public string Artist { get; set; } = string.Empty;
+
+    [JsonPropertyName("album")]
+    public string? Album { get; set; }
+
+    [JsonPropertyName("isSynced")]
+    public bool IsSynced { get; set; }
+
+    [JsonPropertyName("isInstrumental")]
+    public bool IsInstrumental { get; set; }
+
+    [JsonPropertyName("lines")]
+    public List<LyricLinePayload> Lines { get; set; } = new();
+
+    [JsonPropertyName("plainLyrics")]
+    public string? PlainLyrics { get; set; }
+}
+
+public sealed class TrackOffsetPayload
+{
+    [JsonPropertyName("trackId")]
+    public string TrackId { get; set; } = string.Empty;
+
+    [JsonPropertyName("offsetMs")]
+    public int OffsetMs { get; set; }
+}
+
+public sealed class DiagnosticsPayload
+{
+    [JsonPropertyName("connectedClients")]
+    public int ConnectedClients { get; set; }
+
+    [JsonPropertyName("authorizedSessions")]
+    public int AuthorizedSessions { get; set; }
+
+    [JsonPropertyName("pollerStatus")]
+    public string PollerStatus { get; set; } = "Idle";
+
+    [JsonPropertyName("activePollIntervalMs")]
+    public int ActivePollIntervalMs { get; set; }
+
+    [JsonPropertyName("activeUserId")]
+    public string? ActiveUserId { get; set; }
+
+    [JsonPropertyName("activeUserName")]
+    public string? ActiveUserName { get; set; }
+
+    [JsonPropertyName("serverTimeUtc")]
+    public DateTimeOffset ServerTimeUtc { get; set; }
+}
+
+public sealed class AuthorizedSessionPayload
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("spotifyUserId")]
+    public string SpotifyUserId { get; set; } = string.Empty;
+
+    [JsonPropertyName("displayName")]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("profileImageUrl")]
+    public string? ProfileImageUrl { get; set; }
+
+    [JsonPropertyName("isCurrentlyPlaying")]
+    public bool IsCurrentlyPlaying { get; set; }
+
+    [JsonPropertyName("createdAtUtc")]
+    public DateTimeOffset CreatedAtUtc { get; set; }
+
+    [JsonPropertyName("updatedAtUtc")]
+    public DateTimeOffset UpdatedAtUtc { get; set; }
+
+    [JsonIgnore]
+    public Microsoft.UI.Xaml.Visibility PlayingVisibility => IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+}
+
+public sealed class ClockSyncResponsePayload
+{
+    [JsonPropertyName("clientSendTimeMs")]
+    public long ClientSendTimeMs { get; set; }
+
+    [JsonPropertyName("serverReceiveTimeMs")]
+    public long ServerReceiveTimeMs { get; set; }
+
+    [JsonPropertyName("serverSendTimeMs")]
+    public long ServerSendTimeMs { get; set; }
+}
+
+[JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(TrackInfoPayload))]
+[JsonSerializable(typeof(PlaybackStatePayload))]
+[JsonSerializable(typeof(LyricLinePayload))]
+[JsonSerializable(typeof(LyricsPayload))]
+[JsonSerializable(typeof(TrackOffsetPayload))]
+[JsonSerializable(typeof(DiagnosticsPayload))]
+[JsonSerializable(typeof(AuthorizedSessionPayload))]
+[JsonSerializable(typeof(List<AuthorizedSessionPayload>))]
+[JsonSerializable(typeof(ClockSyncResponsePayload))]
+public partial class CantusJsonContext : JsonSerializerContext
+{
+}
 
 public sealed record NtpSample(long RttMs, long OffsetMs, long TimestampMs);
 
@@ -121,14 +242,37 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 
         _connection = new HubConnectionBuilder()
             .WithUrl(effectiveUrl)
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.TypeInfoResolver = CantusJsonContext.Default;
+            })
             .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
             .Build();
 
-        _connection.On<PlaybackStatePayload>("ReceivePlaybackState", state => PlaybackStateReceived?.Invoke(state));
-        _connection.On<LyricsPayload>("ReceiveLyrics", lyrics => LyricsReceived?.Invoke(lyrics));
-        _connection.On<TrackOffsetPayload>("ReceiveTrackOffset", offset => TrackOffsetReceived?.Invoke(offset));
-        _connection.On<IReadOnlyList<AuthorizedSessionPayload>>("ReceiveSessions", sessions => SessionsReceived?.Invoke(sessions));
-        _connection.On<DiagnosticsPayload>("ReceiveDiagnostics", diag => DiagnosticsReceived?.Invoke(diag));
+        _connection.On<PlaybackStatePayload>("ReceivePlaybackState", state =>
+        {
+            PlaybackStateReceived?.Invoke(state);
+        });
+
+        _connection.On<LyricsPayload>("ReceiveLyrics", lyrics =>
+        {
+            LyricsReceived?.Invoke(lyrics);
+        });
+
+        _connection.On<TrackOffsetPayload>("ReceiveTrackOffset", offset =>
+        {
+            TrackOffsetReceived?.Invoke(offset);
+        });
+
+        _connection.On<List<AuthorizedSessionPayload>>("ReceiveSessions", sessions =>
+        {
+            SessionsReceived?.Invoke(sessions);
+        });
+
+        _connection.On<DiagnosticsPayload>("ReceiveDiagnostics", diag =>
+        {
+            DiagnosticsReceived?.Invoke(diag);
+        });
 
         _connection.Reconnecting += ex =>
         {

@@ -6,11 +6,11 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+    <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="20"
-            Padding="{x:Bind GetStagePadding(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
+            Padding="{x:Bind GetStagePadding(ViewModel.CurrentBreakpoint), Mode=OneWay}">
         <Grid>
             <!-- Empty / No Lyrics Placeholder -->
             <StackPanel Visibility="{x:Bind GetEmptyStateVisibility(ViewModel.HasLyrics), Mode=OneWay}"
@@ -18,17 +18,17 @@
                         VerticalAlignment="Center"
                         Spacing="16">
                 <FontIcon Glyph="&#xEC4F;"
-                          FontSize="{x:Bind GetEmptyIconSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
-                          Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                          FontSize="{x:Bind GetEmptyIconSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                          Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
                           HorizontalAlignment="Center" />
                 <TextBlock Text="Waiting for Synced Lyrics..."
-                           FontSize="{x:Bind GetEmptyTitleSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                           FontSize="{x:Bind GetEmptyTitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                            FontWeight="Bold"
-                           Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}"
+                           Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
                            HorizontalAlignment="Center" />
                 <TextBlock Text="Connect Spotify and play music to see live time-synchronized lyrics."
-                           FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
-                           Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                           FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                           Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap"
                            TextAlignment="Center" />
@@ -38,18 +38,18 @@
             <ListView x:Name="LyricsListView"
                       ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}"
                       SelectionMode="None"
-                      HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
-                      MaxWidth="{x:Bind ViewModel.Layout.LyricsMaxWidth, Mode=OneWay}"
+                      HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                      MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
                       Visibility="{x:Bind GetLyricsVisibility(ViewModel.HasLyrics), Mode=OneWay}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="vm:LyricLineViewModel">
-                        <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                        <TextBlock Text="{x:Bind Text}"
                                    FontSize="{x:Bind FontSize, Mode=OneWay}"
                                    FontWeight="{x:Bind FontWeight, Mode=OneWay}"
                                    Opacity="{x:Bind Opacity, Mode=OneWay}"
-                                   Foreground="{x:Bind views:LyricsStageView.GetLineColor(IsActive, IsPast), Mode=OneWay}"
+                                   Foreground="{x:Bind LineBrush, Mode=OneWay}"
                                    Margin="0,10"
-                                   TextAlignment="{x:Bind views:LyricsStageView.GetLineTextAlignment(IsActive), Mode=OneWay}"
+                                   TextAlignment="{x:Bind Alignment, Mode=OneWay}"
                                    TextWrapping="Wrap" />
                     </DataTemplate>
                 </ListView.ItemTemplate>

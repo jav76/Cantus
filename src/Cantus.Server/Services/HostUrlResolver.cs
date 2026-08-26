@@ -19,7 +19,19 @@ public sealed class HostUrlResolver : IHostUrlResolver
 
     public string ResolveBaseUrl(HttpContext? context = null)
     {
-        // 1. Check explicit environment / configuration variables
+        // 1. If context is provided and is a local request (localhost or 127.0.0.1), prioritize the request URL directly for local testing
+        if (context is not null && context.Request.Host.HasValue)
+        {
+            string hostVal = context.Request.Host.Host;
+            if (hostVal.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+                hostVal.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+            {
+                string scheme = !string.IsNullOrWhiteSpace(context.Request.Scheme) ? context.Request.Scheme : "http";
+                return NormalizeUrl($"{scheme}://{context.Request.Host.Value}");
+            }
+        }
+
+        // 2. Check explicit environment / configuration variables
         string? envUrl = _configuration["CANTUS_HOST_URL"]
             ?? _configuration["HOST_URL"]
             ?? _configuration["BASE_URL"]
@@ -30,7 +42,7 @@ public sealed class HostUrlResolver : IHostUrlResolver
             return NormalizeUrl(envUrl);
         }
 
-        // 2. Derive dynamically from incoming request (respects ForwardedHeaders middleware)
+        // 3. Derive dynamically from incoming request (respects ForwardedHeaders middleware)
         if (context is not null && context.Request.Host.HasValue)
         {
             string scheme = !string.IsNullOrWhiteSpace(context.Request.Scheme) ? context.Request.Scheme : "http";
@@ -38,7 +50,7 @@ public sealed class HostUrlResolver : IHostUrlResolver
             return NormalizeUrl($"{scheme}://{host}");
         }
 
-        // 3. Fallback default
+        // 4. Fallback default
         return DefaultLocalhostBase;
     }
 

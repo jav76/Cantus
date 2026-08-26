@@ -19,6 +19,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly DispatcherTimer _ticker;
     private readonly ThemeManager _themeManager;
     private readonly ResponsiveLayoutManager _layoutManager;
+    private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
 
     private PlaybackStatePayload? _lastPlaybackState;
     private LyricsPayload? _lastLyrics;
@@ -59,6 +60,27 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
+
+    // Flattened Theme Properties for 1-level safe XAML {x:Bind}
+    public Microsoft.UI.Xaml.Media.SolidColorBrush BackgroundBrush => _themeManager.BackgroundBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush SurfaceCardBrush => _themeManager.SurfaceCardBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush CardBorderBrush => _themeManager.CardBorderBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush PrimaryAccentBrush => _themeManager.PrimaryAccentBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush SecondaryAccentBrush => _themeManager.SecondaryAccentBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush TextPrimaryBrush => _themeManager.TextPrimaryBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush TextSecondaryBrush => _themeManager.TextSecondaryBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush TextMutedBrush => _themeManager.TextMutedBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush GlowBrush => _themeManager.GlowBrush;
+    public Windows.UI.Color ActivePrimaryAccentColor => _themeManager.ActivePalette.PrimaryAccent;
+    public Windows.UI.Color ActiveBackgroundColor => _themeManager.ActivePalette.Background;
+
+    // Flattened Layout Properties for 1-level safe XAML {x:Bind}
+    public LayoutBreakpoint CurrentBreakpoint => _layoutManager.CurrentBreakpoint;
+    public MobileViewMode MobileView => _layoutManager.MobileView;
+    public double SidePanelWidth => _layoutManager.SidePanelWidth;
+    public double AlbumArtSize => _layoutManager.AlbumArtSize;
+    public double LyricsMaxWidth => _layoutManager.LyricsMaxWidth;
+    public Thickness ContentPadding => _layoutManager.ContentPadding;
 
     public ThemeMode SelectedThemeMode
     {
@@ -118,7 +140,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public int AuthorizedSessionsCount
     {
         get => _authorizedSessionsCount;
-        set { if (_authorizedSessionsCount != value) { _authorizedSessionsCount = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_authorizedSessionsCount != value)
+            {
+                _authorizedSessionsCount = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(NoSessionsVisibility));
+                OnPropertyChanged(nameof(HasSessionsVisibility));
+                OnPropertyChanged(nameof(IsAuthorized));
+                OnPropertyChanged(nameof(ConnectButtonText));
+                OnPropertyChanged(nameof(ConnectButtonGlyph));
+            }
+        }
     }
 
     public int ActivePollIntervalMs
@@ -226,6 +260,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public bool IsAuthorized => AuthorizedSessionsCount > 0 || (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
     public string ConnectButtonText => IsAuthorized ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName) ? $"Connected: {ActiveUserName}" : "Connected") : "Connect Spotify";
     public string ConnectButtonGlyph => IsAuthorized ? "\uE73E" : "\uE8D6";
+    public Microsoft.UI.Xaml.Visibility NoSessionsVisibility => AuthorizedSessionsCount == 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+    public Microsoft.UI.Xaml.Visibility HasSessionsVisibility => AuthorizedSessionsCount > 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
     public bool IsKioskMode
     {
@@ -266,17 +302,27 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _themeManager = themeManager ?? ThemeManager.Instance;
         _layoutManager = layoutManager ?? ResponsiveLayoutManager.Instance;
 
+        try
+        {
+            _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+        }
+        catch
+        {
+            _dispatcherQueue = null;
+        }
+
         _layoutManager.LayoutChanged += OnLayoutManagerChanged;
         _layoutManager.BreakpointChanged += OnLayoutBreakpointChanged;
+        _themeManager.PaletteChanged += OnPaletteChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
-        _client.ConnectionStateChanged += state => ConnectionStatus = state;
-        _client.PlaybackStateReceived += OnPlaybackStateReceived;
-        _client.LyricsReceived += OnLyricsReceived;
-        _client.TrackOffsetReceived += OnTrackOffsetReceived;
-        _client.SessionsReceived += OnSessionsReceived;
-        _client.DiagnosticsReceived += OnDiagnosticsReceived;
+        _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
+        _client.PlaybackStateReceived += state => RunOnUIThread(() => OnPlaybackStateReceived(state));
+        _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
+        _client.TrackOffsetReceived += offset => RunOnUIThread(() => OnTrackOffsetReceived(offset));
+        _client.SessionsReceived += sessions => RunOnUIThread(() => OnSessionsReceived(sessions));
+        _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
 
         _ticker = new DispatcherTimer
         {
@@ -284,6 +330,25 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         };
         _ticker.Tick += OnTick;
         _ticker.Start();
+    }
+
+    private void RunOnUIThread(Action action)
+    {
+        if (_dispatcherQueue != null)
+        {
+            try
+            {
+                if (!_dispatcherQueue.HasThreadAccess)
+                {
+                    _dispatcherQueue.TryEnqueue(() => action());
+                    return;
+                }
+            }
+            catch
+            {
+            }
+        }
+        action();
     }
 
     private void OnLyricLinesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -336,13 +401,44 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private void OnLayoutManagerChanged()
     {
         RefreshLyricLineSizes();
-        OnPropertyChanged(nameof(Layout));
+        NotifyLayoutProperties();
     }
 
     private void OnLayoutBreakpointChanged(LayoutBreakpoint breakpoint)
     {
         RefreshLyricLineSizes();
+        NotifyLayoutProperties();
+    }
+
+    private void OnPaletteChanged(ColorPalette palette)
+    {
+        NotifyThemeProperties();
+    }
+
+    private void NotifyLayoutProperties()
+    {
+        OnPropertyChanged(nameof(CurrentBreakpoint));
+        OnPropertyChanged(nameof(MobileView));
+        OnPropertyChanged(nameof(SidePanelWidth));
+        OnPropertyChanged(nameof(AlbumArtSize));
+        OnPropertyChanged(nameof(ContentPadding));
         OnPropertyChanged(nameof(Layout));
+    }
+
+    private void NotifyThemeProperties()
+    {
+        OnPropertyChanged(nameof(BackgroundBrush));
+        OnPropertyChanged(nameof(SurfaceCardBrush));
+        OnPropertyChanged(nameof(CardBorderBrush));
+        OnPropertyChanged(nameof(PrimaryAccentBrush));
+        OnPropertyChanged(nameof(SecondaryAccentBrush));
+        OnPropertyChanged(nameof(TextPrimaryBrush));
+        OnPropertyChanged(nameof(TextSecondaryBrush));
+        OnPropertyChanged(nameof(TextMutedBrush));
+        OnPropertyChanged(nameof(GlowBrush));
+        OnPropertyChanged(nameof(ActivePrimaryAccentColor));
+        OnPropertyChanged(nameof(ActiveBackgroundColor));
+        OnPropertyChanged(nameof(Theme));
     }
 
     public void RefreshLyricLineSizes()
@@ -357,8 +453,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnPlaybackStateReceived(PlaybackStatePayload state)
+    private void OnPlaybackStateReceived(PlaybackStatePayload? state)
     {
+        if (state is null) return;
+
         _lastPlaybackState = state;
         RttMs = _client.RttMs;
         ClockSkewMs = _client.ClockOffsetMs;
@@ -415,32 +513,40 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnLyricsReceived(LyricsPayload lyrics)
+    private void OnLyricsReceived(LyricsPayload? lyrics)
     {
+        if (lyrics is null) return;
+
         _lastLyrics = lyrics;
-        HasLyrics = lyrics.Lines.Count > 0;
+        HasLyrics = lyrics.Lines != null && lyrics.Lines.Count > 0;
         IsInstrumental = lyrics.IsInstrumental;
 
         LyricLines.Clear();
-        double active = _layoutManager.ActiveLyricsFontSize;
-        double inactive = _layoutManager.InactiveLyricsFontSize;
-        double past = _layoutManager.PastLyricsFontSize;
-
-        foreach (var line in lyrics.Lines)
+        if (lyrics.Lines != null)
         {
-            var lineVm = new LyricLineViewModel
+            double active = _layoutManager.ActiveLyricsFontSize;
+            double inactive = _layoutManager.InactiveLyricsFontSize;
+            double past = _layoutManager.PastLyricsFontSize;
+
+            foreach (var line in lyrics.Lines)
             {
-                TimestampMs = line.TimestampMs,
-                Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
-            };
-            lineVm.RefreshFontSizes(active, inactive, past);
-            LyricLines.Add(lineVm);
+                if (line is null) continue;
+                var lineVm = new LyricLineViewModel
+                {
+                    TimestampMs = line.TimestampMs,
+                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
+                };
+                lineVm.RefreshFontSizes(active, inactive, past);
+                LyricLines.Add(lineVm);
+            }
         }
         ActiveLineIndex = -1;
     }
 
-    private void OnTrackOffsetReceived(TrackOffsetPayload offset)
+    private void OnTrackOffsetReceived(TrackOffsetPayload? offset)
     {
+        if (offset is null) return;
+
         if (_lastPlaybackState?.CurrentTrack?.Id == offset.TrackId)
         {
             _userOffsetMs = offset.OffsetMs;
@@ -449,30 +555,46 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnSessionsReceived(IReadOnlyList<AuthorizedSessionPayload> sessions)
+    private void OnSessionsReceived(IReadOnlyList<AuthorizedSessionPayload>? sessions)
     {
         Sessions.Clear();
+        if (sessions is null)
+        {
+            AuthorizedSessionsCount = 0;
+            return;
+        }
+
         foreach (var s in sessions)
         {
-            Sessions.Add(s);
+            if (s != null)
+            {
+                Sessions.Add(s);
+            }
         }
         AuthorizedSessionsCount = sessions.Count;
 
         if ((ActiveUserName == "None" || string.IsNullOrEmpty(ActiveUserName)) && sessions.Count > 0)
         {
-            var playing = sessions.FirstOrDefault(s => s.IsCurrentlyPlaying) ?? sessions.First();
-            ActiveUserName = playing.DisplayName;
-            ActiveUserId = playing.Id;
+            var playing = sessions.FirstOrDefault(s => s != null && s.IsCurrentlyPlaying) ?? sessions.FirstOrDefault(s => s != null);
+            if (playing != null)
+            {
+                ActiveUserName = playing.DisplayName;
+                ActiveUserId = playing.Id;
+            }
         }
 
+        OnPropertyChanged(nameof(NoSessionsVisibility));
+        OnPropertyChanged(nameof(HasSessionsVisibility));
         OnPropertyChanged(nameof(IsAuthorized));
         OnPropertyChanged(nameof(ConnectButtonText));
         OnPropertyChanged(nameof(ConnectButtonGlyph));
     }
 
-    private void OnDiagnosticsReceived(DiagnosticsPayload diag)
+    private void OnDiagnosticsReceived(DiagnosticsPayload? diag)
     {
-        PollerStatus = diag.PollerStatus;
+        if (diag is null) return;
+
+        PollerStatus = diag.PollerStatus ?? "Idle";
         ConnectedClients = diag.ConnectedClients;
         AuthorizedSessionsCount = diag.AuthorizedSessions;
         ActivePollIntervalMs = diag.ActivePollIntervalMs;
@@ -482,6 +604,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         ActiveUserId = diag.ActiveUserId;
 
+        OnPropertyChanged(nameof(NoSessionsVisibility));
+        OnPropertyChanged(nameof(HasSessionsVisibility));
         OnPropertyChanged(nameof(IsAuthorized));
         OnPropertyChanged(nameof(ConnectButtonText));
         OnPropertyChanged(nameof(ConnectButtonGlyph));

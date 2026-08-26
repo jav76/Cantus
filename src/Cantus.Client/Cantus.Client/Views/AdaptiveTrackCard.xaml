@@ -7,29 +7,29 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+    <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="20"
-            Padding="{x:Bind GetCardPadding(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
+            Padding="{x:Bind GetCardPadding(ViewModel.CurrentBreakpoint), Mode=OneWay}">
         <Grid>
             <!-- Standard / Desktop / Tablet Card Layout -->
             <ScrollViewer VerticalScrollBarVisibility="Auto"
-                          Visibility="{x:Bind GetStandardCardVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
-                <StackPanel Spacing="{x:Bind GetCardSpacing(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}">
+                          Visibility="{x:Bind GetStandardCardVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}">
+                <StackPanel Spacing="{x:Bind GetCardSpacing(ViewModel.CurrentBreakpoint), Mode=OneWay}">
                     
                     <!-- Album Art -->
                     <Border CornerRadius="16"
-                            Width="{x:Bind ViewModel.Layout.AlbumArtSize, Mode=OneWay}"
-                            Height="{x:Bind ViewModel.Layout.AlbumArtSize, Mode=OneWay}"
+                            Width="{x:Bind ViewModel.AlbumArtSize, Mode=OneWay}"
+                            Height="{x:Bind ViewModel.AlbumArtSize, Mode=OneWay}"
                             Background="#1A1B26"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             HorizontalAlignment="Center">
                         <Grid>
                             <FontIcon Glyph="&#xEC4F;"
-                                      FontSize="{x:Bind GetAlbumIconSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
-                                      Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                                      FontSize="{x:Bind GetAlbumIconSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                                      Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
                             <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
@@ -39,19 +39,19 @@
                     <!-- Track Title & Artist -->
                     <StackPanel Spacing="4">
                         <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
-                                   FontSize="{x:Bind GetTitleFontSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                                   FontSize="{x:Bind GetTitleFontSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                                    FontWeight="Bold"
-                                   Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                                   Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                                    TextWrapping="Wrap" />
                         <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
-                                   FontSize="{x:Bind GetArtistFontSize(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+                                   FontSize="{x:Bind GetArtistFontSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                                    FontWeight="Medium"
-                                   Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}"
+                                   Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
                                    TextWrapping="NoWrap"
                                    TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{x:Bind ViewModel.CurrentAlbum, Mode=OneWay}"
                                    FontSize="13"
-                                   Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}"
+                                   Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
                                    TextWrapping="NoWrap"
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -61,71 +61,77 @@
                         <ProgressBar Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                                      Minimum="0"
                                      Maximum="1"
-                                     Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                     Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                                      Background="#1AFFFFFF"
                                      Height="6"
                                      CornerRadius="3" />
                         <Grid ColumnDefinitions="*,*">
-                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
                         </Grid>
                     </StackPanel>
 
                     <!-- Instrumental Break Indicator -->
-                    <Border Background="{x:Bind ViewModel.Theme.GlowBrush, Mode=OneWay}"
-                            BorderBrush="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                    <Border Background="{x:Bind ViewModel.GlowBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                             BorderThickness="1"
                             CornerRadius="10"
                             Padding="12,8"
                             Visibility="{x:Bind GetInstrumentalVisibility(ViewModel.IsInstrumentalBreak), Mode=OneWay}">
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <FontIcon Glyph="&#xEC4F;" FontSize="14" Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.InstrumentalBreakText, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" />
+                            <FontIcon Glyph="&#xEC4F;" FontSize="14" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.InstrumentalBreakText, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
 
                     <!-- Device & Playback State -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,8">
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,8">
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE7F4;" FontSize="14" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" />
-                                <TextBlock Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                                <FontIcon Glyph="&#xE7F4;" FontSize="14" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" FontSize="13" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="{x:Bind GetPlaybackStatus(ViewModel.IsPlaying), Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind GetPlaybackStatus(ViewModel.IsPlaying), Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
                         </Grid>
                     </Border>
 
                     <!-- Manual Sync Offset Adjuster -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                                <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
                             </Grid>
                             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
-                                <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="1" Content="-0.1s" Click="OnNudgeMinus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="2" Content="Reset" Click="OnResetOffsetClicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="3" Content="+0.1s" Click="OnNudgePlus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="4" Content="+0.5s" Click="OnNudgePlus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                                <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                                <Button Grid.Column="1" Content="-0.1s" Click="OnNudgeMinus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                                <Button Grid.Column="2" Content="Reset" Click="OnResetOffsetClicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                                <Button Grid.Column="3" Content="+0.1s" Click="OnNudgePlus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                                <Button Grid.Column="4" Content="+0.5s" Click="OnNudgePlus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- Authorized Accounts List -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="AUTHORIZED ACCOUNTS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="AUTHORIZED ACCOUNTS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="No accounts linked"
+                                   FontSize="12"
+                                   Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
+                                   FontStyle="Italic"
+                                   Visibility="{x:Bind ViewModel.NoSessionsVisibility, Mode=OneWay}" />
                         <ListView ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}"
                                   SelectionMode="None"
                                   ItemClick="OnSessionItemClicked"
-                                  IsItemClickEnabled="True">
+                                  IsItemClickEnabled="True"
+                                  Visibility="{x:Bind ViewModel.HasSessionsVisibility, Mode=OneWay}">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="services:AuthorizedSessionPayload">
                                     <Border Background="#15FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,2">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
                                             <FontIcon Grid.Column="0" Glyph="&#xE77B;" FontSize="14" Foreground="#94A3B8" Margin="0,0,8,0" />
                                             <TextBlock Grid.Column="1" Text="{x:Bind DisplayName}" FontSize="13" Foreground="#F8FAFC" VerticalAlignment="Center" />
-                                            <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#10B981" Visibility="{x:Bind views:AdaptiveTrackCard.GetPlayingVisibility(IsCurrentlyPlaying)}" VerticalAlignment="Center" />
+                                            <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#10B981" Visibility="{x:Bind PlayingVisibility, Mode=OneWay}" VerticalAlignment="Center" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -136,7 +142,7 @@
             </ScrollViewer>
 
             <!-- Compact / Mobile Horizontal Now Playing Strip -->
-            <Grid Visibility="{x:Bind GetMobileStripVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetMobileStripVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   ColumnDefinitions="Auto,*,Auto"
                   ColumnSpacing="12">
                 <!-- Mini Album Art -->
@@ -145,10 +151,10 @@
                         Width="56"
                         Height="56"
                         Background="#1A1B26"
-                        BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                         BorderThickness="1">
                     <Grid>
-                        <FontIcon Glyph="&#xEC4F;" FontSize="20" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <FontIcon Glyph="&#xEC4F;" FontSize="20" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
                     </Grid>
                 </Border>
@@ -158,18 +164,18 @@
                     <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
                                FontSize="14"
                                FontWeight="Bold"
-                               Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                               Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                                TextWrapping="NoWrap"
                                TextTrimming="CharacterEllipsis" />
                     <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
                                FontSize="12"
-                               Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}"
+                               Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
                                TextWrapping="NoWrap"
                                TextTrimming="CharacterEllipsis" />
                     <ProgressBar Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                                  Minimum="0"
                                  Maximum="1"
-                                 Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                 Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                                  Background="#1AFFFFFF"
                                  Height="3"
                                  CornerRadius="2" />
@@ -177,8 +183,8 @@
 
                 <!-- Timestamps & Offset Tag -->
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
-                    <TextBlock Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="10" Foreground="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Right" />
+                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                    <TextBlock Text="{x:Bind ViewModel.OffsetText, Mode=OneWay}" FontSize="10" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Right" />
                 </StackPanel>
             </Grid>
         </Grid>

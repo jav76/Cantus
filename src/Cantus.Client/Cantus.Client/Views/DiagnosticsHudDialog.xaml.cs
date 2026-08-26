@@ -12,18 +12,22 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
         this.InitializeComponent();
     }
 
-    public string GetLatencySkewText(long rtt, long skew)
+    public string GetLatencySkewText(long? rtt = null, long? skew = null)
     {
-        string skewSign = skew >= 0 ? "+" : "";
-        return $"{rtt}ms / {skewSign}{skew}ms";
+        long r = rtt.GetValueOrDefault();
+        long s = skew.GetValueOrDefault();
+        string skewSign = s >= 0 ? "+" : "";
+        return $"{r}ms / {skewSign}{s}ms";
     }
 
-    public string GetPollerCadenceText(string status, int intervalMs)
+    public string GetPollerCadenceText(string? status = null, int? intervalMs = null)
     {
-        return $"{status} ({intervalMs}ms)";
+        string st = !string.IsNullOrEmpty(status) ? status : "Idle";
+        int ms = intervalMs.GetValueOrDefault(1500);
+        return $"{st} ({ms}ms)";
     }
 
-    public string GetVolumeText(int? volume)
+    public string GetVolumeText(int? volume = null)
     {
         return volume.HasValue ? $"{volume.Value}%" : "N/A";
     }

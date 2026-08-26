@@ -5,48 +5,48 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind ViewModel.Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+    <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="16"
-            Padding="{x:Bind GetHeaderPadding(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            Padding="{x:Bind GetHeaderPadding(ViewModel.CurrentBreakpoint), Mode=OneWay}"
             Margin="0,0,0,16">
         <Grid>
             <!-- Large / Desktop Header Layout -->
-            <Grid Visibility="{x:Bind GetLargeHeaderVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetLargeHeaderVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   ColumnDefinitions="Auto,*,Auto">
                 
                 <!-- Brand Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="38" Height="38" CornerRadius="10" Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}">
+                    <Border Width="38" Height="38" CornerRadius="10" Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}">
                         <FontIcon Glyph="&#xE767;" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Cantus" FontSize="20" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" />
-                        <TextBlock Text="Real-Time Synced Lyrics" FontSize="11" Foreground="{x:Bind ViewModel.Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Cantus" FontSize="20" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" />
+                        <TextBlock Text="Real-Time Synced Lyrics" FontSize="11" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
 
                 <!-- Diagnostics Telemetry Pills -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <!-- Connection Status -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Ellipse Width="8" Height="8" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
                     <!-- Latency RTT -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
+                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                     </Border>
                     <!-- NTP Skew -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind GetSkewText(ViewModel.ClockSkewMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
+                        <TextBlock Text="{x:Bind GetSkewText(ViewModel.ClockSkewMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                     </Border>
                     <!-- Poller Cadence -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind ViewModel.PollerStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
+                        <TextBlock Text="{x:Bind ViewModel.PollerStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                     </Border>
                 </StackPanel>
 
@@ -55,24 +55,24 @@
                     <!-- Theme Switcher -->
                     <Button Click="OnCycleThemeClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="12,8"
                             ToolTipService.ToolTip="Cycle Color Theme (T)">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE790;" FontSize="15" />
-                            <TextBlock Text="{x:Bind ViewModel.Theme.ActivePalette.Name, Mode=OneWay}" FontSize="12" />
+                            <TextBlock Text="Theme" FontSize="12" />
                         </StackPanel>
                     </Button>
 
                     <!-- Diagnostics HUD -->
                     <Button Click="OnOpenDiagnosticsHudClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="10,8"
                             ToolTipService.ToolTip="Open Diagnostics HUD">
@@ -82,9 +82,9 @@
                     <!-- Fullscreen Kiosk Mode -->
                     <Button Click="OnToggleKioskClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="10,8"
                             ToolTipService.ToolTip="Enter Fullscreen Kiosk Mode (F11 / K)">
@@ -93,7 +93,7 @@
 
                     <!-- Spotify SSO -->
                     <Button Click="OnConnectSpotifyClicked"
-                            Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                            Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
                             Padding="14,8"
@@ -107,27 +107,27 @@
             </Grid>
 
             <!-- Medium / Tablet Header Layout -->
-            <Grid Visibility="{x:Bind GetMediumHeaderVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetMediumHeaderVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   ColumnDefinitions="Auto,*,Auto">
                 
                 <!-- Brand Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Border Width="34" Height="34" CornerRadius="8" Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}">
+                    <Border Width="34" Height="34" CornerRadius="8" Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}">
                         <FontIcon Glyph="&#xE767;" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <TextBlock Text="Cantus" FontSize="18" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                    <TextBlock Text="Cantus" FontSize="18" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
                 </StackPanel>
 
                 <!-- Essential Telemetry -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
-                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
+                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
                     </Border>
                 </StackPanel>
 
@@ -135,9 +135,9 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <Button Click="OnCycleThemeClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Cycle Theme (T)">
@@ -146,9 +146,9 @@
 
                     <Button Click="OnOpenDiagnosticsHudClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Diagnostics">
@@ -157,9 +157,9 @@
 
                     <Button Click="OnToggleKioskClicked"
                             Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Fullscreen (F11)">
@@ -167,7 +167,7 @@
                     </Button>
 
                     <Button Click="OnConnectSpotifyClicked"
-                            Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                            Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
                             Padding="10,6"
@@ -178,15 +178,15 @@
             </Grid>
 
             <!-- Small / Mobile Header Layout -->
-            <Grid Visibility="{x:Bind GetSmallHeaderVisibility(ViewModel.Layout.CurrentBreakpoint), Mode=OneWay}"
+            <Grid Visibility="{x:Bind GetSmallHeaderVisibility(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                   ColumnDefinitions="Auto,*,Auto">
                 
                 <!-- Brand + Live Indicator -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Width="30" Height="30" CornerRadius="8" Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}">
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}">
                         <FontIcon Glyph="&#xE767;" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <TextBlock Text="Cantus" FontSize="17" FontWeight="Bold" Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                    <TextBlock Text="Cantus" FontSize="17" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
                     <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" Margin="2,0,0,0" />
                 </StackPanel>
 
@@ -194,7 +194,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <!-- Spotify SSO Mini -->
                     <Button Click="OnConnectSpotifyClicked"
-                            Background="{x:Bind ViewModel.Theme.PrimaryAccentBrush, Mode=OneWay}"
+                            Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="6"
                             Padding="8,5">
@@ -203,9 +203,9 @@
 
                     <!-- Mobile Overflow Menu Button -->
                     <Button Background="#1AFFFFFF"
-                            BorderBrush="{x:Bind ViewModel.Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
-                            Foreground="{x:Bind ViewModel.Theme.TextPrimaryBrush, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="6"
                             Padding="8,5">
                         <Button.Flyout>

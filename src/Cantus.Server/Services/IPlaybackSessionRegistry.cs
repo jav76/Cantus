@@ -17,6 +17,7 @@ public interface IPlaybackSessionRegistry
 
     event EventHandler? OnClientsConnected;
     event EventHandler? OnClientsEmpty;
+    event EventHandler? OnSessionsChanged;
 
     void RegisterConnection(string connectionId);
     void UnregisterConnection(string connectionId);
