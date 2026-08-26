@@ -83,7 +83,24 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
     public SignalRPlaybackClient(string? serverUrl = null)
     {
 #if __WASM__
-        _serverUrl = string.IsNullOrEmpty(serverUrl) ? "/hubs/playback" : serverUrl;
+        if (string.IsNullOrEmpty(serverUrl))
+        {
+            string? origin = null;
+            try
+            {
+                origin = Uno.Foundation.WebAssemblyRuntime.InvokeJS("window.location.origin");
+            }
+            catch
+            {
+            }
+            _serverUrl = !string.IsNullOrWhiteSpace(origin)
+                ? $"{origin.TrimEnd('/')}/hubs/playback"
+                : "/hubs/playback";
+        }
+        else
+        {
+            _serverUrl = serverUrl;
+        }
 #else
         _serverUrl = string.IsNullOrEmpty(serverUrl) ? "http://localhost:5000/hubs/playback" : serverUrl;
 #endif
