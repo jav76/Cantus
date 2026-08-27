@@ -19,10 +19,11 @@ public interface IPlaybackSessionRegistry
     event EventHandler? OnClientsEmpty;
     event EventHandler? OnSessionsChanged;
 
-    void RegisterConnection(string connectionId);
+    void RegisterConnection(string connectionId, string? userId = null);
     void UnregisterConnection(string connectionId);
     void SetConnectionSubscription(string connectionId, string? targetUserId);
     string? GetConnectionSubscription(string connectionId);
+    IReadOnlySet<string> GetActiveUserIdsWithConnectedClients();
 
     void UpdateUserState(
         string userId,

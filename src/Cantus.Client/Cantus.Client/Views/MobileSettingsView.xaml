@@ -83,30 +83,73 @@
                 </Grid>
             </Border>
 
-            <!-- Authorized Accounts List -->
+            <!-- Connected Spotify Account Card -->
             <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
                     BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
                     BorderThickness="1"
                     CornerRadius="16"
                     Padding="16,14">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="AUTHORIZED ACCOUNTS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
-                    <ListView ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}"
-                              SelectionMode="None"
-                              ItemClick="OnSessionItemClicked"
-                              IsItemClickEnabled="True">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="services:AuthorizedSessionPayload">
-                                <Border Background="#15FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,2">
-                                    <Grid ColumnDefinitions="Auto,*,Auto">
-                                        <FontIcon Grid.Column="0" Glyph="&#xE77B;" FontSize="14" Foreground="#94A3B8" Margin="0,0,8,0" />
-                                        <TextBlock Grid.Column="1" Text="{x:Bind DisplayName}" FontSize="13" Foreground="#F8FAFC" VerticalAlignment="Center" />
-                                        <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#10B981" Visibility="{x:Bind PlayingVisibility, Mode=OneWay}" VerticalAlignment="Center" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                <StackPanel Spacing="10">
+                    <TextBlock Text="SPOTIFY ACCOUNT" FontSize="11" FontWeight="Bold" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
+                    
+                    <!-- Logged in state -->
+                    <Border Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12,10"
+                            Visibility="{x:Bind ViewModel.HasSessionsVisibility, Mode=OneWay}">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="#20FFFFFF" Margin="0,0,10,0">
+                                <FontIcon Glyph="&#xE77B;" FontSize="16" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="{x:Bind ViewModel.ActiveUserName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center" />
+                                    <TextBlock Text="Active Account" FontSize="11" Foreground="#10B981" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Click="OnLogoutClicked"
+                                    Background="#1AFFFFFF"
+                                    Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="10,6">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE7E8;" FontSize="12" />
+                                    <TextBlock Text="Log Out" FontSize="11" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Not logged in state -->
+                    <Border Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12,10"
+                            Visibility="{x:Bind ViewModel.NoSessionsVisibility, Mode=OneWay}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Not Connected" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" />
+                                <TextBlock Text="Log in to view synchronized lyrics" FontSize="11" Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}" />
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Click="OnConnectSpotifyClicked"
+                                    Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
+                                    Foreground="White"
+                                    CornerRadius="6"
+                                    Padding="12,6"
+                                    FontWeight="SemiBold">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8D6;" FontSize="12" />
+                                    <TextBlock Text="Connect" FontSize="12" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
         </StackPanel>

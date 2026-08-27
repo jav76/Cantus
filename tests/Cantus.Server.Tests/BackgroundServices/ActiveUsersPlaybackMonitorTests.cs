@@ -22,6 +22,8 @@ public sealed class ActiveUsersPlaybackMonitorTests
     private readonly Mock<IPlaybackSessionRegistry> _mockRegistry = new();
     private readonly Mock<IHubContext<PlaybackHub, IPlaybackClient>> _mockHubContext = new();
     private readonly Mock<IHubClients<IPlaybackClient>> _mockClients = new();
+    private readonly Mock<IPlaybackClient> _mockUser1Group = new();
+    private readonly Mock<IPlaybackClient> _mockUser2Group = new();
     private readonly Mock<IPlaybackClient> _mockAll = new();
 
     private readonly Mock<ISpotifyAuthService> _mockAuthService = new();
@@ -43,6 +45,8 @@ public sealed class ActiveUsersPlaybackMonitorTests
 
         _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
         _mockClients.Setup(c => c.All).Returns(_mockAll.Object);
+        _mockClients.Setup(c => c.Group("user_user-1")).Returns(_mockUser1Group.Object);
+        _mockClients.Setup(c => c.Group("user_user-2")).Returns(_mockUser2Group.Object);
 
         var options = Options.Create(new PlaybackPollerOptions
         {
@@ -64,6 +68,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
     public async Task WhenNoConnectedClients_DoesNotPollSpotify()
     {
         _mockRegistry.Setup(r => r.HasConnectedClients).Returns(false);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string>());
 
         using var cts = new CancellationTokenSource(100);
         await _monitor.StartAsync(cts.Token);
@@ -74,9 +79,10 @@ public sealed class ActiveUsersPlaybackMonitorTests
     }
 
     [Fact]
-    public async Task WhenClientsConnectedAndTrackPlays_FetchesLyricsAndBroadcasts()
+    public async Task WhenClientsConnectedAndTrackPlays_FetchesLyricsAndBroadcastsToUserGroup()
     {
         _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string> { "user-1" });
 
         var session = new UserSession
         {
@@ -111,8 +117,8 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Lines = [new LyricLine(TimeSpan.FromSeconds(5), "Is this the real life?")]
         };
 
-        _mockAuthService.Setup(a => a.GetAllSessionsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<UserSession> { session });
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
 
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(playback);
@@ -120,16 +126,48 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
             .ReturnsAsync(lyrics);
 
-        _mockRegistry.Setup(r => r.GetActivePlaybackSnapshot())
-            .Returns(new UserPlaybackSnapshot("user-1", "Alice", playback, lyrics, 0, DateTimeOffset.UtcNow));
-
         using var cts = new CancellationTokenSource(200);
         await _monitor.StartAsync(cts.Token);
         await Task.Delay(100);
         await _monitor.StopAsync(CancellationToken.None);
 
         _mockLyricsProvider.Verify(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
-        _mockAll.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.AtLeastOnce);
-        _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.AtLeastOnce);
+        _mockUser1Group.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.AtLeastOnce);
+        _mockUser1Group.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.AtLeastOnce);
+        _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task WhenMultipleUsersConnected_BroadcastsIndividuallyToEachUserGroup()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string> { "user-1", "user-2" });
+
+        var session1 = new UserSession { Id = "user-1", SpotifyUserId = "sp-1", DisplayName = "Alice", AccessToken = "tok-1", RefreshToken = "ref-1" };
+        var session2 = new UserSession { Id = "user-2", SpotifyUserId = "sp-2", DisplayName = "Bob", AccessToken = "tok-2", RefreshToken = "ref-2" };
+
+        var track1 = new TrackInfo { Id = "track-1", Title = "Song 1", Artist = "Artist 1" };
+        var track2 = new TrackInfo { Id = "track-2", Title = "Song 2", Artist = "Artist 2" };
+
+        var playback1 = new PlaybackState { CurrentTrack = track1, IsPlaying = true, Progress = TimeSpan.FromSeconds(10) };
+        var playback2 = new PlaybackState { CurrentTrack = track2, IsPlaying = true, Progress = TimeSpan.FromSeconds(20) };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>())).ReturnsAsync(session1);
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", It.IsAny<CancellationToken>())).ReturnsAsync(session2);
+
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>())).ReturnsAsync(playback1);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-2", It.IsAny<CancellationToken>())).ReturnsAsync(playback2);
+
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track1, It.IsAny<CancellationToken>())).ReturnsAsync(new SyncedLyrics { TrackId = "track-1", Title = "Song 1", Artist = "Artist 1", Lines = [] });
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track2, It.IsAny<CancellationToken>())).ReturnsAsync(new SyncedLyrics { TrackId = "track-2", Title = "Song 2", Artist = "Artist 2", Lines = [] });
+
+        using var cts = new CancellationTokenSource(200);
+        await _monitor.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await _monitor.StopAsync(CancellationToken.None);
+
+        _mockUser1Group.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 1")), Times.AtLeastOnce);
+        _mockUser2Group.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 2")), Times.AtLeastOnce);
+        _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
     }
 }

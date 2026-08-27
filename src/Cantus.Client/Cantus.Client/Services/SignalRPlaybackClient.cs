@@ -210,9 +210,12 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
     public event Action<IReadOnlyList<AuthorizedSessionPayload>>? SessionsReceived;
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
 
-    public SignalRPlaybackClient(string? serverUrl = null)
+    public string? SessionToken { get; set; }
+
+    public SignalRPlaybackClient(string? serverUrl = null, string? sessionToken = null)
     {
         _configuredServerUrl = serverUrl;
+        SessionToken = sessionToken;
     }
 
     private string ResolveServerUrl()
@@ -241,7 +244,13 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 #endif
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(effectiveUrl)
+            .WithUrl(effectiveUrl, options =>
+            {
+                if (!string.IsNullOrWhiteSpace(SessionToken))
+                {
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(SessionToken);
+                }
+            })
             .AddJsonProtocol(options =>
             {
                 options.PayloadSerializerOptions.TypeInfoResolver = CantusJsonContext.Default;
@@ -400,6 +409,42 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         {
             await _connection.InvokeAsync("SubscribeToUser", userId);
         }
+    }
+
+    public async Task LogoutAsync()
+    {
+        try
+        {
+            string url = ResolveServerUrl();
+            string baseUrl = url.Contains("/hubs/playback")
+                ? url.Substring(0, url.IndexOf("/hubs/playback", StringComparison.Ordinal))
+                : url;
+
+            using var http = new System.Net.Http.HttpClient();
+            await http.PostAsync($"{baseUrl}/api/auth/logout", null);
+        }
+        catch
+        {
+        }
+
+        SessionToken = null;
+        if (_connection is not null)
+        {
+            await _connection.StopAsync();
+            await _connection.StartAsync();
+        }
+    }
+
+    public async Task ReconnectWithTokenAsync(string? sessionToken)
+    {
+        SessionToken = sessionToken;
+        if (_connection is not null)
+        {
+            await _connection.StopAsync();
+            await _connection.DisposeAsync();
+            _connection = null;
+        }
+        await StartAsync();
     }
 
     public async ValueTask DisposeAsync()

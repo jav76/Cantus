@@ -112,23 +112,26 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         var lyricsProvider = scope.ServiceProvider.GetRequiredService<ILyricsProvider>();
         var lyricsCache = scope.ServiceProvider.GetRequiredService<ILyricsCacheRepository>();
 
-        var sessions = await authService.GetAllSessionsAsync(cancellationToken);
+        var activeUserIds = _registry.GetActiveUserIdsWithConnectedClients();
 
-        if (sessions.Count == 0)
+        if (activeUserIds.Count == 0)
         {
-            await BroadcastDiagnosticsAsync(sessions, null, "No Authorized Spotify Accounts", cancellationToken);
             return _options.IdlePollIntervalMs;
         }
 
         bool anyPlaying = false;
         bool anyActive = false;
-        string? activeUserId = null;
-        string? activeUserName = null;
 
-        foreach (var session in sessions)
+        foreach (var userId in activeUserIds)
         {
             try
             {
+                var session = await authService.GetSessionAsync(userId, cancellationToken);
+                if (session is null)
+                {
+                    continue;
+                }
+
                 var previousSnapshot = _registry.GetUserState(session.Id);
                 PlaybackState? currentPlayback = null;
 
@@ -150,14 +153,14 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     }
                 }
 
+                string userGroup = $"user_{session.Id}";
+
                 if (currentPlayback is not null)
                 {
                     anyActive = true;
                     if (currentPlayback.IsPlaying)
                     {
                         anyPlaying = true;
-                        activeUserId = session.Id;
-                        activeUserName = session.DisplayName;
                     }
 
                     // Check if track changed
@@ -185,56 +188,67 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         lyrics,
                         trackOffset);
 
-                    // Broadcast to clients
-                    var activeSnap = _registry.GetActivePlaybackSnapshot();
-                    if (activeSnap?.UserId == session.Id)
+                    // Broadcast exclusively to this user's SignalR group
+                    if (trackChanged)
                     {
-                        if (trackChanged)
+                        if (lyrics is not null)
                         {
-                            if (lyrics is not null)
-                            {
-                                await _hubContext.Clients.All.ReceiveLyrics(lyrics.ToDto());
-                            }
-
-                            if (currentPlayback.CurrentTrack is not null)
-                            {
-                                await _hubContext.Clients.All.ReceiveTrackOffset(new TrackOffsetDto
-                                {
-                                    TrackId = currentPlayback.CurrentTrack.Id,
-                                    OffsetMs = trackOffset
-                                });
-                            }
+                            await _hubContext.Clients.Group(userGroup).ReceiveLyrics(lyrics.ToDto());
                         }
 
-                        // Broadcast playback state
-                        await _hubContext.Clients.All.ReceivePlaybackState(
-                            currentPlayback.ToDto(session.Id, session.DisplayName));
+                        if (currentPlayback.CurrentTrack is not null)
+                        {
+                            await _hubContext.Clients.Group(userGroup).ReceiveTrackOffset(new TrackOffsetDto
+                            {
+                                TrackId = currentPlayback.CurrentTrack.Id,
+                                OffsetMs = trackOffset
+                            });
+                        }
                     }
+
+                    // Broadcast playback state to user group
+                    await _hubContext.Clients.Group(userGroup).ReceivePlaybackState(
+                        currentPlayback.ToDto(session.Id, session.DisplayName));
+
+                    // Diagnostics for user group
+                    string status = currentPlayback.IsPlaying ? "Active (Playing)" : "Paused";
+                    await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                    {
+                        ConnectedClients = _registry.ConnectedClientsCount,
+                        AuthorizedSessions = 1,
+                        PollerStatus = status,
+                        ActivePollIntervalMs = currentPlayback.IsPlaying ? _options.ActivePollIntervalMs : _options.PausedPollIntervalMs,
+                        ActiveUserId = session.Id,
+                        ActiveUserName = session.DisplayName,
+                        ServerTimeUtc = DateTimeOffset.UtcNow
+                    });
                 }
                 else
                 {
-                    // No current playback
+                    // No current playback for this user
                     _registry.UpdateUserState(
                         session.Id,
                         session.DisplayName,
                         null,
                         null,
                         0);
+
+                    await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                    {
+                        ConnectedClients = _registry.ConnectedClientsCount,
+                        AuthorizedSessions = 1,
+                        PollerStatus = "Idle",
+                        ActivePollIntervalMs = _options.IdlePollIntervalMs,
+                        ActiveUserId = session.Id,
+                        ActiveUserName = session.DisplayName,
+                        ServerTimeUtc = DateTimeOffset.UtcNow
+                    });
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogError(ex, "Error polling Spotify playback for user {UserId}", session.Id);
+                _logger.LogError(ex, "Error polling Spotify playback for user {UserId}", userId);
             }
-        }
-
-        // Diagnostics & session broadcasting (broadcast on activity or periodic interval)
-        var now = DateTimeOffset.UtcNow;
-        string pollerStatus = anyPlaying ? "Active (Playing)" : (anyActive ? "Paused" : "Idle");
-        if (anyActive || anyPlaying || now - _lastDiagnosticsBroadcast >= TimeSpan.FromMilliseconds(_options.DiagnosticsBroadcastIntervalMs))
-        {
-            _lastDiagnosticsBroadcast = now;
-            await BroadcastDiagnosticsAsync(sessions, activeUserId, pollerStatus, cancellationToken);
         }
 
         if (anyPlaying)
@@ -248,31 +262,5 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         }
 
         return _options.IdlePollIntervalMs;
-    }
-
-    private async Task BroadcastDiagnosticsAsync(
-        IReadOnlyList<UserSession> sessions,
-        string? activeUserId,
-        string pollerStatus,
-        CancellationToken cancellationToken)
-    {
-        var sessionDtos = sessions.Select(s =>
-        {
-            var snap = _registry.GetUserState(s.Id);
-            bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
-            return s.ToDto(isPlaying);
-        }).ToList();
-
-        await _hubContext.Clients.All.ReceiveSessions(sessionDtos);
-
-        await _hubContext.Clients.All.ReceiveDiagnostics(new DiagnosticsDto
-        {
-            ConnectedClients = _registry.ConnectedClientsCount,
-            AuthorizedSessions = sessions.Count,
-            PollerStatus = pollerStatus,
-            ActivePollIntervalMs = pollerStatus.StartsWith("Active") ? _options.ActivePollIntervalMs : _options.IdlePollIntervalMs,
-            ActiveUserId = activeUserId,
-            ServerTimeUtc = DateTimeOffset.UtcNow
-        });
     }
 }

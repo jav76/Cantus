@@ -1,4 +1,5 @@
 using Cantus.Core.Interfaces;
+using Cantus.Core.Models;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
 using Microsoft.AspNetCore.SignalR;
@@ -27,33 +28,133 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public override async Task OnConnectedAsync()
     {
-        _registry.RegisterConnection(Context.ConnectionId);
-        _logger.LogInformation("Client connected to PlaybackHub: {ConnectionId} (Total: {Count})",
-            Context.ConnectionId, _registry.ConnectedClientsCount);
+        string? resolvedSessionId = null;
+        UserSession? userSession = null;
 
         try
         {
-            HttpContext? httpContext = null;
-            try
-            {
-                httpContext = Context.GetHttpContext();
-            }
-            catch
-            {
-            }
+            var httpContext = Context.GetHttpContext();
+            resolvedSessionId = ResolveSessionId(httpContext);
 
-            string? currentSessionId = null;
-            if (httpContext != null && httpContext.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) && !string.IsNullOrWhiteSpace(cookieSessionId))
+            if (!string.IsNullOrWhiteSpace(resolvedSessionId))
             {
-                currentSessionId = cookieSessionId;
-                _registry.SetConnectionSubscription(Context.ConnectionId, currentSessionId);
+                userSession = await _authService.GetSessionAsync(resolvedSessionId);
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to resolve session for connection {ConnectionId}", Context.ConnectionId);
+        }
 
-            // 1. Send initial active playback snapshot if available
-            var snapshot = !string.IsNullOrEmpty(currentSessionId)
-                ? _registry.GetUserState(currentSessionId) ?? _registry.GetActivePlaybackSnapshot()
-                : _registry.GetActivePlaybackSnapshot();
+        string? userId = userSession?.Id;
+        _registry.RegisterConnection(Context.ConnectionId, userId);
 
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+        }
+
+        _logger.LogInformation("Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Total: {Count})",
+            Context.ConnectionId, userId ?? "Unauthenticated", _registry.ConnectedClientsCount);
+
+        try
+        {
+            if (userSession is not null && !string.IsNullOrEmpty(userId))
+            {
+                var snapshot = _registry.GetUserState(userId);
+
+                if (snapshot?.PlaybackState is not null)
+                {
+                    await Clients.Caller.ReceivePlaybackState(
+                        snapshot.PlaybackState.ToDto(snapshot.UserId, snapshot.DisplayName));
+                }
+
+                if (snapshot?.Lyrics is not null)
+                {
+                    await Clients.Caller.ReceiveLyrics(snapshot.Lyrics.ToDto());
+                }
+
+                if (snapshot?.PlaybackState?.CurrentTrack is not null)
+                {
+                    await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
+                    {
+                        TrackId = snapshot.PlaybackState.CurrentTrack.Id,
+                        OffsetMs = snapshot.TrackOffsetMs
+                    });
+                }
+
+                bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
+                await Clients.Caller.ReceiveSessions(new List<AuthorizedSessionDto>
+                {
+                    userSession.ToDto(isPlaying)
+                });
+
+                await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
+                {
+                    ConnectedClients = _registry.ConnectedClientsCount,
+                    AuthorizedSessions = 1,
+                    PollerStatus = isPlaying ? "Active (Playing)" : "Idle",
+                    ActiveUserId = userSession.Id,
+                    ActiveUserName = userSession.DisplayName,
+                    ServerTimeUtc = DateTimeOffset.UtcNow
+                });
+            }
+            else
+            {
+                // Unauthenticated client
+                await Clients.Caller.ReceiveSessions(new List<AuthorizedSessionDto>());
+                await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
+                {
+                    ConnectedClients = _registry.ConnectedClientsCount,
+                    AuthorizedSessions = 0,
+                    PollerStatus = "Idle",
+                    ActiveUserId = null,
+                    ActiveUserName = null,
+                    ServerTimeUtc = DateTimeOffset.UtcNow
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending initial state to newly connected client {ConnectionId}", Context.ConnectionId);
+        }
+
+        await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        _registry.UnregisterConnection(Context.ConnectionId);
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+        }
+
+        _logger.LogInformation("Client disconnected from PlaybackHub: {ConnectionId} (Total: {Count})",
+            Context.ConnectionId, _registry.ConnectedClientsCount);
+
+        await base.OnDisconnectedAsync(exception);
+    }
+
+    public Task<ClockSyncResponse> SyncClock(long clientSendTimeMs)
+    {
+        long serverReceiveTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long serverSendTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+        return Task.FromResult(new ClockSyncResponse(
+            clientSendTimeMs,
+            serverReceiveTime,
+            serverSendTime));
+    }
+
+    public async Task SubscribeToUser(string? userId)
+    {
+        string? currentUserId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            var snapshot = _registry.GetUserState(currentUserId);
             if (snapshot is not null)
             {
                 if (snapshot.PlaybackState is not null)
@@ -76,87 +177,6 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                     });
                 }
             }
-
-            // 2. Send authorized sessions list
-            var sessions = await _authService.GetAllSessionsAsync();
-            var sessionDtos = sessions.Select(s =>
-            {
-                var userSnap = _registry.GetUserState(s.Id);
-                bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
-                return s.ToDto(isPlaying);
-            }).ToList();
-
-            await Clients.Caller.ReceiveSessions(sessionDtos);
-
-            // 3. Send initial diagnostics with active user info
-            var activeSession = sessions.FirstOrDefault(s => s.Id == (currentSessionId ?? snapshot?.UserId)) ?? sessions.FirstOrDefault();
-            await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
-            {
-                ConnectedClients = _registry.ConnectedClientsCount,
-                AuthorizedSessions = sessions.Count,
-                PollerStatus = "Running",
-                ActiveUserId = activeSession?.Id ?? snapshot?.UserId,
-                ActiveUserName = activeSession?.DisplayName ?? snapshot?.DisplayName,
-                ServerTimeUtc = DateTimeOffset.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending initial state to newly connected client {ConnectionId}", Context.ConnectionId);
-        }
-
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        _registry.UnregisterConnection(Context.ConnectionId);
-        _logger.LogInformation("Client disconnected from PlaybackHub: {ConnectionId} (Total: {Count})",
-            Context.ConnectionId, _registry.ConnectedClientsCount);
-
-        await base.OnDisconnectedAsync(exception);
-    }
-
-    public Task<ClockSyncResponse> SyncClock(long clientSendTimeMs)
-    {
-        long serverReceiveTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        long serverSendTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-        return Task.FromResult(new ClockSyncResponse(
-            clientSendTimeMs,
-            serverReceiveTime,
-            serverSendTime));
-    }
-
-    public async Task SubscribeToUser(string? userId)
-    {
-        _registry.SetConnectionSubscription(Context.ConnectionId, userId);
-
-        var snapshot = !string.IsNullOrEmpty(userId)
-            ? _registry.GetUserState(userId)
-            : _registry.GetActivePlaybackSnapshot();
-
-        if (snapshot is not null)
-        {
-            if (snapshot.PlaybackState is not null)
-            {
-                await Clients.Caller.ReceivePlaybackState(
-                    snapshot.PlaybackState.ToDto(snapshot.UserId, snapshot.DisplayName));
-            }
-
-            if (snapshot.Lyrics is not null)
-            {
-                await Clients.Caller.ReceiveLyrics(snapshot.Lyrics.ToDto());
-            }
-
-            if (snapshot.PlaybackState?.CurrentTrack is not null)
-            {
-                await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
-                {
-                    TrackId = snapshot.PlaybackState.CurrentTrack.Id,
-                    OffsetMs = snapshot.TrackOffsetMs
-                });
-            }
         }
     }
 
@@ -171,23 +191,75 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
         await _lyricsCache.SetTrackOffsetAsync(trackId, offsetMs);
 
-        // Update registry if track matches active playback
-        var activeSnapshot = _registry.GetActivePlaybackSnapshot();
-        if (activeSnapshot?.PlaybackState?.CurrentTrack?.Id == trackId)
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (!string.IsNullOrEmpty(userId))
         {
-            _registry.UpdateUserState(
-                activeSnapshot.UserId,
-                activeSnapshot.DisplayName,
-                activeSnapshot.PlaybackState,
-                activeSnapshot.Lyrics,
-                offsetMs);
+            var userSnapshot = _registry.GetUserState(userId);
+            if (userSnapshot?.PlaybackState?.CurrentTrack?.Id == trackId)
+            {
+                _registry.UpdateUserState(
+                    userSnapshot.UserId,
+                    userSnapshot.DisplayName,
+                    userSnapshot.PlaybackState,
+                    userSnapshot.Lyrics,
+                    offsetMs);
+            }
+
+            await Clients.Group($"user_{userId}").ReceiveTrackOffset(new TrackOffsetDto
+            {
+                TrackId = trackId,
+                OffsetMs = offsetMs
+            });
+        }
+        else
+        {
+            await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
+            {
+                TrackId = trackId,
+                OffsetMs = offsetMs
+            });
+        }
+    }
+
+    private static string? ResolveSessionId(Microsoft.AspNetCore.Http.HttpContext? httpContext)
+    {
+        if (httpContext is null)
+        {
+            return null;
         }
 
-        // Broadcast to all connected clients
-        await Clients.All.ReceiveTrackOffset(new TrackOffsetDto
+        // 1. Cookie
+        if (httpContext.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) &&
+            !string.IsNullOrWhiteSpace(cookieSessionId))
         {
-            TrackId = trackId,
-            OffsetMs = offsetMs
-        });
+            return cookieSessionId;
+        }
+
+        // 2. Query String (access_token or session_id)
+        if (httpContext.Request.Query.TryGetValue("access_token", out var queryToken) &&
+            !string.IsNullOrWhiteSpace(queryToken))
+        {
+            return queryToken.ToString();
+        }
+
+        if (httpContext.Request.Query.TryGetValue("session_id", out var querySessionId) &&
+            !string.IsNullOrWhiteSpace(querySessionId))
+        {
+            return querySessionId.ToString();
+        }
+
+        // 3. Authorization Header
+        if (httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader) &&
+            !string.IsNullOrWhiteSpace(authHeader))
+        {
+            string headerStr = authHeader.ToString().Trim();
+            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                return headerStr.Substring(7).Trim();
+            }
+            return headerStr;
+        }
+
+        return null;
     }
 }

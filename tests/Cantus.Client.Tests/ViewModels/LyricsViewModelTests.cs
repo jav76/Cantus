@@ -248,6 +248,40 @@ public sealed class LyricsViewModelTests
         line.Words[^1].Word.Should().Be("me");
         line.Words[^1].TimestampMs.Should().BeGreaterThan(10000);
     }
+
+    [Fact]
+    public async Task LogoutAsync_ResetsSessionAndPlaybackState()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.Sessions.Add(new AuthorizedSessionPayload
+        {
+            Id = "user-1",
+            DisplayName = "Test User"
+        });
+        vm.AuthorizedSessionsCount = 1;
+        vm.ActiveUserId = "user-1";
+        vm.ActiveUserName = "Test User";
+        vm.CurrentTitle = "Playing Song";
+        vm.IsPlaying = true;
+
+        vm.CurrentUserSession.Should().NotBeNull();
+        vm.IsAuthorized.Should().BeTrue();
+
+        // Act
+        await vm.LogoutAsync();
+
+        // Assert
+        vm.Sessions.Should().BeEmpty();
+        vm.CurrentUserSession.Should().BeNull();
+        vm.AuthorizedSessionsCount.Should().Be(0);
+        vm.ActiveUserId.Should().BeNull();
+        vm.ActiveUserName.Should().Be("None");
+        vm.IsAuthorized.Should().BeFalse();
+        vm.CurrentTitle.Should().Be("No Track Playing");
+        vm.IsPlaying.Should().BeFalse();
+    }
 }
 
 

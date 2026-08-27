@@ -266,6 +266,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     }
 
     public bool IsAuthorized => AuthorizedSessionsCount > 0 || (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
+    public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
     public string ConnectButtonText => IsAuthorized ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName) ? $"Connected: {ActiveUserName}" : "Connected") : "Connect Spotify";
     public string ConnectButtonGlyph => IsAuthorized ? "\uE73E" : "\uE8D6";
     public Microsoft.UI.Xaml.Visibility NoSessionsVisibility => AuthorizedSessionsCount == 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -684,9 +685,17 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private void OnSessionsReceived(IReadOnlyList<AuthorizedSessionPayload>? sessions)
     {
         Sessions.Clear();
-        if (sessions is null)
+        if (sessions is null || sessions.Count == 0)
         {
             AuthorizedSessionsCount = 0;
+            ActiveUserName = "None";
+            ActiveUserId = null;
+            OnPropertyChanged(nameof(CurrentUserSession));
+            OnPropertyChanged(nameof(NoSessionsVisibility));
+            OnPropertyChanged(nameof(HasSessionsVisibility));
+            OnPropertyChanged(nameof(IsAuthorized));
+            OnPropertyChanged(nameof(ConnectButtonText));
+            OnPropertyChanged(nameof(ConnectButtonGlyph));
             return;
         }
 
@@ -699,16 +708,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         AuthorizedSessionsCount = sessions.Count;
 
-        if ((ActiveUserName == "None" || string.IsNullOrEmpty(ActiveUserName)) && sessions.Count > 0)
+        var current = sessions.FirstOrDefault(s => s != null);
+        if (current != null)
         {
-            var playing = sessions.FirstOrDefault(s => s != null && s.IsCurrentlyPlaying) ?? sessions.FirstOrDefault(s => s != null);
-            if (playing != null)
-            {
-                ActiveUserName = playing.DisplayName;
-                ActiveUserId = playing.Id;
-            }
+            ActiveUserName = current.DisplayName;
+            ActiveUserId = current.Id;
         }
 
+        OnPropertyChanged(nameof(CurrentUserSession));
         OnPropertyChanged(nameof(NoSessionsVisibility));
         OnPropertyChanged(nameof(HasSessionsVisibility));
         OnPropertyChanged(nameof(IsAuthorized));
@@ -976,6 +983,30 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public async Task SubscribeToUserAsync(string? userId)
     {
         await _client.SubscribeToUserAsync(userId);
+    }
+
+    public async Task LogoutAsync()
+    {
+        await _client.LogoutAsync();
+        Sessions.Clear();
+        AuthorizedSessionsCount = 0;
+        ActiveUserId = null;
+        ActiveUserName = "None";
+        CurrentTitle = "No Track Playing";
+        CurrentArtist = "Play music on Spotify to begin";
+        CurrentAlbum = string.Empty;
+        AlbumArtUrl = null;
+        IsPlaying = false;
+        LyricLines.Clear();
+        HasLyrics = false;
+        ActiveLineIndex = -1;
+        _themeManager.UpdateTrackMetadata(null, null, null);
+        OnPropertyChanged(nameof(CurrentUserSession));
+        OnPropertyChanged(nameof(IsAuthorized));
+        OnPropertyChanged(nameof(ConnectButtonText));
+        OnPropertyChanged(nameof(ConnectButtonGlyph));
+        OnPropertyChanged(nameof(NoSessionsVisibility));
+        OnPropertyChanged(nameof(HasSessionsVisibility));
     }
 
     private static string FormatTime(long ms)

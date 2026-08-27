@@ -47,32 +47,80 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task GetSessions_ReturnsListOfAuthorizedSessions()
+    public async Task GetSessions_WhenAuthenticated_ReturnsCurrentSession()
     {
         var client = _factory.CreateClient();
 
         _mockAuthService
-            .Setup(a => a.GetAllSessionsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<UserSession>
+            .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserSession
             {
-                new()
-                {
-                    Id = "sess-1",
-                    SpotifyUserId = "sp-1",
-                    DisplayName = "Test User",
-                    Email = "test@example.com",
-                    AccessToken = "token",
-                    RefreshToken = "refresh"
-                }
+                Id = "sess-1",
+                SpotifyUserId = "sp-1",
+                DisplayName = "Test User",
+                Email = "test@example.com",
+                AccessToken = "token",
+                RefreshToken = "refresh"
             });
 
-        var response = await client.GetAsync("/api/auth/sessions");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/sessions");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+        var response = await client.SendAsync(request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
         sessions.Should().NotBeNull();
         sessions!.Should().HaveCount(1);
         sessions![0].DisplayName.Should().Be("Test User");
+    }
+
+    [Fact]
+    public async Task GetSessions_WhenUnauthenticated_ReturnsEmptyList()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/auth/sessions");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
+        sessions.Should().NotBeNull();
+        sessions!.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCurrentUser_WhenAuthenticatedViaHeader_ReturnsSession()
+    {
+        var client = _factory.CreateClient();
+
+        _mockAuthService
+            .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserSession
+            {
+                Id = "sess-1",
+                SpotifyUserId = "sp-1",
+                DisplayName = "Test User",
+                AccessToken = "token",
+                RefreshToken = "refresh"
+            });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var session = await response.Content.ReadFromJsonAsync<AuthorizedSessionDto>();
+        session.Should().NotBeNull();
+        session!.DisplayName.Should().Be("Test User");
+    }
+
+    [Fact]
+    public async Task Logout_ClearsSessionCookie()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsync("/api/auth/logout", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -87,6 +135,5 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         var response = await client.DeleteAsync("/api/auth/sessions/sess-1");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-
     }
 }
