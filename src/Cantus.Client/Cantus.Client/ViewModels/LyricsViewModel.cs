@@ -912,7 +912,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         int currentProgress = (int)_interpolatedProgressMs;
         int rawOffset = (int)(targetLyricTimestampMs - currentProgress);
-        
+
         // Clamp to a sane track calibration window (+/- 20 seconds)
         int newOffset = Math.Clamp(rawOffset, -20000, 20000);
         int delta = newOffset - _userOffsetMs;

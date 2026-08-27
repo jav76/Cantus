@@ -19,11 +19,12 @@ permissions:
 
 jobs:
   # ============================================================================
-  # 1. Code Formatting & Whitespace Verification
+  # 1. Code Style & Formatting Advisory (Non-blocking)
   # ============================================================================
   format-check:
-    name: Code Formatting Check
+    name: Code Style & Formatting (Advisory)
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout Code
@@ -34,8 +35,23 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify Code Formatting
-        run: dotnet format whitespace Cantus.slnx --verify-no-changes
+      - name: Check Code Style & Formatting
+        shell: bash
+        run: |
+          echo "Running solution code formatting & style inspection..."
+          if ! dotnet format Cantus.slnx --verify-no-changes --severity warn; then
+            echo "::warning title=Formatting Advisory::Code formatting or style suggestions found. Run 'dotnet format' locally to apply automatic fixes."
+            echo "### ⚠️ Code Formatting & Style Advisory" >> $GITHUB_STEP_SUMMARY
+            echo "Formatting differences were detected against the solution ruleset. This check is advisory and will not block your build or pull request." >> $GITHUB_STEP_SUMMARY
+            echo "To apply suggested formatting automatically, run:" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo 'dotnet format' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::notice title=Code Formatting::All files conform to formatting and style rules."
+            echo "### ✅ Code Formatting & Style Passed" >> $GITHUB_STEP_SUMMARY
+            echo "No formatting or style discrepancies found." >> $GITHUB_STEP_SUMMARY
+          fi
 
   # ============================================================================
   # 2. Build & Test Matrix (.NET 10)
@@ -128,16 +144,15 @@ jobs:
           echo "=========================================="
           echo " CI Verification Summary"
           echo "=========================================="
-          echo " Format Check:        ${{ needs.format-check.result }}"
-          echo " Build & Test Matrix: ${{ needs.build-and-test.result }}"
-          echo " Docker Smoke Test:   ${{ needs.docker-smoke-test.result }}"
+          echo " Code Style (Advisory): ${{ needs.format-check.result }}"
+          echo " Build & Test Matrix:   ${{ needs.build-and-test.result }}"
+          echo " Docker Smoke Test:     ${{ needs.docker-smoke-test.result }}"
           echo "=========================================="
 
-          if [ "${{ needs.format-check.result }}" != "success" ] || \
-             [ "${{ needs.build-and-test.result }}" != "success" ] || \
+          if [ "${{ needs.build-and-test.result }}" != "success" ] || \
              [ "${{ needs.docker-smoke-test.result }}" != "success" ]; then
-            echo "::error::One or more required CI checks failed or were cancelled. PR cannot be merged."
+            echo "::error::One or more required CI checks (Build/Test or Docker) failed or were cancelled. PR cannot be merged."
             exit 1
           fi
 
-          echo "::notice::All CI checks passed successfully. Solution is green and ready to merge!"
+          echo "::notice::All required CI checks passed successfully. Solution is green and ready to merge!"

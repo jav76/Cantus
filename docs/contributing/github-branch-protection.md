@@ -18,12 +18,12 @@ The Cantus continuous integration pipeline ([`.github/workflows/ci.yml`](file://
 flowchart TD
     A["PR Created / Commit Pushed to Branch"] --> B["GitHub Event: pull_request (synchronize)"]
     B --> C["Cancel Any In-Flight CI Runs for PR"]
-    C --> D1["Job 1: Code Formatting Check (dotnet format)"]
-    C --> D2["Job 2: Build & Test Suite (.NET 10 & Coverage)"]
-    C --> D3["Job 3: Docker Smoke Test (Dry Run Build)"]
+    C --> D1["Job 1: Code Style & Formatting (Advisory / Non-blocking)"]
+    C --> D2["Job 2: Build & Test Suite (.NET 10 & Coverage - Required)"]
+    C --> D3["Job 3: Docker Smoke Test (Dry Run Build - Required)"]
     D1 & D2 & D3 --> E["Job 4: CI Gatekeeper (ci-gate)"]
-    E -->|All Succeeded| F["✅ Status Check: CI Gatekeeper Passed"]
-    E -->|Any Failed| G["❌ Status Check: CI Gatekeeper Failed"]
+    E -->|Required Checks Succeeded| F["✅ Status Check: CI Gatekeeper Passed"]
+    E -->|Required Checks Failed| G["❌ Status Check: CI Gatekeeper Failed"]
     F --> H["GitHub Allows PR Merge into main"]
     G --> I["GitHub Blocks PR Merge into main"]
 ```
@@ -120,8 +120,8 @@ If your organization uses classic Branch Protection:
 Before opening or pushing to a PR, developers can run the full verification pipeline locally:
 
 ```bash
-# 1. Verify formatting
-dotnet format whitespace Cantus.slnx --verify-no-changes
+# 1. Format code according to solution ruleset (optional / advisory)
+dotnet format
 
 # 2. Build Release solution
 dotnet build Cantus.slnx --configuration Release
