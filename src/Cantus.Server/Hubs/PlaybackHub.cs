@@ -121,7 +121,10 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending initial state to newly connected client {ConnectionId}", Context.ConnectionId);
+            _logger.LogError(
+                ex,
+                "Error sending initial state to newly connected client {ConnectionId}",
+                Context.ConnectionId);
         }
 
         await base.OnConnectedAsync();

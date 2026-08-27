@@ -135,11 +135,11 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
 
     public void PopulateWords(TimeSpan? lineDuration = null)
     {
-        var lineModel = new LyricLine(TimeSpan.FromMilliseconds(TimestampMs), Text, Syllables);
-        var wordTimestamps = lineModel.GetWordTimestamps(lineDuration);
+        LyricLine lineModel = new(TimeSpan.FromMilliseconds(TimestampMs), Text, Syllables);
+        IReadOnlyList<LyricWordTimestamp> wordTimestamps = lineModel.GetWordTimestamps(lineDuration);
 
-        var list = new List<LyricWordViewModel>(wordTimestamps.Count);
-        foreach (var wt in wordTimestamps)
+        List<LyricWordViewModel> list = new(wordTimestamps.Count);
+        foreach (LyricWordTimestamp wt in wordTimestamps)
         {
             list.Add(new LyricWordViewModel(wt.Word, (long)wt.Timestamp.TotalMilliseconds, wt.WordIndex, this));
         }
@@ -182,4 +182,3 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
-

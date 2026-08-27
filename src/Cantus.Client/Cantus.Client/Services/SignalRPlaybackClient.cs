@@ -328,7 +328,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         try
         {
             long t1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var response = await _connection.InvokeAsync<ClockSyncResponsePayload>("SyncClock", t1);
+            ClockSyncResponsePayload response = await _connection.InvokeAsync<ClockSyncResponsePayload>("SyncClock", t1);
             long t4 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             long t2 = response.ServerReceiveTimeMs;
@@ -355,7 +355,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
                 _ntpHistory.RemoveAt(0);
             }
 
-            var samples = _ntpHistory.ToList();
+            List<NtpSample> samples = _ntpHistory.ToList();
             if (samples.Count == 1)
             {
                 RttMs = samples[0].RttMs;
@@ -364,11 +364,11 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
             }
 
             // If we have >= 3 samples, discard the single highest RTT spike
-            var filtered = samples;
+            List<NtpSample> filtered = samples;
             if (samples.Count >= 3)
             {
                 long maxRtt = samples.Max(s => s.RttMs);
-                var worstSample = samples.First(s => s.RttMs == maxRtt);
+                NtpSample worstSample = samples.First(s => s.RttMs == maxRtt);
                 filtered = samples.Where(s => !ReferenceEquals(s, worstSample)).ToList();
             }
 
@@ -377,7 +377,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
             double weightedOffsetSum = 0;
             double totalRttSum = 0;
 
-            foreach (var s in filtered)
+            foreach (NtpSample s in filtered)
             {
                 double weight = 1.0 / Math.Max(1, s.RttMs);
                 totalWeight += weight;
@@ -420,7 +420,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
                 ? url.Substring(0, url.IndexOf("/hubs/playback", StringComparison.Ordinal))
                 : url;
 
-            using var http = new System.Net.Http.HttpClient();
+            using System.Net.Http.HttpClient http = new();
             await http.PostAsync($"{baseUrl}/api/auth/logout", null);
         }
         catch

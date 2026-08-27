@@ -99,7 +99,11 @@ public static class AuthEndpoints
 
             try
             {
-                UserSession session = await authService.ExchangeCodeAsync(code, verifier, effectiveRedirectUri, cancellationToken);
+                UserSession session = await authService.ExchangeCodeAsync(
+                    code,
+                    verifier,
+                    effectiveRedirectUri,
+                    cancellationToken);
                 registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
 
                 // Set session cookie
@@ -215,10 +219,10 @@ public static class AuthEndpoints
             return queryToken.ToString();
         }
 
-        if (context.Request.Query.TryGetValue("session_id", out Microsoft.Extensions.Primitives.StringValues querySessionId) &&
-            !string.IsNullOrWhiteSpace(querySessionId))
+        if (context.Request.Query.TryGetValue("session_id", out Microsoft.Extensions.Primitives.StringValues sessionId) &&
+            !string.IsNullOrWhiteSpace(sessionId))
         {
-            return querySessionId.ToString();
+            return sessionId.ToString();
         }
 
         if (context.Request.Headers.TryGetValue("Authorization", out Microsoft.Extensions.Primitives.StringValues authHeader) &&

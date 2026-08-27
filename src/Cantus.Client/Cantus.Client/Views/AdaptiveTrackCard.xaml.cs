@@ -29,27 +29,27 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(-500);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-500);
     }
 
     private async void OnNudgeMinus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(-100);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-100);
     }
 
     private async void OnResetOffsetClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.ResetOffsetAsync();
+        if (ViewModel is not null) await ViewModel.ResetOffsetAsync();
     }
 
     private async void OnNudgePlus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(100);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(100);
     }
 
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(500);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(500);
     }
 
     private void OnToggleCalibrationClicked(object sender, RoutedEventArgs e)
@@ -75,7 +75,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
                 : "/api/auth/spotify/login";
             WasmInterop.NavigateTo(loginUrl);
 #else
-            var uri = new Uri("http://localhost:5000/api/auth/spotify/login");
+            Uri uri = new("http://localhost:5000/api/auth/spotify/login");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif
         }
@@ -87,7 +87,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
+        if (ViewModel is not null)
         {
             await ViewModel.LogoutAsync();
         }
@@ -95,19 +95,19 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     public Visibility GetStandardCardVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp != LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetMobileStripVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Thickness GetCardPadding(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => new Thickness(12, 10, 12, 10),
@@ -118,7 +118,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     public double GetCardSpacing(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Medium => 12.0,
@@ -128,7 +128,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     public double GetAlbumIconSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Medium => 48.0,
@@ -138,7 +138,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     public double GetTitleFontSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Medium => 18.0,
@@ -148,7 +148,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     public double GetArtistFontSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Medium => 13.0,

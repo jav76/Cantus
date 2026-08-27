@@ -265,12 +265,25 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_instrumentalBreakText != value) { _instrumentalBreakText = value; OnPropertyChanged(); } }
     }
 
-    public bool IsAuthorized => AuthorizedSessionsCount > 0 || (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
+    public bool IsAuthorized =>
+        AuthorizedSessionsCount > 0 ||
+        (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
+
     public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
-    public string ConnectButtonText => IsAuthorized ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName) ? $"Connected: {ActiveUserName}" : "Connected") : "Connect Spotify";
+
+    public string ConnectButtonText => IsAuthorized
+        ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName)
+            ? $"Connected: {ActiveUserName}"
+            : "Connected")
+        : "Connect Spotify";
+
     public string ConnectButtonGlyph => IsAuthorized ? "\uE73E" : "\uE8D6";
-    public Microsoft.UI.Xaml.Visibility NoSessionsVisibility => AuthorizedSessionsCount == 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
-    public Microsoft.UI.Xaml.Visibility HasSessionsVisibility => AuthorizedSessionsCount > 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    public Visibility NoSessionsVisibility =>
+        AuthorizedSessionsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public Visibility HasSessionsVisibility =>
+        AuthorizedSessionsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsKioskMode
     {
@@ -297,7 +310,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CalibrationModeVisibility));
                 OnPropertyChanged(nameof(CalibrationButtonBrush));
-                foreach (var line in LyricLines)
+                foreach (LyricLineViewModel line in LyricLines)
                 {
                     line.IsCalibrationMode = value;
                 }
@@ -306,7 +319,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     }
 
     public Visibility CalibrationModeVisibility => _isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush CalibrationButtonBrush => _isCalibrationMode ? PrimaryAccentBrush : TextPrimaryBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush CalibrationButtonBrush =>
+        _isCalibrationMode ? PrimaryAccentBrush : TextPrimaryBrush;
 
     public bool IsStaticLyricsMode
     {
@@ -326,9 +340,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    public string StaticLyricsText => _lastLyrics?.PlainLyrics ?? (LyricLines.Count > 0 ? string.Join("\n", LyricLines.Select(l => l.Text)) : "No lyrics available.");
-    public Visibility SyncedLyricsVisibility => (!IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
-    public Visibility StaticLyricsVisibility => (IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
+    public string StaticLyricsText => _lastLyrics?.PlainLyrics
+        ?? (LyricLines.Count > 0
+            ? string.Join("\n", LyricLines.Select(l => l.Text))
+            : "No lyrics available.");
+
+    public Visibility SyncedLyricsVisibility =>
+        (!IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
+
+    public Visibility StaticLyricsVisibility =>
+        (IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
     public Visibility ModeToggleVisibility => HasLyrics ? Visibility.Visible : Visibility.Collapsed;
     public string ModeToggleText => IsStaticLyricsMode ? "Live Synced" : "Static View";
     public string ModeToggleGlyph => IsStaticLyricsMode ? "\uE895" : "\uE8C4";
@@ -440,7 +461,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void RunOnUIThread(Action action)
     {
-        if (_dispatcherQueue != null)
+        if (_dispatcherQueue is not null)
         {
             try
             {
@@ -459,7 +480,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void OnLyricLinesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.NewItems != null)
+        if (e.NewItems is not null)
         {
             double active = _layoutManager.ActiveLyricsFontSize;
             double inactive = _layoutManager.InactiveLyricsFontSize;
@@ -553,7 +574,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         double inactive = _layoutManager.InactiveLyricsFontSize;
         double past = _layoutManager.PastLyricsFontSize;
 
-        foreach (var line in LyricLines)
+        foreach (LyricLineViewModel line in LyricLines)
         {
             line.RefreshFontSizes(active, inactive, past);
         }
@@ -581,7 +602,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        var track = state.CurrentTrack;
+        TrackPayload track = state.CurrentTrack;
         CurrentTitle = track.Title;
         CurrentArtist = track.Artist;
         CurrentAlbum = track.Album ?? string.Empty;
@@ -628,11 +649,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (lyrics is null) return;
 
         _lastLyrics = lyrics;
-        HasLyrics = lyrics.Lines != null && lyrics.Lines.Count > 0;
+        HasLyrics = lyrics.Lines is not null && lyrics.Lines.Count > 0;
         IsInstrumental = lyrics.IsInstrumental;
 
         LyricLines.Clear();
-        if (lyrics.Lines != null)
+        if (lyrics.Lines is not null)
         {
             double active = _layoutManager.ActiveLyricsFontSize;
             double inactive = _layoutManager.InactiveLyricsFontSize;
@@ -640,16 +661,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
             for (int i = 0; i < lyrics.Lines.Count; i++)
             {
-                var line = lyrics.Lines[i];
+                LyricLinePayload line = lyrics.Lines[i];
                 if (line is null) continue;
-                var lineVm = new LyricLineViewModel
+                LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
                     Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text,
                     IsCalibrationMode = _isCalibrationMode
                 };
 
-                long nextTimestamp = (i < lyrics.Lines.Count - 1 && lyrics.Lines[i + 1] != null)
+                long nextTimestamp = (i < lyrics.Lines.Count - 1 && lyrics.Lines[i + 1] is not null)
                     ? lyrics.Lines[i + 1].TimestampMs
                     : line.TimestampMs + 4000;
                 TimeSpan lineDuration = TimeSpan.FromMilliseconds(Math.Max(1000, nextTimestamp - line.TimestampMs));
@@ -699,17 +720,17 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        foreach (var s in sessions)
+        foreach (AuthorizedSessionPayload s in sessions)
         {
-            if (s != null)
+            if (s is not null)
             {
                 Sessions.Add(s);
             }
         }
         AuthorizedSessionsCount = sessions.Count;
 
-        var current = sessions.FirstOrDefault(s => s != null);
-        if (current != null)
+        AuthorizedSessionPayload? current = sessions.FirstOrDefault(s => s is not null);
+        if (current is not null)
         {
             ActiveUserName = current.DisplayName;
             ActiveUserId = current.Id;
@@ -755,7 +776,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        var track = _lastPlaybackState.CurrentTrack;
+        TrackPayload track = _lastPlaybackState.CurrentTrack;
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
@@ -1011,7 +1032,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private static string FormatTime(long ms)
     {
-        var ts = TimeSpan.FromMilliseconds(ms);
+        TimeSpan ts = TimeSpan.FromMilliseconds(ms);
         return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";
     }
 

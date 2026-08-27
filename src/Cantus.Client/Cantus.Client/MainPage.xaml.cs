@@ -16,7 +16,7 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
-        var client = new SignalRPlaybackClient();
+        SignalRPlaybackClient client = new();
         ViewModel = new LyricsViewModel(client, ThemeManager.Instance, ResponsiveLayoutManager.Instance);
         this.InitializeComponent();
 
@@ -85,7 +85,7 @@ public sealed partial class MainPage : Page
 
     public Visibility GetStandardDesktopViewVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return (bp == LayoutBreakpoint.Large || bp == LayoutBreakpoint.Medium)
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -93,37 +93,37 @@ public sealed partial class MainPage : Page
 
     public Visibility GetMobileViewVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetKioskViewVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.FullscreenTv ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetMobileLyricsVisibility(MobileViewMode? viewMode = null)
     {
-        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        MobileViewMode vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
         return vm == MobileViewMode.Lyrics ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetMobileNowPlayingVisibility(MobileViewMode? viewMode = null)
     {
-        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        MobileViewMode vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
         return vm == MobileViewMode.NowPlaying ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetMobileSettingsVisibility(MobileViewMode? viewMode = null)
     {
-        var vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        MobileViewMode vm = viewMode ?? ResponsiveLayoutManager.Instance.MobileView;
         return vm == MobileViewMode.SyncAndSettings ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public double GetColumnSpacing(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Medium ? 16.0 : 24.0;
     }
 }

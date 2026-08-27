@@ -37,9 +37,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private async void OnOpenDiagnosticsHudClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel == null) return;
-        var dialog = new DiagnosticsHudDialog(ViewModel);
-        if (this.XamlRoot != null)
+        if (ViewModel is null) return;
+        DiagnosticsHudDialog dialog = new(ViewModel);
+        if (this.XamlRoot is not null)
         {
             dialog.XamlRoot = this.XamlRoot;
         }
@@ -67,7 +67,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
                 : "/api/auth/spotify/login";
             WasmInterop.NavigateTo(loginUrl);
 #else
-            var uri = new Uri("http://localhost:5000/api/auth/spotify/login");
+            Uri uri = new("http://localhost:5000/api/auth/spotify/login");
             await Launcher.LaunchUriAsync(uri);
 #endif
         }
@@ -79,7 +79,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
+        if (ViewModel is not null)
         {
             await ViewModel.LogoutAsync();
         }
@@ -87,25 +87,25 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Large ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetMediumHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Medium ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Visibility GetSmallHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public Thickness GetHeaderPadding(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => new Thickness(12, 8, 12, 8),

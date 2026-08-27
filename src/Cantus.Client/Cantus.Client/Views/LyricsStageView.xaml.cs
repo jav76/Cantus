@@ -31,9 +31,9 @@ public sealed partial class LyricsStageView : UserControl
 
     public void ScrollToActiveLine(int idx)
     {
-        if (ViewModel != null && idx >= 0 && idx < ViewModel.LyricLines.Count)
+        if (ViewModel is not null && idx >= 0 && idx < ViewModel.LyricLines.Count)
         {
-            var activeItem = ViewModel.LyricLines[idx];
+            LyricLineViewModel activeItem = ViewModel.LyricLines[idx];
             LyricsListView.ScrollIntoView(activeItem);
         }
     }
@@ -46,7 +46,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public Thickness GetStagePadding(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => new Thickness(16, 12, 16, 12),
@@ -58,7 +58,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public double GetEmptyIconSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => 40.0,
@@ -69,7 +69,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public double GetEmptyTitleSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => 16.0,
@@ -80,7 +80,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public double GetEmptySubtitleSize(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.Small => 12.0,
@@ -90,7 +90,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public HorizontalAlignment GetListHorizontalAlignment(LayoutBreakpoint? breakpoint = null)
     {
-        var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
             LayoutBreakpoint.FullscreenTv => HorizontalAlignment.Center,
@@ -100,13 +100,13 @@ public sealed partial class LyricsStageView : UserControl
 
     public static TextAlignment GetLineTextAlignment(bool? isActive = null)
     {
-        var bp = ResponsiveLayoutManager.Instance.CurrentBreakpoint;
+        LayoutBreakpoint bp = ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp == LayoutBreakpoint.FullscreenTv ? TextAlignment.Center : TextAlignment.Left;
     }
 
     public static SolidColorBrush GetLineColor(bool? isActive = null, bool? isPast = null)
     {
-        var tm = ThemeManager.Instance;
+        ThemeManager tm = ThemeManager.Instance;
         if (isActive.GetValueOrDefault()) return tm.ActiveLyricBrush;
         if (isPast.GetValueOrDefault()) return tm.PastLyricBrush;
         return tm.UpcomingLyricBrush;
@@ -126,7 +126,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnExitCalibrationClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
+        if (ViewModel is not null)
         {
             ViewModel.IsCalibrationMode = false;
         }
@@ -134,7 +134,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnLyricItemClicked(object sender, ItemClickEventArgs e)
     {
-        if (ViewModel != null && ViewModel.IsCalibrationMode && e.ClickedItem is LyricLineViewModel lineVm)
+        if (ViewModel is not null && ViewModel.IsCalibrationMode && e.ClickedItem is LyricLineViewModel lineVm)
         {
             lineVm.OnLineClicked();
         }
@@ -142,7 +142,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnWordButtonClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null && ViewModel.IsCalibrationMode && sender is FrameworkElement fe && fe.DataContext is LyricWordViewModel wordVm)
+        if (ViewModel is not null && ViewModel.IsCalibrationMode && sender is FrameworkElement fe && fe.DataContext is LyricWordViewModel wordVm)
         {
             wordVm.Calibrate();
         }
@@ -150,7 +150,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private async void OnUndoCalibrationClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
+        if (ViewModel is not null)
         {
             await ViewModel.UndoLastCalibrationAsync();
         }

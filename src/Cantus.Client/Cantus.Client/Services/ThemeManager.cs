@@ -83,7 +83,7 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
     public void CycleNextTheme()
     {
-        var modes = (ThemeMode[])Enum.GetValues(typeof(ThemeMode));
+        ThemeMode[] modes = (ThemeMode[])Enum.GetValues(typeof(ThemeMode));
         int nextIndex = ((int)CurrentMode + 1) % modes.Length;
         SetThemeMode(modes[nextIndex]);
     }

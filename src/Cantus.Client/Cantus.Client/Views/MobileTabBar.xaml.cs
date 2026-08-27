@@ -46,7 +46,7 @@ public sealed partial class MobileTabBar : UserControl
 
     public Brush GetTabBackground(MobileViewMode? activeMode = null, MobileViewMode currentTab = MobileViewMode.Lyrics)
     {
-        var active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        MobileViewMode active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
         if (active == currentTab)
         {
             return ThemeManager.Instance.PrimaryAccentBrush;
@@ -56,7 +56,7 @@ public sealed partial class MobileTabBar : UserControl
 
     public Brush GetTabForeground(MobileViewMode? activeMode = null, MobileViewMode currentTab = MobileViewMode.Lyrics)
     {
-        var active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
+        MobileViewMode active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
         if (active == currentTab)
         {
             return new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));

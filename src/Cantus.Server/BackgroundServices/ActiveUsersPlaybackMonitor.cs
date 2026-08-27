@@ -137,15 +137,24 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
                 try
                 {
-                    currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(session.AccessToken, cancellationToken);
+                    currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(
+                        session.AccessToken,
+                        cancellationToken);
                 }
-                catch (Exception ex) when (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized") || ex.GetType().Name.Contains("Unauthorized"))
+                catch (Exception ex) when (
+                    ex.Message.Contains("401") ||
+                    ex.Message.Contains("Unauthorized") ||
+                    ex.GetType().Name.Contains("Unauthorized"))
                 {
                     _logger.LogWarning("Spotify token expired for user {UserId}. Refreshing...", session.Id);
                     try
                     {
-                        UserSession refreshedSession = await authService.RefreshTokenAsync(session.Id, cancellationToken);
-                        currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(refreshedSession.AccessToken, cancellationToken);
+                        UserSession refreshedSession = await authService.RefreshTokenAsync(
+                            session.Id,
+                            cancellationToken);
+                        currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(
+                            refreshedSession.AccessToken,
+                            cancellationToken);
                     }
                     catch (Exception refreshEx)
                     {
@@ -179,8 +188,12 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             currentPlayback.CurrentTrack.Artist,
                             currentPlayback.CurrentTrack.Title);
 
-                        lyrics = await lyricsProvider.GetLyricsAsync(currentPlayback.CurrentTrack, cancellationToken);
-                        trackOffset = await lyricsCache.GetTrackOffsetAsync(currentPlayback.CurrentTrack.Id, cancellationToken);
+                        lyrics = await lyricsProvider.GetLyricsAsync(
+                            currentPlayback.CurrentTrack,
+                            cancellationToken);
+                        trackOffset = await lyricsCache.GetTrackOffsetAsync(
+                            currentPlayback.CurrentTrack.Id,
+                            cancellationToken);
                     }
 
                     // Update in-memory registry
@@ -220,7 +233,9 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         ConnectedClients = _registry.ConnectedClientsCount,
                         AuthorizedSessions = 1,
                         PollerStatus = status,
-                        ActivePollIntervalMs = currentPlayback.IsPlaying ? _options.ActivePollIntervalMs : _options.PausedPollIntervalMs,
+                        ActivePollIntervalMs = currentPlayback.IsPlaying
+                            ? _options.ActivePollIntervalMs
+                            : _options.PausedPollIntervalMs,
                         ActiveUserId = session.Id,
                         ActiveUserName = session.DisplayName,
                         ServerTimeUtc = DateTimeOffset.UtcNow
