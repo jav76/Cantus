@@ -64,11 +64,32 @@ public sealed partial class AdaptiveTrackCard : UserControl
             : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(32, 255, 255, 255));
     }
 
-    private async void OnSessionItemClicked(object sender, ItemClickEventArgs e)
+    private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
     {
-        if (e.ClickedItem is AuthorizedSessionPayload session && ViewModel != null)
+        try
         {
-            await ViewModel.SubscribeToUserAsync(session.Id);
+#if __WASM__
+            string origin = WasmInterop.GetCurrentOrigin();
+            string loginUrl = !string.IsNullOrWhiteSpace(origin)
+                ? $"{origin}/api/auth/spotify/login"
+                : "/api/auth/spotify/login";
+            WasmInterop.NavigateTo(loginUrl);
+#else
+            var uri = new Uri("http://localhost:5000/api/auth/spotify/login");
+            await Windows.System.Launcher.LaunchUriAsync(uri);
+#endif
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdaptiveTrackCard] Error connecting to Spotify: {ex}");
+        }
+    }
+
+    private async void OnLogoutClicked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.LogoutAsync();
         }
     }
 

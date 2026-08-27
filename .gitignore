@@ -203,3 +203,5 @@ $RECYCLE.BIN/
 *.bak
 *.svclog
 TODO.md
+.agents/skills/*
+

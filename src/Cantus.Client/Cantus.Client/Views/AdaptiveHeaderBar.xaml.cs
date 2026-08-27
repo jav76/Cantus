@@ -77,6 +77,14 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         }
     }
 
+    private async void OnLogoutClicked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.LogoutAsync();
+        }
+    }
+
     public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
         var bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
