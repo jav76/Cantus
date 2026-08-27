@@ -10,12 +10,12 @@ This guide provides solutions to common setup, authentication, and network issue
 - **Cause**: The `SPOTIFY_CLIENT_ID` environment variable is either unset, contains extra quotes, or is not registered in the Spotify Developer Dashboard.
 - **Solution**: Verify that the 32-character Client ID in `.env` matches the Developer Dashboard exactly without leading/trailing whitespace.
 
-### Error: `INVALID_CLIENT: Invalid redirect URI`
+### Error: `redirect_uri: Not matching configuration` or `INVALID_CLIENT: Invalid redirect URI`
 - **Cause**: The callback URL that Cantus sent does not match the list of Redirect URIs in your Spotify Developer App settings.
 - **Solution**:
-  1. Check `CANTUS_HOST_URL` in your `.env` (e.g. `https://cantus.yourdomain.com`).
-  2. In the Spotify Developer Dashboard, ensure `${CANTUS_HOST_URL}/api/auth/callback` is added under **Redirect URIs**.
-  3. Ensure there is no trailing slash on `CANTUS_HOST_URL`.
+  1. Check `CANTUS_HOST_URL` in your `.env` (e.g. `http://localhost:5000` or `https://cantus.yourdomain.com`).
+  2. In the Spotify Developer Dashboard under **Settings -> Redirect URIs**, ensure `${CANTUS_HOST_URL}/api/auth/spotify/callback` (e.g. `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`) is added.
+  3. Ensure there is no trailing slash on `CANTUS_HOST_URL` or redirect URI.
 
 ---
 

@@ -1,13 +1,28 @@
 #!/bin/bash
 set -euo pipefail
 
-SOURCE_DIR="${1:-./publish}"
-OUTPUT_DIR="${2:-./artifacts}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+SOURCE_DIR="${1:-${SCRIPT_DIR}/publish}"
+OUTPUT_DIR="${2:-${SCRIPT_DIR}/artifacts}"
 VERSION="${3:-1.0.0}"
 
 echo "==> Building Cantus AppImage version: ${VERSION}"
 echo "    Source directory: ${SOURCE_DIR}"
 echo "    Output directory: ${OUTPUT_DIR}"
+
+# If source directory does not exist or does not contain Cantus.Client, build and publish it automatically
+if [ ! -d "${SOURCE_DIR}" ] || [ ! -f "${SOURCE_DIR}/Cantus.Client" ]; then
+    echo "==> Published binaries not found in ${SOURCE_DIR}. Running dotnet publish..."
+    mkdir -p "${SOURCE_DIR}"
+    dotnet publish "${REPO_ROOT}/src/Cantus.Client/Cantus.Client/Cantus.Client.csproj" \
+        -f net10.0-desktop \
+        -r linux-x64 \
+        -c Release \
+        -o "${SOURCE_DIR}" \
+        --self-contained
+fi
 
 mkdir -p "${OUTPUT_DIR}"
 APPDIR_TEMP="$(mktemp -d -t cantus-appdir-XXXXXX)"
@@ -21,17 +36,17 @@ cp -r "${SOURCE_DIR}/"* "${APPDIR_TEMP}/usr/bin/"
 chmod +x "${APPDIR_TEMP}/usr/bin/Cantus.Client"
 
 # Copy desktop and launcher scripts
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cp "${SCRIPT_DIR}/AppRun" "${APPDIR_TEMP}/AppRun"
 chmod +x "${APPDIR_TEMP}/AppRun"
 cp "${SCRIPT_DIR}/cantus.desktop" "${APPDIR_TEMP}/cantus.desktop"
 
 # Create minimal icon if none exists
 if [ ! -f "${APPDIR_TEMP}/cantus.png" ]; then
-    # Generate a clean placeholder PNG with base64 if no asset present
-    echo "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAB0SURBVHgB7dKxCcAwEATBlEvqT4X/cE5gB9iA2YmQe4Lq7szu7t4791z3H+A9AwSMCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCRiTCXgBH0o8fR2j81AAAAAASUVORK5CYN==" | base64 -d > "${APPDIR_TEMP}/cantus.png"
+    # Generate a clean placeholder PNG with valid base64
+    echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > "${APPDIR_TEMP}/cantus.png"
 fi
 cp "${APPDIR_TEMP}/cantus.png" "${APPDIR_TEMP}/usr/share/icons/hicolor/256x256/apps/cantus.png"
+cp "${APPDIR_TEMP}/cantus.png" "${APPDIR_TEMP}/.DirIcon"
 
 # Fetch appimagetool if not available locally
 if ! command -v appimagetool &> /dev/null; then

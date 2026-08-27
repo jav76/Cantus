@@ -68,6 +68,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
+    public string ServerBaseUrl => _client.ServerBaseUrl;
 
     // Flattened Theme Properties for 1-level safe XAML {x:Bind}
     public Microsoft.UI.Xaml.Media.SolidColorBrush BackgroundBrush => _themeManager.BackgroundBrush;
@@ -735,6 +736,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         {
             ActiveUserName = current.DisplayName;
             ActiveUserId = current.Id;
+            _ = _client.SubscribeToUserAsync(current.Id);
         }
 
         OnPropertyChanged(nameof(CurrentUserSession));
