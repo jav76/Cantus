@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Cantus.Core.Models;
 
 namespace Cantus.Core.Parsers;
@@ -28,7 +29,7 @@ public static class LrcParser
             };
         }
 
-        var lines = ParseLines(rawLrc);
+        IReadOnlyList<LyricLine> lines = ParseLines(rawLrc);
         string? effectivePlainLyrics = !string.IsNullOrWhiteSpace(plainLyrics)
             ? plainLyrics
             : (lines.Count > 0 ? string.Join("\n", lines.Select(l => l.Text)) : null);
@@ -53,19 +54,18 @@ public static class LrcParser
             return [];
         }
 
-        var result = new List<LyricLine>();
-        var span = rawLrc.AsSpan();
+        List<LyricLine> result = new();
+        ReadOnlySpan<char> span = rawLrc.AsSpan();
 
-        foreach (var rawLine in span.EnumerateLines())
+        foreach (ReadOnlySpan<char> rawLine in span.EnumerateLines())
         {
-            var line = rawLine.Trim();
+            ReadOnlySpan<char> line = rawLine.Trim();
             if (line.IsEmpty)
             {
                 continue;
             }
 
-            // Extract all timestamps from the line
-            var timestamps = new List<TimeSpan>();
+            List<TimeSpan> timestamps = new();
             int textStartIndex = 0;
 
             while (textStartIndex < line.Length && line[textStartIndex] == '[')
@@ -77,24 +77,26 @@ public static class LrcParser
                 }
 
                 int tagEnd = textStartIndex + closeBracket;
-                var tagContent = line.Slice(textStartIndex + 1, closeBracket - 1);
+                ReadOnlySpan<char> tagContent = line.Slice(textStartIndex + 1, closeBracket - 1);
 
-                if (TryParseTimestamp(tagContent, out var timestamp))
+                if (TryParseTimestamp(tagContent, out TimeSpan timestamp))
                 {
                     timestamps.Add(timestamp);
                     textStartIndex = tagEnd + 1;
                 }
                 else
                 {
-                    // Metadata tag like [ar:Artist], ignore and move forward
                     textStartIndex = tagEnd + 1;
                 }
             }
 
             if (timestamps.Count > 0)
             {
-                var (cleanText, syllables) = ParseInlineSyllables(line[textStartIndex..], timestamps[0]);
-                foreach (var ts in timestamps)
+                (string cleanText, IReadOnlyList<LyricSyllable>? syllables) = ParseInlineSyllables(
+                    line[textStartIndex..],
+                    timestamps[0]);
+
+                foreach (TimeSpan ts in timestamps)
                 {
                     result.Add(new LyricLine(ts, cleanText, syllables));
                 }
@@ -105,7 +107,9 @@ public static class LrcParser
         return result;
     }
 
-    public static (string CleanText, IReadOnlyList<LyricSyllable>? Syllables) ParseInlineSyllables(ReadOnlySpan<char> span, TimeSpan lineTimestamp)
+    public static (string CleanText, IReadOnlyList<LyricSyllable>? Syllables) ParseInlineSyllables(
+        ReadOnlySpan<char> span,
+        TimeSpan lineTimestamp)
     {
         if (span.IsEmpty)
         {
@@ -118,8 +122,8 @@ public static class LrcParser
             return (span.Trim().ToString(), null);
         }
 
-        var syllables = new List<LyricSyllable>();
-        var cleanBuilder = new System.Text.StringBuilder();
+        List<LyricSyllable> syllables = new();
+        StringBuilder cleanBuilder = new();
         int idx = 0;
         TimeSpan currentSyllableTime = lineTimestamp;
 
@@ -141,8 +145,8 @@ public static class LrcParser
                 int closeAngle = span[idx..].IndexOf('>');
                 if (closeAngle > 0)
                 {
-                    var tag = span.Slice(idx + 1, closeAngle - 1);
-                    if (TryParseTimestamp(tag, out var tagTs))
+                    ReadOnlySpan<char> tag = span.Slice(idx + 1, closeAngle - 1);
+                    if (TryParseTimestamp(tag, out TimeSpan tagTs))
                     {
                         currentSyllableTime = tagTs;
                         idx += closeAngle + 1;
@@ -174,9 +178,9 @@ public static class LrcParser
         {
             for (int i = 0; i < syllables.Count - 1; i++)
             {
-                var cur = syllables[i];
-                var next = syllables[i + 1];
-                var dur = next.Timestamp > cur.Timestamp ? next.Timestamp - cur.Timestamp : TimeSpan.Zero;
+                LyricSyllable cur = syllables[i];
+                LyricSyllable next = syllables[i + 1];
+                TimeSpan dur = next.Timestamp > cur.Timestamp ? next.Timestamp - cur.Timestamp : TimeSpan.Zero;
                 syllables[i] = new LyricSyllable(cur.Timestamp, dur, cur.Text);
             }
         }
@@ -195,13 +199,13 @@ public static class LrcParser
             return false;
         }
 
-        var minutesSpan = span[..firstColon];
+        ReadOnlySpan<char> minutesSpan = span[..firstColon];
         if (!int.TryParse(minutesSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int minutes) || minutes < 0)
         {
             return false;
         }
 
-        var rest = span[(firstColon + 1)..];
+        ReadOnlySpan<char> rest = span[(firstColon + 1)..];
         int dotIndex = rest.IndexOfAny('.', ':');
 
         if (dotIndex < 0)
@@ -215,13 +219,13 @@ public static class LrcParser
             return true;
         }
 
-        var secondsSpan = rest[..dotIndex];
+        ReadOnlySpan<char> secondsSpan = rest[..dotIndex];
         if (!int.TryParse(secondsSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int sec) || sec < 0 || sec >= 60)
         {
             return false;
         }
 
-        var fractionSpan = rest[(dotIndex + 1)..];
+        ReadOnlySpan<char> fractionSpan = rest[(dotIndex + 1)..];
         if (fractionSpan.IsEmpty)
         {
             timestamp = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(sec);

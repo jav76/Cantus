@@ -5,7 +5,8 @@ namespace Cantus.Infrastructure.Persistence;
 
 public class CantusDbContext : DbContext
 {
-    public CantusDbContext(DbContextOptions<CantusDbContext> options) : base(options)
+    public CantusDbContext(DbContextOptions<CantusDbContext> options)
+        : base(options)
     {
     }
 

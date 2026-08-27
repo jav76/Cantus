@@ -17,9 +17,11 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         _dbContext = dbContext;
     }
 
-    public async Task<SyncedLyrics?> GetCachedLyricsAsync(string trackId, CancellationToken cancellationToken = default)
+    public async Task<SyncedLyrics?> GetCachedLyricsAsync(
+        string trackId,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.CachedLyrics
+        CachedLyricsEntity? entity = await _dbContext.CachedLyrics
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (entity is null)
@@ -27,7 +29,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             return null;
         }
 
-        var now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         if (entity.ExpiresAtUtc.HasValue && entity.ExpiresAtUtc.Value <= now)
         {
             // Expired cache entry
@@ -60,7 +62,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             };
         }
 
-        var parsed = LrcParser.Parse(
+        SyncedLyrics parsed = LrcParser.Parse(
             entity.RawSyncedLrc,
             entity.TrackId,
             entity.TrackName,
@@ -71,7 +73,9 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         return parsed;
     }
 
-    public async Task<bool> IsMarkedNotFoundAsync(string trackId, CancellationToken cancellationToken = default)
+    public async Task<bool> IsMarkedNotFoundAsync(
+        string trackId,
+        CancellationToken cancellationToken = default)
     {
         var entry = await _dbContext.CachedLyrics
             .Where(c => c.TrackId == trackId)
@@ -91,12 +95,15 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         return true;
     }
 
-    public async Task SaveLyricsAsync(SyncedLyrics lyrics, TimeSpan? timeToLive = null, CancellationToken cancellationToken = default)
+    public async Task SaveLyricsAsync(
+        SyncedLyrics lyrics,
+        TimeSpan? timeToLive = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(lyrics);
 
-        var now = DateTimeOffset.UtcNow;
-        var existing = await _dbContext.CachedLyrics
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        CachedLyricsEntity? existing = await _dbContext.CachedLyrics
             .FirstOrDefaultAsync(c => c.TrackId == lyrics.TrackId, cancellationToken);
 
         string? rawLrc = GenerateRawLrc(lyrics);
@@ -117,7 +124,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         }
         else
         {
-            var entity = new CachedLyricsEntity
+            CachedLyricsEntity entity = new()
             {
                 TrackId = lyrics.TrackId,
                 TrackName = lyrics.Title,
@@ -149,8 +156,8 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         TimeSpan timeToLive,
         CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var existing = await _dbContext.CachedLyrics
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        CachedLyricsEntity? existing = await _dbContext.CachedLyrics
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (existing is not null)
@@ -170,7 +177,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         }
         else
         {
-            var entity = new CachedLyricsEntity
+            CachedLyricsEntity entity = new()
             {
                 TrackId = trackId,
                 TrackName = trackName,
@@ -193,30 +200,35 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<int> GetTrackOffsetAsync(string trackId, CancellationToken cancellationToken = default)
+    public async Task<int> GetTrackOffsetAsync(
+        string trackId,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(trackId))
         {
             return 0;
         }
 
-        var entity = await _dbContext.TrackOffsets
+        TrackOffsetEntity? entity = await _dbContext.TrackOffsets
             .FirstOrDefaultAsync(t => t.TrackId == trackId, cancellationToken);
 
         return entity?.OffsetMs ?? 0;
     }
 
-    public async Task SetTrackOffsetAsync(string trackId, int offsetMs, CancellationToken cancellationToken = default)
+    public async Task SetTrackOffsetAsync(
+        string trackId,
+        int offsetMs,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(trackId))
         {
             return;
         }
 
-        var entity = await _dbContext.TrackOffsets
+        TrackOffsetEntity? entity = await _dbContext.TrackOffsets
             .FirstOrDefaultAsync(t => t.TrackId == trackId, cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         if (entity is not null)
         {
             entity.OffsetMs = offsetMs;
@@ -243,8 +255,8 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             return null;
         }
 
-        var sb = new StringBuilder();
-        foreach (var line in lyrics.Lines)
+        StringBuilder sb = new();
+        foreach (LyricLine line in lyrics.Lines)
         {
             int min = (int)line.Timestamp.TotalMinutes;
             int sec = line.Timestamp.Seconds;
@@ -255,4 +267,3 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         return sb.ToString();
     }
 }
-

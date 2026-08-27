@@ -32,7 +32,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     public Uri GetAuthorizationUri(string state, string codeChallenge, string? redirectUri = null)
     {
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri) ? redirectUri : _options.RedirectUri;
-        var loginRequest = new LoginRequest(new Uri(effectiveRedirectUri), _options.ClientId, LoginRequest.ResponseType.Code)
+        LoginRequest loginRequest = new(new Uri(effectiveRedirectUri), _options.ClientId, LoginRequest.ResponseType.Code)
         {
             CodeChallenge = codeChallenge,
             CodeChallengeMethod = "S256",
@@ -43,23 +43,27 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return loginRequest.ToUri();
     }
 
-    public async Task<UserSession> ExchangeCodeAsync(string code, string codeVerifier, string? redirectUri = null, CancellationToken cancellationToken = default)
+    public async Task<UserSession> ExchangeCodeAsync(
+        string code,
+        string codeVerifier,
+        string? redirectUri = null,
+        CancellationToken cancellationToken = default)
     {
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri) ? redirectUri : _options.RedirectUri;
-        var oauth = new OAuthClient();
-        var tokenRequest = new PKCETokenRequest(_options.ClientId, code, new Uri(effectiveRedirectUri), codeVerifier);
-        var tokenResponse = await oauth.RequestToken(tokenRequest, cancellationToken);
+        OAuthClient oauth = new();
+        PKCETokenRequest tokenRequest = new(_options.ClientId, code, new Uri(effectiveRedirectUri), codeVerifier);
+        PKCETokenResponse tokenResponse = await oauth.RequestToken(tokenRequest, cancellationToken);
 
-        var spotify = new SpotifyClient(tokenResponse.AccessToken);
-        var me = await spotify.UserProfile.Current(cancellationToken);
+        SpotifyClient spotify = new(tokenResponse.AccessToken);
+        PrivateUser me = await spotify.UserProfile.Current(cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
-        var expiresAt = now.AddSeconds(tokenResponse.ExpiresIn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset expiresAt = now.AddSeconds(tokenResponse.ExpiresIn);
 
         string encAccessToken = _encryptionService.Encrypt(tokenResponse.AccessToken);
         string encRefreshToken = _encryptionService.Encrypt(tokenResponse.RefreshToken);
 
-        var sessionEntity = await _dbContext.UserSessions
+        UserSessionEntity? sessionEntity = await _dbContext.UserSessions
             .FirstOrDefaultAsync(u => u.SpotifyUserId == me.Id, cancellationToken);
 
         if (sessionEntity is null)
@@ -107,9 +111,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         };
     }
 
-    public async Task<UserSession> RefreshTokenAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<UserSession> RefreshTokenAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
     {
-        var sessionEntity = await _dbContext.UserSessions
+        UserSessionEntity? sessionEntity = await _dbContext.UserSessions
             .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
 
         if (sessionEntity is null)
@@ -118,11 +124,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         }
 
         string rawRefreshToken = _encryptionService.Decrypt(sessionEntity.EncryptedRefreshToken);
-        var oauth = new OAuthClient();
-        var refreshRequest = new PKCETokenRefreshRequest(_options.ClientId, rawRefreshToken);
-        var refreshResponse = await oauth.RequestToken(refreshRequest, cancellationToken);
+        OAuthClient oauth = new();
+        PKCETokenRefreshRequest refreshRequest = new(_options.ClientId, rawRefreshToken);
+        PKCETokenResponse refreshResponse = await oauth.RequestToken(refreshRequest, cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         sessionEntity.EncryptedAccessToken = _encryptionService.Encrypt(refreshResponse.AccessToken);
         if (!string.IsNullOrEmpty(refreshResponse.RefreshToken))
         {
@@ -148,9 +154,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         };
     }
 
-    public async Task<UserSession?> GetSessionAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<UserSession?> GetSessionAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
     {
-        var sessionEntity = await _dbContext.UserSessions
+        UserSessionEntity? sessionEntity = await _dbContext.UserSessions
             .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
 
         if (sessionEntity is null)
@@ -186,15 +194,15 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         };
     }
 
-    public async Task<IReadOnlyList<UserSession>> GetAllSessionsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<UserSession>> GetAllSessionsAsync(
+        CancellationToken cancellationToken = default)
     {
-        var entities = await _dbContext.UserSessions
+        List<UserSessionEntity> entities = await _dbContext.UserSessions
             .ToListAsync(cancellationToken);
 
-        var list = new List<UserSession>(entities.Count);
-        foreach (var entity in entities.OrderByDescending(u => u.UpdatedAtUtc))
+        List<UserSession> list = new(entities.Count);
+        foreach (UserSessionEntity entity in entities.OrderByDescending(u => u.UpdatedAtUtc))
         {
-
             list.Add(new UserSession
             {
                 Id = entity.Id,
@@ -213,9 +221,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return list;
     }
 
-    public async Task<bool> RevokeSessionAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<bool> RevokeSessionAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.UserSessions
+        UserSessionEntity? entity = await _dbContext.UserSessions
             .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
 
         if (entity is null)
@@ -228,4 +238,3 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return true;
     }
 }
-

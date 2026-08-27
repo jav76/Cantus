@@ -2,8 +2,10 @@ using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Cantus.Server.Hubs;
 
@@ -33,7 +35,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
         try
         {
-            var httpContext = Context.GetHttpContext();
+            HttpContext? httpContext = Context.GetHttpContext();
             resolvedSessionId = ResolveSessionId(httpContext);
 
             if (!string.IsNullOrWhiteSpace(resolvedSessionId))
@@ -54,14 +56,17 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
         }
 
-        _logger.LogInformation("Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Total: {Count})",
-            Context.ConnectionId, userId ?? "Unauthenticated", _registry.ConnectedClientsCount);
+        _logger.LogInformation(
+            "Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Total: {Count})",
+            Context.ConnectionId,
+            userId ?? "Unauthenticated",
+            _registry.ConnectedClientsCount);
 
         try
         {
             if (userSession is not null && !string.IsNullOrEmpty(userId))
             {
-                var snapshot = _registry.GetUserState(userId);
+                UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
 
                 if (snapshot?.PlaybackState is not null)
                 {
@@ -132,8 +137,10 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
         }
 
-        _logger.LogInformation("Client disconnected from PlaybackHub: {ConnectionId} (Total: {Count})",
-            Context.ConnectionId, _registry.ConnectedClientsCount);
+        _logger.LogInformation(
+            "Client disconnected from PlaybackHub: {ConnectionId} (Total: {Count})",
+            Context.ConnectionId,
+            _registry.ConnectedClientsCount);
 
         await base.OnDisconnectedAsync(exception);
     }
@@ -154,7 +161,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         string? currentUserId = _registry.GetConnectionSubscription(Context.ConnectionId);
         if (!string.IsNullOrEmpty(currentUserId))
         {
-            var snapshot = _registry.GetUserState(currentUserId);
+            UserPlaybackSnapshot? snapshot = _registry.GetUserState(currentUserId);
             if (snapshot is not null)
             {
                 if (snapshot.PlaybackState is not null)
@@ -194,7 +201,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
         if (!string.IsNullOrEmpty(userId))
         {
-            var userSnapshot = _registry.GetUserState(userId);
+            UserPlaybackSnapshot? userSnapshot = _registry.GetUserState(userId);
             if (userSnapshot?.PlaybackState?.CurrentTrack?.Id == trackId)
             {
                 _registry.UpdateUserState(
@@ -221,7 +228,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
     }
 
-    private static string? ResolveSessionId(Microsoft.AspNetCore.Http.HttpContext? httpContext)
+    private static string? ResolveSessionId(HttpContext? httpContext)
     {
         if (httpContext is null)
         {
@@ -229,27 +236,27 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
 
         // 1. Cookie
-        if (httpContext.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) &&
+        if (httpContext.Request.Cookies.TryGetValue("cantus_session_id", out string? cookieSessionId) &&
             !string.IsNullOrWhiteSpace(cookieSessionId))
         {
             return cookieSessionId;
         }
 
         // 2. Query String (access_token or session_id)
-        if (httpContext.Request.Query.TryGetValue("access_token", out var queryToken) &&
+        if (httpContext.Request.Query.TryGetValue("access_token", out StringValues queryToken) &&
             !string.IsNullOrWhiteSpace(queryToken))
         {
             return queryToken.ToString();
         }
 
-        if (httpContext.Request.Query.TryGetValue("session_id", out var querySessionId) &&
+        if (httpContext.Request.Query.TryGetValue("session_id", out StringValues querySessionId) &&
             !string.IsNullOrWhiteSpace(querySessionId))
         {
             return querySessionId.ToString();
         }
 
         // 3. Authorization Header
-        if (httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader) &&
+        if (httpContext.Request.Headers.TryGetValue("Authorization", out StringValues authHeader) &&
             !string.IsNullOrWhiteSpace(authHeader))
         {
             string headerStr = authHeader.ToString().Trim();

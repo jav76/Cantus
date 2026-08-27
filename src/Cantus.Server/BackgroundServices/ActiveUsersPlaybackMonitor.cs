@@ -106,13 +106,13 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
     private async Task<int> PollActiveSessionsAsync(CancellationToken cancellationToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var authService = scope.ServiceProvider.GetRequiredService<ISpotifyAuthService>();
-        var spotifyClient = scope.ServiceProvider.GetRequiredService<ISpotifyPlayerClient>();
-        var lyricsProvider = scope.ServiceProvider.GetRequiredService<ILyricsProvider>();
-        var lyricsCache = scope.ServiceProvider.GetRequiredService<ILyricsCacheRepository>();
+        using IServiceScope scope = _scopeFactory.CreateScope();
+        ISpotifyAuthService authService = scope.ServiceProvider.GetRequiredService<ISpotifyAuthService>();
+        ISpotifyPlayerClient spotifyClient = scope.ServiceProvider.GetRequiredService<ISpotifyPlayerClient>();
+        ILyricsProvider lyricsProvider = scope.ServiceProvider.GetRequiredService<ILyricsProvider>();
+        ILyricsCacheRepository lyricsCache = scope.ServiceProvider.GetRequiredService<ILyricsCacheRepository>();
 
-        var activeUserIds = _registry.GetActiveUserIdsWithConnectedClients();
+        IReadOnlySet<string> activeUserIds = _registry.GetActiveUserIdsWithConnectedClients();
 
         if (activeUserIds.Count == 0)
         {
@@ -122,17 +122,17 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         bool anyPlaying = false;
         bool anyActive = false;
 
-        foreach (var userId in activeUserIds)
+        foreach (string userId in activeUserIds)
         {
             try
             {
-                var session = await authService.GetSessionAsync(userId, cancellationToken);
+                UserSession? session = await authService.GetSessionAsync(userId, cancellationToken);
                 if (session is null)
                 {
                     continue;
                 }
 
-                var previousSnapshot = _registry.GetUserState(session.Id);
+                UserPlaybackSnapshot? previousSnapshot = _registry.GetUserState(session.Id);
                 PlaybackState? currentPlayback = null;
 
                 try
@@ -144,7 +144,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     _logger.LogWarning("Spotify token expired for user {UserId}. Refreshing...", session.Id);
                     try
                     {
-                        var refreshedSession = await authService.RefreshTokenAsync(session.Id, cancellationToken);
+                        UserSession refreshedSession = await authService.RefreshTokenAsync(session.Id, cancellationToken);
                         currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(refreshedSession.AccessToken, cancellationToken);
                     }
                     catch (Exception refreshEx)
@@ -173,8 +173,11 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
                     if (trackChanged && currentPlayback.CurrentTrack is not null)
                     {
-                        _logger.LogInformation("Track changed for user {DisplayName}: {Artist} - {Title}",
-                            session.DisplayName, currentPlayback.CurrentTrack.Artist, currentPlayback.CurrentTrack.Title);
+                        _logger.LogInformation(
+                            "Track changed for user {DisplayName}: {Artist} - {Title}",
+                            session.DisplayName,
+                            currentPlayback.CurrentTrack.Artist,
+                            currentPlayback.CurrentTrack.Title);
 
                         lyrics = await lyricsProvider.GetLyricsAsync(currentPlayback.CurrentTrack, cancellationToken);
                         trackOffset = await lyricsCache.GetTrackOffsetAsync(currentPlayback.CurrentTrack.Id, cancellationToken);

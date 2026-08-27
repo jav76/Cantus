@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Cantus.Core.Interfaces;
+using Cantus.Core.Models;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
 using Microsoft.AspNetCore.Builder;
@@ -15,7 +16,7 @@ public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/auth").WithTags("Authentication");
+        RouteGroupBuilder group = endpoints.MapGroup("/api/auth").WithTags("Authentication");
 
         group.MapGet("/spotify/login", (
             [FromQuery] bool? json,
@@ -28,7 +29,7 @@ public static class AuthEndpoints
             string challenge = PkceHelper.GenerateCodeChallenge(verifier);
             string redirectUri = hostUrlResolver.ResolveSpotifyRedirectUri(context);
 
-            var cookieOptions = new CookieOptions
+            CookieOptions cookieOptions = new()
             {
                 HttpOnly = true,
                 Secure = context.Request.IsHttps,
@@ -40,7 +41,7 @@ public static class AuthEndpoints
             context.Response.Cookies.Append("cantus_pkce_verifier", verifier, cookieOptions);
             context.Response.Cookies.Append("cantus_oauth_redirect_uri", redirectUri, cookieOptions);
 
-            var uri = authService.GetAuthorizationUri(state, challenge, redirectUri);
+            Uri uri = authService.GetAuthorizationUri(state, challenge, redirectUri);
 
             if (json == true)
             {
@@ -63,7 +64,7 @@ public static class AuthEndpoints
             ILoggerFactory loggerFactory,
             CancellationToken cancellationToken) =>
         {
-            var logger = loggerFactory.CreateLogger("AuthEndpoints");
+            ILogger logger = loggerFactory.CreateLogger("AuthEndpoints");
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -76,9 +77,9 @@ public static class AuthEndpoints
                 return Results.BadRequest("Missing authorization code.");
             }
 
-            context.Request.Cookies.TryGetValue("cantus_oauth_state", out var expectedState);
-            context.Request.Cookies.TryGetValue("cantus_pkce_verifier", out var verifier);
-            context.Request.Cookies.TryGetValue("cantus_oauth_redirect_uri", out var redirectUri);
+            context.Request.Cookies.TryGetValue("cantus_oauth_state", out string? expectedState);
+            context.Request.Cookies.TryGetValue("cantus_pkce_verifier", out string? verifier);
+            context.Request.Cookies.TryGetValue("cantus_oauth_redirect_uri", out string? redirectUri);
 
             if (string.IsNullOrEmpty(expectedState) || expectedState != state)
             {
@@ -98,7 +99,7 @@ public static class AuthEndpoints
 
             try
             {
-                var session = await authService.ExchangeCodeAsync(code, verifier, effectiveRedirectUri, cancellationToken);
+                UserSession session = await authService.ExchangeCodeAsync(code, verifier, effectiveRedirectUri, cancellationToken);
                 registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
 
                 // Set session cookie
@@ -138,13 +139,13 @@ public static class AuthEndpoints
                 return Results.Ok(Array.Empty<AuthorizedSessionDto>());
             }
 
-            var session = await authService.GetSessionAsync(sessionId, cancellationToken);
+            UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
             if (session is null)
             {
                 return Results.Ok(Array.Empty<AuthorizedSessionDto>());
             }
 
-            var snap = registry.GetUserState(session.Id);
+            UserPlaybackSnapshot? snap = registry.GetUserState(session.Id);
             bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
             return Results.Ok(new List<AuthorizedSessionDto> { session.ToDto(isPlaying) });
         })
@@ -162,7 +163,7 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            var session = await authService.GetSessionAsync(sessionId, cancellationToken);
+            UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
             if (session is null)
             {
                 return Results.Unauthorized();
@@ -202,25 +203,25 @@ public static class AuthEndpoints
 
     private static string? ResolveSessionId(HttpContext context)
     {
-        if (context.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) &&
+        if (context.Request.Cookies.TryGetValue("cantus_session_id", out string? cookieSessionId) &&
             !string.IsNullOrWhiteSpace(cookieSessionId))
         {
             return cookieSessionId;
         }
 
-        if (context.Request.Query.TryGetValue("access_token", out var queryToken) &&
+        if (context.Request.Query.TryGetValue("access_token", out Microsoft.Extensions.Primitives.StringValues queryToken) &&
             !string.IsNullOrWhiteSpace(queryToken))
         {
             return queryToken.ToString();
         }
 
-        if (context.Request.Query.TryGetValue("session_id", out var querySessionId) &&
+        if (context.Request.Query.TryGetValue("session_id", out Microsoft.Extensions.Primitives.StringValues querySessionId) &&
             !string.IsNullOrWhiteSpace(querySessionId))
         {
             return querySessionId.ToString();
         }
 
-        if (context.Request.Headers.TryGetValue("Authorization", out var authHeader) &&
+        if (context.Request.Headers.TryGetValue("Authorization", out Microsoft.Extensions.Primitives.StringValues authHeader) &&
             !string.IsNullOrWhiteSpace(authHeader))
         {
             string headerStr = authHeader.ToString().Trim();

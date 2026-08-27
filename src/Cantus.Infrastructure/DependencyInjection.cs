@@ -45,7 +45,7 @@ public static class DependencyInjection
 
         services.AddHttpClient<LrclibLyricsProvider>((sp, client) =>
         {
-            var options = sp.GetRequiredService<IOptions<LrclibOptions>>().Value;
+            LrclibOptions options = sp.GetRequiredService<IOptions<LrclibOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
