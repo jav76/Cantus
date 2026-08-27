@@ -24,7 +24,9 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
         try
         {
             var spotify = new SpotifyClient(accessToken);
+            var tRequest = DateTimeOffset.UtcNow;
             var playback = await spotify.Player.GetCurrentPlayback(cancellationToken);
+            var tResponse = DateTimeOffset.UtcNow;
 
             if (playback is null || playback.Item is null)
             {
@@ -63,16 +65,15 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
                 return null;
             }
 
-            var timestamp = playback.Timestamp > 0
-                ? DateTimeOffset.FromUnixTimeMilliseconds(playback.Timestamp)
-                : DateTimeOffset.UtcNow;
+            // Anchor snapshot to server clock at request midpoint to ensure exact alignment with NTP SignalR sync
+            var serverSnapshotTimestamp = tRequest + TimeSpan.FromMilliseconds((tResponse - tRequest).TotalMilliseconds / 2.0);
 
             return new PlaybackState
             {
                 CurrentTrack = trackInfo,
                 Progress = TimeSpan.FromMilliseconds(playback.ProgressMs),
                 IsPlaying = playback.IsPlaying,
-                TimestampUtc = timestamp,
+                TimestampUtc = serverSnapshotTimestamp,
                 DeviceName = playback.Device?.Name,
                 VolumePercent = playback.Device?.VolumePercent
             };

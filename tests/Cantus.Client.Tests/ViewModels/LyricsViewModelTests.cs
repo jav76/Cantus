@@ -197,6 +197,42 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
+    public void ToggleStaticLyricsMode_TogglesStateAndVisibilities()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.HasLyrics = true;
+
+        vm.IsStaticLyricsMode.Should().BeFalse();
+        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
+        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
+        vm.ModeToggleText.Should().Be("Static View");
+
+        // Act
+        vm.ToggleStaticLyricsMode();
+
+        // Assert
+        vm.IsStaticLyricsMode.Should().BeTrue();
+        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
+        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
+        vm.ModeToggleText.Should().Be("Live Synced");
+    }
+
+    [Fact]
+    public void StaticLyricsText_WhenLinesExist_GeneratesFormattedText()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 1" });
+        vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 2" });
+
+        // Assert
+        vm.StaticLyricsText.Should().Be("Line 1\nLine 2");
+    }
+
+    [Fact]
     public void LyricLineViewModel_PopulateWords_CreatesWordViewModelsWithTimestamps()
     {
         // Arrange
@@ -213,6 +249,8 @@ public sealed class LyricsViewModelTests
         line.Words[^1].TimestampMs.Should().BeGreaterThan(10000);
     }
 }
+
+
 
 
 

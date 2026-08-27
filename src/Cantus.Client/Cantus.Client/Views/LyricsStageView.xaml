@@ -42,22 +42,41 @@
                     </Grid>
                 </Border>
 
-                <!-- Normal Top Bar Quick-Calibrate Action Button (Visible when calibration is off) -->
-                <Button Click="OnToggleCalibrationClicked"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Background="#15FFFFFF"
-                        BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="10,5"
-                        Visibility="{x:Bind GetQuickCalibrateButtonVisibility(ViewModel.HasLyrics, ViewModel.IsCalibrationMode), Mode=OneWay}"
-                        ToolTipService.ToolTip="Interactive Click-to-Sync Calibration">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE706;" FontSize="12" Foreground="{x:Bind ViewModel.CalibrationButtonBrush, Mode=OneWay}" />
-                        <TextBlock Text="Calibrate Sync" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
-                    </StackPanel>
-                </Button>
+                <!-- Normal Top Bar Action Buttons (Visible when calibration is off) -->
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Visibility="{x:Bind GetQuickCalibrateButtonVisibility(ViewModel.HasLyrics, ViewModel.IsCalibrationMode), Mode=OneWay}">
+                    
+                    <!-- Static Lyrics / Live Synced Toggle Button -->
+                    <Button Click="OnToggleStaticModeClicked"
+                            Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,5"
+                            ToolTipService.ToolTip="Toggle between Live Synced and Static Plain Lyrics">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Quick-Calibrate Action Button -->
+                    <Button Click="OnToggleCalibrationClicked"
+                            Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,5"
+                            ToolTipService.ToolTip="Interactive Click-to-Sync Calibration">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE706;" FontSize="12" Foreground="{x:Bind ViewModel.CalibrationButtonBrush, Mode=OneWay}" />
+                            <TextBlock Text="Calibrate Sync" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
 
             <!-- Main Lyrics Presentation Area -->
@@ -84,7 +103,21 @@
                                TextAlignment="Center" />
                 </StackPanel>
 
-                <!-- Active Lyrics List View -->
+                <!-- Static Plain Lyrics View -->
+                <ScrollViewer Visibility="{x:Bind ViewModel.StaticLyricsVisibility, Mode=OneWay}"
+                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                              MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
+                              Padding="16,8">
+                    <TextBlock Text="{x:Bind ViewModel.StaticLyricsText, Mode=OneWay}"
+                               FontSize="18"
+                               FontWeight="Normal"
+                               Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
+                               LineHeight="32"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </ScrollViewer>
+
+                <!-- Active Synced Lyrics List View -->
                 <ListView x:Name="LyricsListView"
                           ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}"
                           SelectionMode="None"
@@ -92,7 +125,7 @@
                           ItemClick="OnLyricItemClicked"
                           HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
                           MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
-                          Visibility="{x:Bind GetLyricsVisibility(ViewModel.HasLyrics), Mode=OneWay}">
+                          Visibility="{x:Bind ViewModel.SyncedLyricsVisibility, Mode=OneWay}">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="vm:LyricLineViewModel">
                             <Border Background="Transparent"

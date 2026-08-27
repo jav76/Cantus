@@ -26,6 +26,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private int _userOffsetMs;
     private int _activeLineIndex = -1;
     private long _interpolatedProgressMs;
+    private long _lastTickTimestampMs;
+    private const int DefaultAcousticLatencyCompensationMs = 200;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -56,6 +58,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private string _instrumentalBreakText = string.Empty;
     private bool _isKioskMode;
     private bool _isCalibrationMode;
+    private bool _isStaticLyricsMode;
     private int? _previousOffsetMs;
     private string? _calibrationToastMessage;
     private bool _isCalibrationToastVisible;
@@ -303,6 +306,36 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Visibility CalibrationModeVisibility => _isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
     public Microsoft.UI.Xaml.Media.SolidColorBrush CalibrationButtonBrush => _isCalibrationMode ? PrimaryAccentBrush : TextPrimaryBrush;
+
+    public bool IsStaticLyricsMode
+    {
+        get => _isStaticLyricsMode;
+        set
+        {
+            if (_isStaticLyricsMode != value)
+            {
+                _isStaticLyricsMode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SyncedLyricsVisibility));
+                OnPropertyChanged(nameof(StaticLyricsVisibility));
+                OnPropertyChanged(nameof(ModeToggleText));
+                OnPropertyChanged(nameof(ModeToggleGlyph));
+                OnPropertyChanged(nameof(StaticLyricsText));
+            }
+        }
+    }
+
+    public string StaticLyricsText => _lastLyrics?.PlainLyrics ?? (LyricLines.Count > 0 ? string.Join("\n", LyricLines.Select(l => l.Text)) : "No lyrics available.");
+    public Visibility SyncedLyricsVisibility => (!IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility StaticLyricsVisibility => (IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility ModeToggleVisibility => HasLyrics ? Visibility.Visible : Visibility.Collapsed;
+    public string ModeToggleText => IsStaticLyricsMode ? "Live Synced" : "Static View";
+    public string ModeToggleGlyph => IsStaticLyricsMode ? "\uE895" : "\uE8C4";
+
+    public void ToggleStaticLyricsMode()
+    {
+        IsStaticLyricsMode = !IsStaticLyricsMode;
+    }
 
     public int? PreviousOffsetMs
     {
@@ -568,20 +601,24 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         // Update Theme Manager for Dynamic Palette Sampling
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
-        // Drift check & snap
+        long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
         long targetMs = state.ProgressMs;
         if (state.IsPlaying)
         {
             long serverTimestamp = state.TimestampUtc.ToUnixTimeMilliseconds();
-            long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
             long elapsed = Math.Max(0, localNow - serverTimestamp);
-            targetMs += elapsed;
+            targetMs = Math.Max(0, state.ProgressMs + elapsed - DefaultAcousticLatencyCompensationMs);
+        }
+        else
+        {
+            targetMs = Math.Max(0, state.ProgressMs - DefaultAcousticLatencyCompensationMs);
         }
 
         long drift = Math.Abs(_interpolatedProgressMs - targetMs);
         if (drift > 1500 || !_isPlaying)
         {
             _interpolatedProgressMs = targetMs;
+            _lastTickTimestampMs = localNow;
         }
     }
 
@@ -625,6 +662,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             }
         }
         ActiveLineIndex = -1;
+
+        OnPropertyChanged(nameof(StaticLyricsText));
+        OnPropertyChanged(nameof(SyncedLyricsVisibility));
+        OnPropertyChanged(nameof(StaticLyricsVisibility));
+        OnPropertyChanged(nameof(ModeToggleVisibility));
     }
 
     private void OnTrackOffsetReceived(TrackOffsetPayload? offset)
@@ -635,7 +677,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         {
             _userOffsetMs = offset.OffsetMs;
             double seconds = _userOffsetMs / 1000.0;
-            OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+            OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
         }
     }
 
@@ -710,28 +752,35 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
-        long targetMs = _lastPlaybackState.ProgressMs;
+        long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
+
         if (_lastPlaybackState.IsPlaying)
         {
-            long serverTimestamp = _lastPlaybackState.TimestampUtc.ToUnixTimeMilliseconds();
-            long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
-            long elapsed = Math.Max(0, localNow - serverTimestamp);
-            targetMs += elapsed;
+            long dt = _lastTickTimestampMs > 0 ? Math.Clamp(localNow - _lastTickTimestampMs, 1, 100) : 16;
+            _lastTickTimestampMs = localNow;
 
-            // Apply smooth drift slew filter towards target
-            long delta = targetMs - _interpolatedProgressMs;
-            if (Math.Abs(delta) > 1500)
+            long serverTimestamp = _lastPlaybackState.TimestampUtc.ToUnixTimeMilliseconds();
+            long elapsed = Math.Max(0, localNow - serverTimestamp);
+            long targetMs = Math.Max(0, _lastPlaybackState.ProgressMs + elapsed - DefaultAcousticLatencyCompensationMs);
+
+            // Monotonic Phase-Locked Loop (PLL) tracking
+            long error = targetMs - _interpolatedProgressMs;
+            if (Math.Abs(error) > 1500)
             {
                 _interpolatedProgressMs = targetMs;
             }
             else
             {
-                _interpolatedProgressMs += (long)Math.Round(delta * 0.20);
+                // Slew rate adjustment: steer smoothly up to +/- 5% to lock phase without jumping
+                double slewAdjustment = Math.Clamp(error / 500.0, -0.05, 0.05);
+                double deltaProgress = dt * (1.0 + slewAdjustment);
+                _interpolatedProgressMs += (long)Math.Round(deltaProgress);
             }
         }
         else
         {
-            _interpolatedProgressMs = targetMs;
+            _interpolatedProgressMs = Math.Max(0, _lastPlaybackState.ProgressMs - DefaultAcousticLatencyCompensationMs);
+            _lastTickTimestampMs = localNow;
         }
 
         long currentWithOffset = Math.Clamp(_interpolatedProgressMs + _userOffsetMs, 0, durationMs);
@@ -837,9 +886,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public async Task NudgeOffsetAsync(int deltaMs)
     {
         if (_lastPlaybackState?.CurrentTrack is null) return;
-        _userOffsetMs += deltaMs;
+        _userOffsetMs = Math.Clamp(_userOffsetMs + deltaMs, -30000, 30000);
         double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
         await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, _userOffsetMs);
     }
 
@@ -859,18 +908,22 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public async Task CalibrateToTimestampAsync(long targetLyricTimestampMs)
     {
         if (_lastPlaybackState?.CurrentTrack is null) return;
+        if (!_isCalibrationMode) return;
 
         int currentProgress = (int)_interpolatedProgressMs;
-        int newOffset = (int)(targetLyricTimestampMs - currentProgress);
+        int rawOffset = (int)(targetLyricTimestampMs - currentProgress);
+        
+        // Clamp to a sane track calibration window (+/- 20 seconds)
+        int newOffset = Math.Clamp(rawOffset, -20000, 20000);
         int delta = newOffset - _userOffsetMs;
 
         PreviousOffsetMs = _userOffsetMs;
         _userOffsetMs = newOffset;
         double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
 
         double deltaSec = delta / 1000.0;
-        string deltaStr = $"{(delta >= 0 ? "+" : "")}{deltaSec:0.1}s";
+        string deltaStr = $"{(delta >= 0 ? "+" : "")}{deltaSec:0.0}s";
         CalibrationToastMessage = $"Offset calibrated: {OffsetText} (Δ {deltaStr})";
         IsCalibrationToastVisible = true;
         StartToastTimer();
@@ -885,7 +938,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _userOffsetMs = _previousOffsetMs.Value;
         PreviousOffsetMs = null;
         double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.1}s";
+        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
         CalibrationToastMessage = $"Reverted offset to {OffsetText}";
         IsCalibrationToastVisible = true;
         StartToastTimer();

@@ -134,7 +134,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnLyricItemClicked(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is LyricLineViewModel lineVm)
+        if (ViewModel != null && ViewModel.IsCalibrationMode && e.ClickedItem is LyricLineViewModel lineVm)
         {
             lineVm.OnLineClicked();
         }
@@ -142,7 +142,7 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnWordButtonClicked(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement fe && fe.DataContext is LyricWordViewModel wordVm)
+        if (ViewModel != null && ViewModel.IsCalibrationMode && sender is FrameworkElement fe && fe.DataContext is LyricWordViewModel wordVm)
         {
             wordVm.Calibrate();
         }
@@ -154,6 +154,11 @@ public sealed partial class LyricsStageView : UserControl
         {
             await ViewModel.UndoLastCalibrationAsync();
         }
+    }
+
+    private void OnToggleStaticModeClicked(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.ToggleStaticLyricsMode();
     }
 
     private void OnDismissToastClicked(object sender, RoutedEventArgs e)

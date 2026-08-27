@@ -29,6 +29,10 @@ public static class LrcParser
         }
 
         var lines = ParseLines(rawLrc);
+        string? effectivePlainLyrics = !string.IsNullOrWhiteSpace(plainLyrics)
+            ? plainLyrics
+            : (lines.Count > 0 ? string.Join("\n", lines.Select(l => l.Text)) : null);
+
         return new SyncedLyrics
         {
             TrackId = trackId,
@@ -38,7 +42,7 @@ public static class LrcParser
             Lines = lines,
             IsSynced = lines.Count > 0,
             IsInstrumental = false,
-            PlainLyrics = plainLyrics
+            PlainLyrics = effectivePlainLyrics
         };
     }
 
