@@ -29,6 +29,10 @@ public static class LrcParser
         }
 
         var lines = ParseLines(rawLrc);
+        string? effectivePlainLyrics = !string.IsNullOrWhiteSpace(plainLyrics)
+            ? plainLyrics
+            : (lines.Count > 0 ? string.Join("\n", lines.Select(l => l.Text)) : null);
+
         return new SyncedLyrics
         {
             TrackId = trackId,
@@ -38,7 +42,7 @@ public static class LrcParser
             Lines = lines,
             IsSynced = lines.Count > 0,
             IsInstrumental = false,
-            PlainLyrics = plainLyrics
+            PlainLyrics = effectivePlainLyrics
         };
     }
 
@@ -89,16 +93,95 @@ public static class LrcParser
 
             if (timestamps.Count > 0)
             {
-                var text = line[textStartIndex..].Trim().ToString();
+                var (cleanText, syllables) = ParseInlineSyllables(line[textStartIndex..], timestamps[0]);
                 foreach (var ts in timestamps)
                 {
-                    result.Add(new LyricLine(ts, text));
+                    result.Add(new LyricLine(ts, cleanText, syllables));
                 }
             }
         }
 
         result.Sort(static (a, b) => a.Timestamp.CompareTo(b.Timestamp));
         return result;
+    }
+
+    public static (string CleanText, IReadOnlyList<LyricSyllable>? Syllables) ParseInlineSyllables(ReadOnlySpan<char> span, TimeSpan lineTimestamp)
+    {
+        if (span.IsEmpty)
+        {
+            return (string.Empty, null);
+        }
+
+        int firstAngle = span.IndexOf('<');
+        if (firstAngle < 0)
+        {
+            return (span.Trim().ToString(), null);
+        }
+
+        var syllables = new List<LyricSyllable>();
+        var cleanBuilder = new System.Text.StringBuilder();
+        int idx = 0;
+        TimeSpan currentSyllableTime = lineTimestamp;
+
+        if (firstAngle > 0)
+        {
+            string prefix = span[..firstAngle].Trim().ToString();
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                cleanBuilder.Append(prefix);
+                syllables.Add(new LyricSyllable(lineTimestamp, TimeSpan.Zero, prefix));
+            }
+            idx = firstAngle;
+        }
+
+        while (idx < span.Length)
+        {
+            if (span[idx] == '<')
+            {
+                int closeAngle = span[idx..].IndexOf('>');
+                if (closeAngle > 0)
+                {
+                    var tag = span.Slice(idx + 1, closeAngle - 1);
+                    if (TryParseTimestamp(tag, out var tagTs))
+                    {
+                        currentSyllableTime = tagTs;
+                        idx += closeAngle + 1;
+
+                        int nextAngle = span[idx..].IndexOf('<');
+                        int wordLen = nextAngle >= 0 ? nextAngle : span.Length - idx;
+                        string wordText = span.Slice(idx, wordLen).Trim().ToString();
+                        idx += wordLen;
+
+                        if (!string.IsNullOrEmpty(wordText))
+                        {
+                            if (cleanBuilder.Length > 0 && cleanBuilder[^1] != ' ')
+                            {
+                                cleanBuilder.Append(' ');
+                            }
+                            cleanBuilder.Append(wordText);
+                            syllables.Add(new LyricSyllable(currentSyllableTime, TimeSpan.Zero, wordText));
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            cleanBuilder.Append(span[idx]);
+            idx++;
+        }
+
+        if (syllables.Count > 1)
+        {
+            for (int i = 0; i < syllables.Count - 1; i++)
+            {
+                var cur = syllables[i];
+                var next = syllables[i + 1];
+                var dur = next.Timestamp > cur.Timestamp ? next.Timestamp - cur.Timestamp : TimeSpan.Zero;
+                syllables[i] = new LyricSyllable(cur.Timestamp, dur, cur.Text);
+            }
+        }
+
+        return (cleanBuilder.ToString().Trim(), syllables.Count > 0 ? syllables : null);
     }
 
     public static bool TryParseTimestamp(ReadOnlySpan<char> span, out TimeSpan timestamp)

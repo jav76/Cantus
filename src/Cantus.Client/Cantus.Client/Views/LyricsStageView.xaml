@@ -11,49 +11,189 @@
             BorderThickness="1"
             CornerRadius="20"
             Padding="{x:Bind GetStagePadding(ViewModel.CurrentBreakpoint), Mode=OneWay}">
-        <Grid>
-            <!-- Empty / No Lyrics Placeholder -->
-            <StackPanel Visibility="{x:Bind GetEmptyStateVisibility(ViewModel.HasLyrics), Mode=OneWay}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="16">
-                <FontIcon Glyph="&#xEC4F;"
-                          FontSize="{x:Bind GetEmptyIconSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                          Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
-                          HorizontalAlignment="Center" />
-                <TextBlock Text="Waiting for Synced Lyrics..."
-                           FontSize="{x:Bind GetEmptyTitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                           FontWeight="Bold"
-                           Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
-                           HorizontalAlignment="Center" />
-                <TextBlock Text="Connect Spotify and play music to see live time-synchronized lyrics."
-                           FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                           Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
-                           HorizontalAlignment="Center"
-                           TextWrapping="Wrap"
-                           TextAlignment="Center" />
-            </StackPanel>
+        <Grid RowDefinitions="Auto,*,Auto">
+            
+            <!-- Top Controls & Calibration Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <!-- Calibration Mode Active Banner -->
+                <Border Background="{x:Bind ViewModel.GlowBrush, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="14,8"
+                        Visibility="{x:Bind ViewModel.CalibrationModeVisibility, Mode=OneWay}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE706;" FontSize="15" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="CALIBRATION ACTIVE: Tap any line or word when heard"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="2"
+                                Content="Done"
+                                Click="OnExitCalibrationClicked"
+                                Background="#25FFFFFF"
+                                Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
+                                CornerRadius="6"
+                                Padding="12,4"
+                                FontSize="11" />
+                    </Grid>
+                </Border>
 
-            <!-- Active Lyrics List View -->
-            <ListView x:Name="LyricsListView"
-                      ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}"
-                      SelectionMode="None"
-                      HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                      MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
-                      Visibility="{x:Bind GetLyricsVisibility(ViewModel.HasLyrics), Mode=OneWay}">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:LyricLineViewModel">
-                        <TextBlock Text="{x:Bind Text}"
-                                   FontSize="{x:Bind FontSize, Mode=OneWay}"
-                                   FontWeight="{x:Bind FontWeight, Mode=OneWay}"
-                                   Opacity="{x:Bind Opacity, Mode=OneWay}"
-                                   Foreground="{x:Bind LineBrush, Mode=OneWay}"
-                                   Margin="0,10"
-                                   TextAlignment="{x:Bind Alignment, Mode=OneWay}"
-                                   TextWrapping="Wrap" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                <!-- Normal Top Bar Action Buttons (Visible when calibration is off) -->
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Visibility="{x:Bind GetQuickCalibrateButtonVisibility(ViewModel.HasLyrics, ViewModel.IsCalibrationMode), Mode=OneWay}">
+                    
+                    <!-- Static Lyrics / Live Synced Toggle Button -->
+                    <Button Click="OnToggleStaticModeClicked"
+                            Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,5"
+                            ToolTipService.ToolTip="Toggle between Live Synced and Static Plain Lyrics">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Quick-Calibrate Action Button -->
+                    <Button Click="OnToggleCalibrationClicked"
+                            Background="#15FFFFFF"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,5"
+                            ToolTipService.ToolTip="Interactive Click-to-Sync Calibration">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE706;" FontSize="12" Foreground="{x:Bind ViewModel.CalibrationButtonBrush, Mode=OneWay}" />
+                            <TextBlock Text="Calibrate Sync" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Main Lyrics Presentation Area -->
+            <Grid Grid.Row="1">
+                <!-- Empty / No Lyrics Placeholder -->
+                <StackPanel Visibility="{x:Bind GetEmptyStateVisibility(ViewModel.HasLyrics), Mode=OneWay}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="16">
+                    <FontIcon Glyph="&#xEC4F;"
+                              FontSize="{x:Bind GetEmptyIconSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                              Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
+                              HorizontalAlignment="Center" />
+                    <TextBlock Text="Waiting for Synced Lyrics..."
+                               FontSize="{x:Bind GetEmptyTitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                               FontWeight="Bold"
+                               Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Connect Spotify and play music to see live time-synchronized lyrics."
+                               FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                               Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </StackPanel>
+
+                <!-- Static Plain Lyrics View -->
+                <ScrollViewer Visibility="{x:Bind ViewModel.StaticLyricsVisibility, Mode=OneWay}"
+                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                              MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
+                              Padding="16,8">
+                    <TextBlock Text="{x:Bind ViewModel.StaticLyricsText, Mode=OneWay}"
+                               FontSize="18"
+                               FontWeight="Normal"
+                               Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
+                               LineHeight="32"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </ScrollViewer>
+
+                <!-- Active Synced Lyrics List View -->
+                <ListView x:Name="LyricsListView"
+                          ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}"
+                          SelectionMode="None"
+                          IsItemClickEnabled="{x:Bind ViewModel.IsCalibrationMode, Mode=OneWay}"
+                          ItemClick="OnLyricItemClicked"
+                          HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                          MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
+                          Visibility="{x:Bind ViewModel.SyncedLyricsVisibility, Mode=OneWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:LyricLineViewModel">
+                            <Border Background="Transparent"
+                                    CornerRadius="10"
+                                    Padding="8,4"
+                                    Margin="0,4">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Bind Text}"
+                                               FontSize="{x:Bind FontSize, Mode=OneWay}"
+                                               FontWeight="{x:Bind FontWeight, Mode=OneWay}"
+                                               Opacity="{x:Bind Opacity, Mode=OneWay}"
+                                               Foreground="{x:Bind LineBrush, Mode=OneWay}"
+                                               Margin="0,4"
+                                               TextAlignment="{x:Bind Alignment, Mode=OneWay}"
+                                               TextWrapping="Wrap" />
+
+                                    <!-- Interactive Word Pills in Calibration Mode -->
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                  VerticalScrollBarVisibility="Disabled"
+                                                  HorizontalAlignment="Center"
+                                                  Visibility="{x:Bind CalibrationBadgeVisibility, Mode=OneWay}">
+                                        <ItemsControl ItemsSource="{x:Bind Words, Mode=OneWay}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:LyricWordViewModel">
+                                                    <Button Content="{x:Bind Word}"
+                                                            Click="OnWordButtonClicked"
+                                                            Background="#25FFFFFF"
+                                                            BorderBrush="#35FFFFFF"
+                                                            BorderThickness="1"
+                                                            Foreground="#F8FAFC"
+                                                            CornerRadius="6"
+                                                            Padding="8,3"
+                                                            Margin="2"
+                                                            FontSize="11" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <!-- Floating Toast Notification Banner -->
+            <Border Grid.Row="2"
+                    Background="#E60F172A"
+                    BorderBrush="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="14,8"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Visibility="{x:Bind ViewModel.CalibrationToastVisibility, Mode=OneWay}">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                    <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="15" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.CalibrationToastMessage, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="#F8FAFC" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Content="Undo" Click="OnUndoCalibrationClicked" Visibility="{x:Bind GetUndoVisibility(ViewModel.CanUndoCalibration), Mode=OneWay}" Background="#25FFFFFF" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" FontWeight="Bold" CornerRadius="6" Padding="10,3" FontSize="11" />
+                    <Button Grid.Column="3" Content="✕" Click="OnDismissToastClicked" Background="Transparent" Foreground="#94A3B8" Padding="6,2" FontSize="11" />
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </UserControl>
+

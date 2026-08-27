@@ -91,4 +91,38 @@ public class LrcParserTests
         result.Lines[0].Timestamp.Should().Be(TimeSpan.FromSeconds(5));
         result.Lines[0].Text.Should().Be("Actual lyric line");
     }
+
+    [Fact]
+    public void Parse_WithInlineSyllables_ParsesSyllablesAndCleanText()
+    {
+        string lrc = "[00:10.00]<00:10.00>Never <00:10.50>gonna <00:11.00>give <00:11.50>you <00:12.00>up";
+
+        var result = LrcParser.Parse(lrc);
+
+        result.Lines.Should().ContainSingle();
+        var line = result.Lines[0];
+        line.Text.Should().Be("Never gonna give you up");
+        line.Syllables.Should().NotBeNull();
+        line.Syllables.Should().HaveCount(5);
+        line.Syllables![0].Text.Should().Be("Never");
+        line.Syllables[0].Timestamp.Should().Be(TimeSpan.FromSeconds(10));
+        line.Syllables[1].Text.Should().Be("gonna");
+        line.Syllables[1].Timestamp.Should().Be(TimeSpan.FromSeconds(10.5));
+    }
+
+    [Fact]
+    public void GetWordTimestamps_WithoutSyllables_EstimatesProportionalTimestamps()
+    {
+        var line = new Cantus.Core.Models.LyricLine(TimeSpan.FromSeconds(10), "Never gonna give you up");
+
+        var words = line.GetWordTimestamps(TimeSpan.FromSeconds(5));
+
+        words.Should().HaveCount(5);
+        words[0].Word.Should().Be("Never");
+        words[0].Timestamp.Should().Be(TimeSpan.FromSeconds(10));
+        words[^1].Word.Should().Be("up");
+        words[^1].Timestamp.Should().BeGreaterThan(TimeSpan.FromSeconds(10));
+        words[^1].Timestamp.Should().BeLessThanOrEqualTo(TimeSpan.FromSeconds(15));
+    }
 }
+

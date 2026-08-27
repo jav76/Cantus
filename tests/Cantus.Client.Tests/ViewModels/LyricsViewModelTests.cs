@@ -152,4 +152,105 @@ public sealed class LyricsViewModelTests
         // Assert
         layout.MobileView.Should().Be(MobileViewMode.SyncAndSettings);
     }
+
+    [Fact]
+    public void ToggleCalibrationMode_TogglesStateAndPropagatesToLines()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        var line = new LyricLineViewModel { TimestampMs = 1000, Text = "Hello" };
+        vm.LyricLines.Add(line);
+
+        vm.IsCalibrationMode.Should().BeFalse();
+        line.IsCalibrationMode.Should().BeFalse();
+
+        // Act
+        vm.ToggleCalibrationMode();
+
+        // Assert
+        vm.IsCalibrationMode.Should().BeTrue();
+        line.IsCalibrationMode.Should().BeTrue();
+
+        // Act
+        vm.ToggleCalibrationMode();
+
+        // Assert
+        vm.IsCalibrationMode.Should().BeFalse();
+        line.IsCalibrationMode.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DismissCalibrationToast_HidesToast()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.IsCalibrationToastVisible = true;
+        vm.CalibrationToastMessage = "Test message";
+
+        // Act
+        vm.DismissCalibrationToast();
+
+        // Assert
+        vm.IsCalibrationToastVisible.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToggleStaticLyricsMode_TogglesStateAndVisibilities()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.HasLyrics = true;
+
+        vm.IsStaticLyricsMode.Should().BeFalse();
+        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
+        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
+        vm.ModeToggleText.Should().Be("Static View");
+
+        // Act
+        vm.ToggleStaticLyricsMode();
+
+        // Assert
+        vm.IsStaticLyricsMode.Should().BeTrue();
+        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
+        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
+        vm.ModeToggleText.Should().Be("Live Synced");
+    }
+
+    [Fact]
+    public void StaticLyricsText_WhenLinesExist_GeneratesFormattedText()
+    {
+        // Arrange
+        var client = new SignalRPlaybackClient();
+        var vm = new LyricsViewModel(client);
+        vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 1" });
+        vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 2" });
+
+        // Assert
+        vm.StaticLyricsText.Should().Be("Line 1\nLine 2");
+    }
+
+    [Fact]
+    public void LyricLineViewModel_PopulateWords_CreatesWordViewModelsWithTimestamps()
+    {
+        // Arrange
+        var line = new LyricLineViewModel { TimestampMs = 10000, Text = "Sing along with me" };
+
+        // Act
+        line.PopulateWords(TimeSpan.FromSeconds(4));
+
+        // Assert
+        line.Words.Should().HaveCount(4);
+        line.Words[0].Word.Should().Be("Sing");
+        line.Words[0].TimestampMs.Should().Be(10000);
+        line.Words[^1].Word.Should().Be("me");
+        line.Words[^1].TimestampMs.Should().BeGreaterThan(10000);
+    }
 }
+
+
+
+
+
