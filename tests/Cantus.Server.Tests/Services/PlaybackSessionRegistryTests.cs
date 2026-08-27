@@ -129,4 +129,26 @@ public sealed class PlaybackSessionRegistryTests
         activeSnapshot!.UserId.Should().Be("user-active");
         activeSnapshot.DisplayName.Should().Be("Charlie");
     }
+
+    [Fact]
+    public void GetActiveUserIdsWithConnectedClients_ReturnsDistinctAuthenticatedUsers()
+    {
+        var registry = new PlaybackSessionRegistry();
+
+        registry.RegisterConnection("conn-1", "user-1");
+        registry.RegisterConnection("conn-2", "user-1"); // Multiple connections for same user
+        registry.RegisterConnection("conn-3", "user-2");
+        registry.RegisterConnection("conn-4", null); // Unauthenticated client
+
+        var activeUsers = registry.GetActiveUserIdsWithConnectedClients();
+        activeUsers.Should().BeEquivalentTo(new[] { "user-1", "user-2" });
+
+        registry.UnregisterConnection("conn-1");
+        // user-1 still has conn-2
+        registry.GetActiveUserIdsWithConnectedClients().Should().BeEquivalentTo(new[] { "user-1", "user-2" });
+
+        registry.UnregisterConnection("conn-2");
+        // user-1 has no remaining connections
+        registry.GetActiveUserIdsWithConnectedClients().Should().BeEquivalentTo(new[] { "user-2" });
+    }
 }

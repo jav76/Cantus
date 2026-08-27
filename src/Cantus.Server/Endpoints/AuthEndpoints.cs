@@ -129,27 +129,35 @@ public static class AuthEndpoints
         group.MapGet("/sessions", async (
             ISpotifyAuthService authService,
             IPlaybackSessionRegistry registry,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var sessions = await authService.GetAllSessionsAsync(cancellationToken);
-            var dtos = sessions.Select(s =>
+            string? sessionId = ResolveSessionId(context);
+            if (string.IsNullOrEmpty(sessionId))
             {
-                var snap = registry.GetUserState(s.Id);
-                bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
-                return s.ToDto(isPlaying);
-            }).ToList();
+                return Results.Ok(Array.Empty<AuthorizedSessionDto>());
+            }
 
-            return Results.Ok(dtos);
+            var session = await authService.GetSessionAsync(sessionId, cancellationToken);
+            if (session is null)
+            {
+                return Results.Ok(Array.Empty<AuthorizedSessionDto>());
+            }
+
+            var snap = registry.GetUserState(session.Id);
+            bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
+            return Results.Ok(new List<AuthorizedSessionDto> { session.ToDto(isPlaying) });
         })
         .WithName("GetAuthorizedSessions")
-        .WithSummary("Lists all authorized Spotify accounts on this server.");
+        .WithSummary("Lists the current authorized Spotify account session.");
 
         group.MapGet("/me", async (
             ISpotifyAuthService authService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (!context.Request.Cookies.TryGetValue("cantus_session_id", out var sessionId) || string.IsNullOrEmpty(sessionId))
+            string? sessionId = ResolveSessionId(context);
+            if (string.IsNullOrEmpty(sessionId))
             {
                 return Results.Unauthorized();
             }
@@ -190,5 +198,39 @@ public static class AuthEndpoints
         .WithSummary("Clears current user session cookie.");
 
         return endpoints;
+    }
+
+    private static string? ResolveSessionId(HttpContext context)
+    {
+        if (context.Request.Cookies.TryGetValue("cantus_session_id", out var cookieSessionId) &&
+            !string.IsNullOrWhiteSpace(cookieSessionId))
+        {
+            return cookieSessionId;
+        }
+
+        if (context.Request.Query.TryGetValue("access_token", out var queryToken) &&
+            !string.IsNullOrWhiteSpace(queryToken))
+        {
+            return queryToken.ToString();
+        }
+
+        if (context.Request.Query.TryGetValue("session_id", out var querySessionId) &&
+            !string.IsNullOrWhiteSpace(querySessionId))
+        {
+            return querySessionId.ToString();
+        }
+
+        if (context.Request.Headers.TryGetValue("Authorization", out var authHeader) &&
+            !string.IsNullOrWhiteSpace(authHeader))
+        {
+            string headerStr = authHeader.ToString().Trim();
+            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                return headerStr.Substring(7).Trim();
+            }
+            return headerStr;
+        }
+
+        return null;
     }
 }

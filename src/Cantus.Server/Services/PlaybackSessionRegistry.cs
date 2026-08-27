@@ -16,13 +16,13 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
     public int ConnectedClientsCount => _connectionSubscriptions.Count;
     public bool HasConnectedClients => !_connectionSubscriptions.IsEmpty;
 
-    public void RegisterConnection(string connectionId)
+    public void RegisterConnection(string connectionId, string? userId = null)
     {
         bool wasEmpty;
         lock (_connectionLock)
         {
             wasEmpty = _connectionSubscriptions.IsEmpty;
-            _connectionSubscriptions[connectionId] = null; // null means auto-follow
+            _connectionSubscriptions[connectionId] = userId;
         }
 
         if (wasEmpty)
@@ -51,12 +51,26 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
         if (_connectionSubscriptions.ContainsKey(connectionId))
         {
             _connectionSubscriptions[connectionId] = targetUserId;
+            OnSessionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
     public string? GetConnectionSubscription(string connectionId)
     {
         return _connectionSubscriptions.TryGetValue(connectionId, out var target) ? target : null;
+    }
+
+    public IReadOnlySet<string> GetActiveUserIdsWithConnectedClients()
+    {
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var userId in _connectionSubscriptions.Values)
+        {
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                set.Add(userId);
+            }
+        }
+        return set;
     }
 
     public void UpdateUserState(
