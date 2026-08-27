@@ -15,7 +15,9 @@ public class LrclibLyricsProviderTests
     {
         public Func<HttpRequestMessage, HttpResponseMessage>? ResponseHandler { get; set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             if (ResponseHandler is not null)
             {
@@ -29,7 +31,7 @@ public class LrclibLyricsProviderTests
     [Fact]
     public async Task GetLyricsAsync_ExactMatchFound_ReturnsParsedSyncedLyrics()
     {
-        var mockHandler = new MockHttpMessageHandler
+        MockHttpMessageHandler mockHandler = new()
         {
             ResponseHandler = req =>
             {
@@ -56,11 +58,11 @@ public class LrclibLyricsProviderTests
             }
         };
 
-        var httpClient = new HttpClient(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
-        var options = Options.Create(new LrclibOptions());
-        var provider = new LrclibLyricsProvider(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
+        HttpClient httpClient = new(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
+        IOptions<LrclibOptions> options = Options.Create(new LrclibOptions());
+        LrclibLyricsProvider provider = new(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
 
-        var track = new TrackInfo
+        TrackInfo track = new()
         {
             Id = "spotify_track_queen",
             Title = "Bohemian Rhapsody",
@@ -69,7 +71,7 @@ public class LrclibLyricsProviderTests
             Duration = TimeSpan.FromSeconds(354)
         };
 
-        var result = await provider.GetLyricsAsync(track);
+        SyncedLyrics? result = await provider.GetLyricsAsync(track);
 
         result.Should().NotBeNull();
         result!.IsSynced.Should().BeTrue();
@@ -82,7 +84,7 @@ public class LrclibLyricsProviderTests
     [Fact]
     public async Task GetLyricsAsync_WhenExact404_FallsBackToSearchAndFindsMatch()
     {
-        var mockHandler = new MockHttpMessageHandler
+        MockHttpMessageHandler mockHandler = new()
         {
             ResponseHandler = req =>
             {
@@ -113,11 +115,11 @@ public class LrclibLyricsProviderTests
             }
         };
 
-        var httpClient = new HttpClient(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
-        var options = Options.Create(new LrclibOptions());
-        var provider = new LrclibLyricsProvider(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
+        HttpClient httpClient = new(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
+        IOptions<LrclibOptions> options = Options.Create(new LrclibOptions());
+        LrclibLyricsProvider provider = new(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
 
-        var track = new TrackInfo
+        TrackInfo track = new()
         {
             Id = "spotify_track_eagles",
             Title = "Hotel California",
@@ -125,7 +127,7 @@ public class LrclibLyricsProviderTests
             Duration = TimeSpan.FromSeconds(390)
         };
 
-        var result = await provider.GetLyricsAsync(track);
+        SyncedLyrics? result = await provider.GetLyricsAsync(track);
 
         result.Should().NotBeNull();
         result!.Lines.Should().ContainSingle();
@@ -135,16 +137,16 @@ public class LrclibLyricsProviderTests
     [Fact]
     public async Task GetLyricsAsync_WhenNotFoundAnywhere_ReturnsNull()
     {
-        var mockHandler = new MockHttpMessageHandler
+        MockHttpMessageHandler mockHandler = new()
         {
             ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.NotFound)
         };
 
-        var httpClient = new HttpClient(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
-        var options = Options.Create(new LrclibOptions());
-        var provider = new LrclibLyricsProvider(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
+        HttpClient httpClient = new(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
+        IOptions<LrclibOptions> options = Options.Create(new LrclibOptions());
+        LrclibLyricsProvider provider = new(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
 
-        var track = new TrackInfo
+        TrackInfo track = new()
         {
             Id = "spotify_track_404",
             Title = "Nonexistent",
@@ -152,7 +154,7 @@ public class LrclibLyricsProviderTests
             Duration = TimeSpan.FromSeconds(120)
         };
 
-        var result = await provider.GetLyricsAsync(track);
+        SyncedLyrics? result = await provider.GetLyricsAsync(track);
         result.Should().BeNull();
     }
 }

@@ -134,7 +134,9 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnLyricItemClicked(object sender, ItemClickEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.IsCalibrationMode && e.ClickedItem is LyricLineViewModel lineVm)
+        if (ViewModel is not null &&
+            ViewModel.IsCalibrationMode &&
+            e.ClickedItem is LyricLineViewModel lineVm)
         {
             lineVm.OnLineClicked();
         }
@@ -142,7 +144,10 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnWordButtonClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.IsCalibrationMode && sender is FrameworkElement fe && fe.DataContext is LyricWordViewModel wordVm)
+        if (ViewModel is not null &&
+            ViewModel.IsCalibrationMode &&
+            sender is FrameworkElement fe &&
+            fe.DataContext is LyricWordViewModel wordVm)
         {
             wordVm.Calibrate();
         }

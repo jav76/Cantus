@@ -11,7 +11,7 @@ public sealed class SignalRJitterFilterTests
     public void ProcessNtpSample_SingleSample_SetsDirectRttAndOffset()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
+        SignalRPlaybackClient client = new();
 
         // Act
         client.ProcessNtpSample(rawRtt: 30, rawOffset: 120, timestampMs: 1000);
@@ -25,7 +25,7 @@ public sealed class SignalRJitterFilterTests
     public void ProcessNtpSample_WithSpikeOutlier_DiscardsHighestRttSpike()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
+        SignalRPlaybackClient client = new();
 
         // Feed consistent baseline (RTT 20ms, Offset 100ms)
         client.ProcessNtpSample(rawRtt: 20, rawOffset: 100, timestampMs: 1000);
@@ -35,7 +35,9 @@ public sealed class SignalRJitterFilterTests
         client.ProcessNtpSample(rawRtt: 450, rawOffset: -300, timestampMs: 3000);
 
         // Assert: Offset should not be corrupted by the -300 spike because outlier is filtered out
-        client.ClockOffsetMs.Should().BeGreaterThan(0, "Massive spike offset should be discarded by sliding window filter");
+        client.ClockOffsetMs.Should().BeGreaterThan(
+            0,
+            "Massive spike offset should be discarded by sliding window filter");
         client.RttMs.Should().BeLessThan(100, "Spike RTT should be rejected from the weighted average");
     }
 
@@ -43,7 +45,7 @@ public sealed class SignalRJitterFilterTests
     public void ProcessNtpSample_SlidingWindow_RetainsMaxFiveSamples()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
+        SignalRPlaybackClient client = new();
 
         for (int i = 1; i <= 10; i++)
         {

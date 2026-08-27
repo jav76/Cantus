@@ -96,7 +96,10 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
         if (CurrentMode == ThemeMode.Dynamic)
         {
-            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(title, artist, albumArtUrl);
+            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(
+                title,
+                artist,
+                albumArtUrl);
         }
     }
 
@@ -104,7 +107,10 @@ public sealed class ThemeManager : INotifyPropertyChanged
     {
         if (CurrentMode == ThemeMode.Dynamic)
         {
-            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(_lastTitle, _lastArtist, _lastAlbumArtUrl);
+            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(
+                _lastTitle,
+                _lastArtist,
+                _lastAlbumArtUrl);
         }
         else
         {

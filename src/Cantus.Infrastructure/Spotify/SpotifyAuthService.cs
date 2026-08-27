@@ -32,7 +32,10 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     public Uri GetAuthorizationUri(string state, string codeChallenge, string? redirectUri = null)
     {
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri) ? redirectUri : _options.RedirectUri;
-        LoginRequest loginRequest = new(new Uri(effectiveRedirectUri), _options.ClientId, LoginRequest.ResponseType.Code)
+        LoginRequest loginRequest = new(
+            new Uri(effectiveRedirectUri),
+            _options.ClientId,
+            LoginRequest.ResponseType.Code)
         {
             CodeChallenge = codeChallenge,
             CodeChallengeMethod = "S256",
@@ -147,7 +150,9 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             Email = sessionEntity.Email,
             ProfileImageUrl = sessionEntity.ProfileImageUrl,
             AccessToken = refreshResponse.AccessToken,
-            RefreshToken = string.IsNullOrEmpty(refreshResponse.RefreshToken) ? rawRefreshToken : refreshResponse.RefreshToken,
+            RefreshToken = string.IsNullOrEmpty(refreshResponse.RefreshToken)
+                ? rawRefreshToken
+                : refreshResponse.RefreshToken,
             ExpiresAtUtc = sessionEntity.ExpiresAtUtc,
             CreatedAtUtc = sessionEntity.CreatedAtUtc,
             UpdatedAtUtc = sessionEntity.UpdatedAtUtc

@@ -9,7 +9,8 @@ public static class WasmInterop
 #if __WASM__
         try
         {
-            var origin = Uno.Foundation.WebAssemblyRuntime.InvokeJS("window.CantusInterop ? window.CantusInterop.getOrigin() : window.location.origin");
+            string origin = Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                "window.CantusInterop ? window.CantusInterop.getOrigin() : window.location.origin");
             if (!string.IsNullOrWhiteSpace(origin) && origin != "null" && origin != "undefined")
             {
                 return origin.Trim().TrimEnd('/');
@@ -28,7 +29,8 @@ public static class WasmInterop
 #if __WASM__
         try
         {
-            Uno.Foundation.WebAssemblyRuntime.InvokeJS($"window.CantusInterop ? window.CantusInterop.navigateTo('{url}') : (window.location.href = '{url}')");
+            Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                $"window.CantusInterop ? window.CantusInterop.navigateTo('{url}') : (window.location.href = '{url}')");
             return;
         }
         catch (Exception ex)
@@ -43,7 +45,8 @@ public static class WasmInterop
 #if __WASM__
         try
         {
-            Uno.Foundation.WebAssemblyRuntime.InvokeJS("window.CantusInterop && window.CantusInterop.cleanAuthQuery && window.CantusInterop.cleanAuthQuery()");
+            Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                "window.CantusInterop && window.CantusInterop.cleanAuthQuery && window.CantusInterop.cleanAuthQuery()");
         }
         catch
         {

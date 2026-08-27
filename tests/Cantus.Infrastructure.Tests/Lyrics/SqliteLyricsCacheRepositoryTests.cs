@@ -19,7 +19,7 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
         _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
-        var options = new DbContextOptionsBuilder<CantusDbContext>()
+        DbContextOptions<CantusDbContext> options = new DbContextOptionsBuilder<CantusDbContext>()
             .UseSqlite(_connection)
             .Options;
 
@@ -38,7 +38,7 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
     [Fact]
     public async Task SaveLyricsAsync_ThenGetCachedLyricsAsync_ReturnsSavedLyrics()
     {
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "track_123",
             Title = "Song Title",
@@ -54,7 +54,7 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
 
         await _repository.SaveLyricsAsync(lyrics);
 
-        var retrieved = await _repository.GetCachedLyricsAsync("track_123");
+        SyncedLyrics? retrieved = await _repository.GetCachedLyricsAsync("track_123");
         retrieved.Should().NotBeNull();
         retrieved!.TrackId.Should().Be("track_123");
         retrieved.Title.Should().Be("Song Title");
@@ -78,14 +78,14 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
         bool isNotFound = await _repository.IsMarkedNotFoundAsync("track_404");
         isNotFound.Should().BeTrue();
 
-        var lyrics = await _repository.GetCachedLyricsAsync("track_404");
+        SyncedLyrics? lyrics = await _repository.GetCachedLyricsAsync("track_404");
         lyrics.Should().BeNull();
     }
 
     [Fact]
     public async Task GetCachedLyricsAsync_WhenExpired_ReturnsNullAndCleansUp()
     {
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "track_expiring",
             Title = "Expiring",
@@ -96,7 +96,7 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
         // Save with negative TTL so it is already expired
         await _repository.SaveLyricsAsync(lyrics, timeToLive: TimeSpan.FromSeconds(-10));
 
-        var retrieved = await _repository.GetCachedLyricsAsync("track_expiring");
+        SyncedLyrics? retrieved = await _repository.GetCachedLyricsAsync("track_expiring");
         retrieved.Should().BeNull();
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using SpotifyAPI.Web;
 
 namespace Cantus.Server.Endpoints;
@@ -213,19 +214,19 @@ public static class AuthEndpoints
             return cookieSessionId;
         }
 
-        if (context.Request.Query.TryGetValue("access_token", out Microsoft.Extensions.Primitives.StringValues queryToken) &&
+        if (context.Request.Query.TryGetValue("access_token", out StringValues queryToken) &&
             !string.IsNullOrWhiteSpace(queryToken))
         {
             return queryToken.ToString();
         }
 
-        if (context.Request.Query.TryGetValue("session_id", out Microsoft.Extensions.Primitives.StringValues sessionId) &&
+        if (context.Request.Query.TryGetValue("session_id", out StringValues sessionId) &&
             !string.IsNullOrWhiteSpace(sessionId))
         {
             return sessionId.ToString();
         }
 
-        if (context.Request.Headers.TryGetValue("Authorization", out Microsoft.Extensions.Primitives.StringValues authHeader) &&
+        if (context.Request.Headers.TryGetValue("Authorization", out StringValues authHeader) &&
             !string.IsNullOrWhiteSpace(authHeader))
         {
             string headerStr = authHeader.ToString().Trim();

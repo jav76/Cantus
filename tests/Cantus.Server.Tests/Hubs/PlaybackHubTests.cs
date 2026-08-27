@@ -50,7 +50,7 @@ public sealed class PlaybackHubTests
     {
         long clientSendTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        var response = await _hub.SyncClock(clientSendTime);
+        ClockSyncResponse response = await _hub.SyncClock(clientSendTime);
 
         response.Should().NotBeNull();
         response.ClientSendTimeMs.Should().Be(clientSendTime);
@@ -75,17 +75,17 @@ public sealed class PlaybackHubTests
     [Fact]
     public async Task OnConnectedAsync_WithValidSession_RegistersGroupAndSendsInitialState()
     {
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Cookies = new RequestCookieCollection(new Dictionary<string, string>
         {
             ["cantus_session_id"] = "session-123"
         });
 
-        var featureCollection = new FeatureCollection();
+        FeatureCollection featureCollection = new();
         featureCollection.Set<IHttpContextFeature>(new HttpContextFeature { HttpContext = httpContext });
         _mockContext.Setup(c => c.Features).Returns(featureCollection);
 
-        var userSession = new UserSession
+        UserSession userSession = new()
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
@@ -94,7 +94,7 @@ public sealed class PlaybackHubTests
             RefreshToken = "ref"
         };
 
-        var snapshot = new UserPlaybackSnapshot(
+        UserPlaybackSnapshot snapshot = new(
             "user-1",
             "Alice",
             new PlaybackState
@@ -115,21 +115,28 @@ public sealed class PlaybackHubTests
         _mockGroups.Verify(g => g.AddToGroupAsync("test-conn-id", "user_user-1", default), Times.Once);
         _mockCaller.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Once);
         _mockCaller.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.Once);
-        _mockCaller.Verify(c => c.ReceiveSessions(It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 1 && l[0].Id == "user-1")), Times.Once);
-        _mockCaller.Verify(c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId == "user-1")), Times.Once);
+        _mockCaller.Verify(
+            c => c.ReceiveSessions(
+                It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 1 && l[0].Id == "user-1")),
+            Times.Once);
+        _mockCaller.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId == "user-1")),
+            Times.Once);
     }
 
     [Fact]
     public async Task OnConnectedAsync_WhenUnauthenticated_RegistersUnauthenticatedConnection()
     {
-        var featureCollection = new FeatureCollection();
+        FeatureCollection featureCollection = new();
         _mockContext.Setup(c => c.Features).Returns(featureCollection);
 
         await _hub.OnConnectedAsync();
 
         _mockRegistry.Verify(r => r.RegisterConnection("test-conn-id", null), Times.Once);
         _mockCaller.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
-        _mockCaller.Verify(c => c.ReceiveSessions(It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 0)), Times.Once);
+        _mockCaller.Verify(
+            c => c.ReceiveSessions(It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 0)),
+            Times.Once);
         _mockCaller.Verify(c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId == null)), Times.Once);
     }
 
@@ -148,7 +155,7 @@ public sealed class PlaybackHubTests
     {
         private readonly Dictionary<string, string> _dict;
         public RequestCookieCollection(Dictionary<string, string> dict) => _dict = dict;
-        public string? this[string key] => _dict.TryGetValue(key, out var v) ? v : null;
+        public string? this[string key] => _dict.TryGetValue(key, out string? v) ? v : null;
         public int Count => _dict.Count;
         public ICollection<string> Keys => _dict.Keys;
         public bool ContainsKey(string key) => _dict.ContainsKey(key);
@@ -156,7 +163,7 @@ public sealed class PlaybackHubTests
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _dict.GetEnumerator();
         public bool TryGetValue(string key, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? value)
         {
-            if (_dict.TryGetValue(key, out var v))
+            if (_dict.TryGetValue(key, out string? v))
             {
                 value = v;
                 return true;

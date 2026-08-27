@@ -200,7 +200,8 @@ public static class LrcParser
         }
 
         ReadOnlySpan<char> minutesSpan = span[..firstColon];
-        if (!int.TryParse(minutesSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int minutes) || minutes < 0)
+        if (!int.TryParse(minutesSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int minutes) ||
+            minutes < 0)
         {
             return false;
         }
@@ -210,7 +211,9 @@ public static class LrcParser
 
         if (dotIndex < 0)
         {
-            if (!int.TryParse(rest, NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds) || seconds < 0 || seconds >= 60)
+            if (!int.TryParse(rest, NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds) ||
+                seconds < 0 ||
+                seconds >= 60)
             {
                 return false;
             }
@@ -220,7 +223,9 @@ public static class LrcParser
         }
 
         ReadOnlySpan<char> secondsSpan = rest[..dotIndex];
-        if (!int.TryParse(secondsSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int sec) || sec < 0 || sec >= 60)
+        if (!int.TryParse(secondsSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int sec) ||
+            sec < 0 ||
+            sec >= 60)
         {
             return false;
         }
@@ -232,7 +237,8 @@ public static class LrcParser
             return true;
         }
 
-        if (!int.TryParse(fractionSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int fraction) || fraction < 0)
+        if (!int.TryParse(fractionSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int fraction) ||
+            fraction < 0)
         {
             return false;
         }

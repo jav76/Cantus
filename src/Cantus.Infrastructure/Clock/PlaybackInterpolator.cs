@@ -102,7 +102,8 @@ public sealed class PlaybackInterpolator : IPlaybackInterpolator
         if (drift > driftTolerance)
         {
             // Nudge towards target position
-            TimeSpan corrected = advancedPosition + TimeSpan.FromMilliseconds((targetPosition - advancedPosition).TotalMilliseconds * 0.2);
+            TimeSpan corrected = advancedPosition +
+                TimeSpan.FromMilliseconds((targetPosition - advancedPosition).TotalMilliseconds * 0.2);
             _lastPosition = corrected;
         }
         else

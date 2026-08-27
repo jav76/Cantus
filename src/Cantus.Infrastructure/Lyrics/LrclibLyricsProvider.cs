@@ -80,7 +80,9 @@ public class LrclibLyricsProvider : ILyricsProvider
     private async Task<LrclibResponseDto?> TryGetExactLyricsAsync(TrackInfo track, CancellationToken ct)
     {
         int durationSec = (int)Math.Round(track.Duration.TotalSeconds);
-        string url = $"/api/get?track_name={Uri.EscapeDataString(track.Title)}&artist_name={Uri.EscapeDataString(track.Artist)}";
+        string trackParam = Uri.EscapeDataString(track.Title);
+        string artistParam = Uri.EscapeDataString(track.Artist);
+        string url = $"/api/get?track_name={trackParam}&artist_name={artistParam}";
 
         if (!string.IsNullOrWhiteSpace(track.Album))
         {
@@ -127,7 +129,9 @@ public class LrclibLyricsProvider : ILyricsProvider
 
         LrclibResponseDto? candidate = results
             .Where(r => !string.IsNullOrWhiteSpace(r.SyncedLyrics))
-            .OrderBy(r => targetDurationSec > 0 && r.Duration.HasValue ? Math.Abs(r.Duration.Value - targetDurationSec) : 0)
+            .OrderBy(r => targetDurationSec > 0 && r.Duration.HasValue
+                ? Math.Abs(r.Duration.Value - targetDurationSec)
+                : 0)
             .FirstOrDefault();
 
         if (candidate is not null && targetDurationSec > 0 && candidate.Duration.HasValue)

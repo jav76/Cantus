@@ -27,10 +27,13 @@ public sealed class ResponsiveLayoutManagerTests
     [InlineData(1920.0, 1080.0, LayoutBreakpoint.FullscreenTv)]
     [InlineData(2560.0, 1440.0, LayoutBreakpoint.FullscreenTv)]
     [InlineData(3840.0, 2160.0, LayoutBreakpoint.FullscreenTv)]
-    public void UpdateDimensions_ClassifiesBreakpointsAccurately(double width, double height, LayoutBreakpoint expectedBreakpoint)
+    public void UpdateDimensions_ClassifiesBreakpointsAccurately(
+        double width,
+        double height,
+        LayoutBreakpoint expectedBreakpoint)
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
 
         // Act
         layout.UpdateDimensions(width, height);
@@ -45,7 +48,7 @@ public sealed class ResponsiveLayoutManagerTests
     public void KioskMode_OverridesBreakpointToFullscreenTv()
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(1280, 800);
         layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.Large);
 
@@ -71,7 +74,7 @@ public sealed class ResponsiveLayoutManagerTests
     public void BreakpointOverride_TakesPrecedenceOverWindowDimensions()
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(1920, 1080);
         layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.FullscreenTv);
 
@@ -99,7 +102,7 @@ public sealed class ResponsiveLayoutManagerTests
     public void Orientation_CalculatesCorrectly(double width, double height, LayoutOrientation expectedOrientation)
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
 
         // Act
         layout.UpdateDimensions(width, height);
@@ -111,7 +114,7 @@ public sealed class ResponsiveLayoutManagerTests
     [Fact]
     public void AdaptiveProperties_ScaleAcrossAllBreakpoints()
     {
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
 
         // 1. Small (Mobile)
         layout.UpdateDimensions(375, 667);
@@ -163,7 +166,7 @@ public sealed class ResponsiveLayoutManagerTests
     public void MobileViewMode_Cycling_AdvancesThroughTabsCorrectly()
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(375, 667);
         layout.MobileView.Should().Be(MobileViewMode.Lyrics);
         layout.IsMobileLyricsActive.Should().BeTrue();
@@ -195,7 +198,7 @@ public sealed class ResponsiveLayoutManagerTests
     public void BreakpointChanged_FiresOnBreakpointTransition()
     {
         // Arrange
-        var layout = new ResponsiveLayoutManager();
+        ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(1440, 900);
 
         LayoutBreakpoint? receivedBreakpoint = null;

@@ -25,7 +25,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
-        var dbOptions = new DbContextOptionsBuilder<CantusDbContext>()
+        DbContextOptions<CantusDbContext> dbOptions = new DbContextOptionsBuilder<CantusDbContext>()
             .UseSqlite(_connection)
             .Options;
 
@@ -41,7 +41,11 @@ public sealed class SpotifyAuthServiceTests : IDisposable
             Scopes = ["user-read-playback-state", "user-read-currently-playing"]
         });
 
-        _authService = new SpotifyAuthService(_dbContext, _encryptionService, _options, NullLogger<SpotifyAuthService>.Instance);
+        _authService = new SpotifyAuthService(
+            _dbContext,
+            _encryptionService,
+            _options,
+            NullLogger<SpotifyAuthService>.Instance);
     }
 
     public void Dispose()
@@ -56,7 +60,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         string state = "random_state_123";
         string codeChallenge = "test_code_challenge_hash";
 
-        var uri = _authService.GetAuthorizationUri(state, codeChallenge);
+        Uri uri = _authService.GetAuthorizationUri(state, codeChallenge);
 
         uri.Should().NotBeNull();
         uri.Scheme.Should().Be("https");
@@ -67,7 +71,8 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         query.Should().Contain("client_id=test_spotify_client_id");
         query.Should().Contain("state=random_state_123");
         query.Should().Contain("code_challenge=test_code_challenge_hash");
-        query.ToLowerInvariant().Should().Contain("redirect_uri=http%3a%2f%2flocalhost%3a5000%2fapi%2fauth%2fspotify%2fcallback");
+        query.ToLowerInvariant().Should().Contain(
+            "redirect_uri=http%3a%2f%2flocalhost%3a5000%2fapi%2fauth%2fspotify%2fcallback");
     }
 
     [Fact]
@@ -76,7 +81,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         string rawAccessToken = "access_token_secret_123";
         string rawRefreshToken = "refresh_token_secret_456";
 
-        var entity = new UserSessionEntity
+        UserSessionEntity entity = new()
         {
             Id = "user_abc",
             SpotifyUserId = "spotify_user_999",
@@ -92,7 +97,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         await _dbContext.UserSessions.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
 
-        var session = await _authService.GetSessionAsync("user_abc");
+        Core.Models.UserSession? session = await _authService.GetSessionAsync("user_abc");
 
         session.Should().NotBeNull();
         session!.Id.Should().Be("user_abc");
@@ -105,7 +110,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
     [Fact]
     public async Task GetSessionAsync_WhenSessionNotFound_ReturnsNull()
     {
-        var session = await _authService.GetSessionAsync("nonexistent_user");
+        Core.Models.UserSession? session = await _authService.GetSessionAsync("nonexistent_user");
         session.Should().BeNull();
     }
 }

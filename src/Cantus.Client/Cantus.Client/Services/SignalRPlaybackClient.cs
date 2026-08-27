@@ -157,7 +157,8 @@ public sealed class AuthorizedSessionPayload
     public DateTimeOffset UpdatedAtUtc { get; set; }
 
     [JsonIgnore]
-    public Microsoft.UI.Xaml.Visibility PlayingVisibility => IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+    public Microsoft.UI.Xaml.Visibility PlayingVisibility =>
+        IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 }
 
 public sealed class ClockSyncResponsePayload
@@ -255,7 +256,14 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
             {
                 options.PayloadSerializerOptions.TypeInfoResolver = CantusJsonContext.Default;
             })
-            .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) })
+            .WithAutomaticReconnect(
+            [
+                TimeSpan.Zero,
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(10)
+            ])
             .Build();
 
         _connection.On<PlaybackStatePayload>("ReceivePlaybackState", state =>
@@ -328,7 +336,8 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         try
         {
             long t1 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            ClockSyncResponsePayload response = await _connection.InvokeAsync<ClockSyncResponsePayload>("SyncClock", t1);
+            ClockSyncResponsePayload response = await _connection
+                .InvokeAsync<ClockSyncResponsePayload>("SyncClock", t1);
             long t4 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             long t2 = response.ServerReceiveTimeMs;

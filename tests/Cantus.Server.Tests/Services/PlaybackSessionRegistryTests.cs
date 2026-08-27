@@ -10,7 +10,7 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void RegisterAndUnregister_TracksConnectedClientsCount()
     {
-        var registry = new PlaybackSessionRegistry();
+        PlaybackSessionRegistry registry = new();
         registry.ConnectedClientsCount.Should().Be(0);
         registry.HasConnectedClients.Should().BeFalse();
 
@@ -33,7 +33,7 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void ConnectionTransitions_TriggerEvents()
     {
-        var registry = new PlaybackSessionRegistry();
+        PlaybackSessionRegistry registry = new();
         bool connectedFired = false;
         bool emptyFired = false;
 
@@ -55,7 +55,7 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void Subscriptions_CanBeSetAndRetrieved()
     {
-        var registry = new PlaybackSessionRegistry();
+        PlaybackSessionRegistry registry = new();
         registry.RegisterConnection("conn-1");
 
         registry.GetConnectionSubscription("conn-1").Should().BeNull();
@@ -70,8 +70,8 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void UpdateUserState_StoresAndRetrievesSnapshot()
     {
-        var registry = new PlaybackSessionRegistry();
-        var playback = new PlaybackState
+        PlaybackSessionRegistry registry = new();
+        PlaybackState playback = new()
         {
             CurrentTrack = new TrackInfo
             {
@@ -85,7 +85,7 @@ public sealed class PlaybackSessionRegistryTests
             TimestampUtc = DateTimeOffset.UtcNow
         };
 
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "track-1",
             Title = "Song A",
@@ -95,7 +95,7 @@ public sealed class PlaybackSessionRegistryTests
 
         registry.UpdateUserState("user-1", "Alice", playback, lyrics, 250);
 
-        var snapshot = registry.GetUserState("user-1");
+        UserPlaybackSnapshot? snapshot = registry.GetUserState("user-1");
         snapshot.Should().NotBeNull();
         snapshot!.UserId.Should().Be("user-1");
         snapshot.DisplayName.Should().Be("Alice");
@@ -107,15 +107,15 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void GetActivePlaybackSnapshot_PrioritizesPlayingUser()
     {
-        var registry = new PlaybackSessionRegistry();
+        PlaybackSessionRegistry registry = new();
 
-        var pausedPlayback = new PlaybackState
+        PlaybackState pausedPlayback = new()
         {
             CurrentTrack = new TrackInfo { Id = "track-1", Title = "Paused Song", Artist = "Artist 1" },
             IsPlaying = false
         };
 
-        var activePlayback = new PlaybackState
+        PlaybackState activePlayback = new()
         {
             CurrentTrack = new TrackInfo { Id = "track-2", Title = "Active Song", Artist = "Artist 2" },
             IsPlaying = true
@@ -124,7 +124,7 @@ public sealed class PlaybackSessionRegistryTests
         registry.UpdateUserState("user-paused", "Bob", pausedPlayback, null, 0);
         registry.UpdateUserState("user-active", "Charlie", activePlayback, null, 0);
 
-        var activeSnapshot = registry.GetActivePlaybackSnapshot();
+        UserPlaybackSnapshot? activeSnapshot = registry.GetActivePlaybackSnapshot();
         activeSnapshot.Should().NotBeNull();
         activeSnapshot!.UserId.Should().Be("user-active");
         activeSnapshot.DisplayName.Should().Be("Charlie");
@@ -133,14 +133,14 @@ public sealed class PlaybackSessionRegistryTests
     [Fact]
     public void GetActiveUserIdsWithConnectedClients_ReturnsDistinctAuthenticatedUsers()
     {
-        var registry = new PlaybackSessionRegistry();
+        PlaybackSessionRegistry registry = new();
 
         registry.RegisterConnection("conn-1", "user-1");
         registry.RegisterConnection("conn-2", "user-1"); // Multiple connections for same user
         registry.RegisterConnection("conn-3", "user-2");
         registry.RegisterConnection("conn-4", null); // Unauthenticated client
 
-        var activeUsers = registry.GetActiveUserIdsWithConnectedClients();
+        IReadOnlyCollection<string> activeUsers = registry.GetActiveUserIdsWithConnectedClients();
         activeUsers.Should().BeEquivalentTo(new[] { "user-1", "user-2" });
 
         registry.UnregisterConnection("conn-1");

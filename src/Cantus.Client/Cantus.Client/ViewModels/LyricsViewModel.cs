@@ -402,7 +402,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    public Visibility CalibrationToastVisibility => _isCalibrationToastVisible ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility CalibrationToastVisibility =>
+        _isCalibrationToastVisible ? Visibility.Visible : Visibility.Collapsed;
 
     public int ActiveLineIndex
     {
@@ -602,7 +603,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        TrackPayload track = state.CurrentTrack;
+        TrackInfoPayload track = state.CurrentTrack;
         CurrentTitle = track.Title;
         CurrentArtist = track.Artist;
         CurrentAlbum = track.Album ?? string.Empty;
@@ -776,7 +777,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        TrackPayload track = _lastPlaybackState.CurrentTrack;
+        TrackInfoPayload track = _lastPlaybackState.CurrentTrack;
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 

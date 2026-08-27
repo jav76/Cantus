@@ -13,7 +13,7 @@ public sealed class ThemeManagerTests
     public void SetThemeMode_PredefinedPalettes_UpdatesActivePaletteCorrectly()
     {
         // Arrange
-        var tm = new ThemeManager();
+        ThemeManager tm = new();
 
         // Act - EmeraldSynth
         tm.SetThemeMode(ThemeMode.EmeraldSynth);
@@ -44,11 +44,14 @@ public sealed class ThemeManagerTests
     public void DynamicTheme_WithTrackMetadata_GeneratesHarmoniousPalette()
     {
         // Arrange
-        var tm = new ThemeManager();
+        ThemeManager tm = new();
         tm.SetThemeMode(ThemeMode.Dynamic);
 
         // Act
-        tm.UpdateTrackMetadata(title: "Blinding Lights", artist: "The Weeknd", albumArtUrl: "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36");
+        tm.UpdateTrackMetadata(
+            title: "Blinding Lights",
+            artist: "The Weeknd",
+            albumArtUrl: "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36");
 
         // Assert
         tm.ActivePalette.Name.Should().Contain("Blinding Lights");
@@ -61,7 +64,7 @@ public sealed class ThemeManagerTests
     public void CycleNextTheme_AdvancesThroughAllThemesInOrder()
     {
         // Arrange
-        var tm = new ThemeManager();
+        ThemeManager tm = new();
         tm.SetThemeMode(ThemeMode.Dynamic);
 
         // Act & Assert

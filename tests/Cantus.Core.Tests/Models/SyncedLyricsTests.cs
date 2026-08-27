@@ -9,7 +9,7 @@ public class SyncedLyricsTests
     [Fact]
     public void GetActiveLineIndex_WhenEmpty_ReturnsNegativeOne()
     {
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "1",
             Title = "Song",
@@ -24,7 +24,7 @@ public class SyncedLyricsTests
     [Fact]
     public void GetActiveLineIndex_BeforeFirstLine_ReturnsNegativeOne()
     {
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "1",
             Title = "Song",
@@ -44,7 +44,7 @@ public class SyncedLyricsTests
     [Fact]
     public void GetActiveLineIndex_ExactAndBetweenLines_ReturnsCorrectActiveLine()
     {
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "1",
             Title = "Song",

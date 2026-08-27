@@ -35,7 +35,8 @@ public sealed record LyricLine(TimeSpan Timestamp, string Text, IReadOnlyList<Ly
             return [new LyricWordTimestamp(words[0], Timestamp, 0)];
         }
 
-        TimeSpan duration = lineDuration.GetValueOrDefault(TimeSpan.FromSeconds(Math.Clamp(words.Length * 0.45, 1.5, 6.0)));
+        TimeSpan duration = lineDuration.GetValueOrDefault(
+            TimeSpan.FromSeconds(Math.Clamp(words.Length * 0.45, 1.5, 6.0)));
         if (duration <= TimeSpan.Zero)
         {
             duration = TimeSpan.FromSeconds(3.0);
