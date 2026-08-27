@@ -1,0 +1,42 @@
+# Cantus Solution EditorConfig & Code Style Rules
+root = true
+
+# Global formatting settings
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = false
+end_of_line = lf
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+
+# XML / XAML / Project files
+[*.{xml,xaml,axaml,svg,props,targets,csproj,slnx}]
+indent_size = 2
+
+# JSON / YAML
+[*.{json,yml,yaml}]
+indent_size = 2
+
+# C# Source Files
+[*.cs]
+# Indentation & Braces
+csharp_indent_braces = false
+csharp_indent_switch_labels = true
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+
+# Severities (Advisory / Warning only, never blocking errors)
+dotnet_analyzer_diagnostic.severity = suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
