@@ -31,9 +31,9 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     [Fact]
     public async Task GetCachedLyrics_WhenFound_ReturnsLyricsDto()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "track-123",
             Title = "Song Title",
@@ -45,10 +45,10 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
             .Setup(c => c.GetCachedLyricsAsync("track-123", It.IsAny<CancellationToken>()))
             .ReturnsAsync(lyrics);
 
-        var response = await client.GetAsync("/api/lyrics/track-123");
+        HttpResponseMessage response = await client.GetAsync("/api/lyrics/track-123");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var dto = await response.Content.ReadFromJsonAsync<LyricsDto>();
+        LyricsDto? dto = await response.Content.ReadFromJsonAsync<LyricsDto>();
         dto.Should().NotBeNull();
         dto!.TrackId.Should().Be("track-123");
         dto.Lines.Should().HaveCount(1);
@@ -58,13 +58,13 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     [Fact]
     public async Task GetCachedLyrics_WhenNotFound_Returns404()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
         _mockCacheRepo
             .Setup(c => c.GetCachedLyricsAsync("unknown", It.IsAny<CancellationToken>()))
             .ReturnsAsync((SyncedLyrics?)null);
 
-        var response = await client.GetAsync("/api/lyrics/unknown");
+        HttpResponseMessage response = await client.GetAsync("/api/lyrics/unknown");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -72,15 +72,15 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     [Fact]
     public async Task SetTrackOffset_SavesOffsetAndReturnsOk()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
-        var request = new TrackOffsetDto
+        TrackOffsetDto request = new()
         {
             TrackId = "track-123",
             OffsetMs = 500
         };
 
-        var response = await client.PostAsJsonAsync("/api/lyrics/offset", request);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/lyrics/offset", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         _mockCacheRepo.Verify(c => c.SetTrackOffsetAsync("track-123", 500, It.IsAny<CancellationToken>()), Times.Once);

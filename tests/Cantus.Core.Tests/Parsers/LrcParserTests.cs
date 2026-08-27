@@ -1,3 +1,4 @@
+using Cantus.Core.Models;
 using Cantus.Core.Parsers;
 using FluentAssertions;
 using Xunit;
@@ -9,7 +10,7 @@ public class LrcParserTests
     [Fact]
     public void Parse_WhenRawLrcIsEmpty_ReturnsEmptySyncedLyrics()
     {
-        var result = LrcParser.Parse(string.Empty, "track1", "Title", "Artist");
+        SyncedLyrics result = LrcParser.Parse(string.Empty, "track1", "Title", "Artist");
 
         result.Should().NotBeNull();
         result.Lines.Should().BeEmpty();
@@ -26,7 +27,7 @@ public class LrcParserTests
             [02:30.00]Third line of song
             """;
 
-        var result = LrcParser.Parse(lrc, "t1", "Title", "Artist");
+        SyncedLyrics result = LrcParser.Parse(lrc, "t1", "Title", "Artist");
 
         result.Lines.Should().HaveCount(3);
         result.IsSynced.Should().BeTrue();
@@ -46,7 +47,7 @@ public class LrcParserTests
     {
         string lrc = "[00:04.123]High precision line";
 
-        var result = LrcParser.Parse(lrc);
+        SyncedLyrics result = LrcParser.Parse(lrc);
 
         result.Lines.Should().ContainSingle();
         result.Lines[0].Timestamp.Should().Be(TimeSpan.FromMilliseconds(4123));
@@ -61,7 +62,7 @@ public class LrcParserTests
             [00:20.00]Middle verse
             """;
 
-        var result = LrcParser.Parse(lrc);
+        SyncedLyrics result = LrcParser.Parse(lrc);
 
         result.Lines.Should().HaveCount(3);
         result.Lines[0].Timestamp.Should().Be(TimeSpan.FromSeconds(10));
@@ -85,7 +86,7 @@ public class LrcParserTests
             [00:05.00]Actual lyric line
             """;
 
-        var result = LrcParser.Parse(lrc);
+        SyncedLyrics result = LrcParser.Parse(lrc);
 
         result.Lines.Should().ContainSingle();
         result.Lines[0].Timestamp.Should().Be(TimeSpan.FromSeconds(5));
@@ -97,10 +98,10 @@ public class LrcParserTests
     {
         string lrc = "[00:10.00]<00:10.00>Never <00:10.50>gonna <00:11.00>give <00:11.50>you <00:12.00>up";
 
-        var result = LrcParser.Parse(lrc);
+        SyncedLyrics result = LrcParser.Parse(lrc);
 
         result.Lines.Should().ContainSingle();
-        var line = result.Lines[0];
+        LyricLine line = result.Lines[0];
         line.Text.Should().Be("Never gonna give you up");
         line.Syllables.Should().NotBeNull();
         line.Syllables.Should().HaveCount(5);
@@ -113,9 +114,9 @@ public class LrcParserTests
     [Fact]
     public void GetWordTimestamps_WithoutSyllables_EstimatesProportionalTimestamps()
     {
-        var line = new Cantus.Core.Models.LyricLine(TimeSpan.FromSeconds(10), "Never gonna give you up");
+        LyricLine line = new(TimeSpan.FromSeconds(10), "Never gonna give you up");
 
-        var words = line.GetWordTimestamps(TimeSpan.FromSeconds(5));
+        IReadOnlyList<LyricWordTimestamp> words = line.GetWordTimestamps(TimeSpan.FromSeconds(5));
 
         words.Should().HaveCount(5);
         words[0].Word.Should().Be("Never");

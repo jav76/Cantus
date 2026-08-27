@@ -5,12 +5,17 @@ using Cantus.Server.BackgroundServices;
 using Cantus.Server.Endpoints;
 using Cantus.Server.Hubs;
 using Cantus.Server.Services;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // 1. Data Directory & Data Protection Key Persistence
 string? dataDir = Environment.GetEnvironmentVariable("DATA_DIR")
@@ -74,17 +79,17 @@ builder.Services.AddCors(options =>
 // 7. OpenAPI & Documentation
 builder.Services.AddOpenApi();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // 8. Reverse Proxy Forwarded Headers Pipeline
 app.UseForwardedHeaders();
 
 // 9. Ensure Database Directory Exists & Run Migrations
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    IConfiguration config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     string connStr = config.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
-    var match = Regex.Match(connStr, @"Data Source=([^;]+)", RegexOptions.IgnoreCase);
+    Match match = Regex.Match(connStr, @"Data Source=([^;]+)", RegexOptions.IgnoreCase);
     if (match.Success)
     {
         string dbPath = match.Groups[1].Value.Trim();
@@ -95,7 +100,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    var dbContext = scope.ServiceProvider.GetRequiredService<CantusDbContext>();
+    CantusDbContext dbContext = scope.ServiceProvider.GetRequiredService<CantusDbContext>();
     dbContext.Database.Migrate();
 }
 
@@ -114,7 +119,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseDefaultFiles();
 
-var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+FileExtensionContentTypeProvider contentTypeProvider = new();
 contentTypeProvider.Mappings[".dat"] = "application/octet-stream";
 contentTypeProvider.Mappings[".wasm"] = "application/wasm";
 contentTypeProvider.Mappings[".dll"] = "application/octet-stream";

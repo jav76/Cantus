@@ -16,8 +16,8 @@ public sealed class LyricsViewModelTests
     public void FindActiveLineIndex_WithNoLines_ReturnsMinusOne()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
 
         // Act
         int result = vm.FindActiveLineIndex(15000);
@@ -30,8 +30,8 @@ public sealed class LyricsViewModelTests
     public void FindActiveLineIndex_WithMultipleLines_CorrectlyLocatesLines()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
 
         vm.LyricLines.Add(new LyricLineViewModel { TimestampMs = 10000, Text = "Line 1" });
         vm.LyricLines.Add(new LyricLineViewModel { TimestampMs = 20000, Text = "Line 2" });
@@ -51,7 +51,7 @@ public sealed class LyricsViewModelTests
     public void LyricLineViewModel_VisualProperties_UpdateOnActiveAndPast()
     {
         // Arrange
-        var line = new LyricLineViewModel { TimestampMs = 5000, Text = "Hello world" };
+        LyricLineViewModel line = new() { TimestampMs = 5000, Text = "Hello world" };
 
         // Act - Active
         line.IsActive = true;
@@ -82,9 +82,9 @@ public sealed class LyricsViewModelTests
     public void ToggleKioskMode_TogglesState_AndSynchronizesWithLayoutManager()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var layout = new ResponsiveLayoutManager();
-        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
+        SignalRPlaybackClient client = new();
+        ResponsiveLayoutManager layout = new();
+        LyricsViewModel vm = new(client, ThemeManager.Instance, layout);
         vm.IsKioskMode.Should().BeFalse();
         layout.IsKioskMode.Should().BeFalse();
 
@@ -108,12 +108,12 @@ public sealed class LyricsViewModelTests
     public void LayoutManagerBreakpointChange_UpdatesLyricLineFontSizes()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var layout = new ResponsiveLayoutManager();
+        SignalRPlaybackClient client = new();
+        ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(1440, 900); // Large
-        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
+        LyricsViewModel vm = new(client, ThemeManager.Instance, layout);
 
-        var line = new LyricLineViewModel { TimestampMs = 1000, Text = "Sing along" };
+        LyricLineViewModel line = new() { TimestampMs = 1000, Text = "Sing along" };
         vm.LyricLines.Add(line);
 
         line.IsActive = true;
@@ -136,9 +136,9 @@ public sealed class LyricsViewModelTests
     public void MobileView_Switching_UpdatesViewModelAndLayout()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var layout = new ResponsiveLayoutManager();
-        var vm = new LyricsViewModel(client, ThemeManager.Instance, layout);
+        SignalRPlaybackClient client = new();
+        ResponsiveLayoutManager layout = new();
+        LyricsViewModel vm = new(client, ThemeManager.Instance, layout);
 
         // Act
         vm.SetMobileView(MobileViewMode.NowPlaying);
@@ -157,9 +157,9 @@ public sealed class LyricsViewModelTests
     public void ToggleCalibrationMode_TogglesStateAndPropagatesToLines()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
-        var line = new LyricLineViewModel { TimestampMs = 1000, Text = "Hello" };
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        LyricLineViewModel line = new() { TimestampMs = 1000, Text = "Hello" };
         vm.LyricLines.Add(line);
 
         vm.IsCalibrationMode.Should().BeFalse();
@@ -184,8 +184,8 @@ public sealed class LyricsViewModelTests
     public void DismissCalibrationToast_HidesToast()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
         vm.IsCalibrationToastVisible = true;
         vm.CalibrationToastMessage = "Test message";
 
@@ -200,8 +200,8 @@ public sealed class LyricsViewModelTests
     public void ToggleStaticLyricsMode_TogglesStateAndVisibilities()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
         vm.HasLyrics = true;
 
         vm.IsStaticLyricsMode.Should().BeFalse();
@@ -223,8 +223,8 @@ public sealed class LyricsViewModelTests
     public void StaticLyricsText_WhenLinesExist_GeneratesFormattedText()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
         vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 1" });
         vm.LyricLines.Add(new LyricLineViewModel { Text = "Line 2" });
 
@@ -236,7 +236,7 @@ public sealed class LyricsViewModelTests
     public void LyricLineViewModel_PopulateWords_CreatesWordViewModelsWithTimestamps()
     {
         // Arrange
-        var line = new LyricLineViewModel { TimestampMs = 10000, Text = "Sing along with me" };
+        LyricLineViewModel line = new() { TimestampMs = 10000, Text = "Sing along with me" };
 
         // Act
         line.PopulateWords(TimeSpan.FromSeconds(4));
@@ -253,8 +253,8 @@ public sealed class LyricsViewModelTests
     public async Task LogoutAsync_ResetsSessionAndPlaybackState()
     {
         // Arrange
-        var client = new SignalRPlaybackClient();
-        var vm = new LyricsViewModel(client);
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
         vm.Sessions.Add(new AuthorizedSessionPayload
         {
             Id = "user-1",

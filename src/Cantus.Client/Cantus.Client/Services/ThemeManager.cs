@@ -83,7 +83,7 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
     public void CycleNextTheme()
     {
-        var modes = (ThemeMode[])Enum.GetValues(typeof(ThemeMode));
+        ThemeMode[] modes = (ThemeMode[])Enum.GetValues(typeof(ThemeMode));
         int nextIndex = ((int)CurrentMode + 1) % modes.Length;
         SetThemeMode(modes[nextIndex]);
     }
@@ -96,7 +96,10 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
         if (CurrentMode == ThemeMode.Dynamic)
         {
-            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(title, artist, albumArtUrl);
+            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(
+                title,
+                artist,
+                albumArtUrl);
         }
     }
 
@@ -104,7 +107,10 @@ public sealed class ThemeManager : INotifyPropertyChanged
     {
         if (CurrentMode == ThemeMode.Dynamic)
         {
-            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(_lastTitle, _lastArtist, _lastAlbumArtUrl);
+            ActivePalette = ColorExtractionHelper.GeneratePaletteFromMetadata(
+                _lastTitle,
+                _lastArtist,
+                _lastAlbumArtUrl);
         }
         else
         {

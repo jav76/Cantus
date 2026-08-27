@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
@@ -11,6 +12,12 @@ namespace Cantus.Infrastructure.Lyrics;
 
 public class LrclibLyricsProvider : ILyricsProvider
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals
+    };
+
     private readonly HttpClient _httpClient;
     private readonly ILogger<LrclibLyricsProvider> _logger;
 
@@ -22,7 +29,7 @@ public class LrclibLyricsProvider : ILyricsProvider
         _httpClient = httpClient;
         _logger = logger;
 
-        var opt = options.Value;
+        LrclibOptions opt = options.Value;
         if (_httpClient.BaseAddress is null)
         {
             _httpClient.BaseAddress = new Uri(opt.BaseUrl);
@@ -34,21 +41,23 @@ public class LrclibLyricsProvider : ILyricsProvider
         }
     }
 
-    public virtual async Task<SyncedLyrics?> GetLyricsAsync(TrackInfo track, CancellationToken cancellationToken = default)
+    public virtual async Task<SyncedLyrics?> GetLyricsAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(track);
 
         try
         {
             // 1. Try exact lookup via /api/get
-            var exactResult = await TryGetExactLyricsAsync(track, cancellationToken);
+            LrclibResponseDto? exactResult = await TryGetExactLyricsAsync(track, cancellationToken);
             if (exactResult is not null)
             {
                 return MapToDomain(exactResult, track);
             }
 
             // 2. Fallback to /api/search
-            var searchResult = await TrySearchLyricsAsync(track, cancellationToken);
+            LrclibResponseDto? searchResult = await TrySearchLyricsAsync(track, cancellationToken);
             if (searchResult is not null)
             {
                 return MapToDomain(searchResult, track);
@@ -58,22 +67,22 @@ public class LrclibLyricsProvider : ILyricsProvider
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogError(ex, "Failed to retrieve lyrics from LRCLIB for track {TrackId} ({Artist} - {Title})",
-                track.Id, track.Artist, track.Title);
+            _logger.LogError(
+                ex,
+                "Failed to retrieve lyrics from LRCLIB for track {TrackId} ({Artist} - {Title})",
+                track.Id,
+                track.Artist,
+                track.Title);
             return null;
         }
     }
 
-    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals
-    };
-
     private async Task<LrclibResponseDto?> TryGetExactLyricsAsync(TrackInfo track, CancellationToken ct)
     {
         int durationSec = (int)Math.Round(track.Duration.TotalSeconds);
-        string url = $"/api/get?track_name={Uri.EscapeDataString(track.Title)}&artist_name={Uri.EscapeDataString(track.Artist)}";
+        string trackParam = Uri.EscapeDataString(track.Title);
+        string artistParam = Uri.EscapeDataString(track.Artist);
+        string url = $"/api/get?track_name={trackParam}&artist_name={artistParam}";
 
         if (!string.IsNullOrWhiteSpace(track.Album))
         {
@@ -85,7 +94,7 @@ public class LrclibLyricsProvider : ILyricsProvider
             url += $"&duration={durationSec}";
         }
 
-        using var response = await _httpClient.GetAsync(url, ct);
+        using HttpResponseMessage response = await _httpClient.GetAsync(url, ct);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -101,31 +110,34 @@ public class LrclibLyricsProvider : ILyricsProvider
         string query = $"{track.Title} {track.Artist}";
         string url = $"/api/search?q={Uri.EscapeDataString(query)}";
 
-        using var response = await _httpClient.GetAsync(url, ct);
+        using HttpResponseMessage response = await _httpClient.GetAsync(url, ct);
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        var results = await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(JsonOptions, cancellationToken: ct);
+        List<LrclibResponseDto>? results = await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(
+            JsonOptions,
+            cancellationToken: ct);
+
         if (results is null || results.Count == 0)
         {
             return null;
         }
 
-        // Find candidate with synced lyrics and closest duration (within 4 seconds tolerance if duration known)
         int targetDurationSec = (int)Math.Round(track.Duration.TotalSeconds);
 
-        var candidate = results
+        LrclibResponseDto? candidate = results
             .Where(r => !string.IsNullOrWhiteSpace(r.SyncedLyrics))
-            .OrderBy(r => targetDurationSec > 0 && r.Duration.HasValue ? Math.Abs(r.Duration.Value - targetDurationSec) : 0)
+            .OrderBy(r => targetDurationSec > 0 && r.Duration.HasValue
+                ? Math.Abs(r.Duration.Value - targetDurationSec)
+                : 0)
             .FirstOrDefault();
 
         if (candidate is not null && targetDurationSec > 0 && candidate.Duration.HasValue)
         {
             if (Math.Abs(candidate.Duration.Value - targetDurationSec) > 5)
             {
-                // Mismatch too high, don't use inaccurate candidate
                 return null;
             }
         }
@@ -150,7 +162,14 @@ public class LrclibLyricsProvider : ILyricsProvider
             };
         }
 
-        var parsed = LrcParser.Parse(dto.SyncedLyrics, track.Id, track.Title, track.Artist, track.Album ?? dto.AlbumName, dto.PlainLyrics);
+        SyncedLyrics parsed = LrcParser.Parse(
+            dto.SyncedLyrics,
+            track.Id,
+            track.Title,
+            track.Artist,
+            track.Album ?? dto.AlbumName,
+            dto.PlainLyrics);
+
         return parsed;
     }
 

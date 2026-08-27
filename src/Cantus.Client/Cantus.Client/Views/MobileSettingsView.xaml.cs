@@ -34,27 +34,27 @@ public sealed partial class MobileSettingsView : UserControl
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(-500);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-500);
     }
 
     private async void OnNudgeMinus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(-100);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-100);
     }
 
     private async void OnResetOffsetClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.ResetOffsetAsync();
+        if (ViewModel is not null) await ViewModel.ResetOffsetAsync();
     }
 
     private async void OnNudgePlus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(100);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(100);
     }
 
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null) await ViewModel.NudgeOffsetAsync(500);
+        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(500);
     }
 
     private void OnToggleCalibrationClicked(object sender, RoutedEventArgs e)
@@ -80,7 +80,7 @@ public sealed partial class MobileSettingsView : UserControl
                 : "/api/auth/spotify/login";
             WasmInterop.NavigateTo(loginUrl);
 #else
-            var uri = new Uri("http://localhost:5000/api/auth/spotify/login");
+            Uri uri = new("http://localhost:5000/api/auth/spotify/login");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif
         }
@@ -92,7 +92,7 @@ public sealed partial class MobileSettingsView : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
+        if (ViewModel is not null)
         {
             await ViewModel.LogoutAsync();
         }

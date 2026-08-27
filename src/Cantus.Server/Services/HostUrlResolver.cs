@@ -63,7 +63,9 @@ public sealed class HostUrlResolver : IHostUrlResolver
             ?? _configuration["BASE_URL"];
 
         // If explicit redirect is specified and no override host URL is given, return explicit
-        if (!string.IsNullOrWhiteSpace(explicitRedirect) && string.IsNullOrWhiteSpace(envHostUrl) && explicitRedirect != "http://localhost:5000/api/auth/spotify/callback")
+        if (!string.IsNullOrWhiteSpace(explicitRedirect) &&
+            string.IsNullOrWhiteSpace(envHostUrl) &&
+            explicitRedirect != "http://localhost:5000/api/auth/spotify/callback")
         {
             return explicitRedirect;
         }

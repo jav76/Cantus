@@ -18,7 +18,10 @@ public static class DtoMappingExtensions
         };
     }
 
-    public static PlaybackStateDto ToDto(this PlaybackState state, string? activeUserId = null, string? activeUserName = null)
+    public static PlaybackStateDto ToDto(
+        this PlaybackState state,
+        string? activeUserId = null,
+        string? activeUserName = null)
     {
         return new PlaybackStateDto
         {
@@ -35,7 +38,7 @@ public static class DtoMappingExtensions
 
     public static LyricsDto ToDto(this SyncedLyrics lyrics)
     {
-        var lines = lyrics.Lines.Select(l => new LyricLineDto
+        List<LyricLineDto> lines = lyrics.Lines.Select(l => new LyricLineDto
         {
             TimestampMs = (long)l.Timestamp.TotalMilliseconds,
             Text = l.Text

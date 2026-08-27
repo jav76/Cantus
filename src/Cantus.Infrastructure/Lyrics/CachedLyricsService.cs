@@ -31,25 +31,34 @@ public sealed class CachedLyricsService : ILyricsProvider
         // 1. Check negative cache
         if (await _cacheRepository.IsMarkedNotFoundAsync(track.Id, cancellationToken))
         {
-            _logger.LogDebug("Negative cache hit for track {TrackId} ({Artist} - {Title})",
-                track.Id, track.Artist, track.Title);
+            _logger.LogDebug(
+                "Negative cache hit for track {TrackId} ({Artist} - {Title})",
+                track.Id,
+                track.Artist,
+                track.Title);
             return null;
         }
 
         // 2. Check SQLite positive cache
-        var cached = await _cacheRepository.GetCachedLyricsAsync(track.Id, cancellationToken);
+        SyncedLyrics? cached = await _cacheRepository.GetCachedLyricsAsync(track.Id, cancellationToken);
         if (cached is not null)
         {
-            _logger.LogDebug("Cache hit for track {TrackId} ({Artist} - {Title})",
-                track.Id, track.Artist, track.Title);
+            _logger.LogDebug(
+                "Cache hit for track {TrackId} ({Artist} - {Title})",
+                track.Id,
+                track.Artist,
+                track.Title);
             return cached;
         }
 
         // 3. Query LRCLIB
-        _logger.LogInformation("Cache miss for track {TrackId} ({Artist} - {Title}). Fetching from LRCLIB...",
-            track.Id, track.Artist, track.Title);
+        _logger.LogInformation(
+            "Cache miss for track {TrackId} ({Artist} - {Title}). Fetching from LRCLIB...",
+            track.Id,
+            track.Artist,
+            track.Title);
 
-        var freshLyrics = await _lrclibProvider.GetLyricsAsync(track, cancellationToken);
+        SyncedLyrics? freshLyrics = await _lrclibProvider.GetLyricsAsync(track, cancellationToken);
 
         if (freshLyrics is not null)
         {
@@ -58,7 +67,7 @@ public sealed class CachedLyricsService : ILyricsProvider
         }
 
         // 4. Mark not found with TTL
-        var ttl = TimeSpan.FromDays(_options.NegativeCacheDays);
+        TimeSpan ttl = TimeSpan.FromDays(_options.NegativeCacheDays);
         await _cacheRepository.MarkNotFoundAsync(
             track.Id,
             track.Title,

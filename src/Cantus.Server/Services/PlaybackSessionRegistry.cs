@@ -57,13 +57,13 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
 
     public string? GetConnectionSubscription(string connectionId)
     {
-        return _connectionSubscriptions.TryGetValue(connectionId, out var target) ? target : null;
+        return _connectionSubscriptions.TryGetValue(connectionId, out string? target) ? target : null;
     }
 
     public IReadOnlySet<string> GetActiveUserIdsWithConnectedClients()
     {
-        var set = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var userId in _connectionSubscriptions.Values)
+        HashSet<string> set = new(StringComparer.Ordinal);
+        foreach (string? userId in _connectionSubscriptions.Values)
         {
             if (!string.IsNullOrWhiteSpace(userId))
             {
@@ -80,7 +80,7 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
         SyncedLyrics? lyrics,
         int offsetMs)
     {
-        var snapshot = new UserPlaybackSnapshot(
+        UserPlaybackSnapshot snapshot = new(
             userId,
             displayName,
             playbackState,
@@ -94,13 +94,13 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
 
     public UserPlaybackSnapshot? GetUserState(string userId)
     {
-        return _userSnapshots.TryGetValue(userId, out var snapshot) ? snapshot : null;
+        return _userSnapshots.TryGetValue(userId, out UserPlaybackSnapshot? snapshot) ? snapshot : null;
     }
 
     public UserPlaybackSnapshot? GetActivePlaybackSnapshot()
     {
         // First priority: A user who is actively playing
-        var playingSnapshot = _userSnapshots.Values
+        UserPlaybackSnapshot? playingSnapshot = _userSnapshots.Values
             .FirstOrDefault(s => s.PlaybackState is not null && s.PlaybackState.IsPlaying);
 
         if (playingSnapshot is not null)

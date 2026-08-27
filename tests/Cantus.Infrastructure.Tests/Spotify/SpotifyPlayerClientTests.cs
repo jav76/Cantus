@@ -13,9 +13,9 @@ public class SpotifyPlayerClientTests
     [InlineData(null)]
     public async Task GetCurrentPlaybackAsync_WithInvalidToken_ReturnsNull(string? token)
     {
-        var client = new SpotifyPlayerClient(NullLogger<SpotifyPlayerClient>.Instance);
+        SpotifyPlayerClient client = new(NullLogger<SpotifyPlayerClient>.Instance);
 
-        var result = await client.GetCurrentPlaybackAsync(token!);
+        Core.Models.PlaybackState? result = await client.GetCurrentPlaybackAsync(token!);
         result.Should().BeNull();
     }
 }

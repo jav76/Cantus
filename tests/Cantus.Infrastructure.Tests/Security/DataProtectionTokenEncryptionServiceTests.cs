@@ -10,8 +10,8 @@ public class DataProtectionTokenEncryptionServiceTests
     [Fact]
     public void EncryptAndDecrypt_ReturnsOriginalPlainText()
     {
-        var provider = new EphemeralDataProtectionProvider();
-        var service = new DataProtectionTokenEncryptionService(provider);
+        EphemeralDataProtectionProvider provider = new();
+        DataProtectionTokenEncryptionService service = new(provider);
         string secretToken = "BQD3abc123_spotify_secret_token_value";
 
         string cipherText = service.Encrypt(secretToken);
@@ -25,8 +25,8 @@ public class DataProtectionTokenEncryptionServiceTests
     [Fact]
     public void Encrypt_EmptyString_ReturnsEmptyString()
     {
-        var provider = new EphemeralDataProtectionProvider();
-        var service = new DataProtectionTokenEncryptionService(provider);
+        EphemeralDataProtectionProvider provider = new();
+        DataProtectionTokenEncryptionService service = new(provider);
 
         service.Encrypt(string.Empty).Should().BeEmpty();
         service.Decrypt(string.Empty).Should().BeEmpty();

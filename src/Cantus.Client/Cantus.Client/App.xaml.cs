@@ -26,7 +26,7 @@ public partial class App : Application
             rootFrame.NavigationFailed += OnNavigationFailed;
         }
 
-        if (rootFrame.Content == null)
+        if (rootFrame.Content is null)
         {
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
@@ -46,7 +46,7 @@ public partial class App : Application
     {
         try
         {
-            var factory = LoggerFactory.Create(builder =>
+            ILoggerFactory factory = LoggerFactory.Create(builder =>
             {
 #if __WASM__
                 builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());

@@ -1,4 +1,5 @@
 using Cantus.Core.Interfaces;
+using Cantus.Core.Models;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
@@ -14,14 +15,14 @@ public static class LyricsEndpoints
 {
     public static IEndpointRouteBuilder MapLyricsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/lyrics").WithTags("Lyrics & Playback");
+        RouteGroupBuilder group = endpoints.MapGroup("/api/lyrics").WithTags("Lyrics & Playback");
 
         group.MapGet("/{trackId}", async (
             string trackId,
             ILyricsCacheRepository cacheRepository,
             CancellationToken cancellationToken) =>
         {
-            var lyrics = await cacheRepository.GetCachedLyricsAsync(trackId, cancellationToken);
+            SyncedLyrics? lyrics = await cacheRepository.GetCachedLyricsAsync(trackId, cancellationToken);
             if (lyrics is null)
             {
                 return Results.NotFound(new { Message = $"Lyrics for track '{trackId}' not found in cache." });
@@ -46,7 +47,7 @@ public static class LyricsEndpoints
 
             await cacheRepository.SetTrackOffsetAsync(request.TrackId, request.OffsetMs, cancellationToken);
 
-            var activeSnapshot = registry.GetActivePlaybackSnapshot();
+            UserPlaybackSnapshot? activeSnapshot = registry.GetActivePlaybackSnapshot();
             if (activeSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
             {
                 registry.UpdateUserState(

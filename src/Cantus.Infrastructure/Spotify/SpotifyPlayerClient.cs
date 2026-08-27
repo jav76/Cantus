@@ -14,7 +14,9 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
         _logger = logger;
     }
 
-    public async Task<PlaybackState?> GetCurrentPlaybackAsync(string accessToken, CancellationToken cancellationToken = default)
+    public async Task<PlaybackState?> GetCurrentPlaybackAsync(
+        string accessToken,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(accessToken))
         {
@@ -23,10 +25,10 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
 
         try
         {
-            var spotify = new SpotifyClient(accessToken);
-            var tRequest = DateTimeOffset.UtcNow;
-            var playback = await spotify.Player.GetCurrentPlayback(cancellationToken);
-            var tResponse = DateTimeOffset.UtcNow;
+            SpotifyClient spotify = new(accessToken);
+            DateTimeOffset tRequest = DateTimeOffset.UtcNow;
+            CurrentlyPlayingContext? playback = await spotify.Player.GetCurrentPlayback(cancellationToken);
+            DateTimeOffset tResponse = DateTimeOffset.UtcNow;
 
             if (playback is null || playback.Item is null)
             {
@@ -66,7 +68,8 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             }
 
             // Anchor snapshot to server clock at request midpoint to ensure exact alignment with NTP SignalR sync
-            var serverSnapshotTimestamp = tRequest + TimeSpan.FromMilliseconds((tResponse - tRequest).TotalMilliseconds / 2.0);
+            TimeSpan roundTripDuration = TimeSpan.FromMilliseconds((tResponse - tRequest).TotalMilliseconds / 2.0);
+            DateTimeOffset serverSnapshotTimestamp = tRequest + roundTripDuration;
 
             return new PlaybackState
             {

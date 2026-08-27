@@ -38,17 +38,21 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockScopeFactory.Setup(s => s.CreateScope()).Returns(_mockScope.Object);
         _mockScope.Setup(s => s.ServiceProvider).Returns(_mockServiceProvider.Object);
 
-        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ISpotifyAuthService))).Returns(_mockAuthService.Object);
-        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ISpotifyPlayerClient))).Returns(_mockSpotifyClient.Object);
-        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ILyricsProvider))).Returns(_mockLyricsProvider.Object);
-        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ILyricsCacheRepository))).Returns(_mockLyricsCache.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ISpotifyAuthService)))
+            .Returns(_mockAuthService.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ISpotifyPlayerClient)))
+            .Returns(_mockSpotifyClient.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ILyricsProvider)))
+            .Returns(_mockLyricsProvider.Object);
+        _mockServiceProvider.Setup(sp => sp.GetService(typeof(ILyricsCacheRepository)))
+            .Returns(_mockLyricsCache.Object);
 
         _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
         _mockClients.Setup(c => c.All).Returns(_mockAll.Object);
         _mockClients.Setup(c => c.Group("user_user-1")).Returns(_mockUser1Group.Object);
         _mockClients.Setup(c => c.Group("user_user-2")).Returns(_mockUser2Group.Object);
 
-        var options = Options.Create(new PlaybackPollerOptions
+        IOptions<PlaybackPollerOptions> options = Options.Create(new PlaybackPollerOptions
         {
             ActivePollIntervalMs = 50,
             PausedPollIntervalMs = 50,
@@ -70,21 +74,24 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockRegistry.Setup(r => r.HasConnectedClients).Returns(false);
         _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string>());
 
-        using var cts = new CancellationTokenSource(100);
+        using CancellationTokenSource cts = new(100);
         await _monitor.StartAsync(cts.Token);
         await Task.Delay(50);
         await _monitor.StopAsync(CancellationToken.None);
 
-        _mockSpotifyClient.Verify(s => s.GetCurrentPlaybackAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockSpotifyClient.Verify(
+            s => s.GetCurrentPlaybackAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
     public async Task WhenClientsConnectedAndTrackPlays_FetchesLyricsAndBroadcastsToUserGroup()
     {
         _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
-        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string> { "user-1" });
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
 
-        var session = new UserSession
+        UserSession session = new()
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
@@ -93,7 +100,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             RefreshToken = "ref-1"
         };
 
-        var track = new TrackInfo
+        TrackInfo track = new()
         {
             Id = "track-1",
             Title = "Bohemian Rhapsody",
@@ -101,7 +108,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Duration = TimeSpan.FromMinutes(6)
         };
 
-        var playback = new PlaybackState
+        PlaybackState playback = new()
         {
             CurrentTrack = track,
             IsPlaying = true,
@@ -109,7 +116,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             TimestampUtc = DateTimeOffset.UtcNow
         };
 
-        var lyrics = new SyncedLyrics
+        SyncedLyrics lyrics = new()
         {
             TrackId = "track-1",
             Title = "Bohemian Rhapsody",
@@ -126,7 +133,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
             .ReturnsAsync(lyrics);
 
-        using var cts = new CancellationTokenSource(200);
+        using CancellationTokenSource cts = new(200);
         await _monitor.StartAsync(cts.Token);
         await Task.Delay(100);
         await _monitor.StopAsync(CancellationToken.None);
@@ -141,33 +148,82 @@ public sealed class ActiveUsersPlaybackMonitorTests
     public async Task WhenMultipleUsersConnected_BroadcastsIndividuallyToEachUserGroup()
     {
         _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
-        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients()).Returns(new HashSet<string> { "user-1", "user-2" });
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1", "user-2" });
 
-        var session1 = new UserSession { Id = "user-1", SpotifyUserId = "sp-1", DisplayName = "Alice", AccessToken = "tok-1", RefreshToken = "ref-1" };
-        var session2 = new UserSession { Id = "user-2", SpotifyUserId = "sp-2", DisplayName = "Bob", AccessToken = "tok-2", RefreshToken = "ref-2" };
+        UserSession session1 = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+        UserSession session2 = new()
+        {
+            Id = "user-2",
+            SpotifyUserId = "sp-2",
+            DisplayName = "Bob",
+            AccessToken = "tok-2",
+            RefreshToken = "ref-2"
+        };
 
-        var track1 = new TrackInfo { Id = "track-1", Title = "Song 1", Artist = "Artist 1" };
-        var track2 = new TrackInfo { Id = "track-2", Title = "Song 2", Artist = "Artist 2" };
+        TrackInfo track1 = new() { Id = "track-1", Title = "Song 1", Artist = "Artist 1" };
+        TrackInfo track2 = new() { Id = "track-2", Title = "Song 2", Artist = "Artist 2" };
 
-        var playback1 = new PlaybackState { CurrentTrack = track1, IsPlaying = true, Progress = TimeSpan.FromSeconds(10) };
-        var playback2 = new PlaybackState { CurrentTrack = track2, IsPlaying = true, Progress = TimeSpan.FromSeconds(20) };
+        PlaybackState playback1 = new()
+        {
+            CurrentTrack = track1,
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(10)
+        };
+        PlaybackState playback2 = new()
+        {
+            CurrentTrack = track2,
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(20)
+        };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>())).ReturnsAsync(session1);
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", It.IsAny<CancellationToken>())).ReturnsAsync(session2);
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session1);
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session2);
 
-        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>())).ReturnsAsync(playback1);
-        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-2", It.IsAny<CancellationToken>())).ReturnsAsync(playback2);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(playback1);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-2", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(playback2);
 
-        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track1, It.IsAny<CancellationToken>())).ReturnsAsync(new SyncedLyrics { TrackId = "track-1", Title = "Song 1", Artist = "Artist 1", Lines = [] });
-        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track2, It.IsAny<CancellationToken>())).ReturnsAsync(new SyncedLyrics { TrackId = "track-2", Title = "Song 2", Artist = "Artist 2", Lines = [] });
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncedLyrics
+            {
+                TrackId = "track-1",
+                Title = "Song 1",
+                Artist = "Artist 1",
+                Lines = []
+            });
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track2, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncedLyrics
+            {
+                TrackId = "track-2",
+                Title = "Song 2",
+                Artist = "Artist 2",
+                Lines = []
+            });
 
-        using var cts = new CancellationTokenSource(200);
+        using CancellationTokenSource cts = new(200);
         await _monitor.StartAsync(cts.Token);
         await Task.Delay(100);
         await _monitor.StopAsync(CancellationToken.None);
 
-        _mockUser1Group.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 1")), Times.AtLeastOnce);
-        _mockUser2Group.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 2")), Times.AtLeastOnce);
+        _mockUser1Group.Verify(
+            c => c.ReceivePlaybackState(
+                It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 1")),
+            Times.AtLeastOnce);
+        _mockUser2Group.Verify(
+            c => c.ReceivePlaybackState(
+                It.Is<PlaybackStateDto>(p => p.CurrentTrack != null && p.CurrentTrack.Title == "Song 2")),
+            Times.AtLeastOnce);
         _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
     }
 }

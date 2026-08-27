@@ -7,7 +7,7 @@ public class CantusDbContextFactory : IDesignTimeDbContextFactory<CantusDbContex
 {
     public CantusDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<CantusDbContext>();
+        DbContextOptionsBuilder<CantusDbContext> optionsBuilder = new();
         optionsBuilder.UseSqlite("Data Source=cantus.db");
 
         return new CantusDbContext(optionsBuilder.Options);

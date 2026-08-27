@@ -34,12 +34,20 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: Cantus.slnx
+
+      - name: Install Uno WebAssembly Workload
+        run: dotnet workload install wasm-tools
+
+      - name: Restore Dependencies
+        run: dotnet restore Cantus.slnx
 
       - name: Check Code Style & Formatting
         shell: bash
         run: |
           echo "Running solution code formatting & style inspection..."
-          if ! dotnet format Cantus.slnx --verify-no-changes --severity warn; then
+          if ! dotnet format Cantus.slnx --no-restore --verify-no-changes --severity warn; then
             echo "::warning title=Formatting Advisory::Code formatting or style suggestions found. Run 'dotnet format' locally to apply automatic fixes."
             echo "### ⚠️ Code Formatting & Style Advisory" >> $GITHUB_STEP_SUMMARY
             echo "Formatting differences were detected against the solution ruleset. This check is advisory and will not block your build or pull request." >> $GITHUB_STEP_SUMMARY

@@ -32,16 +32,16 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task SpotifyLogin_ReturnsRedirectOrJsonWithAuthUrl()
     {
-        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        HttpClient client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
         _mockAuthService
             .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
             .Returns(new Uri("https://accounts.spotify.com/authorize?test=1"));
 
-        var response = await client.GetAsync("/api/auth/spotify/login?json=true");
+        HttpResponseMessage response = await client.GetAsync("/api/auth/spotify/login?json=true");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var content = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        Dictionary<string, string>? content = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
         content.Should().ContainKey("authorizationUrl");
         content!["authorizationUrl"].Should().Contain("accounts.spotify.com");
     }
@@ -49,7 +49,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task GetSessions_WhenAuthenticated_ReturnsCurrentSession()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
         _mockAuthService
             .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
@@ -63,12 +63,12 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
                 RefreshToken = "refresh"
             });
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/sessions");
+        HttpRequestMessage request = new(HttpMethod.Get, "/api/auth/sessions");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
-        var response = await client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
+        List<AuthorizedSessionDto>? sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
         sessions.Should().NotBeNull();
         sessions!.Should().HaveCount(1);
         sessions![0].DisplayName.Should().Be("Test User");
@@ -77,12 +77,12 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task GetSessions_WhenUnauthenticated_ReturnsEmptyList()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.GetAsync("/api/auth/sessions");
+        HttpResponseMessage response = await client.GetAsync("/api/auth/sessions");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
+        List<AuthorizedSessionDto>? sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
         sessions.Should().NotBeNull();
         sessions!.Should().BeEmpty();
     }
@@ -90,7 +90,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task GetCurrentUser_WhenAuthenticatedViaHeader_ReturnsSession()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
         _mockAuthService
             .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
@@ -103,12 +103,12 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
                 RefreshToken = "refresh"
             });
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+        HttpRequestMessage request = new(HttpMethod.Get, "/api/auth/me");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
-        var response = await client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var session = await response.Content.ReadFromJsonAsync<AuthorizedSessionDto>();
+        AuthorizedSessionDto? session = await response.Content.ReadFromJsonAsync<AuthorizedSessionDto>();
         session.Should().NotBeNull();
         session!.DisplayName.Should().Be("Test User");
     }
@@ -116,9 +116,9 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task Logout_ClearsSessionCookie()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
-        var response = await client.PostAsync("/api/auth/logout", null);
+        HttpResponseMessage response = await client.PostAsync("/api/auth/logout", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -126,13 +126,13 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     [Fact]
     public async Task RevokeSession_WhenSessionExists_ReturnsOk()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = _factory.CreateClient();
 
         _mockAuthService
             .Setup(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var response = await client.DeleteAsync("/api/auth/sessions/sess-1");
+        HttpResponseMessage response = await client.DeleteAsync("/api/auth/sessions/sess-1");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
