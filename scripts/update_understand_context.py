@@ -22,7 +22,7 @@ INTERMEDIATE_DIR = UA_DIR / "intermediate"
 
 EXCLUDED_DIR_NAMES = {
     ".git", ".ua", "tests", "graphify-out", "artifacts", "all_artifacts",
-    "wasm_dist", "server_dist", "bin", "obj", "node_modules", "site", ".trash-1787498678"
+    "wasm_dist", "server_dist", "bin", "obj", "node_modules", "site", ".trash-1787498678", "data"
 }
 
 
@@ -310,7 +310,11 @@ def update_knowledge_graph(all_files: List[Path], commit_hash: str, timestamp: s
     }
 
     nodes = kg.get("nodes", [])
+    valid_rel_paths = {str(p.relative_to(ROOT_DIR)) for p in all_files}
+    filtered_nodes = []
+    removed_node_ids = set()
     existing_file_paths = set()
+
     for n in nodes:
         old_fp = n.get("filePath")
         if old_fp in path_remaps:
@@ -318,8 +322,22 @@ def update_knowledge_graph(all_files: List[Path], commit_hash: str, timestamp: s
             n["filePath"] = new_fp
             n["id"] = f"document:{new_fp}"
             n["name"] = Path(new_fp).name
+            old_fp = new_fp
+
+        if old_fp and old_fp not in valid_rel_paths and not (ROOT_DIR / old_fp).exists():
+            removed_node_ids.add(n["id"])
+            continue
+
+        filtered_nodes.append(n)
         if n.get("filePath"):
             existing_file_paths.add(n.get("filePath"))
+
+    nodes = filtered_nodes
+
+    if removed_node_ids:
+        kg["edges"] = [e for e in kg.get("edges", []) if e.get("from") not in removed_node_ids and e.get("to") not in removed_node_ids]
+        for l in kg.get("layers", []):
+            l["nodeIds"] = [nid for nid in l.get("nodeIds", []) if nid not in removed_node_ids]
 
     # Add missing documentation / configuration files as nodes
     devops_nodes = []

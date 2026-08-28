@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Cantus.Core.Models;
@@ -18,47 +17,19 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
 
     private bool _isActive;
     private bool _isPast;
-    private bool _isCalibrationMode;
     private double _activeFontSize = 32.0;
     private double _inactiveFontSize = 22.0;
     private double _pastFontSize = 20.0;
     private double _fontSize = 22.0;
     private FontWeight _fontWeight = FontWeights.Normal;
     private double _opacity = 0.75;
-    private IReadOnlyList<LyricWordViewModel> _words = [];
 
     public long TimestampMs { get; init; }
     public string Text { get; init; } = string.Empty;
     public IReadOnlyList<LyricSyllable>? Syllables { get; init; }
 
-    public IReadOnlyList<LyricWordViewModel> Words
-    {
-        get => _words;
-        private set
-        {
-            _words = value;
-            OnPropertyChanged();
-        }
-    }
-
     public SolidColorBrush LineBrush => IsActive ? ActiveBrush : (IsPast ? PastBrush : InactiveBrush);
     public TextAlignment Alignment => TextAlignment.Center;
-
-    public bool IsCalibrationMode
-    {
-        get => _isCalibrationMode;
-        set
-        {
-            if (_isCalibrationMode != value)
-            {
-                _isCalibrationMode = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CalibrationBadgeVisibility));
-            }
-        }
-    }
-
-    public Visibility CalibrationBadgeVisibility => _isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsActive
     {
@@ -125,26 +96,6 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
             }
         }
-    }
-
-    public event Action<LyricLineViewModel>? LineClicked;
-    public event Action<LyricWordViewModel>? WordClicked;
-
-    public void OnLineClicked() => LineClicked?.Invoke(this);
-    public void OnWordClicked(LyricWordViewModel word) => WordClicked?.Invoke(word);
-
-    public void PopulateWords(TimeSpan? lineDuration = null)
-    {
-        LyricLine lineModel = new(TimeSpan.FromMilliseconds(TimestampMs), Text, Syllables);
-        IReadOnlyList<LyricWordTimestamp> wordTimestamps = lineModel.GetWordTimestamps(lineDuration);
-
-        List<LyricWordViewModel> list = new(wordTimestamps.Count);
-        foreach (LyricWordTimestamp wt in wordTimestamps)
-        {
-            list.Add(new LyricWordViewModel(wt.Word, (long)wt.Timestamp.TotalMilliseconds, wt.WordIndex, this));
-        }
-
-        Words = list;
     }
 
     public void RefreshFontSizes(double activeSize, double inactiveSize, double pastSize)

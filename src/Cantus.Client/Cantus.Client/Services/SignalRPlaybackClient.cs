@@ -215,6 +215,16 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
     public event Action<IReadOnlyList<AuthorizedSessionPayload>>? SessionsReceived;
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
 
+    internal void RaiseLyricsReceived(LyricsPayload payload)
+    {
+        LyricsReceived?.Invoke(payload);
+    }
+
+    internal void RaisePlaybackStateReceived(PlaybackStatePayload payload)
+    {
+        PlaybackStateReceived?.Invoke(payload);
+    }
+
     public string? SessionToken { get; set; }
 
     public SignalRPlaybackClient(

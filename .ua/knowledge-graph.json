@@ -28,8 +28,8 @@
       "GitHub Actions"
     ],
     "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
-    "analyzedAt": "2026-08-27T01:50:27.577Z",
-    "gitCommitHash": "917f1a74b37ea05deea1ed38c98b70a3b9795213"
+    "analyzedAt": "2026-08-28T02:07:35.559Z",
+    "gitCommitHash": "a23e5560d8724b1ff7f1a5eb5d3aa40cc3537ef9"
   },
   "nodes": [
     {
@@ -2645,143 +2645,11 @@
       "complexity": "simple"
     },
     {
-      "id": "document:docs/architecture/client.md",
-      "type": "document",
-      "name": "client.md",
-      "filePath": "docs/architecture/client.md",
-      "summary": "Project docs asset for client.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/architecture/core.md",
-      "type": "document",
-      "name": "core.md",
-      "filePath": "docs/architecture/core.md",
-      "summary": "Project docs asset for core.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/architecture/infrastructure.md",
-      "type": "document",
-      "name": "infrastructure.md",
-      "filePath": "docs/architecture/infrastructure.md",
-      "summary": "Project docs asset for infrastructure.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "document:docs/architecture/overview.md",
       "type": "document",
       "name": "overview.md",
       "filePath": "docs/architecture/overview.md",
       "summary": "Project docs asset for overview.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/architecture/server.md",
-      "type": "document",
-      "name": "server.md",
-      "filePath": "docs/architecture/server.md",
-      "summary": "Project docs asset for server.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/domain-flows/index.md",
-      "type": "document",
-      "name": "index.md",
-      "filePath": "docs/domain-flows/index.md",
-      "summary": "Project docs asset for index.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/domain-flows/lyrics-caching.md",
-      "type": "document",
-      "name": "lyrics-caching.md",
-      "filePath": "docs/domain-flows/lyrics-caching.md",
-      "summary": "Project docs asset for lyrics-caching.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/domain-flows/ntp-interpolation.md",
-      "type": "document",
-      "name": "ntp-interpolation.md",
-      "filePath": "docs/domain-flows/ntp-interpolation.md",
-      "summary": "Project docs asset for ntp-interpolation.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/domain-flows/playback-sync.md",
-      "type": "document",
-      "name": "playback-sync.md",
-      "filePath": "docs/domain-flows/playback-sync.md",
-      "summary": "Project docs asset for playback-sync.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/domain-flows/spotify-pkce-login.md",
-      "type": "document",
-      "name": "spotify-pkce-login.md",
-      "filePath": "docs/domain-flows/spotify-pkce-login.md",
-      "summary": "Project docs asset for spotify-pkce-login.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/getting-started/index.md",
-      "type": "document",
-      "name": "index.md",
-      "filePath": "docs/getting-started/index.md",
-      "summary": "Project docs asset for index.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/getting-started/quickstart.md",
-      "type": "document",
-      "name": "quickstart.md",
-      "filePath": "docs/getting-started/quickstart.md",
-      "summary": "Quickstart onboarding guide for Cantus self-hosting and client connection.",
       "tags": [
         "docs",
         "markdown"
@@ -2854,18 +2722,6 @@
       "name": "configuration.md",
       "filePath": "docs/reference/configuration.md",
       "summary": "Project docs asset for configuration.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "document:docs/reference/docker.md",
-      "type": "document",
-      "name": "docker.md",
-      "filePath": "docs/reference/docker.md",
-      "summary": "Project docs asset for docker.md.",
       "tags": [
         "docs",
         "markdown"
@@ -7289,18 +7145,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricWordViewModel.cs",
-      "type": "file",
-      "name": "LyricWordViewModel.cs",
-      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricWordViewModel.cs",
-      "summary": "Project code asset for LyricWordViewModel.cs.",
-      "tags": [
-        "code",
-        "csharp"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml",
       "type": "file",
       "name": "AdaptiveHeaderBar.xaml",
@@ -7450,6 +7294,3846 @@
       "name": "AppManifest.js",
       "filePath": "src/Cantus.Client/Cantus.Client/WasmScripts/AppManifest.js",
       "summary": "Project code asset for AppManifest.js.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.agents/rules/code-style.md",
+      "type": "document",
+      "name": "code-style.md",
+      "filePath": ".agents/rules/code-style.md",
+      "summary": "Project docs asset for code-style.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project docs asset for README.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Client",
+      "type": "file",
+      "name": "Cantus.Client",
+      "filePath": "packaging/linux/publish/Cantus.Client",
+      "summary": "Project code asset for Cantus.Client.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packaging/linux/publish/Cantus.Client.deps.json",
+      "type": "config",
+      "name": "Cantus.Client.deps.json",
+      "filePath": "packaging/linux/publish/Cantus.Client.deps.json",
+      "summary": "Project config asset for Cantus.Client.deps.json.",
+      "tags": [
+        "config",
+        "json"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Client.dll",
+      "type": "file",
+      "name": "Cantus.Client.dll",
+      "filePath": "packaging/linux/publish/Cantus.Client.dll",
+      "summary": "Project code asset for Cantus.Client.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Client.pdb",
+      "type": "file",
+      "name": "Cantus.Client.pdb",
+      "filePath": "packaging/linux/publish/Cantus.Client.pdb",
+      "summary": "Project code asset for Cantus.Client.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packaging/linux/publish/Cantus.Client.runtimeconfig.json",
+      "type": "config",
+      "name": "Cantus.Client.runtimeconfig.json",
+      "filePath": "packaging/linux/publish/Cantus.Client.runtimeconfig.json",
+      "summary": "Project config asset for Cantus.Client.runtimeconfig.json.",
+      "tags": [
+        "config",
+        "json"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Core.dll",
+      "type": "file",
+      "name": "Cantus.Core.dll",
+      "filePath": "packaging/linux/publish/Cantus.Core.dll",
+      "summary": "Project code asset for Cantus.Core.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Core.pdb",
+      "type": "file",
+      "name": "Cantus.Core.pdb",
+      "filePath": "packaging/linux/publish/Cantus.Core.pdb",
+      "summary": "Project code asset for Cantus.Core.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/CommonServiceLocator.dll",
+      "type": "file",
+      "name": "CommonServiceLocator.dll",
+      "filePath": "packaging/linux/publish/CommonServiceLocator.dll",
+      "summary": "Project code asset for CommonServiceLocator.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/HarfBuzzSharp.dll",
+      "type": "file",
+      "name": "HarfBuzzSharp.dll",
+      "filePath": "packaging/linux/publish/HarfBuzzSharp.dll",
+      "summary": "Project code asset for HarfBuzzSharp.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/LibVLCSharp.dll",
+      "type": "file",
+      "name": "LibVLCSharp.dll",
+      "filePath": "packaging/linux/publish/LibVLCSharp.dll",
+      "summary": "Project code asset for LibVLCSharp.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.Connections.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.Connections.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.Http.Connections.Client.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.Http.Connections.Client.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.Http.Connections.Common.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.Http.Connections.Common.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.SignalR.Client.Core.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.SignalR.Client.Core.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.SignalR.Client.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.SignalR.Client.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.SignalR.Common.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.SignalR.Common.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.SignalR.Protocols.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.CSharp.dll",
+      "type": "file",
+      "name": "Microsoft.CSharp.dll",
+      "filePath": "packaging/linux/publish/Microsoft.CSharp.dll",
+      "summary": "Project code asset for Microsoft.CSharp.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Configuration.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Configuration.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Configuration.Binder.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Configuration.Binder.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Configuration.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Configuration.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Configuration.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.DependencyInjection.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.DependencyInjection.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll",
+      "summary": "Project code asset for Microsoft.Extensions.DependencyInjection.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Features.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Features.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Features.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Features.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Logging.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Logging.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Logging.Configuration.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Logging.Configuration.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Logging.Console.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Logging.Console.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Logging.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Logging.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Logging.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Options.ConfigurationExtensions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Options.ConfigurationExtensions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Options.ConfigurationExtensions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Options.ConfigurationExtensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Options.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Options.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Options.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Options.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Primitives.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Primitives.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Primitives.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.VisualBasic.Core.dll",
+      "type": "file",
+      "name": "Microsoft.VisualBasic.Core.dll",
+      "filePath": "packaging/linux/publish/Microsoft.VisualBasic.Core.dll",
+      "summary": "Project code asset for Microsoft.VisualBasic.Core.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.VisualBasic.dll",
+      "type": "file",
+      "name": "Microsoft.VisualBasic.dll",
+      "filePath": "packaging/linux/publish/Microsoft.VisualBasic.dll",
+      "summary": "Project code asset for Microsoft.VisualBasic.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Win32.Primitives.dll",
+      "type": "file",
+      "name": "Microsoft.Win32.Primitives.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Win32.Primitives.dll",
+      "summary": "Project code asset for Microsoft.Win32.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Win32.Registry.dll",
+      "type": "file",
+      "name": "Microsoft.Win32.Registry.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Win32.Registry.dll",
+      "summary": "Project code asset for Microsoft.Win32.Registry.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.Resources.dll",
+      "type": "file",
+      "name": "SkiaSharp.Resources.dll",
+      "filePath": "packaging/linux/publish/SkiaSharp.Resources.dll",
+      "summary": "Project code asset for SkiaSharp.Resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.SceneGraph.dll",
+      "type": "file",
+      "name": "SkiaSharp.SceneGraph.dll",
+      "filePath": "packaging/linux/publish/SkiaSharp.SceneGraph.dll",
+      "summary": "Project code asset for SkiaSharp.SceneGraph.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.Skottie.dll",
+      "type": "file",
+      "name": "SkiaSharp.Skottie.dll",
+      "filePath": "packaging/linux/publish/SkiaSharp.Skottie.dll",
+      "summary": "Project code asset for SkiaSharp.Skottie.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.Views.Windows.dll",
+      "type": "file",
+      "name": "SkiaSharp.Views.Windows.dll",
+      "filePath": "packaging/linux/publish/SkiaSharp.Views.Windows.dll",
+      "summary": "Project code asset for SkiaSharp.Views.Windows.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.Views.Windows.pdb",
+      "type": "file",
+      "name": "SkiaSharp.Views.Windows.pdb",
+      "filePath": "packaging/linux/publish/SkiaSharp.Views.Windows.pdb",
+      "summary": "Project code asset for SkiaSharp.Views.Windows.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SkiaSharp.dll",
+      "type": "file",
+      "name": "SkiaSharp.dll",
+      "filePath": "packaging/linux/publish/SkiaSharp.dll",
+      "summary": "Project code asset for SkiaSharp.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.AppContext.dll",
+      "type": "file",
+      "name": "System.AppContext.dll",
+      "filePath": "packaging/linux/publish/System.AppContext.dll",
+      "summary": "Project code asset for System.AppContext.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Buffers.dll",
+      "type": "file",
+      "name": "System.Buffers.dll",
+      "filePath": "packaging/linux/publish/System.Buffers.dll",
+      "summary": "Project code asset for System.Buffers.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Collections.Concurrent.dll",
+      "type": "file",
+      "name": "System.Collections.Concurrent.dll",
+      "filePath": "packaging/linux/publish/System.Collections.Concurrent.dll",
+      "summary": "Project code asset for System.Collections.Concurrent.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Collections.Immutable.dll",
+      "type": "file",
+      "name": "System.Collections.Immutable.dll",
+      "filePath": "packaging/linux/publish/System.Collections.Immutable.dll",
+      "summary": "Project code asset for System.Collections.Immutable.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Collections.NonGeneric.dll",
+      "type": "file",
+      "name": "System.Collections.NonGeneric.dll",
+      "filePath": "packaging/linux/publish/System.Collections.NonGeneric.dll",
+      "summary": "Project code asset for System.Collections.NonGeneric.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Collections.Specialized.dll",
+      "type": "file",
+      "name": "System.Collections.Specialized.dll",
+      "filePath": "packaging/linux/publish/System.Collections.Specialized.dll",
+      "summary": "Project code asset for System.Collections.Specialized.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Collections.dll",
+      "type": "file",
+      "name": "System.Collections.dll",
+      "filePath": "packaging/linux/publish/System.Collections.dll",
+      "summary": "Project code asset for System.Collections.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.Annotations.dll",
+      "type": "file",
+      "name": "System.ComponentModel.Annotations.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.Annotations.dll",
+      "summary": "Project code asset for System.ComponentModel.Annotations.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.DataAnnotations.dll",
+      "type": "file",
+      "name": "System.ComponentModel.DataAnnotations.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.DataAnnotations.dll",
+      "summary": "Project code asset for System.ComponentModel.DataAnnotations.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll",
+      "type": "file",
+      "name": "System.ComponentModel.EventBasedAsync.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll",
+      "summary": "Project code asset for System.ComponentModel.EventBasedAsync.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.Primitives.dll",
+      "type": "file",
+      "name": "System.ComponentModel.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.Primitives.dll",
+      "summary": "Project code asset for System.ComponentModel.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.TypeConverter.dll",
+      "type": "file",
+      "name": "System.ComponentModel.TypeConverter.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.TypeConverter.dll",
+      "summary": "Project code asset for System.ComponentModel.TypeConverter.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ComponentModel.dll",
+      "type": "file",
+      "name": "System.ComponentModel.dll",
+      "filePath": "packaging/linux/publish/System.ComponentModel.dll",
+      "summary": "Project code asset for System.ComponentModel.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Configuration.dll",
+      "type": "file",
+      "name": "System.Configuration.dll",
+      "filePath": "packaging/linux/publish/System.Configuration.dll",
+      "summary": "Project code asset for System.Configuration.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Console.dll",
+      "type": "file",
+      "name": "System.Console.dll",
+      "filePath": "packaging/linux/publish/System.Console.dll",
+      "summary": "Project code asset for System.Console.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Core.dll",
+      "type": "file",
+      "name": "System.Core.dll",
+      "filePath": "packaging/linux/publish/System.Core.dll",
+      "summary": "Project code asset for System.Core.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Data.Common.dll",
+      "type": "file",
+      "name": "System.Data.Common.dll",
+      "filePath": "packaging/linux/publish/System.Data.Common.dll",
+      "summary": "Project code asset for System.Data.Common.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Data.DataSetExtensions.dll",
+      "type": "file",
+      "name": "System.Data.DataSetExtensions.dll",
+      "filePath": "packaging/linux/publish/System.Data.DataSetExtensions.dll",
+      "summary": "Project code asset for System.Data.DataSetExtensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Data.dll",
+      "type": "file",
+      "name": "System.Data.dll",
+      "filePath": "packaging/linux/publish/System.Data.dll",
+      "summary": "Project code asset for System.Data.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.Contracts.dll",
+      "type": "file",
+      "name": "System.Diagnostics.Contracts.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.Contracts.dll",
+      "summary": "Project code asset for System.Diagnostics.Contracts.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.Debug.dll",
+      "type": "file",
+      "name": "System.Diagnostics.Debug.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.Debug.dll",
+      "summary": "Project code asset for System.Diagnostics.Debug.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.DiagnosticSource.dll",
+      "type": "file",
+      "name": "System.Diagnostics.DiagnosticSource.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.DiagnosticSource.dll",
+      "summary": "Project code asset for System.Diagnostics.DiagnosticSource.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.FileVersionInfo.dll",
+      "type": "file",
+      "name": "System.Diagnostics.FileVersionInfo.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.FileVersionInfo.dll",
+      "summary": "Project code asset for System.Diagnostics.FileVersionInfo.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.Process.dll",
+      "type": "file",
+      "name": "System.Diagnostics.Process.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.Process.dll",
+      "summary": "Project code asset for System.Diagnostics.Process.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.StackTrace.dll",
+      "type": "file",
+      "name": "System.Diagnostics.StackTrace.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.StackTrace.dll",
+      "summary": "Project code asset for System.Diagnostics.StackTrace.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.TextWriterTraceListener.dll",
+      "type": "file",
+      "name": "System.Diagnostics.TextWriterTraceListener.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.TextWriterTraceListener.dll",
+      "summary": "Project code asset for System.Diagnostics.TextWriterTraceListener.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.Tools.dll",
+      "type": "file",
+      "name": "System.Diagnostics.Tools.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.Tools.dll",
+      "summary": "Project code asset for System.Diagnostics.Tools.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.TraceSource.dll",
+      "type": "file",
+      "name": "System.Diagnostics.TraceSource.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.TraceSource.dll",
+      "summary": "Project code asset for System.Diagnostics.TraceSource.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Diagnostics.Tracing.dll",
+      "type": "file",
+      "name": "System.Diagnostics.Tracing.dll",
+      "filePath": "packaging/linux/publish/System.Diagnostics.Tracing.dll",
+      "summary": "Project code asset for System.Diagnostics.Tracing.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Drawing.Primitives.dll",
+      "type": "file",
+      "name": "System.Drawing.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.Drawing.Primitives.dll",
+      "summary": "Project code asset for System.Drawing.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Drawing.dll",
+      "type": "file",
+      "name": "System.Drawing.dll",
+      "filePath": "packaging/linux/publish/System.Drawing.dll",
+      "summary": "Project code asset for System.Drawing.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Dynamic.Runtime.dll",
+      "type": "file",
+      "name": "System.Dynamic.Runtime.dll",
+      "filePath": "packaging/linux/publish/System.Dynamic.Runtime.dll",
+      "summary": "Project code asset for System.Dynamic.Runtime.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Formats.Asn1.dll",
+      "type": "file",
+      "name": "System.Formats.Asn1.dll",
+      "filePath": "packaging/linux/publish/System.Formats.Asn1.dll",
+      "summary": "Project code asset for System.Formats.Asn1.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Formats.Tar.dll",
+      "type": "file",
+      "name": "System.Formats.Tar.dll",
+      "filePath": "packaging/linux/publish/System.Formats.Tar.dll",
+      "summary": "Project code asset for System.Formats.Tar.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Globalization.Calendars.dll",
+      "type": "file",
+      "name": "System.Globalization.Calendars.dll",
+      "filePath": "packaging/linux/publish/System.Globalization.Calendars.dll",
+      "summary": "Project code asset for System.Globalization.Calendars.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Globalization.Extensions.dll",
+      "type": "file",
+      "name": "System.Globalization.Extensions.dll",
+      "filePath": "packaging/linux/publish/System.Globalization.Extensions.dll",
+      "summary": "Project code asset for System.Globalization.Extensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Globalization.dll",
+      "type": "file",
+      "name": "System.Globalization.dll",
+      "filePath": "packaging/linux/publish/System.Globalization.dll",
+      "summary": "Project code asset for System.Globalization.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Compression.Brotli.dll",
+      "type": "file",
+      "name": "System.IO.Compression.Brotli.dll",
+      "filePath": "packaging/linux/publish/System.IO.Compression.Brotli.dll",
+      "summary": "Project code asset for System.IO.Compression.Brotli.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Compression.FileSystem.dll",
+      "type": "file",
+      "name": "System.IO.Compression.FileSystem.dll",
+      "filePath": "packaging/linux/publish/System.IO.Compression.FileSystem.dll",
+      "summary": "Project code asset for System.IO.Compression.FileSystem.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Compression.ZipFile.dll",
+      "type": "file",
+      "name": "System.IO.Compression.ZipFile.dll",
+      "filePath": "packaging/linux/publish/System.IO.Compression.ZipFile.dll",
+      "summary": "Project code asset for System.IO.Compression.ZipFile.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Compression.dll",
+      "type": "file",
+      "name": "System.IO.Compression.dll",
+      "filePath": "packaging/linux/publish/System.IO.Compression.dll",
+      "summary": "Project code asset for System.IO.Compression.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.FileSystem.AccessControl.dll",
+      "type": "file",
+      "name": "System.IO.FileSystem.AccessControl.dll",
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.AccessControl.dll",
+      "summary": "Project code asset for System.IO.FileSystem.AccessControl.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.FileSystem.DriveInfo.dll",
+      "type": "file",
+      "name": "System.IO.FileSystem.DriveInfo.dll",
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.DriveInfo.dll",
+      "summary": "Project code asset for System.IO.FileSystem.DriveInfo.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.FileSystem.Primitives.dll",
+      "type": "file",
+      "name": "System.IO.FileSystem.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.Primitives.dll",
+      "summary": "Project code asset for System.IO.FileSystem.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.FileSystem.Watcher.dll",
+      "type": "file",
+      "name": "System.IO.FileSystem.Watcher.dll",
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.Watcher.dll",
+      "summary": "Project code asset for System.IO.FileSystem.Watcher.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.FileSystem.dll",
+      "type": "file",
+      "name": "System.IO.FileSystem.dll",
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.dll",
+      "summary": "Project code asset for System.IO.FileSystem.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.IsolatedStorage.dll",
+      "type": "file",
+      "name": "System.IO.IsolatedStorage.dll",
+      "filePath": "packaging/linux/publish/System.IO.IsolatedStorage.dll",
+      "summary": "Project code asset for System.IO.IsolatedStorage.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.MemoryMappedFiles.dll",
+      "type": "file",
+      "name": "System.IO.MemoryMappedFiles.dll",
+      "filePath": "packaging/linux/publish/System.IO.MemoryMappedFiles.dll",
+      "summary": "Project code asset for System.IO.MemoryMappedFiles.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Pipelines.dll",
+      "type": "file",
+      "name": "System.IO.Pipelines.dll",
+      "filePath": "packaging/linux/publish/System.IO.Pipelines.dll",
+      "summary": "Project code asset for System.IO.Pipelines.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Pipes.AccessControl.dll",
+      "type": "file",
+      "name": "System.IO.Pipes.AccessControl.dll",
+      "filePath": "packaging/linux/publish/System.IO.Pipes.AccessControl.dll",
+      "summary": "Project code asset for System.IO.Pipes.AccessControl.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.Pipes.dll",
+      "type": "file",
+      "name": "System.IO.Pipes.dll",
+      "filePath": "packaging/linux/publish/System.IO.Pipes.dll",
+      "summary": "Project code asset for System.IO.Pipes.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.UnmanagedMemoryStream.dll",
+      "type": "file",
+      "name": "System.IO.UnmanagedMemoryStream.dll",
+      "filePath": "packaging/linux/publish/System.IO.UnmanagedMemoryStream.dll",
+      "summary": "Project code asset for System.IO.UnmanagedMemoryStream.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.IO.dll",
+      "type": "file",
+      "name": "System.IO.dll",
+      "filePath": "packaging/linux/publish/System.IO.dll",
+      "summary": "Project code asset for System.IO.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Json.dll",
+      "type": "file",
+      "name": "System.Json.dll",
+      "filePath": "packaging/linux/publish/System.Json.dll",
+      "summary": "Project code asset for System.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Linq.AsyncEnumerable.dll",
+      "type": "file",
+      "name": "System.Linq.AsyncEnumerable.dll",
+      "filePath": "packaging/linux/publish/System.Linq.AsyncEnumerable.dll",
+      "summary": "Project code asset for System.Linq.AsyncEnumerable.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Linq.Expressions.dll",
+      "type": "file",
+      "name": "System.Linq.Expressions.dll",
+      "filePath": "packaging/linux/publish/System.Linq.Expressions.dll",
+      "summary": "Project code asset for System.Linq.Expressions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Linq.Parallel.dll",
+      "type": "file",
+      "name": "System.Linq.Parallel.dll",
+      "filePath": "packaging/linux/publish/System.Linq.Parallel.dll",
+      "summary": "Project code asset for System.Linq.Parallel.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Linq.Queryable.dll",
+      "type": "file",
+      "name": "System.Linq.Queryable.dll",
+      "filePath": "packaging/linux/publish/System.Linq.Queryable.dll",
+      "summary": "Project code asset for System.Linq.Queryable.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Linq.dll",
+      "type": "file",
+      "name": "System.Linq.dll",
+      "filePath": "packaging/linux/publish/System.Linq.dll",
+      "summary": "Project code asset for System.Linq.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Memory.dll",
+      "type": "file",
+      "name": "System.Memory.dll",
+      "filePath": "packaging/linux/publish/System.Memory.dll",
+      "summary": "Project code asset for System.Memory.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Http.Json.dll",
+      "type": "file",
+      "name": "System.Net.Http.Json.dll",
+      "filePath": "packaging/linux/publish/System.Net.Http.Json.dll",
+      "summary": "Project code asset for System.Net.Http.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Http.dll",
+      "type": "file",
+      "name": "System.Net.Http.dll",
+      "filePath": "packaging/linux/publish/System.Net.Http.dll",
+      "summary": "Project code asset for System.Net.Http.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.HttpListener.dll",
+      "type": "file",
+      "name": "System.Net.HttpListener.dll",
+      "filePath": "packaging/linux/publish/System.Net.HttpListener.dll",
+      "summary": "Project code asset for System.Net.HttpListener.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Mail.dll",
+      "type": "file",
+      "name": "System.Net.Mail.dll",
+      "filePath": "packaging/linux/publish/System.Net.Mail.dll",
+      "summary": "Project code asset for System.Net.Mail.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.NameResolution.dll",
+      "type": "file",
+      "name": "System.Net.NameResolution.dll",
+      "filePath": "packaging/linux/publish/System.Net.NameResolution.dll",
+      "summary": "Project code asset for System.Net.NameResolution.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.NetworkInformation.dll",
+      "type": "file",
+      "name": "System.Net.NetworkInformation.dll",
+      "filePath": "packaging/linux/publish/System.Net.NetworkInformation.dll",
+      "summary": "Project code asset for System.Net.NetworkInformation.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Ping.dll",
+      "type": "file",
+      "name": "System.Net.Ping.dll",
+      "filePath": "packaging/linux/publish/System.Net.Ping.dll",
+      "summary": "Project code asset for System.Net.Ping.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Primitives.dll",
+      "type": "file",
+      "name": "System.Net.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.Net.Primitives.dll",
+      "summary": "Project code asset for System.Net.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Quic.dll",
+      "type": "file",
+      "name": "System.Net.Quic.dll",
+      "filePath": "packaging/linux/publish/System.Net.Quic.dll",
+      "summary": "Project code asset for System.Net.Quic.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Requests.dll",
+      "type": "file",
+      "name": "System.Net.Requests.dll",
+      "filePath": "packaging/linux/publish/System.Net.Requests.dll",
+      "summary": "Project code asset for System.Net.Requests.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Security.dll",
+      "type": "file",
+      "name": "System.Net.Security.dll",
+      "filePath": "packaging/linux/publish/System.Net.Security.dll",
+      "summary": "Project code asset for System.Net.Security.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.ServerSentEvents.dll",
+      "type": "file",
+      "name": "System.Net.ServerSentEvents.dll",
+      "filePath": "packaging/linux/publish/System.Net.ServerSentEvents.dll",
+      "summary": "Project code asset for System.Net.ServerSentEvents.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.ServicePoint.dll",
+      "type": "file",
+      "name": "System.Net.ServicePoint.dll",
+      "filePath": "packaging/linux/publish/System.Net.ServicePoint.dll",
+      "summary": "Project code asset for System.Net.ServicePoint.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.Sockets.dll",
+      "type": "file",
+      "name": "System.Net.Sockets.dll",
+      "filePath": "packaging/linux/publish/System.Net.Sockets.dll",
+      "summary": "Project code asset for System.Net.Sockets.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.WebClient.dll",
+      "type": "file",
+      "name": "System.Net.WebClient.dll",
+      "filePath": "packaging/linux/publish/System.Net.WebClient.dll",
+      "summary": "Project code asset for System.Net.WebClient.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.WebHeaderCollection.dll",
+      "type": "file",
+      "name": "System.Net.WebHeaderCollection.dll",
+      "filePath": "packaging/linux/publish/System.Net.WebHeaderCollection.dll",
+      "summary": "Project code asset for System.Net.WebHeaderCollection.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.WebProxy.dll",
+      "type": "file",
+      "name": "System.Net.WebProxy.dll",
+      "filePath": "packaging/linux/publish/System.Net.WebProxy.dll",
+      "summary": "Project code asset for System.Net.WebProxy.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.WebSockets.Client.dll",
+      "type": "file",
+      "name": "System.Net.WebSockets.Client.dll",
+      "filePath": "packaging/linux/publish/System.Net.WebSockets.Client.dll",
+      "summary": "Project code asset for System.Net.WebSockets.Client.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.WebSockets.dll",
+      "type": "file",
+      "name": "System.Net.WebSockets.dll",
+      "filePath": "packaging/linux/publish/System.Net.WebSockets.dll",
+      "summary": "Project code asset for System.Net.WebSockets.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Net.dll",
+      "type": "file",
+      "name": "System.Net.dll",
+      "filePath": "packaging/linux/publish/System.Net.dll",
+      "summary": "Project code asset for System.Net.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Numerics.Vectors.dll",
+      "type": "file",
+      "name": "System.Numerics.Vectors.dll",
+      "filePath": "packaging/linux/publish/System.Numerics.Vectors.dll",
+      "summary": "Project code asset for System.Numerics.Vectors.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Numerics.dll",
+      "type": "file",
+      "name": "System.Numerics.dll",
+      "filePath": "packaging/linux/publish/System.Numerics.dll",
+      "summary": "Project code asset for System.Numerics.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ObjectModel.dll",
+      "type": "file",
+      "name": "System.ObjectModel.dll",
+      "filePath": "packaging/linux/publish/System.ObjectModel.dll",
+      "summary": "Project code asset for System.ObjectModel.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Private.CoreLib.dll",
+      "type": "file",
+      "name": "System.Private.CoreLib.dll",
+      "filePath": "packaging/linux/publish/System.Private.CoreLib.dll",
+      "summary": "Project code asset for System.Private.CoreLib.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Private.DataContractSerialization.dll",
+      "type": "file",
+      "name": "System.Private.DataContractSerialization.dll",
+      "filePath": "packaging/linux/publish/System.Private.DataContractSerialization.dll",
+      "summary": "Project code asset for System.Private.DataContractSerialization.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Private.Uri.dll",
+      "type": "file",
+      "name": "System.Private.Uri.dll",
+      "filePath": "packaging/linux/publish/System.Private.Uri.dll",
+      "summary": "Project code asset for System.Private.Uri.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Private.Xml.Linq.dll",
+      "type": "file",
+      "name": "System.Private.Xml.Linq.dll",
+      "filePath": "packaging/linux/publish/System.Private.Xml.Linq.dll",
+      "summary": "Project code asset for System.Private.Xml.Linq.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Private.Xml.dll",
+      "type": "file",
+      "name": "System.Private.Xml.dll",
+      "filePath": "packaging/linux/publish/System.Private.Xml.dll",
+      "summary": "Project code asset for System.Private.Xml.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.DispatchProxy.dll",
+      "type": "file",
+      "name": "System.Reflection.DispatchProxy.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.DispatchProxy.dll",
+      "summary": "Project code asset for System.Reflection.DispatchProxy.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Emit.ILGeneration.dll",
+      "type": "file",
+      "name": "System.Reflection.Emit.ILGeneration.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.ILGeneration.dll",
+      "summary": "Project code asset for System.Reflection.Emit.ILGeneration.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Emit.Lightweight.dll",
+      "type": "file",
+      "name": "System.Reflection.Emit.Lightweight.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.Lightweight.dll",
+      "summary": "Project code asset for System.Reflection.Emit.Lightweight.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Emit.dll",
+      "type": "file",
+      "name": "System.Reflection.Emit.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.dll",
+      "summary": "Project code asset for System.Reflection.Emit.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Extensions.dll",
+      "type": "file",
+      "name": "System.Reflection.Extensions.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Extensions.dll",
+      "summary": "Project code asset for System.Reflection.Extensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Metadata.dll",
+      "type": "file",
+      "name": "System.Reflection.Metadata.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Metadata.dll",
+      "summary": "Project code asset for System.Reflection.Metadata.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.Primitives.dll",
+      "type": "file",
+      "name": "System.Reflection.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.Primitives.dll",
+      "summary": "Project code asset for System.Reflection.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.TypeExtensions.dll",
+      "type": "file",
+      "name": "System.Reflection.TypeExtensions.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.TypeExtensions.dll",
+      "summary": "Project code asset for System.Reflection.TypeExtensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Reflection.dll",
+      "type": "file",
+      "name": "System.Reflection.dll",
+      "filePath": "packaging/linux/publish/System.Reflection.dll",
+      "summary": "Project code asset for System.Reflection.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Resources.Reader.dll",
+      "type": "file",
+      "name": "System.Resources.Reader.dll",
+      "filePath": "packaging/linux/publish/System.Resources.Reader.dll",
+      "summary": "Project code asset for System.Resources.Reader.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Resources.ResourceManager.dll",
+      "type": "file",
+      "name": "System.Resources.ResourceManager.dll",
+      "filePath": "packaging/linux/publish/System.Resources.ResourceManager.dll",
+      "summary": "Project code asset for System.Resources.ResourceManager.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Resources.Writer.dll",
+      "type": "file",
+      "name": "System.Resources.Writer.dll",
+      "filePath": "packaging/linux/publish/System.Resources.Writer.dll",
+      "summary": "Project code asset for System.Resources.Writer.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.CompilerServices.Unsafe.dll",
+      "type": "file",
+      "name": "System.Runtime.CompilerServices.Unsafe.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.CompilerServices.Unsafe.dll",
+      "summary": "Project code asset for System.Runtime.CompilerServices.Unsafe.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.CompilerServices.VisualC.dll",
+      "type": "file",
+      "name": "System.Runtime.CompilerServices.VisualC.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.CompilerServices.VisualC.dll",
+      "summary": "Project code asset for System.Runtime.CompilerServices.VisualC.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Extensions.dll",
+      "type": "file",
+      "name": "System.Runtime.Extensions.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Extensions.dll",
+      "summary": "Project code asset for System.Runtime.Extensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Handles.dll",
+      "type": "file",
+      "name": "System.Runtime.Handles.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Handles.dll",
+      "summary": "Project code asset for System.Runtime.Handles.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.InteropServices.JavaScript.dll",
+      "type": "file",
+      "name": "System.Runtime.InteropServices.JavaScript.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.JavaScript.dll",
+      "summary": "Project code asset for System.Runtime.InteropServices.JavaScript.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.InteropServices.RuntimeInformation.dll",
+      "type": "file",
+      "name": "System.Runtime.InteropServices.RuntimeInformation.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.RuntimeInformation.dll",
+      "summary": "Project code asset for System.Runtime.InteropServices.RuntimeInformation.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.InteropServices.dll",
+      "type": "file",
+      "name": "System.Runtime.InteropServices.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.dll",
+      "summary": "Project code asset for System.Runtime.InteropServices.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Intrinsics.dll",
+      "type": "file",
+      "name": "System.Runtime.Intrinsics.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Intrinsics.dll",
+      "summary": "Project code asset for System.Runtime.Intrinsics.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Loader.dll",
+      "type": "file",
+      "name": "System.Runtime.Loader.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Loader.dll",
+      "summary": "Project code asset for System.Runtime.Loader.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Numerics.dll",
+      "type": "file",
+      "name": "System.Runtime.Numerics.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Numerics.dll",
+      "summary": "Project code asset for System.Runtime.Numerics.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Serialization.Formatters.dll",
+      "type": "file",
+      "name": "System.Runtime.Serialization.Formatters.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Formatters.dll",
+      "summary": "Project code asset for System.Runtime.Serialization.Formatters.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Serialization.Json.dll",
+      "type": "file",
+      "name": "System.Runtime.Serialization.Json.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Json.dll",
+      "summary": "Project code asset for System.Runtime.Serialization.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Serialization.Primitives.dll",
+      "type": "file",
+      "name": "System.Runtime.Serialization.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Primitives.dll",
+      "summary": "Project code asset for System.Runtime.Serialization.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Serialization.Xml.dll",
+      "type": "file",
+      "name": "System.Runtime.Serialization.Xml.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Xml.dll",
+      "summary": "Project code asset for System.Runtime.Serialization.Xml.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.Serialization.dll",
+      "type": "file",
+      "name": "System.Runtime.Serialization.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.dll",
+      "summary": "Project code asset for System.Runtime.Serialization.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Runtime.dll",
+      "type": "file",
+      "name": "System.Runtime.dll",
+      "filePath": "packaging/linux/publish/System.Runtime.dll",
+      "summary": "Project code asset for System.Runtime.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.AccessControl.dll",
+      "type": "file",
+      "name": "System.Security.AccessControl.dll",
+      "filePath": "packaging/linux/publish/System.Security.AccessControl.dll",
+      "summary": "Project code asset for System.Security.AccessControl.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Claims.dll",
+      "type": "file",
+      "name": "System.Security.Claims.dll",
+      "filePath": "packaging/linux/publish/System.Security.Claims.dll",
+      "summary": "Project code asset for System.Security.Claims.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Algorithms.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Algorithms.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Algorithms.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Algorithms.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Cng.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Cng.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Cng.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Cng.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Csp.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Csp.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Csp.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Csp.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Encoding.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Encoding.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Encoding.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Encoding.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.OpenSsl.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll",
+      "summary": "Project code asset for System.Security.Cryptography.OpenSsl.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Primitives.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Primitives.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.X509Certificates.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll",
+      "summary": "Project code asset for System.Security.Cryptography.X509Certificates.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.dll",
+      "summary": "Project code asset for System.Security.Cryptography.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Principal.Windows.dll",
+      "type": "file",
+      "name": "System.Security.Principal.Windows.dll",
+      "filePath": "packaging/linux/publish/System.Security.Principal.Windows.dll",
+      "summary": "Project code asset for System.Security.Principal.Windows.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Principal.dll",
+      "type": "file",
+      "name": "System.Security.Principal.dll",
+      "filePath": "packaging/linux/publish/System.Security.Principal.dll",
+      "summary": "Project code asset for System.Security.Principal.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.SecureString.dll",
+      "type": "file",
+      "name": "System.Security.SecureString.dll",
+      "filePath": "packaging/linux/publish/System.Security.SecureString.dll",
+      "summary": "Project code asset for System.Security.SecureString.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.dll",
+      "type": "file",
+      "name": "System.Security.dll",
+      "filePath": "packaging/linux/publish/System.Security.dll",
+      "summary": "Project code asset for System.Security.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ServiceModel.Web.dll",
+      "type": "file",
+      "name": "System.ServiceModel.Web.dll",
+      "filePath": "packaging/linux/publish/System.ServiceModel.Web.dll",
+      "summary": "Project code asset for System.ServiceModel.Web.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ServiceProcess.dll",
+      "type": "file",
+      "name": "System.ServiceProcess.dll",
+      "filePath": "packaging/linux/publish/System.ServiceProcess.dll",
+      "summary": "Project code asset for System.ServiceProcess.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.Encoding.CodePages.dll",
+      "type": "file",
+      "name": "System.Text.Encoding.CodePages.dll",
+      "filePath": "packaging/linux/publish/System.Text.Encoding.CodePages.dll",
+      "summary": "Project code asset for System.Text.Encoding.CodePages.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.Encoding.Extensions.dll",
+      "type": "file",
+      "name": "System.Text.Encoding.Extensions.dll",
+      "filePath": "packaging/linux/publish/System.Text.Encoding.Extensions.dll",
+      "summary": "Project code asset for System.Text.Encoding.Extensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.Encoding.dll",
+      "type": "file",
+      "name": "System.Text.Encoding.dll",
+      "filePath": "packaging/linux/publish/System.Text.Encoding.dll",
+      "summary": "Project code asset for System.Text.Encoding.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.Encodings.Web.dll",
+      "type": "file",
+      "name": "System.Text.Encodings.Web.dll",
+      "filePath": "packaging/linux/publish/System.Text.Encodings.Web.dll",
+      "summary": "Project code asset for System.Text.Encodings.Web.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.Json.dll",
+      "type": "file",
+      "name": "System.Text.Json.dll",
+      "filePath": "packaging/linux/publish/System.Text.Json.dll",
+      "summary": "Project code asset for System.Text.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Text.RegularExpressions.dll",
+      "type": "file",
+      "name": "System.Text.RegularExpressions.dll",
+      "filePath": "packaging/linux/publish/System.Text.RegularExpressions.dll",
+      "summary": "Project code asset for System.Text.RegularExpressions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.AccessControl.dll",
+      "type": "file",
+      "name": "System.Threading.AccessControl.dll",
+      "filePath": "packaging/linux/publish/System.Threading.AccessControl.dll",
+      "summary": "Project code asset for System.Threading.AccessControl.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Channels.dll",
+      "type": "file",
+      "name": "System.Threading.Channels.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Channels.dll",
+      "summary": "Project code asset for System.Threading.Channels.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Overlapped.dll",
+      "type": "file",
+      "name": "System.Threading.Overlapped.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Overlapped.dll",
+      "summary": "Project code asset for System.Threading.Overlapped.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Tasks.Dataflow.dll",
+      "type": "file",
+      "name": "System.Threading.Tasks.Dataflow.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Dataflow.dll",
+      "summary": "Project code asset for System.Threading.Tasks.Dataflow.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Tasks.Extensions.dll",
+      "type": "file",
+      "name": "System.Threading.Tasks.Extensions.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Extensions.dll",
+      "summary": "Project code asset for System.Threading.Tasks.Extensions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Tasks.Parallel.dll",
+      "type": "file",
+      "name": "System.Threading.Tasks.Parallel.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Parallel.dll",
+      "summary": "Project code asset for System.Threading.Tasks.Parallel.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Tasks.dll",
+      "type": "file",
+      "name": "System.Threading.Tasks.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.dll",
+      "summary": "Project code asset for System.Threading.Tasks.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Thread.dll",
+      "type": "file",
+      "name": "System.Threading.Thread.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Thread.dll",
+      "summary": "Project code asset for System.Threading.Thread.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.ThreadPool.dll",
+      "type": "file",
+      "name": "System.Threading.ThreadPool.dll",
+      "filePath": "packaging/linux/publish/System.Threading.ThreadPool.dll",
+      "summary": "Project code asset for System.Threading.ThreadPool.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.Timer.dll",
+      "type": "file",
+      "name": "System.Threading.Timer.dll",
+      "filePath": "packaging/linux/publish/System.Threading.Timer.dll",
+      "summary": "Project code asset for System.Threading.Timer.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Threading.dll",
+      "type": "file",
+      "name": "System.Threading.dll",
+      "filePath": "packaging/linux/publish/System.Threading.dll",
+      "summary": "Project code asset for System.Threading.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Transactions.Local.dll",
+      "type": "file",
+      "name": "System.Transactions.Local.dll",
+      "filePath": "packaging/linux/publish/System.Transactions.Local.dll",
+      "summary": "Project code asset for System.Transactions.Local.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Transactions.dll",
+      "type": "file",
+      "name": "System.Transactions.dll",
+      "filePath": "packaging/linux/publish/System.Transactions.dll",
+      "summary": "Project code asset for System.Transactions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.ValueTuple.dll",
+      "type": "file",
+      "name": "System.ValueTuple.dll",
+      "filePath": "packaging/linux/publish/System.ValueTuple.dll",
+      "summary": "Project code asset for System.ValueTuple.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Web.HttpUtility.dll",
+      "type": "file",
+      "name": "System.Web.HttpUtility.dll",
+      "filePath": "packaging/linux/publish/System.Web.HttpUtility.dll",
+      "summary": "Project code asset for System.Web.HttpUtility.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Web.dll",
+      "type": "file",
+      "name": "System.Web.dll",
+      "filePath": "packaging/linux/publish/System.Web.dll",
+      "summary": "Project code asset for System.Web.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Windows.dll",
+      "type": "file",
+      "name": "System.Windows.dll",
+      "filePath": "packaging/linux/publish/System.Windows.dll",
+      "summary": "Project code asset for System.Windows.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.Linq.dll",
+      "type": "file",
+      "name": "System.Xml.Linq.dll",
+      "filePath": "packaging/linux/publish/System.Xml.Linq.dll",
+      "summary": "Project code asset for System.Xml.Linq.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.ReaderWriter.dll",
+      "type": "file",
+      "name": "System.Xml.ReaderWriter.dll",
+      "filePath": "packaging/linux/publish/System.Xml.ReaderWriter.dll",
+      "summary": "Project code asset for System.Xml.ReaderWriter.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.Serialization.dll",
+      "type": "file",
+      "name": "System.Xml.Serialization.dll",
+      "filePath": "packaging/linux/publish/System.Xml.Serialization.dll",
+      "summary": "Project code asset for System.Xml.Serialization.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.XDocument.dll",
+      "type": "file",
+      "name": "System.Xml.XDocument.dll",
+      "filePath": "packaging/linux/publish/System.Xml.XDocument.dll",
+      "summary": "Project code asset for System.Xml.XDocument.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.XPath.XDocument.dll",
+      "type": "file",
+      "name": "System.Xml.XPath.XDocument.dll",
+      "filePath": "packaging/linux/publish/System.Xml.XPath.XDocument.dll",
+      "summary": "Project code asset for System.Xml.XPath.XDocument.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.XPath.dll",
+      "type": "file",
+      "name": "System.Xml.XPath.dll",
+      "filePath": "packaging/linux/publish/System.Xml.XPath.dll",
+      "summary": "Project code asset for System.Xml.XPath.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.XmlDocument.dll",
+      "type": "file",
+      "name": "System.Xml.XmlDocument.dll",
+      "filePath": "packaging/linux/publish/System.Xml.XmlDocument.dll",
+      "summary": "Project code asset for System.Xml.XmlDocument.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.XmlSerializer.dll",
+      "type": "file",
+      "name": "System.Xml.XmlSerializer.dll",
+      "filePath": "packaging/linux/publish/System.Xml.XmlSerializer.dll",
+      "summary": "Project code asset for System.Xml.XmlSerializer.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Xml.dll",
+      "type": "file",
+      "name": "System.Xml.dll",
+      "filePath": "packaging/linux/publish/System.Xml.dll",
+      "summary": "Project code asset for System.Xml.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.dll",
+      "type": "file",
+      "name": "System.dll",
+      "filePath": "packaging/linux/publish/System.dll",
+      "summary": "Project code asset for System.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Tmds.DBus.Protocol.dll",
+      "type": "file",
+      "name": "Tmds.DBus.Protocol.dll",
+      "filePath": "packaging/linux/publish/Tmds.DBus.Protocol.dll",
+      "summary": "Project code asset for Tmds.DBus.Protocol.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Core.Extensions.Collections.dll",
+      "type": "file",
+      "name": "Uno.Core.Extensions.Collections.dll",
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Collections.dll",
+      "summary": "Project code asset for Uno.Core.Extensions.Collections.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Core.Extensions.Disposables.dll",
+      "type": "file",
+      "name": "Uno.Core.Extensions.Disposables.dll",
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Disposables.dll",
+      "summary": "Project code asset for Uno.Core.Extensions.Disposables.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Core.Extensions.Equality.dll",
+      "type": "file",
+      "name": "Uno.Core.Extensions.Equality.dll",
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Equality.dll",
+      "summary": "Project code asset for Uno.Core.Extensions.Equality.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Core.Extensions.Logging.Singleton.dll",
+      "type": "file",
+      "name": "Uno.Core.Extensions.Logging.Singleton.dll",
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Logging.Singleton.dll",
+      "summary": "Project code asset for Uno.Core.Extensions.Logging.Singleton.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Core.Extensions.Logging.dll",
+      "type": "file",
+      "name": "Uno.Core.Extensions.Logging.dll",
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Logging.dll",
+      "summary": "Project code asset for Uno.Core.Extensions.Logging.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Diagnostics.Eventing.dll",
+      "type": "file",
+      "name": "Uno.Diagnostics.Eventing.dll",
+      "filePath": "packaging/linux/publish/Uno.Diagnostics.Eventing.dll",
+      "summary": "Project code asset for Uno.Diagnostics.Eventing.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf",
+      "type": "file",
+      "name": "uno-fluentui-assets.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf",
+      "summary": "Project code asset for uno-fluentui-assets.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Fluent.dll",
+      "type": "file",
+      "name": "Uno.Fonts.Fluent.dll",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent.dll",
+      "summary": "Project code asset for Uno.Fonts.Fluent.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Fluent.uprimarker",
+      "type": "file",
+      "name": "Uno.Fonts.Fluent.uprimarker",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent.uprimarker",
+      "summary": "Project code asset for Uno.Fonts.Fluent.uprimarker.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf",
+      "type": "file",
+      "name": "OpenSans-Bold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf",
+      "summary": "Project code asset for OpenSans-Bold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans-BoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf",
+      "summary": "Project code asset for OpenSans-BoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf",
+      "type": "file",
+      "name": "OpenSans-ExtraBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf",
+      "summary": "Project code asset for OpenSans-ExtraBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans-ExtraBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans-ExtraBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf",
+      "type": "file",
+      "name": "OpenSans-Italic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf",
+      "summary": "Project code asset for OpenSans-Italic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf",
+      "type": "file",
+      "name": "OpenSans-Light.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf",
+      "summary": "Project code asset for OpenSans-Light.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf",
+      "type": "file",
+      "name": "OpenSans-LightItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf",
+      "summary": "Project code asset for OpenSans-LightItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf",
+      "type": "file",
+      "name": "OpenSans-Medium.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf",
+      "summary": "Project code asset for OpenSans-Medium.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf",
+      "type": "file",
+      "name": "OpenSans-MediumItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf",
+      "summary": "Project code asset for OpenSans-MediumItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf",
+      "type": "file",
+      "name": "OpenSans-Regular.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf",
+      "summary": "Project code asset for OpenSans-Regular.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf",
+      "type": "file",
+      "name": "OpenSans-SemiBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf",
+      "summary": "Project code asset for OpenSans-SemiBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans-SemiBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans-SemiBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf",
+      "type": "file",
+      "name": "OpenSans.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf",
+      "summary": "Project code asset for OpenSans.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf.manifest",
+      "type": "file",
+      "name": "OpenSans.ttf.manifest",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf.manifest",
+      "summary": "Project code asset for OpenSans.ttf.manifest.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-Bold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-Bold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-BoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-BoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-ExtraBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-ExtraBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-ExtraBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-ExtraBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-Italic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-Italic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-Light.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-Light.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-LightItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-LightItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-Medium.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-Medium.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-MediumItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-MediumItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-Regular.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-Regular.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-SemiBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-SemiBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_Condensed-SemiBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_Condensed-SemiBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-Bold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-Bold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-BoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-BoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-ExtraBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-ExtraBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-ExtraBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-ExtraBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-Italic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-Italic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-Light.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-Light.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-LightItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-LightItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-Medium.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-Medium.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-MediumItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-MediumItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-Regular.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-Regular.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-SemiBold.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-SemiBold.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf",
+      "type": "file",
+      "name": "OpenSans_SemiCondensed-SemiBoldItalic.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf",
+      "summary": "Project code asset for OpenSans_SemiCondensed-SemiBoldItalic.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans.dll",
+      "type": "file",
+      "name": "Uno.Fonts.OpenSans.dll",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans.dll",
+      "summary": "Project code asset for Uno.Fonts.OpenSans.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.OpenSans.uprimarker",
+      "type": "file",
+      "name": "Uno.Fonts.OpenSans.uprimarker",
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans.uprimarker",
+      "summary": "Project code asset for Uno.Fonts.OpenSans.uprimarker.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf",
+      "type": "file",
+      "name": "Roboto-Light.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf",
+      "summary": "Project code asset for Roboto-Light.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf",
+      "type": "file",
+      "name": "Roboto-Medium.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf",
+      "summary": "Project code asset for Roboto-Medium.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf",
+      "type": "file",
+      "name": "Roboto-Regular.ttf",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf",
+      "summary": "Project code asset for Roboto-Regular.ttf.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Roboto.dll",
+      "type": "file",
+      "name": "Uno.Fonts.Roboto.dll",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto.dll",
+      "summary": "Project code asset for Uno.Fonts.Roboto.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Fonts.Roboto.uprimarker",
+      "type": "file",
+      "name": "Uno.Fonts.Roboto.uprimarker",
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto.uprimarker",
+      "summary": "Project code asset for Uno.Fonts.Roboto.uprimarker.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Foundation.Logging.dll",
+      "type": "file",
+      "name": "Uno.Foundation.Logging.dll",
+      "filePath": "packaging/linux/publish/Uno.Foundation.Logging.dll",
+      "summary": "Project code asset for Uno.Foundation.Logging.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Foundation.dll",
+      "type": "file",
+      "name": "Uno.Foundation.dll",
+      "filePath": "packaging/linux/publish/Uno.Foundation.dll",
+      "summary": "Project code asset for Uno.Foundation.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Foundation.pdb",
+      "type": "file",
+      "name": "Uno.Foundation.pdb",
+      "filePath": "packaging/linux/publish/Uno.Foundation.pdb",
+      "summary": "Project code asset for Uno.Foundation.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Material.WinUI.dll",
+      "type": "file",
+      "name": "Uno.Material.WinUI.dll",
+      "filePath": "packaging/linux/publish/Uno.Material.WinUI.dll",
+      "summary": "Project code asset for Uno.Material.WinUI.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Themes.WinUI.dll",
+      "type": "file",
+      "name": "Uno.Themes.WinUI.dll",
+      "filePath": "packaging/linux/publish/Uno.Themes.WinUI.dll",
+      "summary": "Project code asset for Uno.Themes.WinUI.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Toolkit.WinUI.Material.dll",
+      "type": "file",
+      "name": "Uno.Toolkit.WinUI.Material.dll",
+      "filePath": "packaging/linux/publish/Uno.Toolkit.WinUI.Material.dll",
+      "summary": "Project code asset for Uno.Toolkit.WinUI.Material.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Toolkit.WinUI.dll",
+      "type": "file",
+      "name": "Uno.Toolkit.WinUI.dll",
+      "filePath": "packaging/linux/publish/Uno.Toolkit.WinUI.dll",
+      "summary": "Project code asset for Uno.Toolkit.WinUI.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Toolkit.dll",
+      "type": "file",
+      "name": "Uno.Toolkit.dll",
+      "filePath": "packaging/linux/publish/Uno.Toolkit.dll",
+      "summary": "Project code asset for Uno.Toolkit.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Adapter.Microsoft.Extensions.Logging.dll",
+      "type": "file",
+      "name": "Uno.UI.Adapter.Microsoft.Extensions.Logging.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Adapter.Microsoft.Extensions.Logging.dll",
+      "summary": "Project code asset for Uno.UI.Adapter.Microsoft.Extensions.Logging.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Composition.dll",
+      "type": "file",
+      "name": "Uno.UI.Composition.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Composition.dll",
+      "summary": "Project code asset for Uno.UI.Composition.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Composition.pdb",
+      "type": "file",
+      "name": "Uno.UI.Composition.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.Composition.pdb",
+      "summary": "Project code asset for Uno.UI.Composition.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Dispatching.dll",
+      "type": "file",
+      "name": "Uno.UI.Dispatching.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Dispatching.dll",
+      "summary": "Project code asset for Uno.UI.Dispatching.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Dispatching.pdb",
+      "type": "file",
+      "name": "Uno.UI.Dispatching.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.Dispatching.pdb",
+      "summary": "Project code asset for Uno.UI.Dispatching.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.dll",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.dll",
+      "summary": "Project code asset for Uno.UI.FluentTheme.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.pdb",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.pdb",
+      "summary": "Project code asset for Uno.UI.FluentTheme.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.v1.dll",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.v1.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v1.dll",
+      "summary": "Project code asset for Uno.UI.FluentTheme.v1.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.v1.pdb",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.v1.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v1.pdb",
+      "summary": "Project code asset for Uno.UI.FluentTheme.v1.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.v2.dll",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.v2.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v2.dll",
+      "summary": "Project code asset for Uno.UI.FluentTheme.v2.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.FluentTheme.v2.pdb",
+      "type": "file",
+      "name": "Uno.UI.FluentTheme.v2.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v2.pdb",
+      "summary": "Project code asset for Uno.UI.FluentTheme.v2.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Lottie.dll",
+      "type": "file",
+      "name": "Uno.UI.Lottie.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Lottie.dll",
+      "summary": "Project code asset for Uno.UI.Lottie.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Lottie.pdb",
+      "type": "file",
+      "name": "Uno.UI.Lottie.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.Lottie.pdb",
+      "summary": "Project code asset for Uno.UI.Lottie.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.MacOS.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.MacOS.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.MacOS.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.MacOS.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.Support.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.Win32.Support.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.Support.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.Win32.Support.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.Win32.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.Win32.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Wpf.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.Wpf.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Wpf.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.Wpf.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.X11.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.X11.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.X11.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.X11.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Runtime.Skia.dll",
+      "type": "file",
+      "name": "Uno.UI.Runtime.Skia.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.dll",
+      "summary": "Project code asset for Uno.UI.Runtime.Skia.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Toolkit.dll",
+      "type": "file",
+      "name": "Uno.UI.Toolkit.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.Toolkit.dll",
+      "summary": "Project code asset for Uno.UI.Toolkit.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.Toolkit.pdb",
+      "type": "file",
+      "name": "Uno.UI.Toolkit.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.Toolkit.pdb",
+      "summary": "Project code asset for Uno.UI.Toolkit.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.dll",
+      "type": "file",
+      "name": "Uno.UI.dll",
+      "filePath": "packaging/linux/publish/Uno.UI.dll",
+      "summary": "Project code asset for Uno.UI.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.UI.pdb",
+      "type": "file",
+      "name": "Uno.UI.pdb",
+      "filePath": "packaging/linux/publish/Uno.UI.pdb",
+      "summary": "Project code asset for Uno.UI.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.WinUI.Graphics2DSK.dll",
+      "type": "file",
+      "name": "Uno.WinUI.Graphics2DSK.dll",
+      "filePath": "packaging/linux/publish/Uno.WinUI.Graphics2DSK.dll",
+      "summary": "Project code asset for Uno.WinUI.Graphics2DSK.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Xaml.dll",
+      "type": "file",
+      "name": "Uno.Xaml.dll",
+      "filePath": "packaging/linux/publish/Uno.Xaml.dll",
+      "summary": "Project code asset for Uno.Xaml.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.Xaml.pdb",
+      "type": "file",
+      "name": "Uno.Xaml.pdb",
+      "filePath": "packaging/linux/publish/Uno.Xaml.pdb",
+      "summary": "Project code asset for Uno.Xaml.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.dll",
+      "type": "file",
+      "name": "Uno.dll",
+      "filePath": "packaging/linux/publish/Uno.dll",
+      "summary": "Project code asset for Uno.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Uno.pdb",
+      "type": "file",
+      "name": "Uno.pdb",
+      "filePath": "packaging/linux/publish/Uno.pdb",
+      "summary": "Project code asset for Uno.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/WindowsBase.dll",
+      "type": "file",
+      "name": "WindowsBase.dll",
+      "filePath": "packaging/linux/publish/WindowsBase.dll",
+      "summary": "Project code asset for WindowsBase.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/createdump",
+      "type": "file",
+      "name": "createdump",
+      "filePath": "packaging/linux/publish/createdump",
+      "summary": "Project code asset for createdump.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libHarfBuzzSharp.so",
+      "type": "file",
+      "name": "libHarfBuzzSharp.so",
+      "filePath": "packaging/linux/publish/libHarfBuzzSharp.so",
+      "summary": "Project code asset for libHarfBuzzSharp.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSkiaSharp.so",
+      "type": "file",
+      "name": "libSkiaSharp.so",
+      "filePath": "packaging/linux/publish/libSkiaSharp.so",
+      "summary": "Project code asset for libSkiaSharp.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSystem.Globalization.Native.so",
+      "type": "file",
+      "name": "libSystem.Globalization.Native.so",
+      "filePath": "packaging/linux/publish/libSystem.Globalization.Native.so",
+      "summary": "Project code asset for libSystem.Globalization.Native.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSystem.IO.Compression.Native.so",
+      "type": "file",
+      "name": "libSystem.IO.Compression.Native.so",
+      "filePath": "packaging/linux/publish/libSystem.IO.Compression.Native.so",
+      "summary": "Project code asset for libSystem.IO.Compression.Native.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSystem.Native.so",
+      "type": "file",
+      "name": "libSystem.Native.so",
+      "filePath": "packaging/linux/publish/libSystem.Native.so",
+      "summary": "Project code asset for libSystem.Native.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSystem.Net.Security.Native.so",
+      "type": "file",
+      "name": "libSystem.Net.Security.Native.so",
+      "filePath": "packaging/linux/publish/libSystem.Net.Security.Native.so",
+      "summary": "Project code asset for libSystem.Net.Security.Native.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libSystem.Security.Cryptography.Native.OpenSsl.so",
+      "type": "file",
+      "name": "libSystem.Security.Cryptography.Native.OpenSsl.so",
+      "filePath": "packaging/linux/publish/libSystem.Security.Cryptography.Native.OpenSsl.so",
+      "summary": "Project code asset for libSystem.Security.Cryptography.Native.OpenSsl.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libclrgc.so",
+      "type": "file",
+      "name": "libclrgc.so",
+      "filePath": "packaging/linux/publish/libclrgc.so",
+      "summary": "Project code asset for libclrgc.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libclrgcexp.so",
+      "type": "file",
+      "name": "libclrgcexp.so",
+      "filePath": "packaging/linux/publish/libclrgcexp.so",
+      "summary": "Project code asset for libclrgcexp.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libclrjit.so",
+      "type": "file",
+      "name": "libclrjit.so",
+      "filePath": "packaging/linux/publish/libclrjit.so",
+      "summary": "Project code asset for libclrjit.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libcoreclr.so",
+      "type": "file",
+      "name": "libcoreclr.so",
+      "filePath": "packaging/linux/publish/libcoreclr.so",
+      "summary": "Project code asset for libcoreclr.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libcoreclrtraceptprovider.so",
+      "type": "file",
+      "name": "libcoreclrtraceptprovider.so",
+      "filePath": "packaging/linux/publish/libcoreclrtraceptprovider.so",
+      "summary": "Project code asset for libcoreclrtraceptprovider.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libhostfxr.so",
+      "type": "file",
+      "name": "libhostfxr.so",
+      "filePath": "packaging/linux/publish/libhostfxr.so",
+      "summary": "Project code asset for libhostfxr.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libhostpolicy.so",
+      "type": "file",
+      "name": "libhostpolicy.so",
+      "filePath": "packaging/linux/publish/libhostpolicy.so",
+      "summary": "Project code asset for libhostpolicy.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libmscordaccore.so",
+      "type": "file",
+      "name": "libmscordaccore.so",
+      "filePath": "packaging/linux/publish/libmscordaccore.so",
+      "summary": "Project code asset for libmscordaccore.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libmscordbi.so",
+      "type": "file",
+      "name": "libmscordbi.so",
+      "filePath": "packaging/linux/publish/libmscordbi.so",
+      "summary": "Project code asset for libmscordbi.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/mscorlib.dll",
+      "type": "file",
+      "name": "mscorlib.dll",
+      "filePath": "packaging/linux/publish/mscorlib.dll",
+      "summary": "Project code asset for mscorlib.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/netstandard.dll",
+      "type": "file",
+      "name": "netstandard.dll",
+      "filePath": "packaging/linux/publish/netstandard.dll",
+      "summary": "Project code asset for netstandard.dll.",
       "tags": [
         "code",
         "unknown"
@@ -8785,6 +12469,8 @@
         "config:dist_test/Cantus.Client.runtimeconfig.json",
         "config:dist_test/Cantus.Client.staticwebassets.endpoints.json",
         "config:global.json",
+        "config:packaging/linux/publish/Cantus.Client.deps.json",
+        "config:packaging/linux/publish/Cantus.Client.runtimeconfig.json",
         "config:src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
         "config:src/Cantus.Client/Directory.Build.props",
         "config:src/Cantus.Client/Directory.Packages.props",
@@ -8794,27 +12480,18 @@
         "config:src/Cantus.Server/appsettings.Development.json",
         "config:src/Cantus.Server/appsettings.Production.json",
         "config:src/Cantus.Server/appsettings.json",
+        "document:.agents/rules/code-style.md",
         "document:.agents/rules/understand-context.md",
         "document:.agents/skills/architecture-designer/SKILL.md",
         "document:LICENSE",
+        "document:README.md",
         "document:TODO.md",
         "document:docs/architecture/adaptive-polling.md",
         "document:docs/architecture/client-uno.md",
-        "document:docs/architecture/client.md",
-        "document:docs/architecture/core.md",
-        "document:docs/architecture/infrastructure.md",
         "document:docs/architecture/lyrics-caching.md",
         "document:docs/architecture/ntp-clock-sync.md",
         "document:docs/architecture/overview.md",
-        "document:docs/architecture/server.md",
         "document:docs/contributing/github-branch-protection.md",
-        "document:docs/domain-flows/index.md",
-        "document:docs/domain-flows/lyrics-caching.md",
-        "document:docs/domain-flows/ntp-interpolation.md",
-        "document:docs/domain-flows/playback-sync.md",
-        "document:docs/domain-flows/spotify-pkce-login.md",
-        "document:docs/getting-started/index.md",
-        "document:docs/getting-started/quickstart.md",
         "document:docs/index.md",
         "document:docs/local/ImplementationPlan.md",
         "document:docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
@@ -8827,7 +12504,6 @@
         "document:docs/operator-guide/spotify-setup.md",
         "document:docs/operator-guide/troubleshooting.md",
         "document:docs/reference/configuration.md",
-        "document:docs/reference/docker.md",
         "document:docs/reference/rest-api.md",
         "document:docs/reference/signalr-api.md",
         "document:docs/user-guide/index.md",
@@ -9186,13 +12862,328 @@
         "file:packaging/linux/AppRun",
         "file:packaging/linux/build-appimage.sh",
         "file:packaging/linux/cantus.desktop",
+        "file:packaging/linux/publish/Cantus.Client",
+        "file:packaging/linux/publish/Cantus.Client.dll",
+        "file:packaging/linux/publish/Cantus.Client.pdb",
+        "file:packaging/linux/publish/Cantus.Core.dll",
+        "file:packaging/linux/publish/Cantus.Core.pdb",
+        "file:packaging/linux/publish/CommonServiceLocator.dll",
+        "file:packaging/linux/publish/HarfBuzzSharp.dll",
+        "file:packaging/linux/publish/LibVLCSharp.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
+        "file:packaging/linux/publish/Microsoft.CSharp.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Configuration.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Features.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Logging.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Options.ConfigurationExtensions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Options.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Primitives.dll",
+        "file:packaging/linux/publish/Microsoft.VisualBasic.Core.dll",
+        "file:packaging/linux/publish/Microsoft.VisualBasic.dll",
+        "file:packaging/linux/publish/Microsoft.Win32.Primitives.dll",
+        "file:packaging/linux/publish/Microsoft.Win32.Registry.dll",
+        "file:packaging/linux/publish/SkiaSharp.Resources.dll",
+        "file:packaging/linux/publish/SkiaSharp.SceneGraph.dll",
+        "file:packaging/linux/publish/SkiaSharp.Skottie.dll",
+        "file:packaging/linux/publish/SkiaSharp.Views.Windows.dll",
+        "file:packaging/linux/publish/SkiaSharp.Views.Windows.pdb",
+        "file:packaging/linux/publish/SkiaSharp.dll",
+        "file:packaging/linux/publish/System.AppContext.dll",
+        "file:packaging/linux/publish/System.Buffers.dll",
+        "file:packaging/linux/publish/System.Collections.Concurrent.dll",
+        "file:packaging/linux/publish/System.Collections.Immutable.dll",
+        "file:packaging/linux/publish/System.Collections.NonGeneric.dll",
+        "file:packaging/linux/publish/System.Collections.Specialized.dll",
+        "file:packaging/linux/publish/System.Collections.dll",
+        "file:packaging/linux/publish/System.ComponentModel.Annotations.dll",
+        "file:packaging/linux/publish/System.ComponentModel.DataAnnotations.dll",
+        "file:packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll",
+        "file:packaging/linux/publish/System.ComponentModel.Primitives.dll",
+        "file:packaging/linux/publish/System.ComponentModel.TypeConverter.dll",
+        "file:packaging/linux/publish/System.ComponentModel.dll",
+        "file:packaging/linux/publish/System.Configuration.dll",
+        "file:packaging/linux/publish/System.Console.dll",
+        "file:packaging/linux/publish/System.Core.dll",
+        "file:packaging/linux/publish/System.Data.Common.dll",
+        "file:packaging/linux/publish/System.Data.DataSetExtensions.dll",
+        "file:packaging/linux/publish/System.Data.dll",
+        "file:packaging/linux/publish/System.Diagnostics.Contracts.dll",
+        "file:packaging/linux/publish/System.Diagnostics.Debug.dll",
+        "file:packaging/linux/publish/System.Diagnostics.DiagnosticSource.dll",
+        "file:packaging/linux/publish/System.Diagnostics.FileVersionInfo.dll",
+        "file:packaging/linux/publish/System.Diagnostics.Process.dll",
+        "file:packaging/linux/publish/System.Diagnostics.StackTrace.dll",
+        "file:packaging/linux/publish/System.Diagnostics.TextWriterTraceListener.dll",
+        "file:packaging/linux/publish/System.Diagnostics.Tools.dll",
+        "file:packaging/linux/publish/System.Diagnostics.TraceSource.dll",
+        "file:packaging/linux/publish/System.Diagnostics.Tracing.dll",
+        "file:packaging/linux/publish/System.Drawing.Primitives.dll",
+        "file:packaging/linux/publish/System.Drawing.dll",
+        "file:packaging/linux/publish/System.Dynamic.Runtime.dll",
+        "file:packaging/linux/publish/System.Formats.Asn1.dll",
+        "file:packaging/linux/publish/System.Formats.Tar.dll",
+        "file:packaging/linux/publish/System.Globalization.Calendars.dll",
+        "file:packaging/linux/publish/System.Globalization.Extensions.dll",
+        "file:packaging/linux/publish/System.Globalization.dll",
+        "file:packaging/linux/publish/System.IO.Compression.Brotli.dll",
+        "file:packaging/linux/publish/System.IO.Compression.FileSystem.dll",
+        "file:packaging/linux/publish/System.IO.Compression.ZipFile.dll",
+        "file:packaging/linux/publish/System.IO.Compression.dll",
+        "file:packaging/linux/publish/System.IO.FileSystem.AccessControl.dll",
+        "file:packaging/linux/publish/System.IO.FileSystem.DriveInfo.dll",
+        "file:packaging/linux/publish/System.IO.FileSystem.Primitives.dll",
+        "file:packaging/linux/publish/System.IO.FileSystem.Watcher.dll",
+        "file:packaging/linux/publish/System.IO.FileSystem.dll",
+        "file:packaging/linux/publish/System.IO.IsolatedStorage.dll",
+        "file:packaging/linux/publish/System.IO.MemoryMappedFiles.dll",
+        "file:packaging/linux/publish/System.IO.Pipelines.dll",
+        "file:packaging/linux/publish/System.IO.Pipes.AccessControl.dll",
+        "file:packaging/linux/publish/System.IO.Pipes.dll",
+        "file:packaging/linux/publish/System.IO.UnmanagedMemoryStream.dll",
+        "file:packaging/linux/publish/System.IO.dll",
+        "file:packaging/linux/publish/System.Json.dll",
+        "file:packaging/linux/publish/System.Linq.AsyncEnumerable.dll",
+        "file:packaging/linux/publish/System.Linq.Expressions.dll",
+        "file:packaging/linux/publish/System.Linq.Parallel.dll",
+        "file:packaging/linux/publish/System.Linq.Queryable.dll",
+        "file:packaging/linux/publish/System.Linq.dll",
+        "file:packaging/linux/publish/System.Memory.dll",
+        "file:packaging/linux/publish/System.Net.Http.Json.dll",
+        "file:packaging/linux/publish/System.Net.Http.dll",
+        "file:packaging/linux/publish/System.Net.HttpListener.dll",
+        "file:packaging/linux/publish/System.Net.Mail.dll",
+        "file:packaging/linux/publish/System.Net.NameResolution.dll",
+        "file:packaging/linux/publish/System.Net.NetworkInformation.dll",
+        "file:packaging/linux/publish/System.Net.Ping.dll",
+        "file:packaging/linux/publish/System.Net.Primitives.dll",
+        "file:packaging/linux/publish/System.Net.Quic.dll",
+        "file:packaging/linux/publish/System.Net.Requests.dll",
+        "file:packaging/linux/publish/System.Net.Security.dll",
+        "file:packaging/linux/publish/System.Net.ServerSentEvents.dll",
+        "file:packaging/linux/publish/System.Net.ServicePoint.dll",
+        "file:packaging/linux/publish/System.Net.Sockets.dll",
+        "file:packaging/linux/publish/System.Net.WebClient.dll",
+        "file:packaging/linux/publish/System.Net.WebHeaderCollection.dll",
+        "file:packaging/linux/publish/System.Net.WebProxy.dll",
+        "file:packaging/linux/publish/System.Net.WebSockets.Client.dll",
+        "file:packaging/linux/publish/System.Net.WebSockets.dll",
+        "file:packaging/linux/publish/System.Net.dll",
+        "file:packaging/linux/publish/System.Numerics.Vectors.dll",
+        "file:packaging/linux/publish/System.Numerics.dll",
+        "file:packaging/linux/publish/System.ObjectModel.dll",
+        "file:packaging/linux/publish/System.Private.CoreLib.dll",
+        "file:packaging/linux/publish/System.Private.DataContractSerialization.dll",
+        "file:packaging/linux/publish/System.Private.Uri.dll",
+        "file:packaging/linux/publish/System.Private.Xml.Linq.dll",
+        "file:packaging/linux/publish/System.Private.Xml.dll",
+        "file:packaging/linux/publish/System.Reflection.DispatchProxy.dll",
+        "file:packaging/linux/publish/System.Reflection.Emit.ILGeneration.dll",
+        "file:packaging/linux/publish/System.Reflection.Emit.Lightweight.dll",
+        "file:packaging/linux/publish/System.Reflection.Emit.dll",
+        "file:packaging/linux/publish/System.Reflection.Extensions.dll",
+        "file:packaging/linux/publish/System.Reflection.Metadata.dll",
+        "file:packaging/linux/publish/System.Reflection.Primitives.dll",
+        "file:packaging/linux/publish/System.Reflection.TypeExtensions.dll",
+        "file:packaging/linux/publish/System.Reflection.dll",
+        "file:packaging/linux/publish/System.Resources.Reader.dll",
+        "file:packaging/linux/publish/System.Resources.ResourceManager.dll",
+        "file:packaging/linux/publish/System.Resources.Writer.dll",
+        "file:packaging/linux/publish/System.Runtime.CompilerServices.Unsafe.dll",
+        "file:packaging/linux/publish/System.Runtime.CompilerServices.VisualC.dll",
+        "file:packaging/linux/publish/System.Runtime.Extensions.dll",
+        "file:packaging/linux/publish/System.Runtime.Handles.dll",
+        "file:packaging/linux/publish/System.Runtime.InteropServices.JavaScript.dll",
+        "file:packaging/linux/publish/System.Runtime.InteropServices.RuntimeInformation.dll",
+        "file:packaging/linux/publish/System.Runtime.InteropServices.dll",
+        "file:packaging/linux/publish/System.Runtime.Intrinsics.dll",
+        "file:packaging/linux/publish/System.Runtime.Loader.dll",
+        "file:packaging/linux/publish/System.Runtime.Numerics.dll",
+        "file:packaging/linux/publish/System.Runtime.Serialization.Formatters.dll",
+        "file:packaging/linux/publish/System.Runtime.Serialization.Json.dll",
+        "file:packaging/linux/publish/System.Runtime.Serialization.Primitives.dll",
+        "file:packaging/linux/publish/System.Runtime.Serialization.Xml.dll",
+        "file:packaging/linux/publish/System.Runtime.Serialization.dll",
+        "file:packaging/linux/publish/System.Runtime.dll",
+        "file:packaging/linux/publish/System.Security.AccessControl.dll",
+        "file:packaging/linux/publish/System.Security.Claims.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Algorithms.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Cng.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Csp.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Encoding.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.dll",
+        "file:packaging/linux/publish/System.Security.Principal.Windows.dll",
+        "file:packaging/linux/publish/System.Security.Principal.dll",
+        "file:packaging/linux/publish/System.Security.SecureString.dll",
+        "file:packaging/linux/publish/System.Security.dll",
+        "file:packaging/linux/publish/System.ServiceModel.Web.dll",
+        "file:packaging/linux/publish/System.ServiceProcess.dll",
+        "file:packaging/linux/publish/System.Text.Encoding.CodePages.dll",
+        "file:packaging/linux/publish/System.Text.Encoding.Extensions.dll",
+        "file:packaging/linux/publish/System.Text.Encoding.dll",
+        "file:packaging/linux/publish/System.Text.Encodings.Web.dll",
+        "file:packaging/linux/publish/System.Text.Json.dll",
+        "file:packaging/linux/publish/System.Text.RegularExpressions.dll",
+        "file:packaging/linux/publish/System.Threading.AccessControl.dll",
+        "file:packaging/linux/publish/System.Threading.Channels.dll",
+        "file:packaging/linux/publish/System.Threading.Overlapped.dll",
+        "file:packaging/linux/publish/System.Threading.Tasks.Dataflow.dll",
+        "file:packaging/linux/publish/System.Threading.Tasks.Extensions.dll",
+        "file:packaging/linux/publish/System.Threading.Tasks.Parallel.dll",
+        "file:packaging/linux/publish/System.Threading.Tasks.dll",
+        "file:packaging/linux/publish/System.Threading.Thread.dll",
+        "file:packaging/linux/publish/System.Threading.ThreadPool.dll",
+        "file:packaging/linux/publish/System.Threading.Timer.dll",
+        "file:packaging/linux/publish/System.Threading.dll",
+        "file:packaging/linux/publish/System.Transactions.Local.dll",
+        "file:packaging/linux/publish/System.Transactions.dll",
+        "file:packaging/linux/publish/System.ValueTuple.dll",
+        "file:packaging/linux/publish/System.Web.HttpUtility.dll",
+        "file:packaging/linux/publish/System.Web.dll",
+        "file:packaging/linux/publish/System.Windows.dll",
+        "file:packaging/linux/publish/System.Xml.Linq.dll",
+        "file:packaging/linux/publish/System.Xml.ReaderWriter.dll",
+        "file:packaging/linux/publish/System.Xml.Serialization.dll",
+        "file:packaging/linux/publish/System.Xml.XDocument.dll",
+        "file:packaging/linux/publish/System.Xml.XPath.XDocument.dll",
+        "file:packaging/linux/publish/System.Xml.XPath.dll",
+        "file:packaging/linux/publish/System.Xml.XmlDocument.dll",
+        "file:packaging/linux/publish/System.Xml.XmlSerializer.dll",
+        "file:packaging/linux/publish/System.Xml.dll",
+        "file:packaging/linux/publish/System.dll",
+        "file:packaging/linux/publish/Tmds.DBus.Protocol.dll",
+        "file:packaging/linux/publish/Uno.Core.Extensions.Collections.dll",
+        "file:packaging/linux/publish/Uno.Core.Extensions.Disposables.dll",
+        "file:packaging/linux/publish/Uno.Core.Extensions.Equality.dll",
+        "file:packaging/linux/publish/Uno.Core.Extensions.Logging.Singleton.dll",
+        "file:packaging/linux/publish/Uno.Core.Extensions.Logging.dll",
+        "file:packaging/linux/publish/Uno.Diagnostics.Eventing.dll",
+        "file:packaging/linux/publish/Uno.Fonts.Fluent.dll",
+        "file:packaging/linux/publish/Uno.Fonts.Fluent.uprimarker",
+        "file:packaging/linux/publish/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans.dll",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans.uprimarker",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf.manifest",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.Roboto.dll",
+        "file:packaging/linux/publish/Uno.Fonts.Roboto.uprimarker",
+        "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf",
+        "file:packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf",
+        "file:packaging/linux/publish/Uno.Foundation.Logging.dll",
+        "file:packaging/linux/publish/Uno.Foundation.dll",
+        "file:packaging/linux/publish/Uno.Foundation.pdb",
+        "file:packaging/linux/publish/Uno.Material.WinUI.dll",
+        "file:packaging/linux/publish/Uno.Themes.WinUI.dll",
+        "file:packaging/linux/publish/Uno.Toolkit.WinUI.Material.dll",
+        "file:packaging/linux/publish/Uno.Toolkit.WinUI.dll",
+        "file:packaging/linux/publish/Uno.Toolkit.dll",
+        "file:packaging/linux/publish/Uno.UI.Adapter.Microsoft.Extensions.Logging.dll",
+        "file:packaging/linux/publish/Uno.UI.Composition.dll",
+        "file:packaging/linux/publish/Uno.UI.Composition.pdb",
+        "file:packaging/linux/publish/Uno.UI.Dispatching.dll",
+        "file:packaging/linux/publish/Uno.UI.Dispatching.pdb",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.dll",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.pdb",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.v1.dll",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.v1.pdb",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.v2.dll",
+        "file:packaging/linux/publish/Uno.UI.FluentTheme.v2.pdb",
+        "file:packaging/linux/publish/Uno.UI.Lottie.dll",
+        "file:packaging/linux/publish/Uno.UI.Lottie.pdb",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.MacOS.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.Support.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.Wpf.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.X11.dll",
+        "file:packaging/linux/publish/Uno.UI.Runtime.Skia.dll",
+        "file:packaging/linux/publish/Uno.UI.Toolkit.dll",
+        "file:packaging/linux/publish/Uno.UI.Toolkit.pdb",
+        "file:packaging/linux/publish/Uno.UI.dll",
+        "file:packaging/linux/publish/Uno.UI.pdb",
+        "file:packaging/linux/publish/Uno.WinUI.Graphics2DSK.dll",
+        "file:packaging/linux/publish/Uno.Xaml.dll",
+        "file:packaging/linux/publish/Uno.Xaml.pdb",
+        "file:packaging/linux/publish/Uno.dll",
+        "file:packaging/linux/publish/Uno.pdb",
+        "file:packaging/linux/publish/WindowsBase.dll",
+        "file:packaging/linux/publish/createdump",
+        "file:packaging/linux/publish/libHarfBuzzSharp.so",
+        "file:packaging/linux/publish/libSkiaSharp.so",
+        "file:packaging/linux/publish/libSystem.Globalization.Native.so",
+        "file:packaging/linux/publish/libSystem.IO.Compression.Native.so",
+        "file:packaging/linux/publish/libSystem.Native.so",
+        "file:packaging/linux/publish/libSystem.Net.Security.Native.so",
+        "file:packaging/linux/publish/libSystem.Security.Cryptography.Native.OpenSsl.so",
+        "file:packaging/linux/publish/libclrgc.so",
+        "file:packaging/linux/publish/libclrgcexp.so",
+        "file:packaging/linux/publish/libclrjit.so",
+        "file:packaging/linux/publish/libcoreclr.so",
+        "file:packaging/linux/publish/libcoreclrtraceptprovider.so",
+        "file:packaging/linux/publish/libhostfxr.so",
+        "file:packaging/linux/publish/libhostpolicy.so",
+        "file:packaging/linux/publish/libmscordaccore.so",
+        "file:packaging/linux/publish/libmscordbi.so",
+        "file:packaging/linux/publish/mscorlib.dll",
+        "file:packaging/linux/publish/netstandard.dll",
         "file:packaging/windows/installer.iss",
         "file:scripts/generate_docs.py",
         "file:scripts/update_understand_context.py",
         "file:src/Cantus.Client/Cantus.Client/Models/LayoutBreakpoint.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs",
-        "file:src/Cantus.Client/Cantus.Client/ViewModels/LyricWordViewModel.cs",
         "file:src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml",
         "file:src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml.cs",
         "file:src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml",

@@ -1,8 +1,18 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "917f1a74b37ea05deea1ed38c98b70a3b9795213",
-  "generatedAt": "2026-08-27T01:50:27.577Z",
+  "gitCommitHash": "a23e5560d8724b1ff7f1a5eb5d3aa40cc3537ef9",
+  "generatedAt": "2026-08-28T02:07:35.559Z",
   "files": {
+    ".agents/rules/code-style.md": {
+      "filePath": ".agents/rules/code-style.md",
+      "contentHash": "64919034e5e7c35ec62c8c019463d89cc36e2611539ad738a6285c569d04fca7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
     ".agents/rules/understand-context.md": {
       "filePath": ".agents/rules/understand-context.md",
       "contentHash": "571aefb42bdc4c939d43667a882697c17f33b3fb41ce1f395496f099fc16aca8",
@@ -35,22 +45,22 @@
     },
     ".editorconfig": {
       "filePath": ".editorconfig",
-      "contentHash": "b39c4d94291c6fabb5b642ea15b9296b96e3b9f8881dbef38710defd11842679",
+      "contentHash": "596a9dacf678fe89b45af52f1b0ee6fcd52f03d04b48c841944e92454cf582c2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 42,
+      "totalLines": 191,
       "hasStructuralAnalysis": false
     },
     ".github/workflows/ci.yml": {
       "filePath": ".github/workflows/ci.yml",
-      "contentHash": "497921e8f896fc76bf5ce58cac0639bd50fe7c257be6047e34cbab45e9d3ce6e",
+      "contentHash": "9efb1eca5613c265c0fa7c70f1cf53f5ac24ce3c6d5d918e1a5c9c61faca5775",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 158,
+      "totalLines": 166,
       "hasStructuralAnalysis": true
     },
     ".github/workflows/docs.yml": {
@@ -75,12 +85,12 @@
     },
     ".gitignore": {
       "filePath": ".gitignore",
-      "contentHash": "d8b7010154d658f04fb43a9d11f92a3ac1117bed9b5de5c4f94b55c8ab58ec4d",
+      "contentHash": "237198528f352fe539f360a116a9e0e63f226bf86bab498807cea9d1259fce12",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 205,
+      "totalLines": 207,
       "hasStructuralAnalysis": false
     },
     ".ua/.understandignore": {
@@ -121,6 +131,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "c6ce0f60902703966cde873a462f1f1ea034da14af585f3b98b20021e93d6474",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 212,
       "hasStructuralAnalysis": true
     },
     "TODO.md": {
@@ -3755,17 +3775,17 @@
     },
     "docs/operator-guide/spotify-setup.md": {
       "filePath": "docs/operator-guide/spotify-setup.md",
-      "contentHash": "4ca9ea6e6eca7f38e1a8c88c7b1f99ebe68527751b324a8aa770d8bcc5437699",
+      "contentHash": "f66f26dd947adb2a6b174832f8092f0aa253f419910432cd9bfbb3f918444ecb",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 64,
+      "totalLines": 65,
       "hasStructuralAnalysis": true
     },
     "docs/operator-guide/troubleshooting.md": {
       "filePath": "docs/operator-guide/troubleshooting.md",
-      "contentHash": "b7be5e14842ca8f9966a3b0000087c677a5e352c2a6a42fc549b2da4c3f1e208",
+      "contentHash": "bd3379c8986010bd53d52b442914aff6fad22b49041a964a2c5dadd63d9dfcc7",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3785,12 +3805,12 @@
     },
     "docs/reference/rest-api.md": {
       "filePath": "docs/reference/rest-api.md",
-      "contentHash": "813806e655c0bad0c7893c337bec9255f0e4bbed008463931eb9db3e99f406d4",
+      "contentHash": "d59a24bb06ff2d86363bccdf4933a7bed25bf6cd96d199d68aaf0138e1783c30",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 76,
+      "totalLines": 78,
       "hasStructuralAnalysis": true
     },
     "docs/reference/signalr-api.md": {
@@ -3855,12 +3875,12 @@
     },
     "docs/user-guide/timing-and-calibration.md": {
       "filePath": "docs/user-guide/timing-and-calibration.md",
-      "contentHash": "043df8a4933f2a7362e33330d19f4a58b4d62c5f3db5567d093788cae090e67f",
+      "contentHash": "31c5c3bcce112460bafb4649034f82328b4e5885d1b9ad5bef1f43487ab9fe43",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 63,
+      "totalLines": 71,
       "hasStructuralAnalysis": true
     },
     "global.json": {
@@ -3875,7 +3895,7 @@
     },
     "mkdocs.yml": {
       "filePath": "mkdocs.yml",
-      "contentHash": "ea51788d05ee85faeed4f883ccf6293b94e59f61c319385a2a60a44c57dd5812",
+      "contentHash": "d7733b12b86ac598888c1af783f65b23f1a66d56a37638aa56ac664ce7e2ce25",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3895,22 +3915,3202 @@
     },
     "packaging/linux/build-appimage.sh": {
       "filePath": "packaging/linux/build-appimage.sh",
-      "contentHash": "27febf52f5a289b7a0a6eddf85f6166a0fe1b669f23d58bb06950ba2e8089a57",
+      "contentHash": "77bc52606a4d9b873b8373ee76e2ceec7445f8a5c58513ffefb8fcc01a30b4c7",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 51,
+      "totalLines": 66,
       "hasStructuralAnalysis": false
     },
     "packaging/linux/cantus.desktop": {
       "filePath": "packaging/linux/cantus.desktop",
-      "contentHash": "3747c1406db91aed014f63089e1fe034ad7a5c135a746f52c50ec2c3fa34bc53",
+      "contentHash": "e52e93e12decf707257f760876bbe3d9f56f2411d52186167c9274cbf59de237",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 9,
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Client": {
+      "filePath": "packaging/linux/publish/Cantus.Client",
+      "contentHash": "4437581059c1e93bb4cb00d11cfd654b0cc8cd54c5f9f93b1eae0a43f4258d66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Client.deps.json": {
+      "filePath": "packaging/linux/publish/Cantus.Client.deps.json",
+      "contentHash": "95de6cd0ca3321466807c1e35fbca753059b6710c7238b8580adeccf6baa61ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1945,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Client.dll": {
+      "filePath": "packaging/linux/publish/Cantus.Client.dll",
+      "contentHash": "bab3c512502a7c7d4f84f48cc625eb0fdce30190386a8eb31f1445276c257371",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Client.pdb": {
+      "filePath": "packaging/linux/publish/Cantus.Client.pdb",
+      "contentHash": "368aedf6867a238b0664231f950f12861e8c717ed71427c6e371873b1c415ec3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Client.runtimeconfig.json": {
+      "filePath": "packaging/linux/publish/Cantus.Client.runtimeconfig.json",
+      "contentHash": "6a513b0258958ff07c12c5406b8b12b679d840b86a6d6a1e33b6c1866b6e2acd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Core.dll": {
+      "filePath": "packaging/linux/publish/Cantus.Core.dll",
+      "contentHash": "d66cd38b3526720a1db69fd07c081d2e8dd1782d3cc3fcf692a6f05f51ff5297",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Core.pdb": {
+      "filePath": "packaging/linux/publish/Cantus.Core.pdb",
+      "contentHash": "8b5c2469e93dcb5fe6ce27622906e689725ab120ec2083d09c8cdee6e5b1dd50",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/CommonServiceLocator.dll": {
+      "filePath": "packaging/linux/publish/CommonServiceLocator.dll",
+      "contentHash": "e220b361184b6d1dacd04b57cc49d10f76a12d07e3e391faccbc613fa5aa3f01",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/HarfBuzzSharp.dll": {
+      "filePath": "packaging/linux/publish/HarfBuzzSharp.dll",
+      "contentHash": "951fdc1c6db0bad84ae9329297dec0fcd38e1105ee477479ec66b8900e2f3bb5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/LibVLCSharp.dll": {
+      "filePath": "packaging/linux/publish/LibVLCSharp.dll",
+      "contentHash": "1835c57e92aabd14965c37a12c2a74f96b15f111a380a084f8a5551623d5048e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
+      "contentHash": "2a6bef96f00683c82cd33fe45c94d45808e3cb52f2db9bcf24aefabe770563e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll",
+      "contentHash": "8e1bdcabc4674a771153c58835ac4d6585044058cf51070d535186e452411765",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll",
+      "contentHash": "4bce4c2335693f3f04458a0cb5db9a9d90fdf099a9a735606873eef42afbee6f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll",
+      "contentHash": "006107643e512ff4f0e359bf275ee7955af24d6c321a6720de50fcc50361bd90",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.dll",
+      "contentHash": "34e2a08143b547ea8185c0f8d033a1ece53424edce2b3a34a4c2fdb29dafc79f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll",
+      "contentHash": "bcad286e413a01b89c1f159041eacd442dcab9e36afd3bef99c95829d5d56829",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
+      "contentHash": "afad7b2b8c7a061cb2292ede141662bf13b1c1e4f4cd1f038b1df852b27cc3a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.CSharp.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.CSharp.dll",
+      "contentHash": "bd15be3d14a170b5ac4f6098d7f8b464bb92f92319ce67afc646d53415cae285",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
+      "contentHash": "c47e50f3fc85f18585cc41af8e9900802a68933a34d70b36a08a50dee26ad9f2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll",
+      "contentHash": "e02d79ea407e364826744409cb729969ad787ed9b6171cf6ce8881dffa9da7ea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Configuration.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.dll",
+      "contentHash": "e4721f9230b5bc6f82c7fda4efdf3bd648d936dbd254387a0375d571017725a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "contentHash": "f904dfa87d8450e3f0ff4287d5cded25984cb7c6f5488a5d4b4d07faf8e1dadf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll",
+      "contentHash": "3efbec61f0ac5e768b372d5e57dac32d6d84962757815465c2fe536d6180d35c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Features.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Features.dll",
+      "contentHash": "1a7b1c725cd1b8d3a713d663d5d77cccf8815dcd7584731f1a7fb4a9d66b89e5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll",
+      "contentHash": "099f7032da5aa619cc9bf413d8318400d50be9132744ff9f393928eba7e45ec7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll",
+      "contentHash": "11fd138f742573a0cb978e02c750a93b7d4020e8a840edf2bec39850cc24d225",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll",
+      "contentHash": "b5cde400a043cb7dbdc578cf0e06463c407f5e99e8dde68ab8e911ae2c530eed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Logging.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Logging.dll",
+      "contentHash": "5b82bf7cc673a9d9660a59254cf6e1b3ddbb99f50ec2d985ab1706c4c3d9fc00",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Options.ConfigurationExtensions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Options.ConfigurationExtensions.dll",
+      "contentHash": "750823ae2cfa0d2ecc8e7bbc686f8f8ecda61ff14580f3c782fd54db9d466bd1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Options.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Options.dll",
+      "contentHash": "e14d715318d0e3f53a20e790d5c29139b6935add72e4123a32b168c1279b98d6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Primitives.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Primitives.dll",
+      "contentHash": "4fd0607f7b5b147fd46013ee5bf8470472aeb0e0c257fcabc4e51632a59eae1f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.VisualBasic.Core.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.VisualBasic.Core.dll",
+      "contentHash": "d8ec32304de60d94214518719ce88aed429ce32ac096b343842c079cdea57239",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.VisualBasic.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.VisualBasic.dll",
+      "contentHash": "f8ec29f7c6c649a99e112a8e9904c8f1fef274f9b9cf1f2ee226c46e859cc6d3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Win32.Primitives.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Win32.Primitives.dll",
+      "contentHash": "0b143f0dc42739ae8e09ac9f40dbee6314f566fa0a23bd0a3c600a68cb22c7f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Win32.Registry.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Win32.Registry.dll",
+      "contentHash": "3450e212e794ce1ec46f5a14a72bb7565b16ff60a809439217af9080025253ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.Resources.dll": {
+      "filePath": "packaging/linux/publish/SkiaSharp.Resources.dll",
+      "contentHash": "fa00e0292345194a63aaa201b98c4926a638b1122cfdc803d9c6b6bc22ef5c72",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.SceneGraph.dll": {
+      "filePath": "packaging/linux/publish/SkiaSharp.SceneGraph.dll",
+      "contentHash": "282b77f97fc13887cd8eb6775a7d132a23a4b73f72d7b5907cdfb5fd6474b1ca",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.Skottie.dll": {
+      "filePath": "packaging/linux/publish/SkiaSharp.Skottie.dll",
+      "contentHash": "d363939121e439eab8c410cac2c6befbb720e80162065dcb003049e25fed47f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.Views.Windows.dll": {
+      "filePath": "packaging/linux/publish/SkiaSharp.Views.Windows.dll",
+      "contentHash": "4dced412b5b411fd80c37a347be687d3b39d35947a1c4b4e47cc314fb73f4481",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.Views.Windows.pdb": {
+      "filePath": "packaging/linux/publish/SkiaSharp.Views.Windows.pdb",
+      "contentHash": "e2276c1bdb7f776c470860391525c39fceab303fca53bdfd63d5a8699beaaded",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SkiaSharp.dll": {
+      "filePath": "packaging/linux/publish/SkiaSharp.dll",
+      "contentHash": "b0f9102f6c51d6daa13e5b682c2c6f7223ff1490418bbd5202797976db18d540",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.AppContext.dll": {
+      "filePath": "packaging/linux/publish/System.AppContext.dll",
+      "contentHash": "4df50ea16a0e5d46ba74c31e94a9801f965b7d0217a390f8e9cc17349ec8de4f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Buffers.dll": {
+      "filePath": "packaging/linux/publish/System.Buffers.dll",
+      "contentHash": "27247629fa75e1e30e87fbedced3ced2b233633c6cd1ee5d8b37f734e744a19d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Collections.Concurrent.dll": {
+      "filePath": "packaging/linux/publish/System.Collections.Concurrent.dll",
+      "contentHash": "1405bb653a9c6911b681e3dd7122ad399cf7a64cf1a343c5a4bf1695ac2bbc7a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Collections.Immutable.dll": {
+      "filePath": "packaging/linux/publish/System.Collections.Immutable.dll",
+      "contentHash": "410a4050a0a55c4ea5cedaa0558eba018e3e249186d45e57415314b056441f67",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Collections.NonGeneric.dll": {
+      "filePath": "packaging/linux/publish/System.Collections.NonGeneric.dll",
+      "contentHash": "5e425a01df4fdbeb4fd3304bc71468f5fd0aebe96b15f56d3d159e65ac5668b5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Collections.Specialized.dll": {
+      "filePath": "packaging/linux/publish/System.Collections.Specialized.dll",
+      "contentHash": "cbccfb19d7001898478ef6196eb862357d2d44d0e596dcd39f6a943484e543fd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Collections.dll": {
+      "filePath": "packaging/linux/publish/System.Collections.dll",
+      "contentHash": "b281e20829acd63934664cc531ce3cdd14d8be792c0fd3df723eaade5c30bb1b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.Annotations.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.Annotations.dll",
+      "contentHash": "507327b1e5be86b3cb633bb3e62b31dc18ac07aa3b342b887da81a42f937ac4e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.DataAnnotations.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.DataAnnotations.dll",
+      "contentHash": "e6a65be4c25da96b81b41fbd643d1d99384cbaa6267beefc6cc24adf7e8a545a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll",
+      "contentHash": "e49ef000b6f81aed32fced420e7d53525fb9779ce611f17b125e409a4d9cf488",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.Primitives.dll",
+      "contentHash": "a30b9bd645e99ced1b23045319d9b86bee276438492bf764b11a2f2015b8b2d7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.TypeConverter.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.TypeConverter.dll",
+      "contentHash": "243cbf7ae580cdbd976be28e2c30d77431857354867c8d1ceebfe16e92ef3d3b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ComponentModel.dll": {
+      "filePath": "packaging/linux/publish/System.ComponentModel.dll",
+      "contentHash": "55674bba24a101b6a12d91f31cd4f2e963bac3717596889461dec698108d30bc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Configuration.dll": {
+      "filePath": "packaging/linux/publish/System.Configuration.dll",
+      "contentHash": "f0c2d4b2e6789d8327c59ab6837c78c23f3522c727d267b8838437bd891d9ac3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Console.dll": {
+      "filePath": "packaging/linux/publish/System.Console.dll",
+      "contentHash": "03e1ad7dbb085e57fa47c22d1502119ed0e34564ba795995b109f926489d7c59",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Core.dll": {
+      "filePath": "packaging/linux/publish/System.Core.dll",
+      "contentHash": "1145e78f0db1893362050d7c74759ab7dd465fda9f94d47a609a00dbdcfcc8f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Data.Common.dll": {
+      "filePath": "packaging/linux/publish/System.Data.Common.dll",
+      "contentHash": "8b15f0397c155bda5166abf9de1e3a5958f1f0183aba43c779704e44616e3e36",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Data.DataSetExtensions.dll": {
+      "filePath": "packaging/linux/publish/System.Data.DataSetExtensions.dll",
+      "contentHash": "d74e1a0501c8aa75694eb77f286e5ea1cc6de778c60b373647966d98037ffc58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Data.dll": {
+      "filePath": "packaging/linux/publish/System.Data.dll",
+      "contentHash": "09b639be3a860663a1bd3ef18a885d36893f976610261d1ac8876c9ed03d68ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.Contracts.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.Contracts.dll",
+      "contentHash": "e4e7b08e7f3d9b59eec866c479655fdb0b24ac318ac815a6b15b0024ecd6c7ff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.Debug.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.Debug.dll",
+      "contentHash": "37a329979df3a188170704e173c4b2900a2102b18c01a955705d84be6cec690f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.DiagnosticSource.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.DiagnosticSource.dll",
+      "contentHash": "bd54fb28aaa795481b6867c3da8f74734d41ac984e4cda38958df6a5f6b1929d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.FileVersionInfo.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.FileVersionInfo.dll",
+      "contentHash": "1002d37cb2c3c862d3639eac2f684f1f2ce643fa058c0323614aea52460a5fcd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.Process.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.Process.dll",
+      "contentHash": "cf9c948fa7b8986022e52d35fa21a82801d8a77124c7e764f973ede117820cb4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.StackTrace.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.StackTrace.dll",
+      "contentHash": "db0dc8d94f0733b75990192acee3e38c203bc5dd2188d96060c9c541e0331fcd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.TextWriterTraceListener.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.TextWriterTraceListener.dll",
+      "contentHash": "a544eddb73e1d848c5c364a18430463e26e49c2f53533f229677a77d89cbf8ef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.Tools.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.Tools.dll",
+      "contentHash": "4eceb86c488b4a88a6d75ce327685669fb3f31ec87ffd02ccdec2cb4fe3f327d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.TraceSource.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.TraceSource.dll",
+      "contentHash": "f828c93da9f245e80cadb1905b5185f508a097a2fa824511572d7a196dace2bc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Diagnostics.Tracing.dll": {
+      "filePath": "packaging/linux/publish/System.Diagnostics.Tracing.dll",
+      "contentHash": "28441ae255902981eccb4bb15bb6b52a2a982cdb694495674992e5274507f206",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Drawing.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.Drawing.Primitives.dll",
+      "contentHash": "264a62064eab6f1fb7156c656e010748fe00882af236b9621170db840b79bf0c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Drawing.dll": {
+      "filePath": "packaging/linux/publish/System.Drawing.dll",
+      "contentHash": "fd9ac3e138ec771134bbd83b9f835fc8c52bccf0aae48c3642e053273848d468",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Dynamic.Runtime.dll": {
+      "filePath": "packaging/linux/publish/System.Dynamic.Runtime.dll",
+      "contentHash": "8624e96a5e835f15bb53652abd156c1a52f769918defacd3e924b68c97ef6f58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Formats.Asn1.dll": {
+      "filePath": "packaging/linux/publish/System.Formats.Asn1.dll",
+      "contentHash": "c6b4d5b35c57fc609c977127051220d4111830033757e164758f8182fac76ff5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Formats.Tar.dll": {
+      "filePath": "packaging/linux/publish/System.Formats.Tar.dll",
+      "contentHash": "394841081e1d34e42d67a406d8c97ce7c0591c7fe7c354ebb5f25973fcae8cff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Globalization.Calendars.dll": {
+      "filePath": "packaging/linux/publish/System.Globalization.Calendars.dll",
+      "contentHash": "c7194538f47c2f1da1b70fd4020908d0fff81581a86269c4917d95200449d304",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Globalization.Extensions.dll": {
+      "filePath": "packaging/linux/publish/System.Globalization.Extensions.dll",
+      "contentHash": "a7ab7f379b0fbaf82ec9c2119e1457b8666df69ed45c5d3c71199726d00a00e0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Globalization.dll": {
+      "filePath": "packaging/linux/publish/System.Globalization.dll",
+      "contentHash": "d90a822652f5e433232a6dc22dc964d461602f9c1100458df75b39b8b6c9910d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Compression.Brotli.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Compression.Brotli.dll",
+      "contentHash": "b08f86a0c9fb97ba248e386fb837163b4baaf1fb10496ed3d7d823545bfc9a58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Compression.FileSystem.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Compression.FileSystem.dll",
+      "contentHash": "0361c8ec90a74f70fcd47dab77547515e358e5aafc237f1af5d671a4ce765c15",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Compression.ZipFile.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Compression.ZipFile.dll",
+      "contentHash": "822c38d3bf6ab5dde570b12b5271afcb57d587ec3825488259b731bd346f680f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Compression.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Compression.dll",
+      "contentHash": "2893e3baf108e452f7f4555fbad3eed6eff1688686f0e0808a0f6379e6c9c937",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.FileSystem.AccessControl.dll": {
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.AccessControl.dll",
+      "contentHash": "a5b5c2177a9ef4de04279701841ae6f2d638e855486e9dcdd277b66bbc115319",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.FileSystem.DriveInfo.dll": {
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.DriveInfo.dll",
+      "contentHash": "af20d0181e48b7904ebaef17c65b2637b391d7ae30847fcdb8f3162c8836dfd7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.FileSystem.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.Primitives.dll",
+      "contentHash": "a918b29119783c317167ace015f1435df7721422028674b42da0b68c3f88ad3b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.FileSystem.Watcher.dll": {
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.Watcher.dll",
+      "contentHash": "be28cad7dbf43c58a93f36b74f79d8b1c36ca92482aa5c08664e48083fe9e20a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.FileSystem.dll": {
+      "filePath": "packaging/linux/publish/System.IO.FileSystem.dll",
+      "contentHash": "999135c902630a70711a8265cb840eac074030f9e79e657e0d4b3b493af812a8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.IsolatedStorage.dll": {
+      "filePath": "packaging/linux/publish/System.IO.IsolatedStorage.dll",
+      "contentHash": "fb5d097363ced05afc192b2dddc28ff62b9e0ef423b2e4d0e157ff0b791ed378",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.MemoryMappedFiles.dll": {
+      "filePath": "packaging/linux/publish/System.IO.MemoryMappedFiles.dll",
+      "contentHash": "348f4690e90c21c008777b03feedd025da13543b69bd39a3296ae501e30cf9ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Pipelines.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Pipelines.dll",
+      "contentHash": "884cb53ae8ff40e55e10fe10514a86725575b98cc54af21a978682e038b44a8a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Pipes.AccessControl.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Pipes.AccessControl.dll",
+      "contentHash": "c533faa413e9320d841a88a8561414a470fd6ef0c4323a386db4b0ec5d607a70",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.Pipes.dll": {
+      "filePath": "packaging/linux/publish/System.IO.Pipes.dll",
+      "contentHash": "a3f6388edd0c87c234c8032dbb2601ba80513de737dc5c1934fd07c96bba1541",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.UnmanagedMemoryStream.dll": {
+      "filePath": "packaging/linux/publish/System.IO.UnmanagedMemoryStream.dll",
+      "contentHash": "237b2bd7fc2b2bab630b13197e05c9e58b1cf48e0cc6a7b52dd3327bea1d1852",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.IO.dll": {
+      "filePath": "packaging/linux/publish/System.IO.dll",
+      "contentHash": "4f4021a43dbb00bca36145ccf92373b909f4ec00e13d0b393f33aaad7c42949d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Json.dll": {
+      "filePath": "packaging/linux/publish/System.Json.dll",
+      "contentHash": "41f6605c6b95a04fb07c1ee8a502c1d85a17b761fb105fdf1b3b00c7e0eb5fc1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Linq.AsyncEnumerable.dll": {
+      "filePath": "packaging/linux/publish/System.Linq.AsyncEnumerable.dll",
+      "contentHash": "6801261c07be92a6c99633608324132c665ec704018be4f2ee204a5f709664cd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Linq.Expressions.dll": {
+      "filePath": "packaging/linux/publish/System.Linq.Expressions.dll",
+      "contentHash": "cef491e0eea6f43a699219224c0a7b2f11d343746e38e58bc5924f1ca866253e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Linq.Parallel.dll": {
+      "filePath": "packaging/linux/publish/System.Linq.Parallel.dll",
+      "contentHash": "93b3f29d845ded567ab1e51037af053bf579f0aed19a48893ebfcdee654efbd6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Linq.Queryable.dll": {
+      "filePath": "packaging/linux/publish/System.Linq.Queryable.dll",
+      "contentHash": "b6e1deac6bedb69a6901fc99c48b25ff3b595175c12a9b3430eb7d04e70501a6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Linq.dll": {
+      "filePath": "packaging/linux/publish/System.Linq.dll",
+      "contentHash": "93b208e5c788e263942001fac76d05d63e41e6f83fcd1cd314f5efe9e1957ff1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Memory.dll": {
+      "filePath": "packaging/linux/publish/System.Memory.dll",
+      "contentHash": "3d22f161a1d2484b6a984ae7d26e855c99aaa0a0f9311709bea37d4ede802e56",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Http.Json.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Http.Json.dll",
+      "contentHash": "574bc5cd9c4580a961a5e4991644c9da7ef9d281c18a02c7f4d547f031a0dc27",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Http.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Http.dll",
+      "contentHash": "560deff53c30760abe13781fd81421c35558f55f72829a85f5f83c9e9fed3d01",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.HttpListener.dll": {
+      "filePath": "packaging/linux/publish/System.Net.HttpListener.dll",
+      "contentHash": "35dab6672327002a5d4c19c5737e171bb677ccdffa4c5643968c63f68a2568cc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Mail.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Mail.dll",
+      "contentHash": "605afe80891553137a32e7fd6bbbe40c4557f4e20d0434f82935ef9fe0164c89",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.NameResolution.dll": {
+      "filePath": "packaging/linux/publish/System.Net.NameResolution.dll",
+      "contentHash": "0e97878ceff6aedb804703f2715e855df4722ae0c044ae53841892b7f02ee826",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.NetworkInformation.dll": {
+      "filePath": "packaging/linux/publish/System.Net.NetworkInformation.dll",
+      "contentHash": "7fb84a65aceb75730fa069b0bff89d221a962120ca753fc0c8ece07e439c27fa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Ping.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Ping.dll",
+      "contentHash": "d770f271a612e2a2f36233f75a06a3b81791551ada17129f8e70fb68626a985d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Primitives.dll",
+      "contentHash": "5f6aa14ee3af9122a187b8e4eb24e2f28c96d6d3c4c89f21cb76bbbb8482ab74",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Quic.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Quic.dll",
+      "contentHash": "091a2d7f947370c8010c1505d098eef8cdd9c726fa169c73e525a68394a8980b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Requests.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Requests.dll",
+      "contentHash": "df1885e4318bec46c3c84f0ca59feeb9850773576680af9bf3004b02a534598f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Security.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Security.dll",
+      "contentHash": "c03de2fbbb6e4c1690003258395023338de084ed21692feb01beb8c86babab7e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.ServerSentEvents.dll": {
+      "filePath": "packaging/linux/publish/System.Net.ServerSentEvents.dll",
+      "contentHash": "f14782008f50538656fec29e97ac36735076c0a30842dcab27618859f2de1b8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.ServicePoint.dll": {
+      "filePath": "packaging/linux/publish/System.Net.ServicePoint.dll",
+      "contentHash": "8ec4fb64135586cf50c218b98668f3aa39cd8fb5fbd8db63a3d09d9a630f7db6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.Sockets.dll": {
+      "filePath": "packaging/linux/publish/System.Net.Sockets.dll",
+      "contentHash": "ed02f30a4f24c2cf5d86586084ee1189ed29fe4175ccba6992c769632d085f84",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.WebClient.dll": {
+      "filePath": "packaging/linux/publish/System.Net.WebClient.dll",
+      "contentHash": "c1749579d35afcc73ee8c18e7dd30b3f43e287ffb3bd7df947f89683a989b2c3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.WebHeaderCollection.dll": {
+      "filePath": "packaging/linux/publish/System.Net.WebHeaderCollection.dll",
+      "contentHash": "79a9f0d4a5d26d9cb1d9ae32663fb9c514809616b213bbaeb788c765bafa7c52",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.WebProxy.dll": {
+      "filePath": "packaging/linux/publish/System.Net.WebProxy.dll",
+      "contentHash": "6ccc61dd16a322127df92ff22657c076cac1532f72567ea6890fa042293776cd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.WebSockets.Client.dll": {
+      "filePath": "packaging/linux/publish/System.Net.WebSockets.Client.dll",
+      "contentHash": "57f4f1321b587e62614a1436174d304fbc02adf024bea0e0a13d392f4f54ab0c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.WebSockets.dll": {
+      "filePath": "packaging/linux/publish/System.Net.WebSockets.dll",
+      "contentHash": "4934ac1a10a4b21d68d49a83c7b8f043568f84eb7609f869ce5edf392e0b41fa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Net.dll": {
+      "filePath": "packaging/linux/publish/System.Net.dll",
+      "contentHash": "a58349c64ccb2830f0d61d26a32d530c3f086e9f0ec879c525460086cddab607",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Numerics.Vectors.dll": {
+      "filePath": "packaging/linux/publish/System.Numerics.Vectors.dll",
+      "contentHash": "9e7ac4147d909fbac8a98f732957b8dcf7e838082d5cc90e271a3c4038bbb104",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Numerics.dll": {
+      "filePath": "packaging/linux/publish/System.Numerics.dll",
+      "contentHash": "c56d9977654094314385ef6ee979eabd2bbb18ac6ba3d0ff28410592f2edaf52",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ObjectModel.dll": {
+      "filePath": "packaging/linux/publish/System.ObjectModel.dll",
+      "contentHash": "ef2fd0ba8359738ca4ac0b805c3a561b430de516aaad925c3f5b35402d2945db",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Private.CoreLib.dll": {
+      "filePath": "packaging/linux/publish/System.Private.CoreLib.dll",
+      "contentHash": "94ed20102adaf67a695b91753999b204fb473ed67e3f323dce14d80650b7706b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Private.DataContractSerialization.dll": {
+      "filePath": "packaging/linux/publish/System.Private.DataContractSerialization.dll",
+      "contentHash": "c7a066367fbfbe7a15e25eead8723a31a60846d172d9bf16b186f91a8c3376a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Private.Uri.dll": {
+      "filePath": "packaging/linux/publish/System.Private.Uri.dll",
+      "contentHash": "67b1a817a4ac15b9b52a3c3a7b5610bb45677401ab24f9094baf7e31b4d5687b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Private.Xml.Linq.dll": {
+      "filePath": "packaging/linux/publish/System.Private.Xml.Linq.dll",
+      "contentHash": "933d19db4cf5bf856767329ae29d0fd91f6d16105631937b711dd28cd20bcaf5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Private.Xml.dll": {
+      "filePath": "packaging/linux/publish/System.Private.Xml.dll",
+      "contentHash": "4e398172a8e8ac58513e7d0b2d47027ca40aa9ae3d19b7761e366a742fab7a3f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.DispatchProxy.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.DispatchProxy.dll",
+      "contentHash": "d1a055566eb0c64cd2eafb549e26ab5a67bd54f8a0c8fe9da492dd6c5338a5d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Emit.ILGeneration.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.ILGeneration.dll",
+      "contentHash": "ce5d558c75967b7acd2218277ab70f869530abf5fa9cb173256c322c3d932a3a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Emit.Lightweight.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.Lightweight.dll",
+      "contentHash": "6a01e38b619f6d7ce966085348945f3cc1b1e259b7a5c7464c35e7db86158e9e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Emit.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Emit.dll",
+      "contentHash": "ca74d4ae2c3e08e604122620affc2ec7d40f1260cc36d2185017114560fce0cd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Extensions.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Extensions.dll",
+      "contentHash": "911d8f954f5899a61c7b6adb7e669a0889dda62138d52d719fba1b86e8562b4c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Metadata.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Metadata.dll",
+      "contentHash": "43f2cf998afe244f5cf388e0fcc0fb16cf5eec18ac29d247729d6b83717efe67",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.Primitives.dll",
+      "contentHash": "5ebf3719c88b59c338b766ae2900dd42eaebbf9d9af0f38a9bcaf27f832bbab9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.TypeExtensions.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.TypeExtensions.dll",
+      "contentHash": "9862661af54da441b649a8a69e5ea535da2cbcd2476c7cd82e477f53919f930e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Reflection.dll": {
+      "filePath": "packaging/linux/publish/System.Reflection.dll",
+      "contentHash": "01b6d3b3946f2b2ef3c6a34cd3790884b161bdbf8f4b5788ab38780c28d7bacd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Resources.Reader.dll": {
+      "filePath": "packaging/linux/publish/System.Resources.Reader.dll",
+      "contentHash": "8507d6343eac4f7e804409ef8013199357474f284fe7530814b3257e0eacfd68",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Resources.ResourceManager.dll": {
+      "filePath": "packaging/linux/publish/System.Resources.ResourceManager.dll",
+      "contentHash": "5d4791658c0487000bad95be0e4b2c47cb6aafba64f11802020c0d6ceffbde52",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Resources.Writer.dll": {
+      "filePath": "packaging/linux/publish/System.Resources.Writer.dll",
+      "contentHash": "0780f40e4bac93ff01a92712a724b8f443902d9b1c497ea05e5e41f561183a4d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.CompilerServices.Unsafe.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.CompilerServices.Unsafe.dll",
+      "contentHash": "3ab9d25eda98406d7428253124047cb07aa250f0838940bc80cd6d1b14236971",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.CompilerServices.VisualC.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.CompilerServices.VisualC.dll",
+      "contentHash": "8827ed19910098c1fb297c4b4122cb154d25e35ede483ff828582b0b5eeffc2d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Extensions.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Extensions.dll",
+      "contentHash": "d8243e14a6631918e8b835f32dc9f3a92afecc369ff3d3fc42b37c99fbd59a85",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Handles.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Handles.dll",
+      "contentHash": "6cfe66a1c127a347c75fcb9691cc206a194492e01c5e7e2019fce7d5a104e3c7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.InteropServices.JavaScript.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.JavaScript.dll",
+      "contentHash": "9c4485bfd072aaf14f2f6cc2ecddba4edc29ce6e281a574900c8e8dbfbde7cd4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.InteropServices.RuntimeInformation.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.RuntimeInformation.dll",
+      "contentHash": "27699f1e44fb9248fce13e2424f777b5be9f4f1b596b678750b9dd0d80be6686",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.InteropServices.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.InteropServices.dll",
+      "contentHash": "33ed029982c889c3142603fa9622a8e02456dcd5bd04db7d19bb9e61a29482b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Intrinsics.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Intrinsics.dll",
+      "contentHash": "2a1e34bfa3c8a4248ad0f8f26d92f592fd6fda042d663f343e71922464b4b970",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Loader.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Loader.dll",
+      "contentHash": "36f012e3255875b7981f8e8137631958993dd6c09f2513042b7b742dea0b378b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Numerics.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Numerics.dll",
+      "contentHash": "e4b05ef41782418ca09cf1c9bd5bf0cc1766df1651a812b283fc78fd712284da",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Serialization.Formatters.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Formatters.dll",
+      "contentHash": "70dbfed21d732f6c2fefdc49fde91042d3bcc84f75fc1f965aa240d46d85e10b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Serialization.Json.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Json.dll",
+      "contentHash": "bfb88b91fb492416d80347d7f35b8a1246765cfdf1b97caa4d135127a22abf87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Serialization.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Primitives.dll",
+      "contentHash": "041f6cdc5010d7df9e79a5f651019df2aa586fe6c240b3a09a27d7b9d52864b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Serialization.Xml.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.Xml.dll",
+      "contentHash": "92d5b9628d6524cd0035111427a2978de0ac3eef5066fbff65cd7a756d329c22",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.Serialization.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.Serialization.dll",
+      "contentHash": "dba2b67f63d3c79c3a280e7b9ba285b50e0940b8a640ff6e7a2765983f98aa29",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Runtime.dll": {
+      "filePath": "packaging/linux/publish/System.Runtime.dll",
+      "contentHash": "ea2f589365e67c7a9b5ac97bd2209e051a028fc68ed1988f8ccc1287a5cd0f32",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.AccessControl.dll": {
+      "filePath": "packaging/linux/publish/System.Security.AccessControl.dll",
+      "contentHash": "37f35d09de1cced58011df880a35b96504fc9c2e8ee3b4e82384b8a179207ff9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Claims.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Claims.dll",
+      "contentHash": "3bd87b6d63105eb823a63d2d84e847681653979719da1930618c4d158ec6cefc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.Algorithms.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Algorithms.dll",
+      "contentHash": "997837102d05a3d190fe4d3beb0d76f2eb5865aa92502c714761475fa2da31e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.Cng.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Cng.dll",
+      "contentHash": "5a59e6923e48645cafba9e2acc80f8e52303f438f994df057e714248f474ef1c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.Csp.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Csp.dll",
+      "contentHash": "8e92ef1e27284d8840b549c19821f1a3edd7592f03c2e89e4d504963ca09cf97",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.Encoding.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Encoding.dll",
+      "contentHash": "4f2db934663e82a5e6bcf63ac37af9c70576657f34f3d13dc4578614e966ac75",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll",
+      "contentHash": "e82169382035540ccbcffd10ad0b3cb5b78ba957a357c6be7ff31c81f23f971e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.Primitives.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
+      "contentHash": "b524fa1e9d2d5927e6cd9d904004d50ec0c41716afe7f87f55fa995a224afe25",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll",
+      "contentHash": "56fa746cc5d4fd573165299de93888422f7cb4ca43daacab6db5c7050fa2a8f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.dll",
+      "contentHash": "aecad020917aa28e70cda506adbea1558d664f5efc1cfde456c19cf62b1fb874",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Principal.Windows.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Principal.Windows.dll",
+      "contentHash": "a7fc1fd08c0f6bdf74a1ace2bb8c57bce01146d943d520bf5529c16ff9ada416",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Principal.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Principal.dll",
+      "contentHash": "777b89628518cdd71e3f94e4157b89cc66a22e3f1bcd27fba20e9865019aa0ac",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.SecureString.dll": {
+      "filePath": "packaging/linux/publish/System.Security.SecureString.dll",
+      "contentHash": "abfe3d5ebdeea5a2a1769fc4419aeb06d25cf3ae3d9731ab9fa9d02d4827ca71",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.dll": {
+      "filePath": "packaging/linux/publish/System.Security.dll",
+      "contentHash": "104c7dbeabed32b9c98b1fb0cb5fa76b3021aa7d3c3e06a4c09b1a83fcea312e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ServiceModel.Web.dll": {
+      "filePath": "packaging/linux/publish/System.ServiceModel.Web.dll",
+      "contentHash": "5e5ac26c91381747f82cc565b51d02e0234bdb250428f14f03e808501c041dce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ServiceProcess.dll": {
+      "filePath": "packaging/linux/publish/System.ServiceProcess.dll",
+      "contentHash": "e4bf6dd457de1b053414063dd70356e71ce487685984b6eaf4ae3f7d0cfa7e8e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.Encoding.CodePages.dll": {
+      "filePath": "packaging/linux/publish/System.Text.Encoding.CodePages.dll",
+      "contentHash": "b750f5fc90bd5843bf167e328183d3ee7ce2dcbd5008d6532cade512b1057094",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.Encoding.Extensions.dll": {
+      "filePath": "packaging/linux/publish/System.Text.Encoding.Extensions.dll",
+      "contentHash": "636cd1167f49f5344247a87f749d684e17441819528862ef269575bcaa4f7e58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.Encoding.dll": {
+      "filePath": "packaging/linux/publish/System.Text.Encoding.dll",
+      "contentHash": "484235585d4e9d5927225dec1f18d428df46b2589e89b4bef6696bbbee6ef9f0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.Encodings.Web.dll": {
+      "filePath": "packaging/linux/publish/System.Text.Encodings.Web.dll",
+      "contentHash": "f65a46233eac7ff62a17c40f5b2bf2c609475acd72fb4ca154afc6ef276c071d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.Json.dll": {
+      "filePath": "packaging/linux/publish/System.Text.Json.dll",
+      "contentHash": "122e2c8953b4a79dd9f1af71b404b78dfe5ab9ed376b45cd39bd200658e537f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Text.RegularExpressions.dll": {
+      "filePath": "packaging/linux/publish/System.Text.RegularExpressions.dll",
+      "contentHash": "59384d36e433cd825f3d7132e48cc8ecc667f205495ef3a6a11324d298d4e238",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.AccessControl.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.AccessControl.dll",
+      "contentHash": "4a63f2af19cab8b0069c787f5c007e4900483b9cb79d5cda35af759032a451eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Channels.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Channels.dll",
+      "contentHash": "1a3043c218c3334727245655fc3eca3b113bd27f90dae84181c92f2f26cbd418",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Overlapped.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Overlapped.dll",
+      "contentHash": "0bc14188d565e4ef53bf1824ce90a08aadf515fbefe5099102cd1bcdfa95b532",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Tasks.Dataflow.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Dataflow.dll",
+      "contentHash": "3e6cdfa21075be592539070b1f4a5c6f7f5f16132ed733c91d88b359b1aa4c2a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Tasks.Extensions.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Extensions.dll",
+      "contentHash": "bc9fbaa1e3c887daba726a5e40bc337ea070393d6ec635af3caee0bdbbcccf80",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Tasks.Parallel.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.Parallel.dll",
+      "contentHash": "ddbf7c695dc9367a9183c955f3a6d263d90f4bbfe58b2a8491cc9a180c974606",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Tasks.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Tasks.dll",
+      "contentHash": "0c7b7d31b8a73b89459c9b5bd0a8ed56cae59163da68d7d858beaa3b493726ce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Thread.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Thread.dll",
+      "contentHash": "2bcdb6d0527f613af7e6e79d0c87b92216501d63be23e85727e326ed79e4214f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.ThreadPool.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.ThreadPool.dll",
+      "contentHash": "5164beb96adeec8ccfc67cff4da2886c9dec0f84e2615cbfdaf39f347632c567",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.Timer.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.Timer.dll",
+      "contentHash": "282fb94206c496b5dc4a8c4893d04e4d610e02280223ee25ebaf01fb04dfca46",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Threading.dll": {
+      "filePath": "packaging/linux/publish/System.Threading.dll",
+      "contentHash": "7b87a483476dea3cb42dfd2441cf512415d1d3964f05c59f35566be995e589b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Transactions.Local.dll": {
+      "filePath": "packaging/linux/publish/System.Transactions.Local.dll",
+      "contentHash": "cbd7af0dbfd79d0d6e8a8753adb0c0b93f811748412cc33bf6f6736292fb1485",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Transactions.dll": {
+      "filePath": "packaging/linux/publish/System.Transactions.dll",
+      "contentHash": "77aa9d856fe31acbf3efe71f564db18b9a824e2ba1985fd50d70a6547ed6b409",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.ValueTuple.dll": {
+      "filePath": "packaging/linux/publish/System.ValueTuple.dll",
+      "contentHash": "3ef9e5866fad71915295c9b49dd5d654f098df4a12b22639f26eac04c4d5069c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Web.HttpUtility.dll": {
+      "filePath": "packaging/linux/publish/System.Web.HttpUtility.dll",
+      "contentHash": "6b32db6a55db353abea074f4b9c99bf858f82e4d62b832d8b02bb100c37041b0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Web.dll": {
+      "filePath": "packaging/linux/publish/System.Web.dll",
+      "contentHash": "ed909c2826b7985f1be4db57998787b9e73c904261373aa4f575426abb846b0e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Windows.dll": {
+      "filePath": "packaging/linux/publish/System.Windows.dll",
+      "contentHash": "02ad31fd79968868ef04420a7994905ee54314fcdd98a683a479ba486582ec11",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.Linq.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.Linq.dll",
+      "contentHash": "de512eca20bd7528bdb078f5b928c21a1cf1b9ef13ad08a2482cd49d44859610",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.ReaderWriter.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.ReaderWriter.dll",
+      "contentHash": "e36663f337a59cc9ef8330485f94f4b2b418db2fa30ea035d94a2187d824c3ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.Serialization.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.Serialization.dll",
+      "contentHash": "224297b17395ea00ef0051cd9ba43d96443712a79e33565453b494805719db7e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.XDocument.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.XDocument.dll",
+      "contentHash": "f3c439a9c57cbfa0c0d3de6ee7830e1124a2ac7c422d7fc17b395c093f8b2180",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.XPath.XDocument.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.XPath.XDocument.dll",
+      "contentHash": "62d7dc88af7da29d051caa86ffebfe281e018eb9e6642c40429ca42f6b39a874",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.XPath.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.XPath.dll",
+      "contentHash": "4664879d34f909cc0e2d81e6ddbbd0336a0409796b6df2f72485b973444328ce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.XmlDocument.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.XmlDocument.dll",
+      "contentHash": "e78f7cd076e48735084aaf6ef8660fe53a0bba27bb35d593c88917f23d4d5725",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.XmlSerializer.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.XmlSerializer.dll",
+      "contentHash": "515ad7b5785901ffd4bb9f73eaee33ec7e9da40c84554c9e09dc241f544b0abf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Xml.dll": {
+      "filePath": "packaging/linux/publish/System.Xml.dll",
+      "contentHash": "a3ed93cd9fd55082a33760af765d33fa613eadb1c06fe1b92cd890f180c52fee",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.dll": {
+      "filePath": "packaging/linux/publish/System.dll",
+      "contentHash": "9543533c17ebfde52c7fad425eae62c3c0c95c605d920966a3dfc74656657162",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Tmds.DBus.Protocol.dll": {
+      "filePath": "packaging/linux/publish/Tmds.DBus.Protocol.dll",
+      "contentHash": "feb2ec8ded9c8c786eaaf91623bdb58f32a9b552497c02e6828b177140a3b118",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Core.Extensions.Collections.dll": {
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Collections.dll",
+      "contentHash": "e95f38b5e30ba2120c4fa1cb9bb0dd291612e3bdcb354637c4a2a089cdbd467e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Core.Extensions.Disposables.dll": {
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Disposables.dll",
+      "contentHash": "4f54d4040a4723929f1ee06dbd82e0a8d1081b103f41b6c7c60381b198fe4ea8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Core.Extensions.Equality.dll": {
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Equality.dll",
+      "contentHash": "377b64292587d44e85a152934c385178158bcc064346aa28ae1326c288ea0251",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Core.Extensions.Logging.Singleton.dll": {
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Logging.Singleton.dll",
+      "contentHash": "aef24e4e6d46087ce4bf11f33ceb42efaed5229bfe094721aab46bdd92028ac2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Core.Extensions.Logging.dll": {
+      "filePath": "packaging/linux/publish/Uno.Core.Extensions.Logging.dll",
+      "contentHash": "5ec8e580a21440f6d634eb29086b79b04c5afe7d7b11b13f159fb9fbd1b471ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Diagnostics.Eventing.dll": {
+      "filePath": "packaging/linux/publish/Uno.Diagnostics.Eventing.dll",
+      "contentHash": "d22ce6408c8ae3593caa918722e40427125869d064c90d5384c5954701fa6cd7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf",
+      "contentHash": "9d4f362f38635e94f5fe045e2744f143aaecd23ae25be82aa379ecc6d3dad073",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Fluent.dll": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent.dll",
+      "contentHash": "15c1dc88da22aafbda2c4ddbc032a0a0fa3b099b85a33bf377cbf0305bfac618",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Fluent.uprimarker": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Fluent.uprimarker",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf",
+      "contentHash": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf",
+      "contentHash": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf",
+      "contentHash": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf",
+      "contentHash": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf",
+      "contentHash": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf",
+      "contentHash": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf",
+      "contentHash": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf",
+      "contentHash": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf",
+      "contentHash": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf",
+      "contentHash": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf",
+      "contentHash": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf",
+      "contentHash": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf",
+      "contentHash": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf.manifest": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf.manifest",
+      "contentHash": "4d1c014cf03c6487a0221cbdd13cdf38818018c3183ce65a839626b9db021ade",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 220,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf",
+      "contentHash": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf",
+      "contentHash": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf",
+      "contentHash": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf",
+      "contentHash": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf",
+      "contentHash": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf",
+      "contentHash": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf",
+      "contentHash": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf",
+      "contentHash": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf",
+      "contentHash": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf",
+      "contentHash": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf",
+      "contentHash": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf",
+      "contentHash": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf",
+      "contentHash": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf",
+      "contentHash": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf",
+      "contentHash": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf",
+      "contentHash": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf",
+      "contentHash": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf",
+      "contentHash": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf",
+      "contentHash": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf",
+      "contentHash": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf",
+      "contentHash": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf",
+      "contentHash": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf",
+      "contentHash": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf",
+      "contentHash": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans.dll": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans.dll",
+      "contentHash": "d4f8f97868b55fe43627a440a96ecb45b26fb118f98e4a3c77c7d10b4ac912c8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.OpenSans.uprimarker": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.OpenSans.uprimarker",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf",
+      "contentHash": "c576c50642271bcdbfffed04f92dc8d6a981daf300914d0a20c8a5a5a57015c7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf",
+      "contentHash": "9d0d55a303bfd13b79a87721f65185e93f235e2d77fe398b2dca67ac519915f5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf",
+      "contentHash": "4e147ab64b9fdf6d89d01f6b8c3ca0b3cddc59d608a8e2218f9a2504b5c98e14",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Roboto.dll": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto.dll",
+      "contentHash": "428f8936d0e97825f2a088739ac8d8dac05954042331540dad8fae50bc30abe4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Fonts.Roboto.uprimarker": {
+      "filePath": "packaging/linux/publish/Uno.Fonts.Roboto.uprimarker",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Foundation.Logging.dll": {
+      "filePath": "packaging/linux/publish/Uno.Foundation.Logging.dll",
+      "contentHash": "81a8d9afa2a18fccab72c11046c63f36069511e2d3aa06b5ffda42425fc93d8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Foundation.dll": {
+      "filePath": "packaging/linux/publish/Uno.Foundation.dll",
+      "contentHash": "9f5485ffa7752d10b834abe405daca30be3b48c211ab64ea625643ac346dbe4c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Foundation.pdb": {
+      "filePath": "packaging/linux/publish/Uno.Foundation.pdb",
+      "contentHash": "2a02330c162f8912901d4d7dedd211fa0852119f6eae9895f3e6ad980e11090b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Material.WinUI.dll": {
+      "filePath": "packaging/linux/publish/Uno.Material.WinUI.dll",
+      "contentHash": "d68d1f1482697fc1d624d9a6a51e60f3e874976870e1510243b9a5cdb30688c1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Themes.WinUI.dll": {
+      "filePath": "packaging/linux/publish/Uno.Themes.WinUI.dll",
+      "contentHash": "7c9881398e4be2baf6250f4c92685b0f21c487d03e26aac94452218f2b464681",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Toolkit.WinUI.Material.dll": {
+      "filePath": "packaging/linux/publish/Uno.Toolkit.WinUI.Material.dll",
+      "contentHash": "59354ae077276805530655d49d335358af9b7f9a4831ed2456356a63fb6f1834",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Toolkit.WinUI.dll": {
+      "filePath": "packaging/linux/publish/Uno.Toolkit.WinUI.dll",
+      "contentHash": "01025fbeb551f8d4cd645cd8c7b02a85e87f964949146985687d1f0830f68fd4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Toolkit.dll": {
+      "filePath": "packaging/linux/publish/Uno.Toolkit.dll",
+      "contentHash": "330e641da499320d1bfb2fb8e102b26c0dedf5840787c4e45fec53dbe0e3028e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Adapter.Microsoft.Extensions.Logging.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Adapter.Microsoft.Extensions.Logging.dll",
+      "contentHash": "8b82fc13c20b60bd8f19b377f0fefcfc7bc9cea6503705b2c39dd23b7a2947af",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Composition.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Composition.dll",
+      "contentHash": "69a16523cd642294167a14de0273fc2c03bac66ecd7782357e5876f8a07e64ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Composition.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.Composition.pdb",
+      "contentHash": "557543c3da91d87c0088710447da24d36ffa3bdc37fa444602f514f0b539df08",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Dispatching.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Dispatching.dll",
+      "contentHash": "4f9ae51b64499d8ccb2ffff0a1cc83947a4d3bd31d867a883e9291a6742244f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Dispatching.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.Dispatching.pdb",
+      "contentHash": "2bed1aaf3b3f03083227f3a3255cc4a6aec745f6d3663e178f358c2e27c7a52a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.dll",
+      "contentHash": "0725842d1722512c54d7c526002972400dc0297d5846032d84a34500a2f8dba2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.pdb",
+      "contentHash": "12b9b86d2c8bbc1db1a711a5755ab1c1e26b7f509128487408b528535e3fe17c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.v1.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v1.dll",
+      "contentHash": "68159fab36f265c12166889631549ecebb27f726972af9eb123b3ff23badc284",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.v1.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v1.pdb",
+      "contentHash": "281b1bd818783ee71cef49909b1d0370f7d729fa50c30b057637f28accdb7d44",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.v2.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v2.dll",
+      "contentHash": "f8c56335727617bba45ef79fdd699a59d56b4da1ef774d4c3cb49b71668becd0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.FluentTheme.v2.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.FluentTheme.v2.pdb",
+      "contentHash": "a4cf49137b586a9823c8b0a074c980acc3b82e06019515a8fbab2fc6dd683e42",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Lottie.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Lottie.dll",
+      "contentHash": "9b92426e27eea57c5bd82a103c21b05eb6c04379cbaf14358ac8cbabf7393f9b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Lottie.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.Lottie.pdb",
+      "contentHash": "884abae166ceaa7166bd7b4422fd13ddfb5fdfdfcf21bad69bca8d373985a541",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Linux.FrameBuffer.dll",
+      "contentHash": "44f190c845167d9a568e1d6708136454ad8acf0554b3564dbadaf40e628f61d3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.MacOS.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.MacOS.dll",
+      "contentHash": "0dc8f361774c1964e40dfecafe0ee3acce7642969b3a96c8e2ce6a31e3d93e84",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.Support.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.Support.dll",
+      "contentHash": "b8c8edc1c8dc0d61c78a4a8f39f0de2de811877a6d657f0f1eb5fccf08f9e4ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Win32.dll",
+      "contentHash": "71e992b490a8d42d57e338d6a7136a6dc7f50fe558949c0608300cf45cd5671a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.Wpf.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.Wpf.dll",
+      "contentHash": "6042274681e74148b5a8554b51f769dc158899334302252a9aa50145347e16d9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.X11.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.X11.dll",
+      "contentHash": "dbb9c587859671ac934bae5a44ec9bf1c66f2bc1315fef5daa5682e710dde14f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Runtime.Skia.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Runtime.Skia.dll",
+      "contentHash": "e618b6f31d3817b2cbe200fe993768635f7783125de1fd26987fd17669ea41c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Toolkit.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.Toolkit.dll",
+      "contentHash": "a71c779f24f457470f68b561db851c503a9375074a31b9b7db3802172d871e97",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.Toolkit.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.Toolkit.pdb",
+      "contentHash": "44a9db62a9ad528d08fe0cf4d44fc4f93523e857fecee984ddb6c38602ce992f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.dll": {
+      "filePath": "packaging/linux/publish/Uno.UI.dll",
+      "contentHash": "4f54e94c4a1247b92bf9c761fc0441933e398500f112e9033571b6f565d106b9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.UI.pdb": {
+      "filePath": "packaging/linux/publish/Uno.UI.pdb",
+      "contentHash": "477557151935d8bd89be1671b64830f61ce5db1b5aad5a6567d3a81da57f73e0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.WinUI.Graphics2DSK.dll": {
+      "filePath": "packaging/linux/publish/Uno.WinUI.Graphics2DSK.dll",
+      "contentHash": "80ecfe3dd30356e603abd3b876ef3e8dc99e92563f48c05288482f7b959cc450",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Xaml.dll": {
+      "filePath": "packaging/linux/publish/Uno.Xaml.dll",
+      "contentHash": "ae1677a1471881f61166cd376cfc5bbd6102b56a30d7bdb3550d1653722d2821",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.Xaml.pdb": {
+      "filePath": "packaging/linux/publish/Uno.Xaml.pdb",
+      "contentHash": "38bf00227ad49c6e3c0273bc7270a3f9a616fbfcae98eec26e7ff9358db2a591",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.dll": {
+      "filePath": "packaging/linux/publish/Uno.dll",
+      "contentHash": "e713a099dc6cfc8bae3f80204d38b2f73cb64bd6507d62c8692f914a8ca8ed0a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Uno.pdb": {
+      "filePath": "packaging/linux/publish/Uno.pdb",
+      "contentHash": "b2fbaa27b2ef9159289ce41f12da2f861b0ff4d551818bb410a80e734b79f181",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/WindowsBase.dll": {
+      "filePath": "packaging/linux/publish/WindowsBase.dll",
+      "contentHash": "9486ac038e4d1a6304882822fc8fb96dd7ef4df0e8bc4708e3e39c5a3ae449b3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/createdump": {
+      "filePath": "packaging/linux/publish/createdump",
+      "contentHash": "1487e0fa1ecdcb3bd06fea770580d98fceeb3824a4fd059b4a325c4a7ab186f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libHarfBuzzSharp.so": {
+      "filePath": "packaging/linux/publish/libHarfBuzzSharp.so",
+      "contentHash": "c952458933ea7f1ce66ade61fa32e708df7dfb2ab8bae77ed5ec06f49223a75c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSkiaSharp.so": {
+      "filePath": "packaging/linux/publish/libSkiaSharp.so",
+      "contentHash": "09e7aec4a2c32f1a856f824297161c9b97895302c118e376629a657c0f5918e5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSystem.Globalization.Native.so": {
+      "filePath": "packaging/linux/publish/libSystem.Globalization.Native.so",
+      "contentHash": "814be2c7e28ce7de55ce6a3a1b6cbf8f46471630c2a79004206a89b035786c0f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSystem.IO.Compression.Native.so": {
+      "filePath": "packaging/linux/publish/libSystem.IO.Compression.Native.so",
+      "contentHash": "a2a1e4d9e9b88b469e2efc82b1a175c1a9a57603283e018e6565e6b548ac338f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSystem.Native.so": {
+      "filePath": "packaging/linux/publish/libSystem.Native.so",
+      "contentHash": "c19d793677718165b7affb35445b2a284100a27205cf5127a98fe0b92c8d0607",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSystem.Net.Security.Native.so": {
+      "filePath": "packaging/linux/publish/libSystem.Net.Security.Native.so",
+      "contentHash": "a9ff01792df2967af185331e661320551ad086d36f05af4fe9abcedd39e95937",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libSystem.Security.Cryptography.Native.OpenSsl.so": {
+      "filePath": "packaging/linux/publish/libSystem.Security.Cryptography.Native.OpenSsl.so",
+      "contentHash": "566ba83a9479c89f678ebe3f31c1501f2585e1fd0ca0b6fa9f82dea1ee661060",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libclrgc.so": {
+      "filePath": "packaging/linux/publish/libclrgc.so",
+      "contentHash": "b7e23a19e1357af0b01096c1db4073cb0dbca28ad3fbd61316cb81ded3265edf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libclrgcexp.so": {
+      "filePath": "packaging/linux/publish/libclrgcexp.so",
+      "contentHash": "80c4948e80eaf983f9841b69421ba73f810635de03a8dca0b7c6bdbf63d9ffdc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libclrjit.so": {
+      "filePath": "packaging/linux/publish/libclrjit.so",
+      "contentHash": "63055e806e5201b87a7aa3ce14de104eab55660b12685e31c70836dcf283e368",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libcoreclr.so": {
+      "filePath": "packaging/linux/publish/libcoreclr.so",
+      "contentHash": "4750ee0b2d0920e70a782fab55e938e93519022954794ac1c192965f6a747d51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libcoreclrtraceptprovider.so": {
+      "filePath": "packaging/linux/publish/libcoreclrtraceptprovider.so",
+      "contentHash": "9f10b0d29ecb52899c27014985437cd32de30d3680c918c31b41a9552876dcd0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libhostfxr.so": {
+      "filePath": "packaging/linux/publish/libhostfxr.so",
+      "contentHash": "60b1f1cc6b84794e0a8128a54e189f1e27e86409102f6ed61fb419bd7fe0bf85",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libhostpolicy.so": {
+      "filePath": "packaging/linux/publish/libhostpolicy.so",
+      "contentHash": "28c4a0debd75aa82bc10d28cd08dc7d88e35f61840ee82fc918a9e8d0c4ce376",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libmscordaccore.so": {
+      "filePath": "packaging/linux/publish/libmscordaccore.so",
+      "contentHash": "6090f2450aa4806005389aac88b1f01d2f008f559fe8df949d016e461370654d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/libmscordbi.so": {
+      "filePath": "packaging/linux/publish/libmscordbi.so",
+      "contentHash": "2f290bad93c43f96519f8d96a4898bd53a6212c16a38f0914834a355a80b0100",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/mscorlib.dll": {
+      "filePath": "packaging/linux/publish/mscorlib.dll",
+      "contentHash": "a262a7ba587e1b3cf51f466e9fb9ac6a0b97f31ce291e1725be5d0e7ff17b7e5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/netstandard.dll": {
+      "filePath": "packaging/linux/publish/netstandard.dll",
+      "contentHash": "576d13c88777a397f0f34a89b328848176a9c11be7f343df924e33a11cbe34d5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
       "hasStructuralAnalysis": false
     },
     "packaging/windows/installer.iss": {
@@ -3935,12 +7135,12 @@
     },
     "scripts/update_understand_context.py": {
       "filePath": "scripts/update_understand_context.py",
-      "contentHash": "a39e633be9790759ff3891ecdecf1a3f758daf491f815e18c62bf1883e9b106c",
+      "contentHash": "3949697066ef66389ccf3daad39036db1cf99787f26c85db9e29ab4f6c78ba2e",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 480,
+      "totalLines": 498,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/App.xaml": {
@@ -3955,7 +7155,7 @@
     },
     "src/Cantus.Client/Cantus.Client/App.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
-      "contentHash": "0344da95b8c5ae6988d24a95eb9f90042c36d6325a39783ec7fb952d0505dd43",
+      "contentHash": "f458042dd3d1d6f79bdae0ccc7f5608c7d2c0b59235daf9a325c1b66d4ae53d0",
       "functions": [
         {
           "name": "InitializeLogging",
@@ -3999,12 +7199,12 @@
     },
     "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj": {
       "filePath": "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
-      "contentHash": "0cfc512c26e33bc3f74d5e12d3080806941a239400bff5e369b7e925bddc011f",
+      "contentHash": "1d8fc25b07d5016223d4100ddc22df4d9e395bcf585b988024555c04b4591886",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 42,
+      "totalLines": 43,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/GlobalUsings.cs": {
@@ -4029,7 +7229,7 @@
     },
     "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/MainPage.xaml.cs",
-      "contentHash": "6302a4521625dbb02578356140415c52f7b586bc490f43b52ddd45599288ded1",
+      "contentHash": "b5ba18ebf64cf6ef41d31d2d21c1f7632ac7eb6f53a2473e4560f14ea2d60075",
       "functions": [
         {
           "name": "OnPageSizeChanged",
@@ -4383,7 +7583,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
-      "contentHash": "2654e86367e1937d6c4dc79f4ebc7f304e62b292330061b40541f437a4623dda",
+      "contentHash": "15c6028536a84f5504d2221279b01ab36b80de34879a490b803a60cebf0c5d93",
       "functions": [
         {
           "name": "Main",
@@ -4401,7 +7601,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 23
+          "lineCount": 22
         }
       ],
       "imports": [
@@ -4422,12 +7622,12 @@
         "Main",
         "Program"
       ],
-      "totalLines": 23,
+      "totalLines": 22,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs",
-      "contentHash": "4a82881a324556c2a2b74d4089b89113bbd5f4391854f9961fabbe0431bc33af",
+      "contentHash": "a8eb0c4eb3f538c83251704ef0871de7c41486ac9517073d0cb29e07e0669207",
       "functions": [
         {
           "name": "Main",
@@ -4445,7 +7645,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 18
+          "lineCount": 17
         }
       ],
       "imports": [
@@ -4460,7 +7660,7 @@
         "Main",
         "Program"
       ],
-      "totalLines": 18,
+      "totalLines": 17,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs": {
@@ -4566,12 +7766,37 @@
     },
     "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
-      "contentHash": "fa94d458942967c27e2102613b60cb86d6c57d37bc0d8806341a83e2965f59ff",
+      "contentHash": "0798c58d6aab3073ba5b9c31d65ae66d083ed40f531579d4c56b41d446a3889f",
       "functions": [
+        {
+          "name": "RaiseLyricsReceived",
+          "params": [
+            "payload"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "RaisePlaybackStateReceived",
+          "params": [
+            "payload"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
         {
           "name": "ResolveServerUrl",
           "params": [],
           "returnType": "string",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "EnsureConnectionBuilt",
+          "params": [],
+          "returnType": "void",
           "exported": false,
           "lineCount": 10
         },
@@ -4581,6 +7806,29 @@
             "default"
           ],
           "returnType": "Task",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "EnsureReconnectPollerStarted",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "OnReconnectPollerTickAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "TryConnectAsync",
+          "params": [
+            "default"
+          ],
+          "returnType": "Task<bool>",
           "exported": true,
           "lineCount": 10
         },
@@ -4601,56 +7849,20 @@
           "returnType": "void",
           "exported": true,
           "lineCount": 10
-        },
-        {
-          "name": "SetTrackOffsetAsync",
-          "params": [
-            "trackId",
-            "offsetMs"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "SubscribeToUserAsync",
-          "params": [
-            "userId"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "LogoutAsync",
-          "params": [],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "ReconnectWithTokenAsync",
-          "params": [
-            "sessionToken"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "DisposeAsync",
-          "params": [],
-          "returnType": "ValueTask",
-          "exported": true,
-          "lineCount": 10
         }
       ],
       "classes": [
         {
           "name": "TrackInfoPayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -4699,19 +7911,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "PlaybackStatePayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -4760,19 +7979,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "LyricLinePayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -4821,19 +8047,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "LyricsPayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -4882,19 +8115,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "TrackOffsetPayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -4943,19 +8183,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "DiagnosticsPayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5004,19 +8251,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "AuthorizedSessionPayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5065,19 +8319,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "ClockSyncResponsePayload",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5126,19 +8387,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "CantusJsonContext",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5187,19 +8455,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "NtpSample",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5248,19 +8523,26 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         },
         {
           "name": "SignalRPlaybackClient",
           "methods": [
+            "RaiseLyricsReceived",
+            "RaisePlaybackStateReceived",
             "ResolveServerUrl",
+            "EnsureConnectionBuilt",
             "StartAsync",
+            "EnsureReconnectPollerStarted",
+            "OnReconnectPollerTickAsync",
+            "TryConnectAsync",
             "SyncClockAsync",
             "ProcessNtpSample",
             "SetTrackOffsetAsync",
@@ -5309,13 +8591,14 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
             "TransportType",
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 458
+          "lineCount": 587
         }
       ],
       "imports": [
@@ -5374,9 +8657,9 @@
           ]
         },
         {
-          "source": "var http = new System.Net.Http.HttpClient()",
+          "source": "System.Net.Http.HttpClient http = new()",
           "specifiers": [
-            "HttpClient()"
+            "HttpClient http = new()"
           ]
         }
       ],
@@ -5421,6 +8704,9 @@
         "ProcessNtpSample",
         "ProfileImageUrl",
         "ProgressMs",
+        "RaiseLyricsReceived",
+        "RaisePlaybackStateReceived",
+        "ReconnectInterval",
         "ReconnectWithTokenAsync",
         "RttMs",
         "ServerReceiveTimeMs",
@@ -5441,15 +8727,16 @@
         "TrackInfoPayload",
         "TrackOffsetPayload",
         "TransportType",
+        "TryConnectAsync",
         "UpdatedAtUtc",
         "VolumePercent"
       ],
-      "totalLines": 458,
+      "totalLines": 587,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
-      "contentHash": "a334418ab7b7735346a043fc5ce4e7dce918a6cd2534299a3f19dd1bf22ffc01",
+      "contentHash": "40bc5440b47ffeeae7a89d18f94269e2f9595864d61bac21a452e7dd11287ace",
       "functions": [
         {
           "name": "SetThemeMode",
@@ -5507,7 +8794,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 118
+          "lineCount": 124
         }
       ],
       "imports": [
@@ -5554,12 +8841,12 @@
         "ThemeManager",
         "UpdateTrackMetadata"
       ],
-      "totalLines": 118,
+      "totalLines": 124,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs",
-      "contentHash": "ba50fe053932dc6e02bfd4dfe1731dc53f8e5a7cc1f6d2a03c2623feda338a00",
+      "contentHash": "ec9874e9ded133562d6937547d7f409d3b0501c9d09ecfa9d95bc376305e1ce9",
       "functions": [
         {
           "name": "GetCurrentOrigin",
@@ -5591,7 +8878,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 53
+          "lineCount": 56
         }
       ],
       "imports": [
@@ -5608,38 +8895,13 @@
         "NavigateTo",
         "WasmInterop"
       ],
-      "totalLines": 53,
+      "totalLines": 56,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricLineViewModel.cs",
-      "contentHash": "bcceb2efffa9188e657d9b3204b012d7d5fd64ce23ca5df40b3f75e9eec80591",
+      "contentHash": "64eef78780dc37db43ab432c49d231d26234fddf180fdff135e0b4faf547524f",
       "functions": [
-        {
-          "name": "OnLineClicked",
-          "params": [],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "OnWordClicked",
-          "params": [
-            "word"
-          ],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "PopulateWords",
-          "params": [
-            "null"
-          ],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
         {
           "name": "RefreshFontSizes",
           "params": [
@@ -5672,9 +8934,6 @@
         {
           "name": "LyricLineViewModel",
           "methods": [
-            "OnLineClicked",
-            "OnWordClicked",
-            "PopulateWords",
             "RefreshFontSizes",
             "UpdateVisualProperties",
             "OnPropertyChanged"
@@ -5685,7 +8944,7 @@
             "Syllables"
           ],
           "exported": true,
-          "lineCount": 185
+          "lineCount": 135
         }
       ],
       "imports": [
@@ -5693,12 +8952,6 @@
           "source": "System",
           "specifiers": [
             "System"
-          ]
-        },
-        {
-          "source": "System.Collections.Generic",
-          "specifiers": [
-            "Generic"
           ]
         },
         {
@@ -5746,89 +8999,17 @@
       ],
       "exports": [
         "LyricLineViewModel",
-        "OnLineClicked",
-        "OnWordClicked",
-        "PopulateWords",
         "RefreshFontSizes",
         "Syllables",
         "Text",
         "TimestampMs"
       ],
-      "totalLines": 185,
-      "hasStructuralAnalysis": true
-    },
-    "src/Cantus.Client/Cantus.Client/ViewModels/LyricWordViewModel.cs": {
-      "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricWordViewModel.cs",
-      "contentHash": "2f76fb3197c2b26a504e5e53635a048a00f85b124ada99d79e9d3e55aab79830",
-      "functions": [
-        {
-          "name": "Calibrate",
-          "params": [],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "OnPropertyChanged",
-          "params": [
-            "null"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 10
-        }
-      ],
-      "classes": [
-        {
-          "name": "LyricWordViewModel",
-          "methods": [
-            "Calibrate",
-            "OnPropertyChanged"
-          ],
-          "properties": [
-            "Word",
-            "TimestampMs",
-            "WordIndex",
-            "ParentLine"
-          ],
-          "exported": true,
-          "lineCount": 45
-        }
-      ],
-      "imports": [
-        {
-          "source": "System",
-          "specifiers": [
-            "System"
-          ]
-        },
-        {
-          "source": "System.ComponentModel",
-          "specifiers": [
-            "ComponentModel"
-          ]
-        },
-        {
-          "source": "System.Runtime.CompilerServices",
-          "specifiers": [
-            "CompilerServices"
-          ]
-        }
-      ],
-      "exports": [
-        "Calibrate",
-        "LyricWordViewModel",
-        "ParentLine",
-        "TimestampMs",
-        "Word",
-        "WordIndex"
-      ],
-      "totalLines": 45,
+      "totalLines": 135,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
-      "contentHash": "d3f829bcc1bb68089ebbd701c6d679559a67c6f1e594d6a30a86d33f47e64eec",
+      "contentHash": "e2ab7d975e377e31ec95e7ec6a34d0e6e4a807daa377cb48f31921fa25486401",
       "functions": [
         {
           "name": "ToggleStaticLyricsMode",
@@ -5942,11 +9123,6 @@
             "UpdateLyricLineStates",
             "NudgeOffsetAsync",
             "ResetOffsetAsync",
-            "ToggleCalibrationMode",
-            "CalibrateToTimestampAsync",
-            "UndoLastCalibrationAsync",
-            "DismissCalibrationToast",
-            "StartToastTimer",
             "SubscribeToUserAsync",
             "LogoutAsync",
             "OnPropertyChanged"
@@ -5956,7 +9132,7 @@
             "Sessions"
           ],
           "exported": true,
-          "lineCount": 1021
+          "lineCount": 921
         }
       ],
       "imports": [
@@ -6034,9 +9210,7 @@
         }
       ],
       "exports": [
-        "CalibrateToTimestampAsync",
         "CycleMobileView",
-        "DismissCalibrationToast",
         "FindActiveLineIndex",
         "InitializeAsync",
         "LogoutAsync",
@@ -6050,12 +9224,10 @@
         "SetSyncOffsetAsync",
         "SubscribeToUserAsync",
         "SwitchUserSubscriptionAsync",
-        "ToggleCalibrationMode",
         "ToggleKioskMode",
-        "ToggleStaticLyricsMode",
-        "UndoLastCalibrationAsync"
+        "ToggleStaticLyricsMode"
       ],
-      "totalLines": 1021,
+      "totalLines": 921,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml": {
@@ -6070,7 +9242,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml.cs",
-      "contentHash": "1fa73294c4850e3b6fa5869bbe11fd6b89454c3da102bb2f5241193f0c548785",
+      "contentHash": "b0cacac751a3b17d97ea39d89fec42cd8a3f7bafa1ba06fc6ce9f8878e9ef27f",
       "functions": [
         {
           "name": "OnCycleThemeClicked",
@@ -6184,7 +9356,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 130
+          "lineCount": 131
         }
       ],
       "imports": [
@@ -6253,22 +9425,22 @@
         "GetSmallHeaderVisibility",
         "GetStatusColor"
       ],
-      "totalLines": 130,
+      "totalLines": 131,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml",
-      "contentHash": "c81aabf94ef846052b9ad07fc09a0b351381b9b046ac8d08199dd22d919b4a38",
+      "contentHash": "615c4b9eed6567355a795c79fc5e4f5c0d968af31e0c8c76a2ff5fdb5611e8bb",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 233,
+      "totalLines": 227,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml.cs",
-      "contentHash": "643b2bfb24671ac60dec3f9ac833bb58dd1598f079667a8e34cb28bd1b0b7b14",
+      "contentHash": "97267ce751299103a0b0817e01076c969248fca0765980a27e6163b53f04e33e",
       "functions": [
         {
           "name": "OnNudgeMinus500Clicked",
@@ -6321,16 +9493,6 @@
           "lineCount": 10
         },
         {
-          "name": "OnToggleCalibrationClicked",
-          "params": [
-            "sender",
-            "e"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 10
-        },
-        {
           "name": "OnConnectSpotifyClicked",
           "params": [
             "sender",
@@ -6367,6 +9529,15 @@
           "returnType": "Visibility",
           "exported": true,
           "lineCount": 10
+        },
+        {
+          "name": "GetCardPadding",
+          "params": [
+            "null"
+          ],
+          "returnType": "Thickness",
+          "exported": true,
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -6378,7 +9549,6 @@
             "OnResetOffsetClicked",
             "OnNudgePlus100Clicked",
             "OnNudgePlus500Clicked",
-            "OnToggleCalibrationClicked",
             "OnConnectSpotifyClicked",
             "OnLogoutClicked",
             "GetCardSpacing",
@@ -6389,7 +9559,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 172
+          "lineCount": 161
         }
       ],
       "imports": [
@@ -6445,7 +9615,7 @@
         "GetStandardCardVisibility",
         "GetTitleFontSize"
       ],
-      "totalLines": 172,
+      "totalLines": 161,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml": {
@@ -6527,17 +9697,17 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml",
-      "contentHash": "bbee05841d0bf21402dc41903d4ccebdc77da8a2c1b277612de584e7bbae40e9",
+      "contentHash": "e49ebe416eeb383891da8295eb2db656c49434b9851a38986686d3fa69939c8e",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 199,
+      "totalLines": 105,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs",
-      "contentHash": "b5c317813fda62e4585cc6916afcba0c4f81222c260ce21a717b7e322c254dcc",
+      "contentHash": "75e2806af2823f369e5a3a7ca08e588317c6d7cc03ff4bf430b3352c07d1bc78",
       "functions": [
         {
           "name": "ScrollToActiveLine",
@@ -6639,17 +9809,11 @@
             "GetEmptyIconSize",
             "GetEmptyTitleSize",
             "GetEmptySubtitleSize",
-            "OnToggleCalibrationClicked",
-            "OnExitCalibrationClicked",
-            "OnLyricItemClicked",
-            "OnWordButtonClicked",
-            "OnUndoCalibrationClicked",
-            "OnToggleStaticModeClicked",
-            "OnDismissToastClicked"
+            "OnToggleStaticModeClicked"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 169
+          "lineCount": 120
         }
       ],
       "imports": [
@@ -6711,13 +9875,11 @@
         "GetLineTextAlignment",
         "GetListHorizontalAlignment",
         "GetLyricsVisibility",
-        "GetQuickCalibrateButtonVisibility",
         "GetStagePadding",
-        "GetUndoVisibility",
         "LyricsStageView",
         "ScrollToActiveLine"
       ],
-      "totalLines": 169,
+      "totalLines": 120,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/MiniPlaybackBar.xaml": {
@@ -6790,17 +9952,17 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml",
-      "contentHash": "07405d6dff13dee622c2c631349bfb27b140db74514331d2d7b4e0f1b01a18fd",
+      "contentHash": "e237038ac5c141f2bea501f2524612fc614835b700c07a5d8089bf527b64e23e",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 157,
+      "totalLines": 151,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml.cs",
-      "contentHash": "09173acbc6510fb130f14bff7431dd08e3e970c562ebb431cac4994176d05d95",
+      "contentHash": "3986d353ba3cd56cd93cb88be947a2ba2efb8e0472b3ba6ed1151bb4fee6c940",
       "functions": [
         {
           "name": "OnCycleThemeClicked",
@@ -6863,16 +10025,6 @@
           "lineCount": 10
         },
         {
-          "name": "OnToggleCalibrationClicked",
-          "params": [
-            "sender",
-            "e"
-          ],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 10
-        },
-        {
           "name": "OnConnectSpotifyClicked",
           "params": [
             "sender",
@@ -6900,6 +10052,15 @@
           "returnType": "string",
           "exported": true,
           "lineCount": 10
+        },
+        {
+          "name": "GetSkewText",
+          "params": [
+            "null"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -6912,7 +10073,6 @@
             "OnResetOffsetClicked",
             "OnNudgePlus100Clicked",
             "OnNudgePlus500Clicked",
-            "OnToggleCalibrationClicked",
             "OnConnectSpotifyClicked",
             "OnLogoutClicked",
             "GetRttText",
@@ -6920,7 +10080,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 107
+          "lineCount": 96
         }
       ],
       "imports": [
@@ -6966,7 +10126,7 @@
         "GetSkewText",
         "MobileSettingsView"
       ],
-      "totalLines": 107,
+      "totalLines": 96,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml": {
@@ -6981,7 +10141,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml.cs",
-      "contentHash": "5e187255fd4ac468608e0e8aa9261cafb3f106778c2f80b9bf9804a6a5772ded",
+      "contentHash": "6722a2cbc1692e1ae65e50713465cf70edbb311cb3cb91a8700faf6b6df0772b",
       "functions": [
         {
           "name": "OnLyricsTabClicked",
@@ -7157,7 +10317,7 @@
     },
     "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
-      "contentHash": "b1ea1b5b05a0ad13e53a1d81ff5b07a1125bf5fdf1277de88c0ddc798ee39df9",
+      "contentHash": "a67429b8c48e01d800beff3c95c701e6fc17c28ea8dde34e9d264fd51e2df940",
       "functions": [],
       "classes": [
         {
@@ -7165,7 +10325,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 15
+          "lineCount": 25
         }
       ],
       "imports": [
@@ -7179,7 +10339,7 @@
       "exports": [
         "ILyricsCacheRepository"
       ],
-      "totalLines": 15,
+      "totalLines": 25,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ILyricsProvider.cs": {
@@ -7238,7 +10398,7 @@
     },
     "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
-      "contentHash": "ddd783dc0bc99277dbdfa121a6b16d8cb375b16f524054ee7be22d25c2438b71",
+      "contentHash": "567f7c5d63748dda8e69839de206aafcd59ed95b1d3956ee8782d329bc151aeb",
       "functions": [],
       "classes": [
         {
@@ -7246,7 +10406,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 14
+          "lineCount": 18
         }
       ],
       "imports": [
@@ -7260,7 +10420,7 @@
       "exports": [
         "ISpotifyAuthService"
       ],
-      "totalLines": 14,
+      "totalLines": 18,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs": {
@@ -7292,7 +10452,7 @@
     },
     "src/Cantus.Core/Models/LyricLine.cs": {
       "filePath": "src/Cantus.Core/Models/LyricLine.cs",
-      "contentHash": "5a4e30c0894565ff0d5051ae34789a0e6a547715efa964c9291fb93715fe2ed1",
+      "contentHash": "c64b393189deaba9ea9fb9d4cadfec9eac55a3e0efae19289c7d4099d41c21f0",
       "functions": [
         {
           "name": "GetWordTimestamps",
@@ -7312,7 +10472,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 62
+          "lineCount": 65
         },
         {
           "name": "LyricWordTimestamp",
@@ -7321,7 +10481,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 62
+          "lineCount": 65
         },
         {
           "name": "LyricLine",
@@ -7330,7 +10490,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 62
+          "lineCount": 65
         }
       ],
       "imports": [],
@@ -7340,7 +10500,7 @@
         "LyricSyllable",
         "LyricWordTimestamp"
       ],
-      "totalLines": 62,
+      "totalLines": 65,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/PlaybackState.cs": {
@@ -7514,7 +10674,7 @@
     },
     "src/Cantus.Core/Parsers/LrcParser.cs": {
       "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
-      "contentHash": "2b48a234a0295656eb95981e3188efb2a846f72336bd9f4df09cbdaf5cd31d31",
+      "contentHash": "64cb022088bd4c74446602097bed0e657e5b359e56628cf5be3a2945a902b9bf",
       "functions": [
         {
           "name": "Parse",
@@ -7556,7 +10716,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 247
+          "lineCount": 257
         }
       ],
       "imports": [
@@ -7564,6 +10724,12 @@
           "source": "System.Globalization",
           "specifiers": [
             "Globalization"
+          ]
+        },
+        {
+          "source": "System.Text",
+          "specifiers": [
+            "Text"
           ]
         },
         {
@@ -7579,7 +10745,7 @@
         "ParseLines",
         "TryParseTimestamp"
       ],
-      "totalLines": 247,
+      "totalLines": 257,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
@@ -7594,7 +10760,7 @@
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs": {
       "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
-      "contentHash": "2a51192d448bbbbfbe068337005379e023d6ca010ab5304e33e23adc4b664f7c",
+      "contentHash": "f63c7dc99d828d401623af838fce93220e16ad3aa3ef342c30fc7abf35c58665",
       "functions": [
         {
           "name": "CalculateCurrentPosition",
@@ -7623,7 +10789,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 123
+          "lineCount": 124
         }
       ],
       "imports": [
@@ -7651,7 +10817,7 @@
         "PlaybackInterpolator",
         "Reset"
       ],
-      "totalLines": 123,
+      "totalLines": 124,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs": {
@@ -7681,7 +10847,7 @@
     },
     "src/Cantus.Infrastructure/DependencyInjection.cs": {
       "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
-      "contentHash": "83c79fe697391d36d517a267a1ce88e17f9fd28866dadc646d551c2aa91db595",
+      "contentHash": "75f944a68e2c4455fb8ade4968f0ea1603b5437772430cd8c4adecc5e1eaaa38",
       "functions": [
         {
           "name": "AddCantusInfrastructure",
@@ -7774,7 +10940,7 @@
     },
     "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs",
-      "contentHash": "6282c45a590f11e10d3fecd1ef21be2124e2f9d8a23f0c6ca41981b1dc6e1295",
+      "contentHash": "839dd7a93fe8926febc0b9e2d36157a2a9abb5642a4984ab135acdf1dedeb72b",
       "functions": [
         {
           "name": "GetLyricsAsync",
@@ -7795,7 +10961,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 73
+          "lineCount": 82
         }
       ],
       "imports": [
@@ -7828,12 +10994,12 @@
         "CachedLyricsService",
         "GetLyricsAsync"
       ],
-      "totalLines": 73,
+      "totalLines": 82,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
-      "contentHash": "5f168156adc8d70744dd6fb805f398ee36a893e90fe4653dc883ba2a6628acf5",
+      "contentHash": "df20a60476f7b169c004ac241d3574a91686019e0de04616d581dd6ddb22beff",
       "functions": [
         {
           "name": "TryGetExactLyricsAsync",
@@ -7884,7 +11050,7 @@
             "SyncedLyrics"
           ],
           "exported": true,
-          "lineCount": 183
+          "lineCount": 202
         },
         {
           "name": "LrclibResponseDto",
@@ -7903,7 +11069,7 @@
             "SyncedLyrics"
           ],
           "exported": true,
-          "lineCount": 183
+          "lineCount": 202
         }
       ],
       "imports": [
@@ -7915,6 +11081,12 @@
         },
         {
           "source": "System.Net.Http.Json",
+          "specifiers": [
+            "Json"
+          ]
+        },
+        {
+          "source": "System.Text.Json",
           "specifiers": [
             "Json"
           ]
@@ -7956,13 +11128,13 @@
           ]
         },
         {
-          "source": "var response = await _httpClient.GetAsync(url, ct)",
+          "source": "HttpResponseMessage response = await _httpClient.GetAsync(url, ct)",
           "specifiers": [
             "GetAsync(url, ct)"
           ]
         },
         {
-          "source": "var response = await _httpClient.GetAsync(url, ct)",
+          "source": "HttpResponseMessage response = await _httpClient.GetAsync(url, ct)",
           "specifiers": [
             "GetAsync(url, ct)"
           ]
@@ -7980,7 +11152,7 @@
         "SyncedLyrics",
         "TrackName"
       ],
-      "totalLines": 183,
+      "totalLines": 202,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs": {
@@ -8014,7 +11186,7 @@
     },
     "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
-      "contentHash": "f61ff6efd3b2bd8b6ebc4666bb06003588282e54c2ef8f6c32cd5e2d71eed0d6",
+      "contentHash": "5b37e9406f9ec849c186a97a38c4723d1daa08ff331f4646bb8884d5bcf7ebc9",
       "functions": [
         {
           "name": "GetCachedLyricsAsync",
@@ -8106,7 +11278,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 258
+          "lineCount": 269
         }
       ],
       "imports": [
@@ -8162,7 +11334,7 @@
         "SetTrackOffsetAsync",
         "SqliteLyricsCacheRepository"
       ],
-      "totalLines": 258,
+      "totalLines": 269,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Migrations/20260823130609_InitialCreate.Designer.cs": {
@@ -8308,7 +11480,7 @@
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs": {
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
-      "contentHash": "879f946b8295d07c57258bf29fd09c4c23bbb30d98e433eeceb695f9cf942ac4",
+      "contentHash": "3879bf08dc49c3a07372eb77677c339ca7eff8221b0b9c344e97be0a49019546",
       "functions": [],
       "classes": [
         {
@@ -8316,7 +11488,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 51
+          "lineCount": 52
         }
       ],
       "imports": [
@@ -8336,12 +11508,12 @@
       "exports": [
         "CantusDbContext"
       ],
-      "totalLines": 51,
+      "totalLines": 52,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs": {
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs",
-      "contentHash": "ff3972c00263e117c331140c4631d1cd9a89d39906fab920c39e37cf07e882e9",
+      "contentHash": "db30ab53d7598b79495db60f76b8f81046d6a17ce3ef5f96deba53e6ce9cc49e",
       "functions": [
         {
           "name": "CreateDbContext",
@@ -8600,7 +11772,7 @@
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs": {
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
-      "contentHash": "c223da2f38df196ff9c39413e3d0920b55aac1df3a9e47b4f37d49c8eb49bba8",
+      "contentHash": "36b47296e057a6d61c19987df99ce1ba899089bef12733368ebe06b5f477fae0",
       "functions": [
         {
           "name": "GetAuthorizationUri",
@@ -8678,7 +11850,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 231
+          "lineCount": 245
         }
       ],
       "imports": [
@@ -8746,7 +11918,7 @@
         "RevokeSessionAsync",
         "SpotifyAuthService"
       ],
-      "totalLines": 231,
+      "totalLines": 245,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs": {
@@ -8780,7 +11952,7 @@
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs": {
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
-      "contentHash": "c5c24320af227f6c102c20aac4361d5f6f963454c131a081cd30f096fa53df4d",
+      "contentHash": "7a9d802f6d7b217a414d83c68bef40b9a8659deaa7cf06410090e3c5d84cdd6f",
       "functions": [
         {
           "name": "GetCurrentPlaybackAsync",
@@ -8801,7 +11973,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 97
+          "lineCount": 100
         }
       ],
       "imports": [
@@ -8834,12 +12006,12 @@
         "GetCurrentPlaybackAsync",
         "SpotifyPlayerClient"
       ],
-      "totalLines": 97,
+      "totalLines": 100,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs": {
       "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
-      "contentHash": "779102fb9847c741f28d8ee3b6b3c41747198b2d4ffe1017fb20a3b53a92e9de",
+      "contentHash": "00d66776bbe4c48c4fd7e296c36991124bca4d6aecd29d91bfab1ec673508b8e",
       "functions": [
         {
           "name": "TriggerImmediatePoll",
@@ -8867,7 +12039,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 266
+          "lineCount": 284
         }
       ],
       "imports": [
@@ -8932,7 +12104,7 @@
           ]
         },
         {
-          "source": "var scope = _scopeFactory.CreateScope()",
+          "source": "IServiceScope scope = _scopeFactory.CreateScope()",
           "specifiers": [
             "CreateScope()"
           ]
@@ -8942,7 +12114,7 @@
         "ActiveUsersPlaybackMonitor",
         "TriggerImmediatePoll"
       ],
-      "totalLines": 266,
+      "totalLines": 284,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs": {
@@ -8986,7 +12158,7 @@
     },
     "src/Cantus.Server/Endpoints/AuthEndpoints.cs": {
       "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
-      "contentHash": "83e0a4ae1998f9ba451c6126a4494728250922252b2c22d2eba3d4859535194d",
+      "contentHash": "9ff750c7aa771b541f2dc1e49139c5f554921db921c44834b8580842183c24bd",
       "functions": [
         {
           "name": "MapAuthEndpoints",
@@ -9005,6 +12177,15 @@
           "returnType": "string?",
           "exported": false,
           "lineCount": 10
+        },
+        {
+          "name": "GenerateAuthSuccessHtml",
+          "params": [
+            "session"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -9013,7 +12194,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 236
+          "lineCount": 398
         }
       ],
       "imports": [
@@ -9027,6 +12208,18 @@
           "source": "Cantus.Core.Interfaces",
           "specifiers": [
             "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Hubs",
+          "specifiers": [
+            "Hubs"
           ]
         },
         {
@@ -9066,9 +12259,21 @@
           ]
         },
         {
+          "source": "Microsoft.AspNetCore.SignalR",
+          "specifiers": [
+            "SignalR"
+          ]
+        },
+        {
           "source": "Microsoft.Extensions.Logging",
           "specifiers": [
             "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Primitives",
+          "specifiers": [
+            "Primitives"
           ]
         },
         {
@@ -9082,12 +12287,12 @@
         "AuthEndpoints",
         "MapAuthEndpoints"
       ],
-      "totalLines": 236,
+      "totalLines": 398,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Endpoints/LyricsEndpoints.cs": {
       "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
-      "contentHash": "8d1bac5e17a83da8b4663ddf59b612633aa016415fc79dc0e3b9803cee045c4f",
+      "contentHash": "d86b9798482cfb33b5556854d655c7d72546b881b8c98de96670b506e616efbd",
       "functions": [
         {
           "name": "MapLyricsEndpoints",
@@ -9105,7 +12310,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 69
+          "lineCount": 70
         }
       ],
       "imports": [
@@ -9113,6 +12318,12 @@
           "source": "Cantus.Core.Interfaces",
           "specifiers": [
             "Interfaces"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Models",
+          "specifiers": [
+            "Models"
           ]
         },
         {
@@ -9168,7 +12379,7 @@
         "LyricsEndpoints",
         "MapLyricsEndpoints"
       ],
-      "totalLines": 69,
+      "totalLines": 70,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Hubs/IPlaybackClient.cs": {
@@ -9200,7 +12411,7 @@
     },
     "src/Cantus.Server/Hubs/PlaybackHub.cs": {
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
-      "contentHash": "789e29661c88a36871b2c788a27edc9b1c710ba09407e955ccba90e13f6d3cf4",
+      "contentHash": "e1c3647c3dd48203deb0e0733b6c78be5ef84e4e51d2d5e4dfcf788eae4822d1",
       "functions": [
         {
           "name": "SyncClock",
@@ -9250,7 +12461,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 265
+          "lineCount": 311
         }
       ],
       "imports": [
@@ -9279,6 +12490,12 @@
           ]
         },
         {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
           "source": "Microsoft.AspNetCore.SignalR",
           "specifiers": [
             "SignalR"
@@ -9289,6 +12506,12 @@
           "specifiers": [
             "Logging"
           ]
+        },
+        {
+          "source": "Microsoft.Extensions.Primitives",
+          "specifiers": [
+            "Primitives"
+          ]
         }
       ],
       "exports": [
@@ -9297,7 +12520,7 @@
         "SubscribeToUser",
         "SyncClock"
       ],
-      "totalLines": 265,
+      "totalLines": 311,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/AuthorizedSessionDto.cs": {
@@ -9402,7 +12625,7 @@
     },
     "src/Cantus.Server/Models/DtoMappingExtensions.cs": {
       "filePath": "src/Cantus.Server/Models/DtoMappingExtensions.cs",
-      "contentHash": "e55c294ba440db483730cf0f4f5d22c0eababcc3247c4644df550d390b651590",
+      "contentHash": "c40acb7efa9504b53900910eab7548e12c1dd1f9f227677d41cb3520a6c6af5b",
       "functions": [
         {
           "name": "ToDto",
@@ -9450,7 +12673,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 71
+          "lineCount": 74
         }
       ],
       "imports": [
@@ -9465,7 +12688,7 @@
         "DtoMappingExtensions",
         "ToDto"
       ],
-      "totalLines": 71,
+      "totalLines": 74,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/LyricLineDto.cs": {
@@ -9629,7 +12852,7 @@
     },
     "src/Cantus.Server/Program.cs": {
       "filePath": "src/Cantus.Server/Program.cs",
-      "contentHash": "5328e0571a4b6f6ceb9f2122c3e932b2c84dfb315b0dfe6999fabdc1c2f957de",
+      "contentHash": "d347e3280efca298c244fce9be780ea8aacb228dcc12b9a4fa7ca4b7d3b8b046",
       "functions": [],
       "classes": [
         {
@@ -9637,7 +12860,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 149
+          "lineCount": 154
         }
       ],
       "imports": [
@@ -9684,6 +12907,12 @@
           ]
         },
         {
+          "source": "Microsoft.AspNetCore.Builder",
+          "specifiers": [
+            "Builder"
+          ]
+        },
+        {
           "source": "Microsoft.AspNetCore.DataProtection",
           "specifiers": [
             "DataProtection"
@@ -9696,9 +12925,33 @@
           ]
         },
         {
+          "source": "Microsoft.AspNetCore.StaticFiles",
+          "specifiers": [
+            "StaticFiles"
+          ]
+        },
+        {
           "source": "Microsoft.EntityFrameworkCore",
           "specifiers": [
             "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Configuration",
+          "specifiers": [
+            "Configuration"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.DependencyInjection",
+          "specifiers": [
+            "DependencyInjection"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Hosting",
+          "specifiers": [
+            "Hosting"
           ]
         },
         {
@@ -9708,7 +12961,7 @@
           ]
         },
         {
-          "source": "(var scope = app.Services.CreateScope())\n{\n    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>()",
+          "source": "(IServiceScope scope = app.Services.CreateScope())\n{\n    IConfiguration config = scope.ServiceProvider.GetRequiredService<IConfiguration>()",
           "specifiers": [
             "GetRequiredService<IConfiguration>()"
           ]
@@ -9717,12 +12970,12 @@
       "exports": [
         "Program"
       ],
-      "totalLines": 149,
+      "totalLines": 154,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/HostUrlResolver.cs": {
       "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
-      "contentHash": "50f5220191bedb8d99f2d9e066fc162c3f52eb7b5f7b2cd524ba9bdd99883d1a",
+      "contentHash": "196fee8fad99030755125a4c5285cc0768378ca2c028b17722cef9f5e1341ff2",
       "functions": [
         {
           "name": "ResolveBaseUrl",
@@ -9740,6 +12993,15 @@
           ],
           "returnType": "string",
           "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "IsStandardLocalRedirect",
+          "params": [
+            "redirectUri"
+          ],
+          "returnType": "bool",
+          "exported": false,
           "lineCount": 10
         },
         {
@@ -9761,7 +13023,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 84
+          "lineCount": 94
         }
       ],
       "imports": [
@@ -9795,7 +13057,7 @@
         "ResolveBaseUrl",
         "ResolveSpotifyRedirectUri"
       ],
-      "totalLines": 84,
+      "totalLines": 94,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/IHostUrlResolver.cs": {
@@ -9936,7 +13198,7 @@
     },
     "src/Cantus.Server/Services/PlaybackSessionRegistry.cs": {
       "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
-      "contentHash": "f7fa08aa8dc56826961e11eb517b8008c5b3fedbd6b1c23c2b8da913da942ede",
+      "contentHash": "459e733a2b96d0620a5adf15cbb7228c52926d50e1b53b00f71d0ab8f5eca19e",
       "functions": [
         {
           "name": "RegisterConnection",
@@ -10086,7 +13348,7 @@
     },
     "src/Cantus.Server/appsettings.json": {
       "filePath": "src/Cantus.Server/appsettings.json",
-      "contentHash": "751b1a883f026dbc9b2daf24e1d8941e7b6e024773d3113359daca1d3adec55a",
+      "contentHash": "06ef4d5c44645e67ca54f851959e3abcbc6a2fac3e514eae6f5334321f524ed7",
       "functions": [],
       "classes": [],
       "imports": [],
