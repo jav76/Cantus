@@ -19,11 +19,11 @@ public static class DependencyInjection
     {
         // 1. Configure Options
         services.Configure<SpotifyOptions>(
-            configuration.GetSection(SpotifyOptions.SectionName));
+            configuration.GetSection(SpotifyOptions.SECTION_NAME));
         services.Configure<LrclibOptions>(
-            configuration.GetSection(LrclibOptions.SectionName));
+            configuration.GetSection(LrclibOptions.SECTION_NAME));
         services.Configure<PlaybackInterpolatorOptions>(
-            configuration.GetSection(PlaybackInterpolatorOptions.SectionName));
+            configuration.GetSection(PlaybackInterpolatorOptions.SECTION_NAME));
 
         // 2. Persistence (SQLite EF Core)
         string connectionString = configuration.GetConnectionString("CantusDatabase")
@@ -41,7 +41,11 @@ public static class DependencyInjection
         services.AddTransient<IPlaybackInterpolator, PlaybackInterpolator>();
 
         // 5. Lyrics Services
-        services.AddScoped<ILyricsCacheRepository, SqliteLyricsCacheRepository>();
+        services.AddScoped<SqliteLyricsCacheRepository>();
+        services.AddScoped<ILyricsCacheRepository>(sp =>
+            new TraceLoggingLyricsCacheRepositoryDecorator(
+                sp.GetRequiredService<SqliteLyricsCacheRepository>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCacheRepositoryDecorator>>()));
 
         services.AddHttpClient<LrclibLyricsProvider>((sp, client) =>
         {
@@ -51,11 +55,24 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
         });
 
-        services.AddScoped<ILyricsProvider, CachedLyricsService>();
+        services.AddScoped<CachedLyricsService>();
+        services.AddScoped<ILyricsProvider>(sp =>
+            new TraceLoggingLyricsProviderDecorator(
+                sp.GetRequiredService<CachedLyricsService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsProviderDecorator>>()));
 
         // 6. Spotify Services
-        services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
-        services.AddScoped<ISpotifyPlayerClient, SpotifyPlayerClient>();
+        services.AddScoped<SpotifyAuthService>();
+        services.AddScoped<ISpotifyAuthService>(sp =>
+            new TraceLoggingSpotifyAuthServiceDecorator(
+                sp.GetRequiredService<SpotifyAuthService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyAuthServiceDecorator>>()));
+
+        services.AddScoped<SpotifyPlayerClient>();
+        services.AddScoped<ISpotifyPlayerClient>(sp =>
+            new TraceLoggingSpotifyPlayerClientDecorator(
+                sp.GetRequiredService<SpotifyPlayerClient>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyPlayerClientDecorator>>()));
 
         return services;
     }

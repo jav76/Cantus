@@ -9,7 +9,7 @@ public sealed class HostUrlResolver : IHostUrlResolver
 {
     private readonly IConfiguration _configuration;
     private readonly SpotifyOptions _spotifyOptions;
-    private const string DefaultLocalhostBase = "http://localhost:5000";
+    private const string DEFAULT_LOCALHOST_BASE = "http://localhost:5000";
 
     public HostUrlResolver(IConfiguration configuration, IOptions<SpotifyOptions> spotifyOptions)
     {
@@ -51,7 +51,7 @@ public sealed class HostUrlResolver : IHostUrlResolver
         }
 
         // 4. Fallback default
-        return DefaultLocalhostBase;
+        return DEFAULT_LOCALHOST_BASE;
     }
 
     public string ResolveSpotifyRedirectUri(HttpContext? context = null)

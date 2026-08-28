@@ -2,7 +2,7 @@ namespace Cantus.Server.BackgroundServices;
 
 public sealed class PlaybackPollerOptions
 {
-    public const string SectionName = "PlaybackPoller";
+    public const string SECTION_NAME = "PlaybackPoller";
 
     public int ActivePollIntervalMs { get; set; } = 1500;
     public int PausedPollIntervalMs { get; set; } = 5000;

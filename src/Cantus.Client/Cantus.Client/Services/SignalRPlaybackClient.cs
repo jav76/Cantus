@@ -189,7 +189,7 @@ public partial class CantusJsonContext : JsonSerializerContext
 
 public sealed record NtpSample(long RttMs, long OffsetMs, long TimestampMs);
 
-public sealed class SignalRPlaybackClient : IAsyncDisposable
+public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 {
     private HubConnection? _connection;
     private Timer? _clockSyncTimer;
@@ -200,7 +200,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 
     private readonly List<NtpSample> _ntpHistory = new();
     private readonly object _ntpLock = new();
-    private const int MaxNtpSamples = 5;
+    private const int MAX_NTP_SAMPLES = 5;
 
     public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     public long RttMs { get; private set; }
@@ -448,7 +448,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         lock (_ntpLock)
         {
             _ntpHistory.Add(new NtpSample(rawRtt, rawOffset, timestampMs));
-            if (_ntpHistory.Count > MaxNtpSamples)
+            if (_ntpHistory.Count > MAX_NTP_SAMPLES)
             {
                 _ntpHistory.RemoveAt(0);
             }
@@ -487,9 +487,9 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
             long computedRtt = (long)Math.Round(totalRttSum / filtered.Count);
 
             // Apply Exponential Moving Average (EMA: alpha = 0.35)
-            const double alpha = 0.35;
-            RttMs = (long)(alpha * computedRtt + (1 - alpha) * RttMs);
-            ClockOffsetMs = (long)(alpha * computedOffset + (1 - alpha) * ClockOffsetMs);
+            const double ALPHA = 0.35;
+            RttMs = (long)(ALPHA * computedRtt + (1 - ALPHA) * RttMs);
+            ClockOffsetMs = (long)(ALPHA * computedOffset + (1 - ALPHA) * ClockOffsetMs);
         }
     }
 

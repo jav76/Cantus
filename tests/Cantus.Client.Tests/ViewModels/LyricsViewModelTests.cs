@@ -253,7 +253,7 @@ public sealed class LyricsViewModelTests
     public async Task LogoutAsync_ResetsSessionAndPlaybackState()
     {
         // Arrange
-        SignalRPlaybackClient client = new();
+        SignalRPlaybackClient client = new("http://127.0.0.1:59999/hubs/playback");
         LyricsViewModel vm = new(client);
         vm.Sessions.Add(new AuthorizedSessionPayload
         {

@@ -30,10 +30,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Cantus.Core\Cantus.Core.csproj" />
+    <ProjectReference Include="..\..\Cantus.Infrastructure\Cantus.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Cantus.Generators\Cantus.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">

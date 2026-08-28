@@ -18,6 +18,29 @@ This document lists all environment variables and configuration options supporte
 | **`CANTUS_POLL_INTERVAL_PLAYING_MS`** | `int` | `500` | Polling cadence when Spotify is actively playing. | No |
 | **`CANTUS_POLL_INTERVAL_PAUSED_MS`** | `int` | `3000` | Polling cadence when Spotify playback is paused. | No |
 | **`CANTUS_POLL_INTERVAL_IDLE_MS`** | `int` | `10000` | Polling cadence when Spotify has been inactive > 60s. | No |
+| **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` | Logging configuration level: `none`, `debug`, or `trace`. | No |
+
+---
+
+## Logging Configurations & CLI Parameters
+
+Cantus supports configurable log verbosity across both the Server and the Desktop client.
+
+### CLI Option: `--log-configuration` (alias: `-l`)
+```bash
+# Start server with debug logging (console + rolling file + SQLite database)
+dotnet run --project src/Cantus.Server -- --log-configuration debug
+
+# Start desktop client with trace logging (console + rolling file)
+./Cantus-Linux-x64.AppImage --log-configuration trace
+```
+
+### Log Levels & Output Matrix
+| Configuration | Console / Stdout | Rolling File (`%tmp%/cantus/logs`) | SQLite Database (`LogEntries` Table) | Tracing (`[TraceLog]`) |
+| :--- | :---: | :---: | :---: | :---: |
+| **`none`** (Default) | Errors & Warnings | Disabled | Disabled | Disabled |
+| **`debug`** | Information & Debug | Enabled (`cantus-*.log`) | Enabled (Server) | Disabled |
+| **`trace`** | Full Trace Stream | Enabled (`cantus-*.log`) | Enabled (Server) | Enabled (Method Entry/Exit/Timing) |
 
 ---
 

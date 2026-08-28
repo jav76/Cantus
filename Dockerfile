@@ -16,8 +16,10 @@ COPY Cantus.slnx ./
 COPY src/Cantus.Client/Directory.Build.props src/Cantus.Client/
 COPY src/Cantus.Client/Directory.Packages.props src/Cantus.Client/
 
-# Copy Core and Client source code
+# Copy Core, Infrastructure, Generators and Client source code
+COPY src/Cantus.Generators/ src/Cantus.Generators/
 COPY src/Cantus.Core/ src/Cantus.Core/
+COPY src/Cantus.Infrastructure/ src/Cantus.Infrastructure/
 COPY src/Cantus.Client/ src/Cantus.Client/
 
 # Publish WASM Client
@@ -34,6 +36,7 @@ WORKDIR /src
 
 COPY global.json ./
 COPY Cantus.slnx ./
+COPY src/Cantus.Generators/ src/Cantus.Generators/
 COPY src/Cantus.Core/ src/Cantus.Core/
 COPY src/Cantus.Infrastructure/ src/Cantus.Infrastructure/
 COPY src/Cantus.Server/ src/Cantus.Server/

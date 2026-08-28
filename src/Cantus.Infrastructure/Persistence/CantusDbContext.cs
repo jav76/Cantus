@@ -14,6 +14,7 @@ public class CantusDbContext : DbContext
     public DbSet<CachedLyricsEntity> CachedLyrics => Set<CachedLyricsEntity>();
     public DbSet<TrackOffsetEntity> TrackOffsets => Set<TrackOffsetEntity>();
     public DbSet<RoomEntity> Rooms => Set<RoomEntity>();
+    public DbSet<LogEntryEntity> LogEntries => Set<LogEntryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +48,17 @@ public class CantusDbContext : DbContext
             entity.HasKey(e => e.RoomCode);
             entity.Property(e => e.RoomCode).HasMaxLength(32);
             entity.HasIndex(e => e.HostUserId);
+        });
+
+        modelBuilder.Entity<LogEntryEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasIndex(e => e.TimestampUtc);
+            entity.HasIndex(e => e.Level);
+            entity.Property(e => e.Level).HasMaxLength(32);
+            entity.Property(e => e.Logger).HasMaxLength(256);
+            entity.Property(e => e.TraceId).HasMaxLength(128);
         });
     }
 }
