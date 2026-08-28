@@ -45,7 +45,7 @@ public partial class App : Application
         throw new InvalidOperationException($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
     }
 
-    public static void InitializeLogging(LoggingConfiguration configuration = LoggingConfiguration.None)
+    public static void InitializeLogging(LoggingConfiguration configuration = CantusLoggingManager.DEFAULT_CONFIGURATION)
     {
         try
         {
@@ -59,7 +59,7 @@ public partial class App : Application
 #endif
                 LogLevel minLevel = configuration switch
                 {
-                    LoggingConfiguration.None => LogLevel.Error,
+                    LoggingConfiguration.None => LogLevel.Information,
                     LoggingConfiguration.Debug => LogLevel.Debug,
                     LoggingConfiguration.Trace => LogLevel.Trace,
                     _ => LogLevel.Information

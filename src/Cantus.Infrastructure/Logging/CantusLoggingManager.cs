@@ -22,11 +22,24 @@ public static class CantusLoggingManager
 
     public static string DefaultLogDirectory => Path.Combine(Path.GetTempPath(), "cantus", "logs");
 
+#if DEBUG
+    public const LoggingConfiguration DEFAULT_CONFIGURATION = LoggingConfiguration.Debug;
+#else
+    public const LoggingConfiguration DEFAULT_CONFIGURATION = LoggingConfiguration.None;
+#endif
+
+    public static LoggingConfiguration DefaultConfiguration => DEFAULT_CONFIGURATION;
+
     public static LoggingConfiguration ParseConfiguration(string? value)
+    {
+        return ParseConfiguration(value, DefaultConfiguration);
+    }
+
+    public static LoggingConfiguration ParseConfiguration(string? value, LoggingConfiguration defaultConfiguration)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            return LoggingConfiguration.None;
+            return defaultConfiguration;
         }
 
         if (Enum.TryParse(value.Trim(), ignoreCase: true, out LoggingConfiguration parsed))
@@ -34,7 +47,7 @@ public static class CantusLoggingManager
             return parsed;
         }
 
-        return LoggingConfiguration.None;
+        return defaultConfiguration;
     }
 
     public static void InitializeServer(
@@ -157,10 +170,10 @@ public static class CantusLoggingManager
         // Set Root Log Level
         hierarchy.Root.Level = configuration switch
         {
-            LoggingConfiguration.None => Level.Error,
+            LoggingConfiguration.None => Level.Info,
             LoggingConfiguration.Debug => Level.Debug,
             LoggingConfiguration.Trace => Level.All,
-            _ => Level.Error
+            _ => Level.Info
         };
 
         hierarchy.Configured = true;
