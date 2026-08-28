@@ -141,6 +141,23 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
+    public async Task Logout_WhenSessionProvided_RevokesSessionAndReturnsOk()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        _mockAuthService
+            .Setup(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        HttpRequestMessage request = new(HttpMethod.Post, "/api/auth/logout");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        _mockAuthService.Verify(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task RevokeSession_WhenSessionExists_ReturnsOk()
     {
         HttpClient client = _factory.CreateClient();

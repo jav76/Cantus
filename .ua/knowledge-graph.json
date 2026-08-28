@@ -28,8 +28,8 @@
       "GitHub Actions"
     ],
     "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
-    "analyzedAt": "2026-08-28T02:07:35.559Z",
-    "gitCommitHash": "a23e5560d8724b1ff7f1a5eb5d3aa40cc3537ef9"
+    "analyzedAt": "2026-08-28T02:38:18.235Z",
+    "gitCommitHash": "c8e3dfab62e55981e7c87cd4e3272db1ef502f3e"
   },
   "nodes": [
     {
@@ -11139,6 +11139,162 @@
         "unknown"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs",
+      "type": "file",
+      "name": "ISignalRPlaybackClient.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs",
+      "summary": "Project code asset for ISignalRPlaybackClient.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Logging/LoggingConfiguration.cs",
+      "type": "file",
+      "name": "LoggingConfiguration.cs",
+      "filePath": "src/Cantus.Core/Logging/LoggingConfiguration.cs",
+      "summary": "Project code asset for LoggingConfiguration.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Logging/RedactAttribute.cs",
+      "type": "file",
+      "name": "RedactAttribute.cs",
+      "filePath": "src/Cantus.Core/Logging/RedactAttribute.cs",
+      "summary": "Project code asset for RedactAttribute.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Core/Logging/TraceLogAttribute.cs",
+      "type": "file",
+      "name": "TraceLogAttribute.cs",
+      "filePath": "src/Cantus.Core/Logging/TraceLogAttribute.cs",
+      "summary": "Project code asset for TraceLogAttribute.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:src/Cantus.Generators/Cantus.Generators.csproj",
+      "type": "config",
+      "name": "Cantus.Generators.csproj",
+      "filePath": "src/Cantus.Generators/Cantus.Generators.csproj",
+      "summary": "Project config asset for Cantus.Generators.csproj.",
+      "tags": [
+        "config",
+        "csproj"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Generators/TraceLogDecoratorGenerator.cs",
+      "type": "file",
+      "name": "TraceLogDecoratorGenerator.cs",
+      "filePath": "src/Cantus.Generators/TraceLogDecoratorGenerator.cs",
+      "summary": "Project code asset for TraceLogDecoratorGenerator.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Logging/CantusLoggingManager.cs",
+      "type": "file",
+      "name": "CantusLoggingManager.cs",
+      "filePath": "src/Cantus.Infrastructure/Logging/CantusLoggingManager.cs",
+      "summary": "Project code asset for CantusLoggingManager.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Logging/Log4NetLoggerProvider.cs",
+      "type": "file",
+      "name": "Log4NetLoggerProvider.cs",
+      "filePath": "src/Cantus.Infrastructure/Logging/Log4NetLoggerProvider.cs",
+      "summary": "Project code asset for Log4NetLoggerProvider.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Logging/SqliteBatchLogAppender.cs",
+      "type": "file",
+      "name": "SqliteBatchLogAppender.cs",
+      "filePath": "src/Cantus.Infrastructure/Logging/SqliteBatchLogAppender.cs",
+      "summary": "Project code asset for SqliteBatchLogAppender.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.Designer.cs",
+      "type": "file",
+      "name": "20260828004637_AddLogEntriesTable.Designer.cs",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.Designer.cs",
+      "summary": "Project code asset for 20260828004637_AddLogEntriesTable.Designer.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
+      "type": "file",
+      "name": "20260828004637_AddLogEntriesTable.cs",
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
+      "summary": "Project code asset for 20260828004637_AddLogEntriesTable.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs",
+      "type": "file",
+      "name": "LogEntryEntity.cs",
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs",
+      "summary": "Project code asset for LogEntryEntity.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Middleware/GlobalExceptionHandler.cs",
+      "type": "file",
+      "name": "GlobalExceptionHandler.cs",
+      "filePath": "src/Cantus.Server/Middleware/GlobalExceptionHandler.cs",
+      "summary": "Project code asset for GlobalExceptionHandler.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -12475,6 +12631,7 @@
         "config:src/Cantus.Client/Directory.Build.props",
         "config:src/Cantus.Client/Directory.Packages.props",
         "config:src/Cantus.Core/Cantus.Core.csproj",
+        "config:src/Cantus.Generators/Cantus.Generators.csproj",
         "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
         "config:src/Cantus.Server/Cantus.Server.csproj",
         "config:src/Cantus.Server/appsettings.Development.json",
@@ -13182,6 +13339,7 @@
         "file:scripts/generate_docs.py",
         "file:scripts/update_understand_context.py",
         "file:src/Cantus.Client/Cantus.Client/Models/LayoutBreakpoint.cs",
+        "file:src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs",
         "file:src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml",
@@ -13197,6 +13355,17 @@
         "file:src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml",
         "file:src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml.cs",
         "file:src/Cantus.Client/Cantus.Client/WasmScripts/AppManifest.js",
+        "file:src/Cantus.Core/Logging/LoggingConfiguration.cs",
+        "file:src/Cantus.Core/Logging/RedactAttribute.cs",
+        "file:src/Cantus.Core/Logging/TraceLogAttribute.cs",
+        "file:src/Cantus.Generators/TraceLogDecoratorGenerator.cs",
+        "file:src/Cantus.Infrastructure/Logging/CantusLoggingManager.cs",
+        "file:src/Cantus.Infrastructure/Logging/Log4NetLoggerProvider.cs",
+        "file:src/Cantus.Infrastructure/Logging/SqliteBatchLogAppender.cs",
+        "file:src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.Designer.cs",
+        "file:src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
+        "file:src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs",
+        "file:src/Cantus.Server/Middleware/GlobalExceptionHandler.cs",
         "pipeline:.github/workflows/ci.yml",
         "pipeline:.github/workflows/docs.yml",
         "pipeline:.github/workflows/release.yml",

@@ -202,6 +202,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     private readonly object _ntpLock = new();
     private const int MAX_NTP_SAMPLES = 5;
 
+    public string ClientId { get; } = Guid.NewGuid().ToString("N");
     public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     public long RttMs { get; private set; }
     public long ClockOffsetMs { get; private set; }
@@ -213,6 +214,8 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public event Action<LyricsPayload>? LyricsReceived;
     public event Action<TrackOffsetPayload>? TrackOffsetReceived;
     public event Action<IReadOnlyList<AuthorizedSessionPayload>>? SessionsReceived;
+    public event Action<AuthorizedSessionPayload>? AuthSessionReceived;
+    public event Action<string>? SessionRevoked;
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
 
     internal void RaiseLyricsReceived(LyricsPayload payload)
@@ -225,6 +228,21 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         PlaybackStateReceived?.Invoke(payload);
     }
 
+    internal void RaiseSessionsReceived(IReadOnlyList<AuthorizedSessionPayload> sessions)
+    {
+        SessionsReceived?.Invoke(sessions);
+    }
+
+    internal void RaiseAuthSessionReceived(AuthorizedSessionPayload payload)
+    {
+        AuthSessionReceived?.Invoke(payload);
+    }
+
+    internal void RaiseSessionRevoked(string userId)
+    {
+        SessionRevoked?.Invoke(userId);
+    }
+
     public string? SessionToken { get; set; }
 
     public SignalRPlaybackClient(
@@ -233,11 +251,75 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         TimeSpan? reconnectInterval = null)
     {
         _configuredServerUrl = serverUrl;
-        SessionToken = sessionToken;
+        SessionToken = sessionToken ?? LoadPersistedSessionToken();
         if (reconnectInterval.HasValue)
         {
             ReconnectInterval = reconnectInterval.Value;
         }
+    }
+
+    private static string GetSessionFilePath()
+    {
+#if __WASM__
+        return string.Empty;
+#else
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string cantusDir = System.IO.Path.Combine(appData, "Cantus");
+        System.IO.Directory.CreateDirectory(cantusDir);
+        return System.IO.Path.Combine(cantusDir, "session.txt");
+#endif
+    }
+
+    private static string? LoadPersistedSessionToken()
+    {
+#if __WASM__
+        return null;
+#else
+        try
+        {
+            string path = GetSessionFilePath();
+            if (System.IO.File.Exists(path))
+            {
+                string token = System.IO.File.ReadAllText(path).Trim();
+                return string.IsNullOrWhiteSpace(token) ? null : token;
+            }
+        }
+        catch
+        {
+        }
+        return null;
+#endif
+    }
+
+    private static void SavePersistedSessionToken(string token)
+    {
+#if !__WASM__
+        try
+        {
+            string path = GetSessionFilePath();
+            System.IO.File.WriteAllText(path, token.Trim());
+        }
+        catch
+        {
+        }
+#endif
+    }
+
+    private static void ClearPersistedSessionToken()
+    {
+#if !__WASM__
+        try
+        {
+            string path = GetSessionFilePath();
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+        }
+        catch
+        {
+        }
+#endif
     }
 
     public string ServerBaseUrl
@@ -325,6 +407,24 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             SessionsReceived?.Invoke(sessions);
         });
 
+        _connection.On<AuthorizedSessionPayload>("ReceiveAuthSession", session =>
+        {
+            if (session is not null && !string.IsNullOrWhiteSpace(session.Id))
+            {
+                SavePersistedSessionToken(session.Id);
+                SessionToken = session.Id;
+                AuthSessionReceived?.Invoke(session);
+                _ = ReconnectWithTokenAsync(session.Id);
+            }
+        });
+
+        _connection.On<string>("ReceiveSessionRevoked", userId =>
+        {
+            ClearPersistedSessionToken();
+            SessionToken = null;
+            SessionRevoked?.Invoke(userId);
+        });
+
         _connection.On<DiagnosticsPayload>("ReceiveDiagnostics", diag =>
         {
             DiagnosticsReceived?.Invoke(diag);
@@ -340,6 +440,10 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
+            if (string.IsNullOrWhiteSpace(SessionToken))
+            {
+                _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
+            }
             _ = SyncClockAsync();
             return Task.CompletedTask;
         };
@@ -409,6 +513,11 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             await _connection.StartAsync(cancellationToken);
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
+
+            if (string.IsNullOrWhiteSpace(SessionToken))
+            {
+                _ = _connection.InvokeAsync("RegisterClientLogin", ClientId, cancellationToken);
+            }
 
             _clockSyncTimer ??= new Timer(async _ => await SyncClockAsync(), null, 0, 5000);
             _ = SyncClockAsync();
@@ -490,11 +599,11 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
                 double weight = 1.0 / Math.Max(1, s.RttMs);
                 totalWeight += weight;
                 weightedOffsetSum += s.OffsetMs * weight;
-                totalRttSum += s.RttMs;
+                totalRttSum += s.RttMs * weight;
             }
 
-            long computedOffset = (long)Math.Round(weightedOffsetSum / totalWeight);
-            long computedRtt = (long)Math.Round(totalRttSum / filtered.Count);
+            long computedRtt = (long)(totalRttSum / totalWeight);
+            long computedOffset = (long)(weightedOffsetSum / totalWeight);
 
             // Apply Exponential Moving Average (EMA: alpha = 0.35)
             const double ALPHA = 0.35;
@@ -529,12 +638,17 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
                 : url;
 
             using System.Net.Http.HttpClient http = new();
+            if (!string.IsNullOrWhiteSpace(SessionToken))
+            {
+                http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", SessionToken);
+            }
             await http.PostAsync($"{baseUrl}/api/auth/logout", null);
         }
         catch
         {
         }
 
+        ClearPersistedSessionToken();
         SessionToken = null;
         await _connectionLock.WaitAsync();
         try
@@ -556,6 +670,15 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public async Task ReconnectWithTokenAsync(string? sessionToken)
     {
         SessionToken = sessionToken;
+        if (!string.IsNullOrWhiteSpace(sessionToken))
+        {
+            SavePersistedSessionToken(sessionToken);
+        }
+        else
+        {
+            ClearPersistedSessionToken();
+        }
+
         await _connectionLock.WaitAsync();
         try
         {

@@ -391,6 +391,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
         _client.TrackOffsetReceived += offset => RunOnUIThread(() => OnTrackOffsetReceived(offset));
         _client.SessionsReceived += sessions => RunOnUIThread(() => OnSessionsReceived(sessions));
+        _client.AuthSessionReceived += session => RunOnUIThread(() => OnAuthSessionReceived(session));
+        _client.SessionRevoked += userId => RunOnUIThread(() => OnSessionRevoked(userId));
         _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
 
         _ticker = new DispatcherTimer
@@ -400,6 +402,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _ticker.Tick += OnTick;
         _ticker.Start();
     }
+
+    public string ClientId => _client.ClientId;
 
     private void RunOnUIThread(Action action)
     {
@@ -659,12 +663,26 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             AuthorizedSessionsCount = 0;
             ActiveUserName = "None";
             ActiveUserId = null;
+            CurrentTitle = "No Track Playing";
+            CurrentArtist = "Play music on Spotify to begin";
+            CurrentAlbum = string.Empty;
+            AlbumArtUrl = null;
+            IsPlaying = false;
+            _lastLyrics = null;
+            LyricLines.Clear();
+            HasLyrics = false;
+            IsStaticLyricsMode = false;
+            ActiveLineIndex = -1;
+            _themeManager.UpdateTrackMetadata(null, null, null);
             OnPropertyChanged(nameof(CurrentUserSession));
             OnPropertyChanged(nameof(NoSessionsVisibility));
             OnPropertyChanged(nameof(HasSessionsVisibility));
             OnPropertyChanged(nameof(IsAuthorized));
             OnPropertyChanged(nameof(ConnectButtonText));
             OnPropertyChanged(nameof(ConnectButtonGlyph));
+            OnPropertyChanged(nameof(HasSyncedLyrics));
+            OnPropertyChanged(nameof(HasPlainLyrics));
+            OnPropertyChanged(nameof(ModeToggleVisibility));
             return;
         }
 
@@ -691,6 +709,54 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsAuthorized));
         OnPropertyChanged(nameof(ConnectButtonText));
         OnPropertyChanged(nameof(ConnectButtonGlyph));
+    }
+
+    private void OnAuthSessionReceived(AuthorizedSessionPayload? session)
+    {
+        if (session is null) return;
+        Sessions.Clear();
+        Sessions.Add(session);
+        AuthorizedSessionsCount = 1;
+        ActiveUserName = session.DisplayName;
+        ActiveUserId = session.Id;
+        _ = _client.SubscribeToUserAsync(session.Id);
+        OnPropertyChanged(nameof(CurrentUserSession));
+        OnPropertyChanged(nameof(NoSessionsVisibility));
+        OnPropertyChanged(nameof(HasSessionsVisibility));
+        OnPropertyChanged(nameof(IsAuthorized));
+        OnPropertyChanged(nameof(ConnectButtonText));
+        OnPropertyChanged(nameof(ConnectButtonGlyph));
+    }
+
+    private void OnSessionRevoked(string? userId)
+    {
+        if (string.IsNullOrEmpty(userId) || ActiveUserId == userId)
+        {
+            Sessions.Clear();
+            AuthorizedSessionsCount = 0;
+            ActiveUserName = "None";
+            ActiveUserId = null;
+            CurrentTitle = "No Track Playing";
+            CurrentArtist = "Play music on Spotify to begin";
+            CurrentAlbum = string.Empty;
+            AlbumArtUrl = null;
+            IsPlaying = false;
+            _lastLyrics = null;
+            LyricLines.Clear();
+            HasLyrics = false;
+            IsStaticLyricsMode = false;
+            ActiveLineIndex = -1;
+            _themeManager.UpdateTrackMetadata(null, null, null);
+            OnPropertyChanged(nameof(CurrentUserSession));
+            OnPropertyChanged(nameof(NoSessionsVisibility));
+            OnPropertyChanged(nameof(HasSessionsVisibility));
+            OnPropertyChanged(nameof(IsAuthorized));
+            OnPropertyChanged(nameof(ConnectButtonText));
+            OnPropertyChanged(nameof(ConnectButtonGlyph));
+            OnPropertyChanged(nameof(HasSyncedLyrics));
+            OnPropertyChanged(nameof(HasPlainLyrics));
+            OnPropertyChanged(nameof(ModeToggleVisibility));
+        }
     }
 
     private void OnDiagnosticsReceived(DiagnosticsPayload? diag)
