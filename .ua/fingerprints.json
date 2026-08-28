@@ -1,16 +1,16 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "a23e5560d8724b1ff7f1a5eb5d3aa40cc3537ef9",
-  "generatedAt": "2026-08-28T02:07:35.559Z",
+  "gitCommitHash": "c8e3dfab62e55981e7c87cd4e3272db1ef502f3e",
+  "generatedAt": "2026-08-28T02:38:18.235Z",
   "files": {
     ".agents/rules/code-style.md": {
       "filePath": ".agents/rules/code-style.md",
-      "contentHash": "64919034e5e7c35ec62c8c019463d89cc36e2611539ad738a6285c569d04fca7",
+      "contentHash": "4aa72dc917f8d791caadbaadf6e2178de3f289285994014a15d24060cc32bed2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 99,
+      "totalLines": 126,
       "hasStructuralAnalysis": true
     },
     ".agents/rules/understand-context.md": {
@@ -45,12 +45,12 @@
     },
     ".editorconfig": {
       "filePath": ".editorconfig",
-      "contentHash": "596a9dacf678fe89b45af52f1b0ee6fcd52f03d04b48c841944e92454cf582c2",
+      "contentHash": "76d036d7b582bc5e477ca0a3e4b7ef5d07bbd5c31c95a936dcf75083c3ae0cb8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 191,
+      "totalLines": 192,
       "hasStructuralAnalysis": false
     },
     ".github/workflows/ci.yml": {
@@ -105,22 +105,22 @@
     },
     "Cantus.slnx": {
       "filePath": "Cantus.slnx",
-      "contentHash": "84a3ca006230b66cb1dd8f63671135477ed4c67bfb60993d95546913b25675e0",
+      "contentHash": "796408dc63b36826794229538f4ed7f35ef807b6b5eb4c601ae003c24a8c5b0c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 16,
+      "totalLines": 17,
       "hasStructuralAnalysis": false
     },
     "Dockerfile": {
       "filePath": "Dockerfile",
-      "contentHash": "271289804bd2ff349ad28ea92c5b04a064b14611c6043596f9f88a18273f9e6f",
+      "contentHash": "101419362921afd3632aa8b80b2a23d6e1b34d901ba9d3d99d820d982f5c7974",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 73,
+      "totalLines": 76,
       "hasStructuralAnalysis": false
     },
     "LICENSE": {
@@ -3795,12 +3795,12 @@
     },
     "docs/reference/configuration.md": {
       "filePath": "docs/reference/configuration.md",
-      "contentHash": "3445c7429feebb8568359b4556908793d71e8e982520b1170b6c534e64d16a46",
+      "contentHash": "bae46cd13f70ea35d7de36729ecc6deca866f53f6ca9a4ee11e5d83f2c3c38d3",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 43,
+      "totalLines": 66,
       "hasStructuralAnalysis": true
     },
     "docs/reference/rest-api.md": {
@@ -3915,12 +3915,12 @@
     },
     "packaging/linux/build-appimage.sh": {
       "filePath": "packaging/linux/build-appimage.sh",
-      "contentHash": "77bc52606a4d9b873b8373ee76e2ceec7445f8a5c58513ffefb8fcc01a30b4c7",
+      "contentHash": "5c25fb687d42b70f13f0d91304978767476f48145bce6695357a1cfd2e9c4283",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 66,
+      "totalLines": 71,
       "hasStructuralAnalysis": false
     },
     "packaging/linux/cantus.desktop": {
@@ -3955,7 +3955,7 @@
     },
     "packaging/linux/publish/Cantus.Client.dll": {
       "filePath": "packaging/linux/publish/Cantus.Client.dll",
-      "contentHash": "bab3c512502a7c7d4f84f48cc625eb0fdce30190386a8eb31f1445276c257371",
+      "contentHash": "63b957a55730d1859e21122d732560db2cebabaee2a39e993dd8ad4b460847bc",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3965,7 +3965,7 @@
     },
     "packaging/linux/publish/Cantus.Client.pdb": {
       "filePath": "packaging/linux/publish/Cantus.Client.pdb",
-      "contentHash": "368aedf6867a238b0664231f950f12861e8c717ed71427c6e371873b1c415ec3",
+      "contentHash": "3fef43c7c48b19c90d31d91a74bfaf1740f1102f1a14fb1d531d0e8cbf886e41",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3985,7 +3985,7 @@
     },
     "packaging/linux/publish/Cantus.Core.dll": {
       "filePath": "packaging/linux/publish/Cantus.Core.dll",
-      "contentHash": "d66cd38b3526720a1db69fd07c081d2e8dd1782d3cc3fcf692a6f05f51ff5297",
+      "contentHash": "8f90c463959d2843e76acec799b5b89f0e745d8ed09b47a7a8d040a734c30a98",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3995,7 +3995,7 @@
     },
     "packaging/linux/publish/Cantus.Core.pdb": {
       "filePath": "packaging/linux/publish/Cantus.Core.pdb",
-      "contentHash": "8b5c2469e93dcb5fe6ce27622906e689725ab120ec2083d09c8cdee6e5b1dd50",
+      "contentHash": "d755b2cf0a2e974ad8977e20421b42c0d6a0488c53e89bf3fd96430bbc193987",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -7155,11 +7155,23 @@
     },
     "src/Cantus.Client/Cantus.Client/App.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
-      "contentHash": "f458042dd3d1d6f79bdae0ccc7f5608c7d2c0b59235daf9a325c1b66d4ae53d0",
+      "contentHash": "ee59c8bb92e1126d6e3dc39f31c107f89cc277875675065c3eafa29863bc01e4",
       "functions": [
         {
+          "name": "OnNavigationFailed",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
           "name": "InitializeLogging",
-          "params": [],
+          "params": [
+            "CantusLoggingManager.DEFAULT_CONFIGURATION"
+          ],
           "returnType": "void",
           "exported": true,
           "lineCount": 10
@@ -7168,12 +7180,14 @@
       "classes": [
         {
           "name": "App",
-          "methods": [],
+          "methods": [
+            "OnNavigationFailed"
+          ],
           "properties": [
             "MainWindow"
           ],
           "exported": true,
-          "lineCount": 72
+          "lineCount": 101
         }
       ],
       "imports": [
@@ -7181,6 +7195,24 @@
           "source": "System",
           "specifiers": [
             "System"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Logging",
+          "specifiers": [
+            "Logging"
           ]
         },
         {
@@ -7194,17 +7226,17 @@
         "App",
         "InitializeLogging"
       ],
-      "totalLines": 72,
+      "totalLines": 101,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj": {
       "filePath": "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
-      "contentHash": "1d8fc25b07d5016223d4100ddc22df4d9e395bcf585b988024555c04b4591886",
+      "contentHash": "10c253891e5971b1babc1560c52b4fb7d2943d4cb29716da6fa2f3ff5aef522d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 43,
+      "totalLines": 46,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/GlobalUsings.cs": {
@@ -7583,7 +7615,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
-      "contentHash": "15c6028536a84f5504d2221279b01ab36b80de34879a490b803a60cebf0c5d93",
+      "contentHash": "10a3320f9a4698256cd7c24ce197a296dee1a18e721216127cc053143c82a45a",
       "functions": [
         {
           "name": "Main",
@@ -7601,7 +7633,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 22
+          "lineCount": 45
         }
       ],
       "imports": [
@@ -7609,6 +7641,24 @@
           "source": "System",
           "specifiers": [
             "System"
+          ]
+        },
+        {
+          "source": "System.CommandLine",
+          "specifiers": [
+            "CommandLine"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Logging",
+          "specifiers": [
+            "Logging"
           ]
         },
         {
@@ -7622,7 +7672,7 @@
         "Main",
         "Program"
       ],
-      "totalLines": 22,
+      "totalLines": 45,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs": {
@@ -7663,9 +7713,66 @@
       "totalLines": 17,
       "hasStructuralAnalysis": true
     },
+    "src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs",
+      "contentHash": "9d72e9095177d6d9a1c720fcc34ee737fe3cfc9eccb0dd4aafcf2ec1febc2ac7",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ISignalRPlaybackClient",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 38
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.SignalR.Client",
+          "specifiers": [
+            "Client"
+          ]
+        }
+      ],
+      "exports": [
+        "ISignalRPlaybackClient"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
     "src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs",
-      "contentHash": "b771e6fff4dc897ae8bedd65a4551e671113b2540b42839d81ac2873fba43ee8",
+      "contentHash": "1f0cbfd65bbae136f9e09c66f32f6bee8b36c44fc1fedf778454995c788d13a4",
       "functions": [
         {
           "name": "UpdateDimensions",
@@ -7766,7 +7873,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
-      "contentHash": "0798c58d6aab3073ba5b9c31d65ae66d083ed40f531579d4c56b41d446a3889f",
+      "contentHash": "625461dab3c3bcd0d9960cef95d5cb524d052af604b672b0f0eb44a45a75bcf5",
       "functions": [
         {
           "name": "RaiseLyricsReceived",
@@ -7787,67 +7894,67 @@
           "lineCount": 10
         },
         {
-          "name": "ResolveServerUrl",
+          "name": "RaiseSessionsReceived",
+          "params": [
+            "sessions"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "RaiseAuthSessionReceived",
+          "params": [
+            "payload"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "RaiseSessionRevoked",
+          "params": [
+            "userId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "GetSessionFilePath",
           "params": [],
           "returnType": "string",
           "exported": false,
           "lineCount": 10
         },
         {
-          "name": "EnsureConnectionBuilt",
+          "name": "LoadPersistedSessionToken",
+          "params": [],
+          "returnType": "string?",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "SavePersistedSessionToken",
+          "params": [
+            "token"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "ClearPersistedSessionToken",
           "params": [],
           "returnType": "void",
           "exported": false,
           "lineCount": 10
         },
         {
-          "name": "StartAsync",
-          "params": [
-            "default"
-          ],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "EnsureReconnectPollerStarted",
+          "name": "ResolveServerUrl",
           "params": [],
-          "returnType": "void",
+          "returnType": "string",
           "exported": false,
-          "lineCount": 10
-        },
-        {
-          "name": "OnReconnectPollerTickAsync",
-          "params": [],
-          "returnType": "Task",
-          "exported": false,
-          "lineCount": 10
-        },
-        {
-          "name": "TryConnectAsync",
-          "params": [
-            "default"
-          ],
-          "returnType": "Task<bool>",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "SyncClockAsync",
-          "params": [],
-          "returnType": "Task",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "ProcessNtpSample",
-          "params": [
-            "rawRtt",
-            "rawOffset",
-            "timestampMs"
-          ],
-          "returnType": "void",
-          "exported": true,
           "lineCount": 10
         }
       ],
@@ -7857,6 +7964,9 @@
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -7911,6 +8021,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -7918,13 +8029,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "PlaybackStatePayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -7979,6 +8093,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -7986,13 +8101,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "LyricLinePayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8047,6 +8165,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8054,13 +8173,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "LyricsPayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8115,6 +8237,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8122,13 +8245,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "TrackOffsetPayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8183,6 +8309,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8190,13 +8317,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "DiagnosticsPayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8251,6 +8381,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8258,13 +8389,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "AuthorizedSessionPayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8319,6 +8453,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8326,13 +8461,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "ClockSyncResponsePayload",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8387,6 +8525,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8394,13 +8533,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "CantusJsonContext",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8455,6 +8597,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8462,13 +8605,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "NtpSample",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8523,6 +8669,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8530,13 +8677,16 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         },
         {
           "name": "SignalRPlaybackClient",
           "methods": [
             "RaiseLyricsReceived",
             "RaisePlaybackStateReceived",
+            "RaiseSessionsReceived",
+            "RaiseAuthSessionReceived",
+            "RaiseSessionRevoked",
             "ResolveServerUrl",
             "EnsureConnectionBuilt",
             "StartAsync",
@@ -8591,6 +8741,7 @@
             "ClientSendTimeMs",
             "ServerReceiveTimeMs",
             "ServerSendTimeMs",
+            "ClientId",
             "ReconnectInterval",
             "RttMs",
             "ClockOffsetMs",
@@ -8598,7 +8749,7 @@
             "SessionToken"
           ],
           "exported": true,
-          "lineCount": 587
+          "lineCount": 710
         }
       ],
       "imports": [
@@ -8674,6 +8825,7 @@
         "AuthorizedSessionPayload",
         "AuthorizedSessions",
         "CantusJsonContext",
+        "ClientId",
         "ClientSendTimeMs",
         "ClockOffsetMs",
         "ClockSyncResponsePayload",
@@ -8704,8 +8856,11 @@
         "ProcessNtpSample",
         "ProfileImageUrl",
         "ProgressMs",
+        "RaiseAuthSessionReceived",
         "RaiseLyricsReceived",
         "RaisePlaybackStateReceived",
+        "RaiseSessionRevoked",
+        "RaiseSessionsReceived",
         "ReconnectInterval",
         "ReconnectWithTokenAsync",
         "RttMs",
@@ -8731,7 +8886,7 @@
         "UpdatedAtUtc",
         "VolumePercent"
       ],
-      "totalLines": 587,
+      "totalLines": 710,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs": {
@@ -9009,7 +9164,7 @@
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
-      "contentHash": "e2ab7d975e377e31ec95e7ec6a34d0e6e4a807daa377cb48f31921fa25486401",
+      "contentHash": "d4b33e9a45d359e53cd2a486359f7457d1b68a4b06ccf4cde333901baf72a49c",
       "functions": [
         {
           "name": "ToggleStaticLyricsMode",
@@ -9116,6 +9271,8 @@
             "OnLyricsReceived",
             "OnTrackOffsetReceived",
             "OnSessionsReceived",
+            "OnAuthSessionReceived",
+            "OnSessionRevoked",
             "OnDiagnosticsReceived",
             "OnTick",
             "EvaluateInstrumentalBreak",
@@ -9132,7 +9289,7 @@
             "Sessions"
           ],
           "exported": true,
-          "lineCount": 921
+          "lineCount": 987
         }
       ],
       "imports": [
@@ -9227,7 +9384,7 @@
         "ToggleKioskMode",
         "ToggleStaticLyricsMode"
       ],
-      "totalLines": 921,
+      "totalLines": 987,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml": {
@@ -9242,7 +9399,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml.cs",
-      "contentHash": "b0cacac751a3b17d97ea39d89fec42cd8a3f7bafa1ba06fc6ce9f8878e9ef27f",
+      "contentHash": "66a3a9c333517e349e7d108b28f0bea6dc4c1f50f7724ae5f6fe79b3f2f53084",
       "functions": [
         {
           "name": "OnCycleThemeClicked",
@@ -9356,7 +9513,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 131
+          "lineCount": 133
         }
       ],
       "imports": [
@@ -9425,7 +9582,7 @@
         "GetSmallHeaderVisibility",
         "GetStatusColor"
       ],
-      "totalLines": 131,
+      "totalLines": 133,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml": {
@@ -9440,7 +9597,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/AdaptiveTrackCard.xaml.cs",
-      "contentHash": "97267ce751299103a0b0817e01076c969248fca0765980a27e6163b53f04e33e",
+      "contentHash": "c66e19a07777b707b4e59e596a6157c9f0bf8d00fe5febb1343aedf776e1686c",
       "functions": [
         {
           "name": "OnNudgeMinus500Clicked",
@@ -9559,7 +9716,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 161
+          "lineCount": 163
         }
       ],
       "imports": [
@@ -9615,7 +9772,7 @@
         "GetStandardCardVisibility",
         "GetTitleFontSize"
       ],
-      "totalLines": 161,
+      "totalLines": 163,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/DiagnosticsHudDialog.xaml": {
@@ -9962,7 +10119,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/MobileSettingsView.xaml.cs",
-      "contentHash": "3986d353ba3cd56cd93cb88be947a2ba2efb8e0472b3ba6ed1151bb4fee6c940",
+      "contentHash": "5df8a9b81988263ea7f2fe2c7abb07820c651b9e2fc5eda17bbca37adb251772",
       "functions": [
         {
           "name": "OnCycleThemeClicked",
@@ -10080,7 +10237,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 96
+          "lineCount": 98
         }
       ],
       "imports": [
@@ -10126,7 +10283,7 @@
         "GetSkewText",
         "MobileSettingsView"
       ],
-      "totalLines": 96,
+      "totalLines": 98,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/MobileTabBar.xaml": {
@@ -10297,27 +10454,27 @@
     },
     "src/Cantus.Client/Directory.Packages.props": {
       "filePath": "src/Cantus.Client/Directory.Packages.props",
-      "contentHash": "17d66d45d3ca793c14def26f86d7ffd1b75e151c5395564aae11d5b5112efa64",
+      "contentHash": "15443a94b9e59afcae45a81c6b85ff2339da0d41faf1387482d472fbeebeed51",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 13,
+      "totalLines": 14,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Core/Cantus.Core.csproj": {
       "filePath": "src/Cantus.Core/Cantus.Core.csproj",
-      "contentHash": "11c0c110e19c9eaeaef66a0382f7a3e4ff6ab395d99ca6664e1ba378371cc47c",
+      "contentHash": "0787a1e08d5dbfa6ee606f992d338c3aeb40435f24e4aed9405967adc6b00b8a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 9,
+      "totalLines": 18,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ILyricsCacheRepository.cs",
-      "contentHash": "a67429b8c48e01d800beff3c95c701e6fc17c28ea8dde34e9d264fd51e2df940",
+      "contentHash": "afaee0fbf94afbd9a3211d85cf0180fd5308950823e39d516adb975246c97dd3",
       "functions": [],
       "classes": [
         {
@@ -10325,10 +10482,16 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 25
+          "lineCount": 27
         }
       ],
       "imports": [
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
         {
           "source": "Cantus.Core.Models",
           "specifiers": [
@@ -10339,12 +10502,12 @@
       "exports": [
         "ILyricsCacheRepository"
       ],
-      "totalLines": 25,
+      "totalLines": 27,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ILyricsProvider.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ILyricsProvider.cs",
-      "contentHash": "7fff780b347b97e74ca2fea9e71e58bfe71efd977583a8a8dd9953154199c9b0",
+      "contentHash": "c3bb5b555482a6921e5b419026f3ee8dbe6805693ea54e6b7d2de2651e94dd7e",
       "functions": [],
       "classes": [
         {
@@ -10352,10 +10515,16 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         }
       ],
       "imports": [
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
         {
           "source": "Cantus.Core.Models",
           "specifiers": [
@@ -10366,7 +10535,7 @@
       "exports": [
         "ILyricsProvider"
       ],
-      "totalLines": 8,
+      "totalLines": 10,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/IPlaybackInterpolator.cs": {
@@ -10398,7 +10567,7 @@
     },
     "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ISpotifyAuthService.cs",
-      "contentHash": "567f7c5d63748dda8e69839de206aafcd59ed95b1d3956ee8782d329bc151aeb",
+      "contentHash": "e37d5cdc520fae97a17526a68d8828917e2494140e50caad38509cf6db517da6",
       "functions": [],
       "classes": [
         {
@@ -10406,10 +10575,16 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 18
+          "lineCount": 20
         }
       ],
       "imports": [
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
         {
           "source": "Cantus.Core.Models",
           "specifiers": [
@@ -10420,12 +10595,12 @@
       "exports": [
         "ISpotifyAuthService"
       ],
-      "totalLines": 18,
+      "totalLines": 20,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs": {
       "filePath": "src/Cantus.Core/Interfaces/ISpotifyPlayerClient.cs",
-      "contentHash": "9dccc2e79ef66a0dce9420444efbccbfb9268556e447ebf91087e23d37daf00c",
+      "contentHash": "d26be9e116a720a4f88ddb64207fd7f2f52e19490970e3ebb7e3e6373f70089d",
       "functions": [],
       "classes": [
         {
@@ -10433,10 +10608,16 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         }
       ],
       "imports": [
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
         {
           "source": "Cantus.Core.Models",
           "specifiers": [
@@ -10447,7 +10628,93 @@
       "exports": [
         "ISpotifyPlayerClient"
       ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Logging/LoggingConfiguration.cs": {
+      "filePath": "src/Cantus.Core/Logging/LoggingConfiguration.cs",
+      "contentHash": "9983cc383ec7496e66ff6870b15d0961cbb28356ab011e84cad62f31fa804040",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LoggingConfiguration",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        }
+      ],
+      "exports": [
+        "LoggingConfiguration"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Logging/RedactAttribute.cs": {
+      "filePath": "src/Cantus.Core/Logging/RedactAttribute.cs",
+      "contentHash": "4c3b787896552629e83784de7f196a4f7b093a564b53af11a68583bdde8d6ca9",
+      "functions": [],
+      "classes": [
+        {
+          "name": "RedactAttribute",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        }
+      ],
+      "exports": [
+        "RedactAttribute"
+      ],
       "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Core/Logging/TraceLogAttribute.cs": {
+      "filePath": "src/Cantus.Core/Logging/TraceLogAttribute.cs",
+      "contentHash": "7505b1e5b1a302fbc654e5f54ab4baf07af3baf2b0a986eaa45bbef0bb915dcd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TraceLogAttribute",
+          "methods": [],
+          "properties": [
+            "CaptureParameters",
+            "CaptureReturnValue"
+          ],
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        }
+      ],
+      "exports": [
+        "CaptureParameters",
+        "CaptureReturnValue",
+        "TraceLogAttribute"
+      ],
+      "totalLines": 21,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Models/LyricLine.cs": {
@@ -10633,7 +10900,7 @@
     },
     "src/Cantus.Core/Models/UserSession.cs": {
       "filePath": "src/Cantus.Core/Models/UserSession.cs",
-      "contentHash": "2d692aa6e8923d1dd3ca045430dd94e2c2993b1d563070731d52dbff7ed51e9d",
+      "contentHash": "37bedd3e7075e350d5f2772421c17c00618a03facda7e99df3952bdb0b9c5daa",
       "functions": [],
       "classes": [
         {
@@ -10652,7 +10919,7 @@
             "UpdatedAtUtc"
           ],
           "exported": true,
-          "lineCount": 15
+          "lineCount": 18
         }
       ],
       "imports": [],
@@ -10669,7 +10936,7 @@
         "UpdatedAtUtc",
         "UserSession"
       ],
-      "totalLines": 15,
+      "totalLines": 18,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Core/Parsers/LrcParser.cs": {
@@ -10748,14 +11015,390 @@
       "totalLines": 257,
       "hasStructuralAnalysis": true
     },
-    "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
-      "filePath": "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
-      "contentHash": "c8d5b919dab69dd055d7d38b607fb90fe60b6d1087cd6d3b639063863f178969",
+    "src/Cantus.Generators/Cantus.Generators.csproj": {
+      "filePath": "src/Cantus.Generators/Cantus.Generators.csproj",
+      "contentHash": "e986250579d37734b52f314e8bc999bc5992b81396a7d2966c5e63b88f53f094",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 25,
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "src/Cantus.Generators/TraceLogDecoratorGenerator.cs": {
+      "filePath": "src/Cantus.Generators/TraceLogDecoratorGenerator.cs",
+      "contentHash": "d84fb954f7b1d0304c538a57569146bb40abcd0837e7f6c594aba21d57e72cde",
+      "functions": [
+        {
+          "name": "Initialize",
+          "params": [
+            "context"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "GetInterfaceToDecorate",
+          "params": [
+            "context",
+            "cancellationToken"
+          ],
+          "returnType": "InterfaceToDecorate?",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "GenerateDecoratorClass",
+          "params": [
+            "model"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "GenerateMethodImplementation",
+          "params": [
+            "sb",
+            "model",
+            "method"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "Equals",
+          "params": [
+            "other"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "Equals",
+          "params": [
+            "other"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "Equals",
+          "params": [
+            "other"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "Equals",
+          "params": [
+            "other"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "Equals",
+          "params": [
+            "other"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "TraceLogDecoratorGenerator",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        },
+        {
+          "name": "InterfaceToDecorate",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        },
+        {
+          "name": "MethodModel",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        },
+        {
+          "name": "ParameterModel",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        },
+        {
+          "name": "PropertyModel",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        },
+        {
+          "name": "EventModel",
+          "methods": [
+            "Initialize",
+            "Equals"
+          ],
+          "properties": [
+            "NamespaceName",
+            "InterfaceName",
+            "FullInterfaceName",
+            "DecoratorClassName",
+            "CaptureParameters",
+            "CaptureReturnValue",
+            "Methods",
+            "Properties",
+            "Events",
+            "Name",
+            "ReturnType",
+            "IsAsync",
+            "HasReturnValue",
+            "Parameters",
+            "Type",
+            "RefKind",
+            "IsRedacted",
+            "DefaultValue",
+            "HasGetter",
+            "HasSetter"
+          ],
+          "exported": true,
+          "lineCount": 618
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.Collections.Immutable",
+          "specifiers": [
+            "Immutable"
+          ]
+        },
+        {
+          "source": "System.Linq",
+          "specifiers": [
+            "Linq"
+          ]
+        },
+        {
+          "source": "System.Text",
+          "specifiers": [
+            "Text"
+          ]
+        },
+        {
+          "source": "Microsoft.CodeAnalysis",
+          "specifiers": [
+            "CodeAnalysis"
+          ]
+        },
+        {
+          "source": "Microsoft.CodeAnalysis.CSharp",
+          "specifiers": [
+            "CSharp"
+          ]
+        },
+        {
+          "source": "Microsoft.CodeAnalysis.CSharp.Syntax",
+          "specifiers": [
+            "Syntax"
+          ]
+        },
+        {
+          "source": "Microsoft.CodeAnalysis.Text",
+          "specifiers": [
+            "Text"
+          ]
+        }
+      ],
+      "exports": [
+        "CaptureParameters",
+        "CaptureReturnValue",
+        "DecoratorClassName",
+        "DefaultValue",
+        "Equals",
+        "EventModel",
+        "Events",
+        "FullInterfaceName",
+        "HasGetter",
+        "HasReturnValue",
+        "HasSetter",
+        "Initialize",
+        "InterfaceName",
+        "InterfaceToDecorate",
+        "IsAsync",
+        "IsRedacted",
+        "MethodModel",
+        "Methods",
+        "Name",
+        "NamespaceName",
+        "ParameterModel",
+        "Parameters",
+        "Properties",
+        "PropertyModel",
+        "RefKind",
+        "ReturnType",
+        "TraceLogDecoratorGenerator",
+        "Type"
+      ],
+      "totalLines": 618,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
+      "filePath": "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
+      "contentHash": "681dc89400a51daa855976e3eb654b6a35e66fe5093ed424ce4e52ae82bb4beb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs": {
@@ -10822,7 +11465,7 @@
     },
     "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs": {
       "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolatorOptions.cs",
-      "contentHash": "6e851489f5b895add34f90bc68285dbfda331514e54c7039f640d7872156b1d9",
+      "contentHash": "cadbcee6c03c0988873ff4486c13000418bdd49a03e2c83fa9b6608f85c5db75",
       "functions": [],
       "classes": [
         {
@@ -10847,7 +11490,7 @@
     },
     "src/Cantus.Infrastructure/DependencyInjection.cs": {
       "filePath": "src/Cantus.Infrastructure/DependencyInjection.cs",
-      "contentHash": "75f944a68e2c4455fb8ade4968f0ea1603b5437772430cd8c4adecc5e1eaaa38",
+      "contentHash": "9a6aaf5f2faada3859be42fa475600ef09204110ee7301b2898a559a56a2d5c6",
       "functions": [
         {
           "name": "AddCantusInfrastructure",
@@ -10866,7 +11509,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 62
+          "lineCount": 79
         }
       ],
       "imports": [
@@ -10935,7 +11578,370 @@
         "AddCantusInfrastructure",
         "DependencyInjection"
       ],
-      "totalLines": 62,
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Logging/CantusLoggingManager.cs": {
+      "filePath": "src/Cantus.Infrastructure/Logging/CantusLoggingManager.cs",
+      "contentHash": "9363930f552b52c6c5542af001366c44d617fc12d5f3919b38a2a098383b8bcf",
+      "functions": [
+        {
+          "name": "ParseConfiguration",
+          "params": [
+            "value"
+          ],
+          "returnType": "LoggingConfiguration",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ParseConfiguration",
+          "params": [
+            "value",
+            "defaultConfiguration"
+          ],
+          "returnType": "LoggingConfiguration",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "InitializeServer",
+          "params": [
+            "configuration",
+            "null",
+            "null"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "InitializeClient",
+          "params": [
+            "configuration",
+            "null"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ConfigureHierarchy",
+          "params": [
+            "appName",
+            "configuration",
+            "dbConnectionString",
+            "logDirectory"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "Shutdown",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "CantusLoggingManager",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 190
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.IO",
+          "specifiers": [
+            "IO"
+          ]
+        },
+        {
+          "source": "System.Reflection",
+          "specifiers": [
+            "Reflection"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "log4net",
+          "specifiers": [
+            "log4net"
+          ]
+        },
+        {
+          "source": "log4net.Appender",
+          "specifiers": [
+            "Appender"
+          ]
+        },
+        {
+          "source": "log4net.Core",
+          "specifiers": [
+            "Core"
+          ]
+        },
+        {
+          "source": "log4net.Layout",
+          "specifiers": [
+            "Layout"
+          ]
+        },
+        {
+          "source": "log4net.Repository.Hierarchy",
+          "specifiers": [
+            "Hierarchy"
+          ]
+        }
+      ],
+      "exports": [
+        "CantusLoggingManager",
+        "InitializeClient",
+        "InitializeServer",
+        "ParseConfiguration",
+        "Shutdown"
+      ],
+      "totalLines": 190,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Logging/Log4NetLoggerProvider.cs": {
+      "filePath": "src/Cantus.Infrastructure/Logging/Log4NetLoggerProvider.cs",
+      "contentHash": "eb2cdd8be4ff8268b9b6462b3e8ce3b1686c557c1be8653795ca59f9df90ad1b",
+      "functions": [
+        {
+          "name": "Dispose",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "IsEnabled",
+          "params": [
+            "logLevel"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ToLog4NetLevel",
+          "params": [
+            "logLevel"
+          ],
+          "returnType": "Level",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "Log4NetLoggerProvider",
+          "methods": [
+            "Dispose",
+            "IsEnabled"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 76
+        },
+        {
+          "name": "Log4NetLogger",
+          "methods": [
+            "Dispose",
+            "IsEnabled"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 76
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Concurrent",
+          "specifiers": [
+            "Concurrent"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "log4net",
+          "specifiers": [
+            "log4net"
+          ]
+        },
+        {
+          "source": "log4net.Core",
+          "specifiers": [
+            "Core"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        }
+      ],
+      "exports": [
+        "Dispose",
+        "IsEnabled",
+        "Log4NetLogger",
+        "Log4NetLoggerProvider"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Logging/SqliteBatchLogAppender.cs": {
+      "filePath": "src/Cantus.Infrastructure/Logging/SqliteBatchLogAppender.cs",
+      "contentHash": "3a1cf899f42fb9ac146a7d7a9a926f90a8453f4ea49a2051243350862f96fe3a",
+      "functions": [
+        {
+          "name": "ProcessQueueAsync",
+          "params": [],
+          "returnType": "Task",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "WriteBatchToDatabase",
+          "params": [
+            "entries"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "SqliteBatchLogAppender",
+          "methods": [
+            "ProcessQueueAsync",
+            "WriteBatchToDatabase"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 171
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
+          "source": "System.Diagnostics",
+          "specifiers": [
+            "Diagnostics"
+          ]
+        },
+        {
+          "source": "System.IO",
+          "specifiers": [
+            "IO"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Channels",
+          "specifiers": [
+            "Channels"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence.Entities",
+          "specifiers": [
+            "Entities"
+          ]
+        },
+        {
+          "source": "log4net",
+          "specifiers": [
+            "log4net"
+          ]
+        },
+        {
+          "source": "log4net.Appender",
+          "specifiers": [
+            "Appender"
+          ]
+        },
+        {
+          "source": "log4net.Core",
+          "specifiers": [
+            "Core"
+          ]
+        },
+        {
+          "source": "Microsoft.Data.Sqlite",
+          "specifiers": [
+            "Sqlite"
+          ]
+        },
+        {
+          "source": "(SqliteConnection connection = new(_connectionString))\n        {\n            connection.Open()",
+          "specifiers": [
+            "Open()"
+          ]
+        },
+        {
+          "source": "(SqliteTransaction transaction = connection.BeginTransaction())\n            {\n                using (SqliteCommand command = connection.CreateCommand())\n                {\n                    command.Transaction = transaction",
+          "specifiers": [
+            "Transaction = transaction"
+          ]
+        }
+      ],
+      "exports": [
+        "SqliteBatchLogAppender"
+      ],
+      "totalLines": 171,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Lyrics/CachedLyricsService.cs": {
@@ -11157,7 +12163,7 @@
     },
     "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibOptions.cs",
-      "contentHash": "452ad0ebd8e1aced6ae7506b6d76bd840312f36efed9c413389bfb1d4dfb789c",
+      "contentHash": "6ef335491fd681f94db3b19d85a018817358eaff8e6f0b308927ed5cf84de772",
       "functions": [],
       "classes": [
         {
@@ -11427,9 +12433,93 @@
       "totalLines": 122,
       "hasStructuralAnalysis": true
     },
+    "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.Designer.cs": {
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.Designer.cs",
+      "contentHash": "83e63500fb774d4addae6b092aae18cf53d0234fff701d1a93390f98d1fe0888",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AddLogEntriesTable",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 204
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Infrastructure",
+          "specifiers": [
+            "Infrastructure"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Migrations",
+          "specifiers": [
+            "Migrations"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore.Storage.ValueConversion",
+          "specifiers": [
+            "ValueConversion"
+          ]
+        }
+      ],
+      "exports": [
+        "AddLogEntriesTable"
+      ],
+      "totalLines": 204,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs": {
+      "filePath": "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
+      "contentHash": "80746aa774b4ea0964dceccda5783e18db21540b6872ff7cc3572e9227800129",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AddLogEntriesTable",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 50
+        }
+      ],
+      "imports": [
+        {
+          "source": "Microsoft.EntityFrameworkCore.Migrations",
+          "specifiers": [
+            "Migrations"
+          ]
+        }
+      ],
+      "exports": [
+        "AddLogEntriesTable"
+      ],
+      "totalLines": 50,
+      "hasStructuralAnalysis": true
+    },
     "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs": {
       "filePath": "src/Cantus.Infrastructure/Migrations/CantusDbContextModelSnapshot.cs",
-      "contentHash": "12e2b41f6ec0f4d068981946c3c806ca17ff8019ac752ee0224026ca09c55c3f",
+      "contentHash": "6c3d68a2af3e16aeeb77350d3669080274698785a7133cdd26d20406298cc84e",
       "functions": [],
       "classes": [
         {
@@ -11437,7 +12527,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 162
+          "lineCount": 201
         }
       ],
       "imports": [
@@ -11475,12 +12565,12 @@
       "exports": [
         "CantusDbContextModelSnapshot"
       ],
-      "totalLines": 162,
+      "totalLines": 201,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs": {
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
-      "contentHash": "3879bf08dc49c3a07372eb77677c339ca7eff8221b0b9c344e97be0a49019546",
+      "contentHash": "7b76bebf938aa48729dc749f14656a16a9163de93b7fff321154bd57196df09c",
       "functions": [],
       "classes": [
         {
@@ -11488,7 +12578,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 52
+          "lineCount": 64
         }
       ],
       "imports": [
@@ -11508,7 +12598,7 @@
       "exports": [
         "CantusDbContext"
       ],
-      "totalLines": 52,
+      "totalLines": 64,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/CantusDbContextFactory.cs": {
@@ -11600,6 +12690,48 @@
         "TrackName"
       ],
       "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs": {
+      "filePath": "src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs",
+      "contentHash": "04532eb7be0d1ef3ea5ec223279d4054deed7c46a44463dad0623e0c266cd855",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LogEntryEntity",
+          "methods": [],
+          "properties": [
+            "Id",
+            "TimestampUtc",
+            "Level",
+            "Logger",
+            "Message",
+            "Exception",
+            "TraceId"
+          ],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        }
+      ],
+      "exports": [
+        "Exception",
+        "Id",
+        "Level",
+        "LogEntryEntity",
+        "Logger",
+        "Message",
+        "TimestampUtc",
+        "TraceId"
+      ],
+      "totalLines": 20,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Persistence/Entities/RoomEntity.cs": {
@@ -11923,7 +13055,7 @@
     },
     "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs": {
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyOptions.cs",
-      "contentHash": "eab1db5d576702c41db7f0c70e1cf8f778e6904930ad1567bbf3c17b5dc5b459",
+      "contentHash": "8688f223ebaeab306edad1c9034d84bbda352120b873bdf25213e04ffa1eeff0",
       "functions": [],
       "classes": [
         {
@@ -12119,7 +13251,7 @@
     },
     "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs": {
       "filePath": "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs",
-      "contentHash": "d209beed8b9ac6dd413b532d7b8f38b990e5d7b1020d61af151d4a5d03f7bc61",
+      "contentHash": "bfd3347797f562e89b964f98a912857f429fe42c78573579d47fdaeb0cd100e0",
       "functions": [],
       "classes": [
         {
@@ -12148,17 +13280,17 @@
     },
     "src/Cantus.Server/Cantus.Server.csproj": {
       "filePath": "src/Cantus.Server/Cantus.Server.csproj",
-      "contentHash": "5dd6bbe8fb1939ff5d9cb8ec743dfba1665e6192d4d774e6c7253244901298e1",
+      "contentHash": "2b2c94cf880cbf474f09a17ef4ffa01ac02a176c708a263097f05c8d94abee09",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 19,
+      "totalLines": 21,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Server/Endpoints/AuthEndpoints.cs": {
       "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
-      "contentHash": "9ff750c7aa771b541f2dc1e49139c5f554921db921c44834b8580842183c24bd",
+      "contentHash": "1b7291bb7ab502ade2c5f5ffa5811a5a217bdfd9b52c51a370361cc08d7ba36b",
       "functions": [
         {
           "name": "MapAuthEndpoints",
@@ -12194,7 +13326,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 398
+          "lineCount": 425
         }
       ],
       "imports": [
@@ -12287,7 +13419,7 @@
         "AuthEndpoints",
         "MapAuthEndpoints"
       ],
-      "totalLines": 398,
+      "totalLines": 425,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Endpoints/LyricsEndpoints.cs": {
@@ -12384,7 +13516,7 @@
     },
     "src/Cantus.Server/Hubs/IPlaybackClient.cs": {
       "filePath": "src/Cantus.Server/Hubs/IPlaybackClient.cs",
-      "contentHash": "b7c9cc2720a29852c3a6f6c2c1be5c72a2d4b35c5ea3946578af73507cdca38d",
+      "contentHash": "a0c3cad2bac0d64b0d2171cafa97a9bfe9022bafee226d3f003db44af709be1c",
       "functions": [],
       "classes": [
         {
@@ -12392,7 +13524,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 13
+          "lineCount": 15
         }
       ],
       "imports": [
@@ -12406,12 +13538,12 @@
       "exports": [
         "IPlaybackClient"
       ],
-      "totalLines": 13,
+      "totalLines": 15,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Hubs/PlaybackHub.cs": {
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
-      "contentHash": "e1c3647c3dd48203deb0e0733b6c78be5ef84e4e51d2d5e4dfcf788eae4822d1",
+      "contentHash": "be70b21fa98dd70420f959a8a31fcfc9ddf3053b72addb002bc2eff9f8514e66",
       "functions": [
         {
           "name": "SyncClock",
@@ -12419,6 +13551,15 @@
             "clientSendTimeMs"
           ],
           "returnType": "Task<ClockSyncResponse>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "RegisterClientLogin",
+          "params": [
+            "clientId"
+          ],
+          "returnType": "Task",
           "exported": true,
           "lineCount": 10
         },
@@ -12456,12 +13597,13 @@
           "name": "PlaybackHub",
           "methods": [
             "SyncClock",
+            "RegisterClientLogin",
             "SubscribeToUser",
             "SetTrackOffset"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 311
+          "lineCount": 307
         }
       ],
       "imports": [
@@ -12516,11 +13658,102 @@
       ],
       "exports": [
         "PlaybackHub",
+        "RegisterClientLogin",
         "SetTrackOffset",
         "SubscribeToUser",
         "SyncClock"
       ],
-      "totalLines": 311,
+      "totalLines": 307,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Middleware/GlobalExceptionHandler.cs": {
+      "filePath": "src/Cantus.Server/Middleware/GlobalExceptionHandler.cs",
+      "contentHash": "b78d854f52c991d7f4818c9bba98d416d60235739dcdea10e0d675292d234ff9",
+      "functions": [
+        {
+          "name": "TryHandleAsync",
+          "params": [
+            "httpContext",
+            "exception",
+            "cancellationToken"
+          ],
+          "returnType": "ValueTask<bool>",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "GlobalExceptionHandler",
+          "methods": [
+            "TryHandleAsync"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 63
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Diagnostics",
+          "specifiers": [
+            "Diagnostics"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Diagnostics",
+          "specifiers": [
+            "Diagnostics"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Mvc",
+          "specifiers": [
+            "Mvc"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Hosting",
+          "specifiers": [
+            "Hosting"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        }
+      ],
+      "exports": [
+        "GlobalExceptionHandler",
+        "TryHandleAsync"
+      ],
+      "totalLines": 63,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Models/AuthorizedSessionDto.cs": {
@@ -12852,7 +14085,7 @@
     },
     "src/Cantus.Server/Program.cs": {
       "filePath": "src/Cantus.Server/Program.cs",
-      "contentHash": "d347e3280efca298c244fce9be780ea8aacb228dcc12b9a4fa7ca4b7d3b8b046",
+      "contentHash": "dacf4f148560a9fce86cfabee28089e497fad3db2579d588c760696945a25573",
       "functions": [],
       "classes": [
         {
@@ -12860,10 +14093,16 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 154
+          "lineCount": 222
         }
       ],
       "imports": [
+        {
+          "source": "System.CommandLine",
+          "specifiers": [
+            "CommandLine"
+          ]
+        },
         {
           "source": "System.Text.RegularExpressions",
           "specifiers": [
@@ -12871,9 +14110,21 @@
           ]
         },
         {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
           "source": "Cantus.Infrastructure",
           "specifiers": [
             "Infrastructure"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Logging",
+          "specifiers": [
+            "Logging"
           ]
         },
         {
@@ -12898,6 +14149,12 @@
           "source": "Cantus.Server.Hubs",
           "specifiers": [
             "Hubs"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Middleware",
+          "specifiers": [
+            "Middleware"
           ]
         },
         {
@@ -12955,6 +14212,12 @@
           ]
         },
         {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
           "source": "Scalar.AspNetCore",
           "specifiers": [
             "AspNetCore"
@@ -12970,12 +14233,12 @@
       "exports": [
         "Program"
       ],
-      "totalLines": 154,
+      "totalLines": 222,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/HostUrlResolver.cs": {
       "filePath": "src/Cantus.Server/Services/HostUrlResolver.cs",
-      "contentHash": "196fee8fad99030755125a4c5285cc0768378ca2c028b17722cef9f5e1341ff2",
+      "contentHash": "d8d2c4c9ee0234278cc2bcea36dcf170a58c3291f10635a332ac9e7c16fffbbc",
       "functions": [
         {
           "name": "ResolveBaseUrl",

@@ -56,15 +56,17 @@ public sealed partial class AdaptiveTrackCard : UserControl
     {
         try
         {
+            string clientId = ViewModel?.ClientId ?? string.Empty;
+            string clientQuery = !string.IsNullOrWhiteSpace(clientId) ? $"?client_id={clientId}" : string.Empty;
 #if __WASM__
             string origin = WasmInterop.GetCurrentOrigin();
             string loginUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin}/api/auth/spotify/login"
-                : "/api/auth/spotify/login";
+                ? $"{origin}/api/auth/spotify/login{clientQuery}"
+                : $"/api/auth/spotify/login{clientQuery}";
             WasmInterop.NavigateTo(loginUrl);
 #else
             string baseUrl = ViewModel?.ServerBaseUrl ?? "http://localhost:5000";
-            Uri uri = new($"{baseUrl}/api/auth/spotify/login");
+            Uri uri = new($"{baseUrl}/api/auth/spotify/login{clientQuery}");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif
         }

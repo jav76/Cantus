@@ -332,5 +332,78 @@ public sealed class LyricsViewModelTests
         vm.SyncedLyricsVisibility.Should().Be(Visibility.Visible);
         vm.LyricLines.Should().HaveCount(2);
     }
+
+    [Fact]
+    public void OnSessionsReceived_WhenEmpty_ClearsAuthorizationAndState()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        vm.Sessions.Add(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+        vm.AuthorizedSessionsCount = 1;
+        vm.ActiveUserId = "user-1";
+        vm.ActiveUserName = "Alice";
+        vm.CurrentTitle = "Some Song";
+        vm.IsPlaying = true;
+
+        // Act
+        client.RaiseSessionsReceived(new List<AuthorizedSessionPayload>());
+
+        // Assert
+        vm.Sessions.Should().BeEmpty();
+        vm.AuthorizedSessionsCount.Should().Be(0);
+        vm.ActiveUserId.Should().BeNull();
+        vm.ActiveUserName.Should().Be("None");
+        vm.IsAuthorized.Should().BeFalse();
+        vm.CurrentTitle.Should().Be("No Track Playing");
+        vm.IsPlaying.Should().BeFalse();
+    }
+
+    [Fact]
+    public void OnAuthSessionReceived_UpdatesActiveSession()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+
+        AuthorizedSessionPayload payload = new()
+        {
+            Id = "user-new",
+            DisplayName = "Bob",
+            SpotifyUserId = "sp-bob"
+        };
+
+        // Act
+        client.RaiseAuthSessionReceived(payload);
+
+        // Assert
+        vm.Sessions.Should().HaveCount(1);
+        vm.AuthorizedSessionsCount.Should().Be(1);
+        vm.ActiveUserId.Should().Be("user-new");
+        vm.ActiveUserName.Should().Be("Bob");
+        vm.IsAuthorized.Should().BeTrue();
+    }
+
+    [Fact]
+    public void OnSessionRevoked_WhenMatchingActiveUser_ClearsSessionState()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        vm.Sessions.Add(new AuthorizedSessionPayload { Id = "user-revoked", DisplayName = "Charlie" });
+        vm.AuthorizedSessionsCount = 1;
+        vm.ActiveUserId = "user-revoked";
+        vm.ActiveUserName = "Charlie";
+
+        // Act
+        client.RaiseSessionRevoked("user-revoked");
+
+        // Assert
+        vm.Sessions.Should().BeEmpty();
+        vm.AuthorizedSessionsCount.Should().Be(0);
+        vm.ActiveUserId.Should().BeNull();
+        vm.ActiveUserName.Should().Be("None");
+        vm.IsAuthorized.Should().BeFalse();
+    }
 }
 

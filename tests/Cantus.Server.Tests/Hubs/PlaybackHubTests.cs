@@ -142,7 +142,7 @@ public sealed class PlaybackHubTests
     }
 
     [Fact]
-    public async Task OnConnectedAsync_WhenNoCookieButSessionExists_DefaultsToAvailableSession()
+    public async Task OnConnectedAsync_WhenNoCookieButSessionExists_KeepsConnectionUnauthenticated()
     {
         FeatureCollection featureCollection = new();
         _mockContext.Setup(c => c.Features).Returns(featureCollection);
@@ -161,17 +161,37 @@ public sealed class PlaybackHubTests
 
         await _hub.OnConnectedAsync();
 
-        _mockRegistry.Verify(r => r.RegisterConnection("test-conn-id", "user-default"), Times.Once);
-        _mockGroups.Verify(g => g.AddToGroupAsync("test-conn-id", "user_user-default", default), Times.Once);
+        _mockRegistry.Verify(r => r.RegisterConnection("test-conn-id", null), Times.Once);
+        _mockGroups.Verify(g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
         _mockCaller.Verify(
-            c => c.ReceiveSessions(
-                It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 1 && l[0].Id == "user-default")),
+            c => c.ReceiveSessions(It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 0)),
+            Times.Once);
+        _mockCaller.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId == null)),
             Times.Once);
     }
 
     [Fact]
-    public async Task SubscribeToUser_WhenCalled_UpdatesSubscriptionAndJoinsGroup()
+    public async Task RegisterClientLogin_WhenCalled_AddsConnectionToClientGroup()
     {
+        await _hub.RegisterClientLogin("client-xyz");
+
+        _mockGroups.Verify(g => g.AddToGroupAsync("test-conn-id", "client_client-xyz", default), Times.Once);
+    }
+
+    [Fact]
+    public async Task SubscribeToUser_WhenAuthenticated_UpdatesSubscriptionAndJoinsGroup()
+    {
+        DefaultHttpContext httpContext = new();
+        httpContext.Request.Cookies = new RequestCookieCollection(new Dictionary<string, string>
+        {
+            ["cantus_session_id"] = "user-2"
+        });
+
+        FeatureCollection featureCollection = new();
+        featureCollection.Set<IHttpContextFeature>(new HttpContextFeature { HttpContext = httpContext });
+        _mockContext.Setup(c => c.Features).Returns(featureCollection);
+
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns((string?)null);
         _mockAuthService.Setup(a => a.GetSessionAsync("user-2", default)).ReturnsAsync(new UserSession
         {

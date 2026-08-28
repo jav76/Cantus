@@ -23,6 +23,7 @@ public static class AuthEndpoints
 
         Delegate loginHandler = (
             [FromQuery] bool? json,
+            [FromQuery(Name = "client_id")] string? clientId,
             ISpotifyAuthService authService,
             IHostUrlResolver hostUrlResolver,
             HttpContext context) =>
@@ -43,6 +44,11 @@ public static class AuthEndpoints
             context.Response.Cookies.Append("cantus_oauth_state", state, cookieOptions);
             context.Response.Cookies.Append("cantus_pkce_verifier", verifier, cookieOptions);
             context.Response.Cookies.Append("cantus_oauth_redirect_uri", redirectUri, cookieOptions);
+
+            if (!string.IsNullOrWhiteSpace(clientId))
+            {
+                context.Response.Cookies.Append("cantus_client_id", clientId, cookieOptions);
+            }
 
             Uri uri = authService.GetAuthorizationUri(state, challenge, redirectUri);
 
@@ -90,6 +96,7 @@ public static class AuthEndpoints
             context.Request.Cookies.TryGetValue("cantus_oauth_state", out string? expectedState);
             context.Request.Cookies.TryGetValue("cantus_pkce_verifier", out string? verifier);
             context.Request.Cookies.TryGetValue("cantus_oauth_redirect_uri", out string? redirectUri);
+            context.Request.Cookies.TryGetValue("cantus_client_id", out string? clientId);
 
             if (string.IsNullOrEmpty(expectedState) || expectedState != state)
             {
@@ -116,15 +123,18 @@ public static class AuthEndpoints
                     cancellationToken);
                 registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
 
-                // Broadcast updated session list to all connected SignalR clients (including desktop app)
-                IReadOnlyList<UserSession> allSessions = await authService.GetAllSessionsAsync(cancellationToken);
-                List<AuthorizedSessionDto> dtos = allSessions.Select(s =>
+                UserPlaybackSnapshot? userSnap = registry.GetUserState(session.Id);
+                bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
+                AuthorizedSessionDto dto = session.ToDto(isPlaying);
+
+                if (!string.IsNullOrWhiteSpace(clientId))
                 {
-                    UserPlaybackSnapshot? userSnap = registry.GetUserState(s.Id);
-                    bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
-                    return s.ToDto(isPlaying);
-                }).ToList();
-                await hubContext.Clients.All.ReceiveSessions(dtos);
+                    await hubContext.Clients.Group($"client_{clientId}").ReceiveAuthSession(dto);
+                    await hubContext.Clients.Client(clientId).ReceiveAuthSession(dto);
+                    await hubContext.Clients.Group($"client_{clientId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
+                }
+
+                await hubContext.Clients.Group($"user_{session.Id}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
 
                 // Set session cookie
                 context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
@@ -139,6 +149,7 @@ public static class AuthEndpoints
                 context.Response.Cookies.Delete("cantus_oauth_state");
                 context.Response.Cookies.Delete("cantus_pkce_verifier");
                 context.Response.Cookies.Delete("cantus_oauth_redirect_uri");
+                context.Response.Cookies.Delete("cantus_client_id");
 
                 return Results.Content(GenerateAuthSuccessHtml(session), "text/html");
             }
@@ -207,6 +218,7 @@ public static class AuthEndpoints
         group.MapDelete("/sessions/{userId}", async (
             string userId,
             ISpotifyAuthService authService,
+            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
             CancellationToken cancellationToken) =>
         {
             bool revoked = await authService.RevokeSessionAsync(userId, cancellationToken);
@@ -215,18 +227,33 @@ public static class AuthEndpoints
                 return Results.NotFound(new { Message = $"Session '{userId}' not found." });
             }
 
+            await hubContext.Clients.Group($"user_{userId}").ReceiveSessionRevoked(userId);
+            await hubContext.Clients.Group($"user_{userId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+
             return Results.Ok(new { Message = $"Session '{userId}' revoked." });
         })
         .WithName("RevokeSession")
         .WithSummary("Revokes an authorized Spotify account session.");
 
-        group.MapPost("/logout", (HttpContext context) =>
+        group.MapPost("/logout", async (
+            ISpotifyAuthService authService,
+            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
         {
+            string? sessionId = ResolveSessionId(context);
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                await authService.RevokeSessionAsync(sessionId, cancellationToken);
+                await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
+                await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+            }
+
             context.Response.Cookies.Delete("cantus_session_id");
-            return Results.Ok(new { Message = "Logged out." });
+            return Results.Ok(new { Message = "Logged out and session revoked." });
         })
         .WithName("Logout")
-        .WithSummary("Clears current user session cookie.");
+        .WithSummary("Clears current user session cookie and revokes session.");
 
         return endpoints;
     }
