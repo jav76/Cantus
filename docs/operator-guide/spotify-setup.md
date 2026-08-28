@@ -25,9 +25,10 @@ Add your callback URLs to the **Redirect URIs** list in your app settings:
 
 | Environment | Redirect URI |
 | :--- | :--- |
-| **Local Development** | `http://localhost:5000/api/auth/callback` |
-| **Local Network / LAN** | `http://192.168.1.100:5000/api/auth/callback` |
-| **Production Domain (HTTPS)** | `https://cantus.yourdomain.com/api/auth/callback` |
+| **Localhost (Default)** | `http://localhost:5000/api/auth/spotify/callback` |
+| **Loopback IP** | `http://127.0.0.1:5000/api/auth/spotify/callback` |
+| **Local Network / LAN** | `http://192.168.1.100:5000/api/auth/spotify/callback` |
+| **Production Domain (HTTPS)** | `https://cantus.yourdomain.com/api/auth/spotify/callback` |
 
 ```mermaid
 flowchart LR
@@ -39,7 +40,7 @@ flowchart LR
 ```
 
 > [!IMPORTANT]
-> The redirect URI configured in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/callback` configured in your Cantus `.env` file, including protocol (`http://` vs `https://`) and port.
+> The redirect URI configured in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/spotify/callback` (or `/api/auth/callback`), including protocol (`http://` vs `https://`) and port. You can add multiple redirect URIs in the Spotify dashboard (e.g. both `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`).
 
 ---
 

@@ -129,6 +129,7 @@ public sealed class PlaybackHubTests
     {
         FeatureCollection featureCollection = new();
         _mockContext.Setup(c => c.Features).Returns(featureCollection);
+        _mockAuthService.Setup(a => a.GetAllSessionsAsync(default)).ReturnsAsync(new List<UserSession>());
 
         await _hub.OnConnectedAsync();
 
@@ -138,6 +139,53 @@ public sealed class PlaybackHubTests
             c => c.ReceiveSessions(It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 0)),
             Times.Once);
         _mockCaller.Verify(c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId == null)), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnConnectedAsync_WhenNoCookieButSessionExists_DefaultsToAvailableSession()
+    {
+        FeatureCollection featureCollection = new();
+        _mockContext.Setup(c => c.Features).Returns(featureCollection);
+
+        UserSession userSession = new()
+        {
+            Id = "user-default",
+            SpotifyUserId = "sp-default",
+            DisplayName = "Bob",
+            AccessToken = "tok",
+            RefreshToken = "ref"
+        };
+
+        _mockAuthService.Setup(a => a.GetAllSessionsAsync(default))
+            .ReturnsAsync(new List<UserSession> { userSession });
+
+        await _hub.OnConnectedAsync();
+
+        _mockRegistry.Verify(r => r.RegisterConnection("test-conn-id", "user-default"), Times.Once);
+        _mockGroups.Verify(g => g.AddToGroupAsync("test-conn-id", "user_user-default", default), Times.Once);
+        _mockCaller.Verify(
+            c => c.ReceiveSessions(
+                It.Is<IReadOnlyList<AuthorizedSessionDto>>(l => l.Count == 1 && l[0].Id == "user-default")),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SubscribeToUser_WhenCalled_UpdatesSubscriptionAndJoinsGroup()
+    {
+        _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns((string?)null);
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", default)).ReturnsAsync(new UserSession
+        {
+            Id = "user-2",
+            SpotifyUserId = "sp-2",
+            DisplayName = "Charlie",
+            AccessToken = "tok",
+            RefreshToken = "ref"
+        });
+
+        await _hub.SubscribeToUser("user-2");
+
+        _mockRegistry.Verify(r => r.SetConnectionSubscription("test-conn-id", "user-2"), Times.Once);
+        _mockGroups.Verify(g => g.AddToGroupAsync("test-conn-id", "user_user-2", default), Times.Once);
     }
 
     [Fact]

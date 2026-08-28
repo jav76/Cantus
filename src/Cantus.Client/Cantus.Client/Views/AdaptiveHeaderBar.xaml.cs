@@ -67,7 +67,8 @@ public sealed partial class AdaptiveHeaderBar : UserControl
                 : "/api/auth/spotify/login";
             WasmInterop.NavigateTo(loginUrl);
 #else
-            Uri uri = new("http://localhost:5000/api/auth/spotify/login");
+            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://localhost:5000";
+            Uri uri = new($"{baseUrl}/api/auth/spotify/login");
             await Launcher.LaunchUriAsync(uri);
 #endif
         }

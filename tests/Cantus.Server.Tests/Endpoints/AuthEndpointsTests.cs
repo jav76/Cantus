@@ -47,6 +47,23 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
+    public async Task AuthLoginAlias_ReturnsRedirectOrJsonWithAuthUrl()
+    {
+        HttpClient client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        _mockAuthService
+            .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .Returns(new Uri("https://accounts.spotify.com/authorize?test=alias"));
+
+        HttpResponseMessage response = await client.GetAsync("/api/auth/login?json=true");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Dictionary<string, string>? content = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        content.Should().ContainKey("authorizationUrl");
+        content!["authorizationUrl"].Should().Contain("accounts.spotify.com");
+    }
+
+    [Fact]
     public async Task GetSessions_WhenAuthenticated_ReturnsCurrentSession()
     {
         HttpClient client = _factory.CreateClient();

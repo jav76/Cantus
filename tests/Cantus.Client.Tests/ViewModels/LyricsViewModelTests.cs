@@ -282,6 +282,17 @@ public sealed class LyricsViewModelTests
         vm.CurrentTitle.Should().Be("No Track Playing");
         vm.IsPlaying.Should().BeFalse();
     }
+
+    [Fact]
+    public void ServerBaseUrl_DerivesBaseUrlFromClient()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new("http://192.168.1.50:5000/hubs/playback");
+        LyricsViewModel vm = new(client);
+
+        // Assert
+        vm.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
+    }
 }
 
 

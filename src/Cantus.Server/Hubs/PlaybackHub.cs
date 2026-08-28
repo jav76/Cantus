@@ -48,6 +48,17 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             _logger.LogWarning(ex, "Failed to resolve session for connection {ConnectionId}", Context.ConnectionId);
         }
 
+        IReadOnlyList<UserSession> allSessions = await _authService.GetAllSessionsAsync() ?? Array.Empty<UserSession>();
+        if (userSession is null && allSessions.Count > 0)
+        {
+            UserPlaybackSnapshot? activeSnapshot = _registry.GetActivePlaybackSnapshot();
+            userSession = allSessions.FirstOrDefault(s => s.Id == activeSnapshot?.UserId) ?? allSessions[0];
+        }
+        else if (userSession is not null && allSessions.Count == 0)
+        {
+            allSessions = new List<UserSession> { userSession };
+        }
+
         string? userId = userSession?.Id;
         _registry.RegisterConnection(Context.ConnectionId, userId);
 
@@ -64,6 +75,13 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
         try
         {
+            List<AuthorizedSessionDto> sessionDtos = allSessions.Select(s =>
+            {
+                UserPlaybackSnapshot? userSnap = _registry.GetUserState(s.Id);
+                bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
+                return s.ToDto(isPlaying);
+            }).ToList();
+
             if (userSession is not null && !string.IsNullOrEmpty(userId))
             {
                 UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
@@ -89,15 +107,12 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                 }
 
                 bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
-                await Clients.Caller.ReceiveSessions(new List<AuthorizedSessionDto>
-                {
-                    userSession.ToDto(isPlaying)
-                });
+                await Clients.Caller.ReceiveSessions(sessionDtos);
 
                 await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
                 {
                     ConnectedClients = _registry.ConnectedClientsCount,
-                    AuthorizedSessions = 1,
+                    AuthorizedSessions = sessionDtos.Count,
                     PollerStatus = isPlaying ? "Active (Playing)" : "Idle",
                     ActiveUserId = userSession.Id,
                     ActiveUserName = userSession.DisplayName,
@@ -161,10 +176,19 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public async Task SubscribeToUser(string? userId)
     {
-        string? currentUserId = _registry.GetConnectionSubscription(Context.ConnectionId);
-        if (!string.IsNullOrEmpty(currentUserId))
+        string? prevUserId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (!string.IsNullOrEmpty(prevUserId) && prevUserId != userId)
         {
-            UserPlaybackSnapshot? snapshot = _registry.GetUserState(currentUserId);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{prevUserId}");
+        }
+
+        _registry.SetConnectionSubscription(Context.ConnectionId, userId);
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+
+            UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
             if (snapshot is not null)
             {
                 if (snapshot.PlaybackState is not null)
@@ -187,6 +211,18 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                     });
                 }
             }
+
+            UserSession? userSession = await _authService.GetSessionAsync(userId);
+            bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
+            await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
+            {
+                ConnectedClients = _registry.ConnectedClientsCount,
+                AuthorizedSessions = 1,
+                PollerStatus = isPlaying ? "Active (Playing)" : "Idle",
+                ActiveUserId = userId,
+                ActiveUserName = userSession?.DisplayName ?? snapshot?.DisplayName,
+                ServerTimeUtc = DateTimeOffset.UtcNow
+            });
         }
     }
 
