@@ -193,12 +193,16 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 {
     private HubConnection? _connection;
     private Timer? _clockSyncTimer;
+    private Timer? _reconnectPollerTimer;
+    private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private readonly string? _configuredServerUrl;
+    private bool _isDisposed;
 
     private readonly List<NtpSample> _ntpHistory = new();
     private readonly object _ntpLock = new();
     private const int MaxNtpSamples = 5;
 
+    public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     public long RttMs { get; private set; }
     public long ClockOffsetMs { get; private set; }
     public string TransportType { get; private set; } = "Unknown";
@@ -213,10 +217,30 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
 
     public string? SessionToken { get; set; }
 
-    public SignalRPlaybackClient(string? serverUrl = null, string? sessionToken = null)
+    public SignalRPlaybackClient(
+        string? serverUrl = null,
+        string? sessionToken = null,
+        TimeSpan? reconnectInterval = null)
     {
         _configuredServerUrl = serverUrl;
         SessionToken = sessionToken;
+        if (reconnectInterval.HasValue)
+        {
+            ReconnectInterval = reconnectInterval.Value;
+        }
+    }
+
+    public string ServerBaseUrl
+    {
+        get
+        {
+            string url = ResolveServerUrl();
+            if (url.Contains("/hubs/playback", StringComparison.Ordinal))
+            {
+                return url.Substring(0, url.IndexOf("/hubs/playback", StringComparison.Ordinal));
+            }
+            return url;
+        }
     }
 
     private string ResolveServerUrl()
@@ -236,8 +260,13 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         return "http://localhost:5000/hubs/playback";
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    private void EnsureConnectionBuilt()
     {
+        if (_connection is not null)
+        {
+            return;
+        }
+
         string effectiveUrl = ResolveServerUrl();
 
 #if __WASM__
@@ -310,19 +339,79 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
             ConnectionStateChanged?.Invoke("Disconnected");
             return Task.CompletedTask;
         };
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken = default)
+    {
+        EnsureReconnectPollerStarted();
+        await TryConnectAsync(cancellationToken);
+    }
+
+    private void EnsureReconnectPollerStarted()
+    {
+        _reconnectPollerTimer ??= new Timer(
+            async _ => await OnReconnectPollerTickAsync(),
+            null,
+            ReconnectInterval,
+            ReconnectInterval);
+    }
+
+    private async Task OnReconnectPollerTickAsync()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (State == HubConnectionState.Disconnected)
+        {
+            await TryConnectAsync();
+        }
+    }
+
+    public async Task<bool> TryConnectAsync(CancellationToken cancellationToken = default)
+    {
+        if (_isDisposed)
+        {
+            return false;
+        }
+
+        if (!await _connectionLock.WaitAsync(0, cancellationToken))
+        {
+            return false;
+        }
 
         try
         {
+            if (_connection is not null && _connection.State == HubConnectionState.Connected)
+            {
+                return true;
+            }
+
+            EnsureConnectionBuilt();
+
+            if (_connection is null || _connection.State != HubConnectionState.Disconnected)
+            {
+                return _connection?.State == HubConnectionState.Connected;
+            }
+
             ConnectionStateChanged?.Invoke("Connecting");
             await _connection.StartAsync(cancellationToken);
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
 
-            _clockSyncTimer = new Timer(async _ => await SyncClockAsync(), null, 0, 5000);
+            _clockSyncTimer ??= new Timer(async _ => await SyncClockAsync(), null, 0, 5000);
+            _ = SyncClockAsync();
+            return true;
         }
         catch (Exception)
         {
             ConnectionStateChanged?.Invoke("Disconnected");
+            return false;
+        }
+        finally
+        {
+            _connectionLock.Release();
         }
     }
 
@@ -425,7 +514,7 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         try
         {
             string url = ResolveServerUrl();
-            string baseUrl = url.Contains("/hubs/playback")
+            string baseUrl = url.Contains("/hubs/playback", StringComparison.Ordinal)
                 ? url.Substring(0, url.IndexOf("/hubs/playback", StringComparison.Ordinal))
                 : url;
 
@@ -437,31 +526,52 @@ public sealed class SignalRPlaybackClient : IAsyncDisposable
         }
 
         SessionToken = null;
-        if (_connection is not null)
+        await _connectionLock.WaitAsync();
+        try
         {
-            await _connection.StopAsync();
-            await _connection.StartAsync();
+            if (_connection is not null)
+            {
+                await _connection.StopAsync();
+                await _connection.DisposeAsync();
+                _connection = null;
+            }
         }
+        finally
+        {
+            _connectionLock.Release();
+        }
+        await TryConnectAsync();
     }
 
     public async Task ReconnectWithTokenAsync(string? sessionToken)
     {
         SessionToken = sessionToken;
-        if (_connection is not null)
+        await _connectionLock.WaitAsync();
+        try
         {
-            await _connection.StopAsync();
-            await _connection.DisposeAsync();
-            _connection = null;
+            if (_connection is not null)
+            {
+                await _connection.StopAsync();
+                await _connection.DisposeAsync();
+                _connection = null;
+            }
         }
-        await StartAsync();
+        finally
+        {
+            _connectionLock.Release();
+        }
+        await TryConnectAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
+        _isDisposed = true;
+        _reconnectPollerTimer?.Dispose();
         _clockSyncTimer?.Dispose();
         if (_connection is not null)
         {
             await _connection.DisposeAsync();
         }
+        _connectionLock.Dispose();
     }
 }

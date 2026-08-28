@@ -2,8 +2,9 @@
 Type=Application
 Name=Cantus
 Comment=Real-Time Spotify Synced Lyrics Platform
-Exec=Cantus.Client
+Exec=Cantus.Client %u
 Icon=cantus
 Categories=AudioVideo;Audio;Player;
 Terminal=false
 StartupWMClass=Cantus.Client
+MimeType=x-scheme-handler/cantus;

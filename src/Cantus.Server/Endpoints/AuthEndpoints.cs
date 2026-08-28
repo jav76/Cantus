@@ -1,12 +1,14 @@
 using System.Security.Cryptography;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Server.Hubs;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using SpotifyAPI.Web;
@@ -19,7 +21,7 @@ public static class AuthEndpoints
     {
         RouteGroupBuilder group = endpoints.MapGroup("/api/auth").WithTags("Authentication");
 
-        group.MapGet("/spotify/login", (
+        Delegate loginHandler = (
             [FromQuery] bool? json,
             ISpotifyAuthService authService,
             IHostUrlResolver hostUrlResolver,
@@ -50,17 +52,24 @@ public static class AuthEndpoints
             }
 
             return Results.Redirect(uri.ToString());
-        })
-        .WithName("SpotifyLogin")
-        .WithSummary("Initiates Spotify OAuth2 PKCE login flow.");
+        };
 
-        group.MapGet("/spotify/callback", async (
+        group.MapGet("/spotify/login", loginHandler)
+            .WithName("SpotifyLogin")
+            .WithSummary("Initiates Spotify OAuth2 PKCE login flow.");
+
+        group.MapGet("/login", loginHandler)
+            .WithName("AuthLoginAlias")
+            .WithSummary("Initiates Spotify OAuth2 PKCE login flow (alias).");
+
+        Delegate callbackHandler = async (
             [FromQuery] string? code,
             [FromQuery] string? state,
             [FromQuery] string? error,
             ISpotifyAuthService authService,
             IPlaybackSessionRegistry registry,
             IHostUrlResolver hostUrlResolver,
+            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
             HttpContext context,
             ILoggerFactory loggerFactory,
             CancellationToken cancellationToken) =>
@@ -107,6 +116,16 @@ public static class AuthEndpoints
                     cancellationToken);
                 registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
 
+                // Broadcast updated session list to all connected SignalR clients (including desktop app)
+                IReadOnlyList<UserSession> allSessions = await authService.GetAllSessionsAsync(cancellationToken);
+                List<AuthorizedSessionDto> dtos = allSessions.Select(s =>
+                {
+                    UserPlaybackSnapshot? userSnap = registry.GetUserState(s.Id);
+                    bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
+                    return s.ToDto(isPlaying);
+                }).ToList();
+                await hubContext.Clients.All.ReceiveSessions(dtos);
+
                 // Set session cookie
                 context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
                 {
@@ -121,16 +140,22 @@ public static class AuthEndpoints
                 context.Response.Cookies.Delete("cantus_pkce_verifier");
                 context.Response.Cookies.Delete("cantus_oauth_redirect_uri");
 
-                return Results.Redirect("/?auth=success");
+                return Results.Content(GenerateAuthSuccessHtml(session), "text/html");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to exchange Spotify authorization code.");
                 return Results.Redirect("/?auth=error&message=" + Uri.EscapeDataString(ex.Message));
             }
-        })
-        .WithName("SpotifyCallback")
-        .WithSummary("Handles Spotify OAuth2 PKCE callback.");
+        };
+
+        group.MapGet("/spotify/callback", callbackHandler)
+            .WithName("SpotifyCallback")
+            .WithSummary("Handles Spotify OAuth2 PKCE callback.");
+
+        group.MapGet("/callback", callbackHandler)
+            .WithName("AuthCallbackAlias")
+            .WithSummary("Handles Spotify OAuth2 PKCE callback (alias).");
 
         group.MapGet("/sessions", async (
             ISpotifyAuthService authService,
@@ -238,5 +263,136 @@ public static class AuthEndpoints
         }
 
         return null;
+    }
+
+    private static string GenerateAuthSuccessHtml(UserSession session)
+    {
+        string encodedDisplayName = System.Net.WebUtility.HtmlEncode(session.DisplayName);
+        string sessionId = session.Id;
+
+        return $$"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cantus - Spotify Connected</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-green: #10b981;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+        .icon-badge {
+            width: 64px;
+            height: 64px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--accent-green);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px auto;
+            color: var(--accent-green);
+            font-size: 32px;
+            font-weight: bold;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .user-name {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+        p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background-color: var(--accent-green);
+            color: #042f1f;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #34d399;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-badge">&#10003;</div>
+        <h1>Spotify Connected</h1>
+        <p>Logged in as <span class="user-name">{{encodedDisplayName}}</span>.<br>You can now return to the Cantus Desktop App, or continue in the Web Player.</p>
+        <div class="btn-group">
+            <a href="cantus://auth?session_id={{sessionId}}" class="btn btn-primary" id="open-app-btn">Return to Desktop App</a>
+            <a href="/?auth=success" class="btn btn-secondary">Open Web Player</a>
+        </div>
+    </div>
+    <script>
+        try {
+            window.location.href = "cantus://auth?session_id={{sessionId}}";
+        } catch (e) {
+        }
+    </script>
+</body>
+</html>
+""";
     }
 }

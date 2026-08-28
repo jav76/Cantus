@@ -56,22 +56,30 @@ public sealed class HostUrlResolver : IHostUrlResolver
 
     public string ResolveSpotifyRedirectUri(HttpContext? context = null)
     {
-        // If an explicit custom redirect URI is provided (and it differs from default localhost or host URL is set), use it
+        // If an explicit custom redirect URI is provided (and it differs from default localhost/127.0.0.1 or host URL is set), use it
         string? explicitRedirect = _configuration["Spotify:RedirectUri"];
         string? envHostUrl = _configuration["CANTUS_HOST_URL"]
             ?? _configuration["HOST_URL"]
             ?? _configuration["BASE_URL"];
 
-        // If explicit redirect is specified and no override host URL is given, return explicit
+        // If explicit redirect is specified and no override host URL is given, return explicit unless it is a standard local default
         if (!string.IsNullOrWhiteSpace(explicitRedirect) &&
             string.IsNullOrWhiteSpace(envHostUrl) &&
-            explicitRedirect != "http://localhost:5000/api/auth/spotify/callback")
+            !IsStandardLocalRedirect(explicitRedirect))
         {
             return explicitRedirect;
         }
 
         string baseUrl = ResolveBaseUrl(context);
         return $"{baseUrl}/api/auth/spotify/callback";
+    }
+
+    private static bool IsStandardLocalRedirect(string redirectUri)
+    {
+        return redirectUri.Equals("http://localhost:5000/api/auth/spotify/callback", StringComparison.OrdinalIgnoreCase) ||
+            redirectUri.Equals("http://localhost:5000/api/auth/callback", StringComparison.OrdinalIgnoreCase) ||
+            redirectUri.Equals("http://127.0.0.1:5000/api/auth/spotify/callback", StringComparison.OrdinalIgnoreCase) ||
+            redirectUri.Equals("http://127.0.0.1:5000/api/auth/callback", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string NormalizeUrl(string url)

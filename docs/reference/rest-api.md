@@ -6,15 +6,16 @@ In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal A
 
 ## Authentication Endpoints
 
-### `GET /api/auth/login`
+### `GET /api/auth/spotify/login` (or `GET /api/auth/login`)
 Initiates the Spotify OAuth 2.0 PKCE authentication flow.
 
-- **Query Parameters**: None.
-- **Response**: `302 Found` redirect to Spotify's `https://accounts.spotify.com/authorize` with generated `code_challenge`, `client_id`, and `user-read-playback-state` scopes.
+- **Query Parameters**:
+  - `json` (`bool`, optional): If `true`, returns `{ "authorizationUrl": "..." }` in JSON instead of 302 redirect.
+- **Response**: `302 Found` redirect to Spotify's `https://accounts.spotify.com/authorize` with generated `code_challenge`, `client_id`, and requested scopes.
 
 ---
 
-### `GET /api/auth/callback`
+### `GET /api/auth/spotify/callback` (or `GET /api/auth/callback`)
 Handles the redirect callback from Spotify following user consent.
 
 - **Query Parameters**:
@@ -23,12 +24,13 @@ Handles the redirect callback from Spotify following user consent.
 - **Behavior**:
   1. Validates PKCE challenge and exchanges code for access & refresh tokens.
   2. Encrypts tokens via ASP.NET Core Data Protection.
-  3. Saves user profile in SQLite database.
-- **Response**: `302 Found` redirect to `/` (Client Home).
+  3. Saves user session in SQLite database and updates active session registry.
+  4. Broadcasts session list update to all connected SignalR clients (including desktop app).
+- **Response**: `200 OK` HTML landing page with handoff to desktop client or web player.
 
 ---
 
-### `GET /api/auth/session`
+### `GET /api/auth/sessions` (or `GET /api/auth/me`)
 Returns current authenticated session information for the calling browser.
 
 - **Response `200 OK`**:

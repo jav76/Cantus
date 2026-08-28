@@ -91,4 +91,54 @@ public sealed class HostUrlResolverTests
 
         result.Should().Be("https://cantus.myhome.net/api/auth/spotify/callback");
     }
+
+    [Fact]
+    public void ResolveSpotifyRedirectUri_WhenLocalhostRequestContext_DerivesLocalhostCallback()
+    {
+        IConfiguration config = new ConfigurationBuilder().Build();
+        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
+        HostUrlResolver resolver = new(config, options);
+
+        DefaultHttpContext context = new();
+        context.Request.Scheme = "http";
+        context.Request.Host = new HostString("localhost", 5000);
+
+        string result = resolver.ResolveSpotifyRedirectUri(context);
+
+        result.Should().Be("http://localhost:5000/api/auth/spotify/callback");
+    }
+
+    [Fact]
+    public void ResolveSpotifyRedirectUri_WhenLoopbackIpContext_DerivesLoopbackCallback()
+    {
+        IConfiguration config = new ConfigurationBuilder().Build();
+        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
+        HostUrlResolver resolver = new(config, options);
+
+        DefaultHttpContext context = new();
+        context.Request.Scheme = "http";
+        context.Request.Host = new HostString("127.0.0.1", 5000);
+
+        string result = resolver.ResolveSpotifyRedirectUri(context);
+
+        result.Should().Be("http://127.0.0.1:5000/api/auth/spotify/callback");
+    }
+
+    [Fact]
+    public void ResolveSpotifyRedirectUri_WhenExplicitCustomProductionRedirect_ReturnsCustomRedirect()
+    {
+        IConfiguration config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Spotify:RedirectUri"] = "https://custom.oauth.domain/spotify/callback"
+            })
+            .Build();
+
+        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
+        HostUrlResolver resolver = new(config, options);
+
+        string result = resolver.ResolveSpotifyRedirectUri();
+
+        result.Should().Be("https://custom.oauth.domain/spotify/callback");
+    }
 }
