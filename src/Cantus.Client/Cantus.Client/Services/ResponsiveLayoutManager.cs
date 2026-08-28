@@ -18,9 +18,9 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     public static ResponsiveLayoutManager Instance => _instance ??= new ResponsiveLayoutManager();
 
     // Breakpoint thresholds (in logical pixels)
-    public const double SmallBreakpointMaxWidth = 680.0;
-    public const double MediumBreakpointMaxWidth = 1080.0;
-    public const double LargeBreakpointMaxWidth = 1920.0;
+    public const double SMALL_BREAKPOINT_MAX_WIDTH = 680.0;
+    public const double MEDIUM_BREAKPOINT_MAX_WIDTH = 1080.0;
+    public const double LARGE_BREAKPOINT_MAX_WIDTH = 1920.0;
 
     private double _windowWidth = 1280.0;
     private double _windowHeight = 800.0;
@@ -261,15 +261,15 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         {
             computed = LayoutBreakpoint.FullscreenTv;
         }
-        else if (WindowWidth < SmallBreakpointMaxWidth)
+        else if (WindowWidth < SMALL_BREAKPOINT_MAX_WIDTH)
         {
             computed = LayoutBreakpoint.Small;
         }
-        else if (WindowWidth < MediumBreakpointMaxWidth)
+        else if (WindowWidth < MEDIUM_BREAKPOINT_MAX_WIDTH)
         {
             computed = LayoutBreakpoint.Medium;
         }
-        else if (WindowWidth < LargeBreakpointMaxWidth)
+        else if (WindowWidth < LARGE_BREAKPOINT_MAX_WIDTH)
         {
             computed = LayoutBreakpoint.Large;
         }

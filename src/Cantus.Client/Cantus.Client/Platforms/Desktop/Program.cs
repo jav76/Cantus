@@ -1,4 +1,7 @@
 using System;
+using System.CommandLine;
+using Cantus.Core.Logging;
+using Cantus.Infrastructure.Logging;
 using Uno.UI.Hosting;
 
 namespace Cantus.Client;
@@ -8,7 +11,27 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        App.InitializeLogging();
+        Option<string> logConfigOption = new("--log-configuration", "-l")
+        {
+            Description = "Specify logging configuration level (none, debug, trace)."
+        };
+
+        RootCommand rootCommand = new("Cantus Desktop Client")
+        {
+            logConfigOption
+        };
+        rootCommand.TreatUnmatchedTokensAsErrors = false;
+
+        ParseResult parseResult = rootCommand.Parse(args);
+        string? logConfigValue = parseResult.GetValue(logConfigOption);
+        string? logConfigRaw = !string.IsNullOrWhiteSpace(logConfigValue)
+            ? logConfigValue
+            : Environment.GetEnvironmentVariable("CANTUS_LOG_CONFIGURATION");
+
+        LoggingConfiguration loggingConfig = CantusLoggingManager.ParseConfiguration(logConfigRaw);
+        CantusLoggingManager.InitializeClient(loggingConfig);
+
+        App.InitializeLogging(loggingConfig);
 
         UnoPlatformHostBuilder.Create()
             .App(() => new App())

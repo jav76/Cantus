@@ -12,4 +12,7 @@ public sealed record UserSession
     public DateTimeOffset ExpiresAtUtc { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
     public DateTimeOffset UpdatedAtUtc { get; init; }
+
+    public override string ToString() =>
+        $"UserSession {{ Id = {Id}, SpotifyUserId = {SpotifyUserId}, DisplayName = {DisplayName}, Email = {Email}, AccessToken = [REDACTED], RefreshToken = [REDACTED], ExpiresAtUtc = {ExpiresAtUtc} }}";
 }

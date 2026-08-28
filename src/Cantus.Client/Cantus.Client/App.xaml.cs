@@ -1,4 +1,7 @@
 using System;
+using System.Threading.Tasks;
+using Cantus.Core.Logging;
+using Cantus.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Cantus.Client;
@@ -37,12 +40,12 @@ public partial class App : Application
         MainWindow.Activate();
     }
 
-    void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+    private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
     {
         throw new InvalidOperationException($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
     }
 
-    public static void InitializeLogging()
+    public static void InitializeLogging(LoggingConfiguration configuration = CantusLoggingManager.DEFAULT_CONFIGURATION)
     {
         try
         {
@@ -51,9 +54,18 @@ public partial class App : Application
 #if __WASM__
                 builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
 #else
+                builder.AddProvider(new Log4NetLoggerProvider());
                 builder.AddConsole();
 #endif
-                builder.SetMinimumLevel(LogLevel.Information);
+                LogLevel minLevel = configuration switch
+                {
+                    LoggingConfiguration.None => LogLevel.Information,
+                    LoggingConfiguration.Debug => LogLevel.Debug,
+                    LoggingConfiguration.Trace => LogLevel.Trace,
+                    _ => LogLevel.Information
+                };
+
+                builder.SetMinimumLevel(minLevel);
                 builder.AddFilter("Uno", LogLevel.Warning);
                 builder.AddFilter("Windows", LogLevel.Warning);
                 builder.AddFilter("Microsoft", LogLevel.Warning);
@@ -64,6 +76,23 @@ public partial class App : Application
 #if HAS_UNO
             global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
+
+            // Global client unhandled exception handlers
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                if (e.ExceptionObject is Exception ex)
+                {
+                    ILogger logger = factory.CreateLogger("Cantus.Client.App");
+                    logger.LogError(ex, "Unhandled AppDomain exception occurred in client.");
+                }
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                ILogger logger = factory.CreateLogger("Cantus.Client.App");
+                logger.LogError(e.Exception, "Unobserved task exception occurred in client.");
+                e.SetObserved();
+            };
         }
         catch
         {

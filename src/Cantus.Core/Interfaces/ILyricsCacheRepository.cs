@@ -1,7 +1,9 @@
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 
 namespace Cantus.Core.Interfaces;
 
+[TraceLog]
 public interface ILyricsCacheRepository
 {
     Task<SyncedLyrics?> GetCachedLyricsAsync(string trackId, CancellationToken cancellationToken = default);

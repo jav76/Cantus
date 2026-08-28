@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Cantus.Core/Cantus.Core.csproj" />
+    <Project Path="src/Cantus.Generators/Cantus.Generators.csproj" />
     <Project Path="src/Cantus.Infrastructure/Cantus.Infrastructure.csproj" />
     <Project Path="src/Cantus.Server/Cantus.Server.csproj" />
     <Project Path="src/Cantus.Client/Cantus.Client/Cantus.Client.csproj" />

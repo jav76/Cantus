@@ -1,9 +1,13 @@
+using System.CommandLine;
 using System.Text.RegularExpressions;
+using Cantus.Core.Logging;
 using Cantus.Infrastructure;
+using Cantus.Infrastructure.Logging;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Server.BackgroundServices;
 using Cantus.Server.Endpoints;
 using Cantus.Server.Hubs;
+using Cantus.Server.Middleware;
 using Cantus.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -13,11 +17,74 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Scalar.AspNetCore;
+
+// 1. CLI Parsing via System.CommandLine
+Option<string> logConfigOption = new("--log-configuration", "-l")
+{
+    Description = "Specify logging configuration level (none, debug, trace)."
+};
+
+RootCommand rootCommand = new("Cantus - Real-Time Spotify Synced Lyrics Server")
+{
+    logConfigOption
+};
+rootCommand.TreatUnmatchedTokensAsErrors = false;
+
+ParseResult parseResult = rootCommand.Parse(args);
+string? logConfigValue = parseResult.GetValue(logConfigOption);
+
+string? logConfigRaw = !string.IsNullOrWhiteSpace(logConfigValue)
+    ? logConfigValue
+    : Environment.GetEnvironmentVariable("CANTUS_LOG_CONFIGURATION");
+
+LoggingConfiguration loggingConfig = CantusLoggingManager.ParseConfiguration(logConfigRaw);
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// 1. Data Directory & Data Protection Key Persistence
+// 2. Logging Framework Configuration (log4net & Microsoft.Extensions.Logging)
+string connStr = builder.Configuration.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
+CantusLoggingManager.InitializeServer(loggingConfig, connStr);
+
+LogLevel minLogLevel = loggingConfig switch
+{
+    LoggingConfiguration.None => LogLevel.Information,
+    LoggingConfiguration.Debug => LogLevel.Debug,
+    LoggingConfiguration.Trace => LogLevel.Trace,
+    _ => LogLevel.Information
+};
+
+builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(minLogLevel);
+builder.Services.Configure<LoggerFilterOptions>(options =>
+{
+    options.MinLevel = minLogLevel;
+    options.Rules.Clear();
+    if (loggingConfig is LoggingConfiguration.None)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Information, null));
+        options.Rules.Add(new LoggerFilterRule(null, "Microsoft", LogLevel.Warning, null));
+        options.Rules.Add(new LoggerFilterRule(null, "System", LogLevel.Warning, null));
+    }
+    else if (loggingConfig is LoggingConfiguration.Debug)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Debug, null));
+        options.Rules.Add(new LoggerFilterRule(null, "Microsoft", LogLevel.Information, null));
+        options.Rules.Add(new LoggerFilterRule(null, "System", LogLevel.Information, null));
+    }
+    else if (loggingConfig is LoggingConfiguration.Trace)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Trace, null));
+    }
+});
+builder.Logging.AddProvider(new Log4NetLoggerProvider());
+
+// 3. Exception Handling Services
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// 4. Data Directory & Data Protection Key Persistence
 string? dataDir = Environment.GetEnvironmentVariable("DATA_DIR")
     ?? (Directory.Exists("/app/data") ? "/app/data" : null);
 
@@ -37,16 +104,16 @@ else
         .SetApplicationName("Cantus");
 }
 
-// 2. Core & Infrastructure Services
+// 5. Core & Infrastructure Services
 builder.Services.AddCantusInfrastructure(builder.Configuration);
 
-// 3. Server Options, URL Resolver & In-Memory Registry
+// 6. Server Options, URL Resolver & In-Memory Registry
 builder.Services.Configure<PlaybackPollerOptions>(
-    builder.Configuration.GetSection(PlaybackPollerOptions.SectionName));
+    builder.Configuration.GetSection(PlaybackPollerOptions.SECTION_NAME));
 builder.Services.AddSingleton<IPlaybackSessionRegistry, PlaybackSessionRegistry>();
 builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 
-// 4. Reverse Proxy & Forwarded Headers
+// 7. Reverse Proxy & Forwarded Headers
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.All;
@@ -54,7 +121,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// 5. SignalR & Background Services
+// 8. SignalR & Background Services
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = builder.Environment.IsDevelopment();
@@ -64,7 +131,7 @@ builder.Services.AddSignalR(options =>
 
 builder.Services.AddHostedService<ActiveUsersPlaybackMonitor>();
 
-// 6. CORS Policy (Local network & dev clients)
+// 9. CORS Policy (Local network & dev clients)
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -76,20 +143,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 7. OpenAPI & Documentation
+// 10. OpenAPI & Documentation
 builder.Services.AddOpenApi();
 
 WebApplication app = builder.Build();
 
-// 8. Reverse Proxy Forwarded Headers Pipeline
+// 11. Exception Handler & Reverse Proxy Middleware
+app.UseExceptionHandler();
 app.UseForwardedHeaders();
 
-// 9. Ensure Database Directory Exists & Run Migrations
+// 12. Ensure Database Directory Exists & Run Migrations
 using (IServiceScope scope = app.Services.CreateScope())
 {
     IConfiguration config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    string connStr = config.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
-    Match match = Regex.Match(connStr, @"Data Source=([^;]+)", RegexOptions.IgnoreCase);
+    string dbConnStr = config.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
+    Match match = Regex.Match(dbConnStr, @"Data Source=([^;]+)", RegexOptions.IgnoreCase);
     if (match.Success)
     {
         string dbPath = match.Groups[1].Value.Trim();
@@ -104,7 +172,7 @@ using (IServiceScope scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-// 10. OpenAPI Endpoints
+// 13. OpenAPI Endpoints
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -115,7 +183,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// 11. Static Files & Routing
+// 14. Static Files & Routing
 app.UseCors();
 app.UseDefaultFiles();
 
@@ -138,14 +206,14 @@ app.UseStaticFiles(new StaticFileOptions
     DefaultContentType = "application/octet-stream"
 });
 
-// 12. SignalR Hub Mapping
+// 15. SignalR Hub Mapping
 app.MapHub<PlaybackHub>("/hubs/playback");
 
-// 13. REST API Route Groups
+// 16. REST API Route Groups
 app.MapAuthEndpoints();
 app.MapLyricsEndpoints();
 
-// 14. SPA Fallback
+// 17. SPA Fallback
 app.MapFallbackToFile("index.html");
 
 app.Run();

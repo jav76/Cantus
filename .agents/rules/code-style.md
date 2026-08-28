@@ -88,6 +88,7 @@ Adhere to the following conventions when authoring, modifying, or refactoring C#
 
 ## 7. Naming, Modifiers & Qualification
 - **Private Fields**: Prefix private and internal instance fields with an underscore and use `_camelCase` (e.g. `private readonly ILyricsProvider _lyricsProvider;`).
+- **Constants**: Constants (`const`) must use `CAPS_CASE` / `SCREAMING_SNAKE_CASE` (e.g. `public const string SECTION_NAME = "Spotify";`, `private const int MAX_NTP_SAMPLES = 5;`).
 - **No `this.` Qualifier**: Avoid `this.` or `Me.` qualification unless strictly necessary to disambiguate shadowed identifiers.
 - **Explicit Accessibility**: Always explicitly declare accessibility modifiers (`private`, `public`, `protected`, `internal`) on all types and members.
 - **`readonly` Modifier**: Apply `readonly` to all fields and properties that are assigned only during declaration or in the constructor.
@@ -97,3 +98,29 @@ Adhere to the following conventions when authoring, modifying, or refactoring C#
 ## 8. Modern Types & Primary Constructors
 - **Records**: Use `record` or `record struct` for immutable data models, DTOs, and event payloads.
 - **Primary Constructors**: Use primary constructors for records/DTOs and concise service classes. Use traditional constructor blocks when initialization requires input validation, defensive copying, or complex setup logic.
+
+---
+
+## 9. Logging Standards, Conventions & Tracing Attributes
+- **Logging Subsystem**: Cantus uses a mixed logging framework backed by `log4net`, routed through `Microsoft.Extensions.Logging`.
+- **Log Level Guidelines**:
+  - `Trace`: Granular method entry/exit parameters, timing, and internal state. Generated automatically on decorated interfaces via `[TraceLog]`.
+  - `Debug`: Cache hits/misses, background poller ticks, detailed operational diagnostics.
+  - `Information`: Milestone business events (user authenticated, room joined, session connected). Keep concise and informative.
+  - `Warning`: Recoverable issues, retry attempts, transient external API / network errors.
+  - `Error`: Unhandled failures, route exceptions (handled globally by `GlobalExceptionHandler`), critical sync breaks.
+- **Method Tracing via `[TraceLog]`**:
+  - Apply `[TraceLog]` to core interfaces in `Cantus.Core` or client services to auto-generate compile-time decorators with `Stopwatch` execution timing and parameter tracking.
+  - Apply `[Redact]` to sensitive method parameters (tokens, credentials, secrets) to mask them as `[REDACTED]` in trace output.
+- **Structured Message Templates**:
+  - Never use string interpolation (`$"..."`) within `ILogger` calls. Use semantic message templates with named placeholders:
+    ```csharp
+    // Correct
+    _logger.LogInformation("User {UserId} joined room {RoomCode}", userId, roomCode);
+
+    // Avoid
+    _logger.LogInformation($"User {userId} joined room {roomCode}");
+    ```
+- **CLI Logging Control**:
+  - Desktop client and server support `--log-configuration <none|debug|trace>` (or `-l <level>`) and `CANTUS_LOG_CONFIGURATION` environment variable.
+

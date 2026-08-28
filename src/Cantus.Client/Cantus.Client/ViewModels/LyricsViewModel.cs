@@ -27,7 +27,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private int _activeLineIndex = -1;
     private long _interpolatedProgressMs;
     private long _lastTickTimestampMs;
-    private const int DefaultAcousticLatencyCompensationMs = 200;
+    private const int DEFAULT_ACOUSTIC_LATENCY_COMPENSATION_MS = 200;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -570,11 +570,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         {
             long serverTimestamp = state.TimestampUtc.ToUnixTimeMilliseconds();
             long elapsed = Math.Max(0, localNow - serverTimestamp);
-            targetMs = Math.Max(0, state.ProgressMs + elapsed - DefaultAcousticLatencyCompensationMs);
+            targetMs = Math.Max(0, state.ProgressMs + elapsed - DEFAULT_ACOUSTIC_LATENCY_COMPENSATION_MS);
         }
         else
         {
-            targetMs = Math.Max(0, state.ProgressMs - DefaultAcousticLatencyCompensationMs);
+            targetMs = Math.Max(0, state.ProgressMs - DEFAULT_ACOUSTIC_LATENCY_COMPENSATION_MS);
         }
 
         long drift = Math.Abs(_interpolatedProgressMs - targetMs);
@@ -738,7 +738,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
             long serverTimestamp = _lastPlaybackState.TimestampUtc.ToUnixTimeMilliseconds();
             long elapsed = Math.Max(0, localNow - serverTimestamp);
-            long targetMs = Math.Max(0, _lastPlaybackState.ProgressMs + elapsed - DefaultAcousticLatencyCompensationMs);
+            long targetMs = Math.Max(0, _lastPlaybackState.ProgressMs + elapsed - DEFAULT_ACOUSTIC_LATENCY_COMPENSATION_MS);
 
             // Monotonic Phase-Locked Loop (PLL) tracking
             long error = targetMs - _interpolatedProgressMs;
@@ -756,7 +756,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         else
         {
-            _interpolatedProgressMs = Math.Max(0, _lastPlaybackState.ProgressMs - DefaultAcousticLatencyCompensationMs);
+            _interpolatedProgressMs = Math.Max(0, _lastPlaybackState.ProgressMs - DEFAULT_ACOUSTIC_LATENCY_COMPENSATION_MS);
             _lastTickTimestampMs = localNow;
         }
 
