@@ -1,7 +1,7 @@
 # Cantus
 
 [![CI](https://github.com/jav76/Cantus/actions/workflows/ci.yml/badge.svg)](https://github.com/jav76/Cantus/actions/workflows/ci.yml)
-[![Docs](https://github.com/jav76/Cantus/actions/workflows/docs.yml/badge.svg)](https://cantus-docs.pages.dev)
+[![Docs](https://github.com/jav76/Cantus/actions/workflows/docs.yml/badge.svg)](https://cantus.docs.jav26122.net)
 [![Release](https://img.shields.io/github/v/release/jav76/Cantus?color=blue)](https://github.com/jav76/Cantus/releases)
 [![Docker](https://img.shields.io/badge/GHCR-cantus-blue?logo=docker)](https://github.com/jav76/Cantus/pkgs/container/cantus)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
@@ -9,7 +9,7 @@
 
 Cantus is a self-hosted, real-time synchronized lyrics display platform. It connects with Spotify playback sessions to deliver sub-millisecond synchronized lyrics across web browsers, desktop operating systems, and dedicated kiosk displays.
 
-Full documentation is hosted on Cloudflare Pages at [cantus-docs.pages.dev](https://cantus-docs.pages.dev).
+Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.jav26122.net).
 
 ---
 
@@ -197,13 +197,13 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 
 Comprehensive guides, system architecture diagrams, and API specifications are available at:
 
-[https://cantus-docs.pages.dev](https://cantus-docs.pages.dev)
+[https://cantus.docs.jav26122.net](https://cantus.docs.jav26122.net)
 
-- [User Guide](https://cantus-docs.pages.dev/user-guide/)
-- [Operator Guide & Self-Hosting](https://cantus-docs.pages.dev/operator-guide/self-hosting/)
-- [NTP Clock Synchronization Architecture](https://cantus-docs.pages.dev/architecture/ntp-clock-sync/)
-- [Adaptive Polling Engine Architecture](https://cantus-docs.pages.dev/architecture/adaptive-polling/)
-- [SignalR PlaybackHub Protocol Reference](https://cantus-docs.pages.dev/reference/signalr-api/)
+- [User Guide](https://cantus.docs.jav26122.net/user-guide/)
+- [Operator Guide & Self-Hosting](https://cantus.docs.jav26122.net/operator-guide/self-hosting/)
+- [NTP Clock Synchronization Architecture](https://cantus.docs.jav26122.net/architecture/ntp-clock-sync/)
+- [Adaptive Polling Engine Architecture](https://cantus.docs.jav26122.net/architecture/adaptive-polling/)
+- [SignalR PlaybackHub Protocol Reference](https://cantus.docs.jav26122.net/reference/signalr-api/)
 
 ---
 
