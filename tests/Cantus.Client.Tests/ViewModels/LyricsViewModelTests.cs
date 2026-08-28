@@ -6,6 +6,7 @@ using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Cantus.Core.Models;
 using FluentAssertions;
+using Microsoft.UI.Xaml;
 using Xunit;
 
 namespace Cantus.Client.Tests.ViewModels;
@@ -154,49 +155,6 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void ToggleCalibrationMode_TogglesStateAndPropagatesToLines()
-    {
-        // Arrange
-        SignalRPlaybackClient client = new();
-        LyricsViewModel vm = new(client);
-        LyricLineViewModel line = new() { TimestampMs = 1000, Text = "Hello" };
-        vm.LyricLines.Add(line);
-
-        vm.IsCalibrationMode.Should().BeFalse();
-        line.IsCalibrationMode.Should().BeFalse();
-
-        // Act
-        vm.ToggleCalibrationMode();
-
-        // Assert
-        vm.IsCalibrationMode.Should().BeTrue();
-        line.IsCalibrationMode.Should().BeTrue();
-
-        // Act
-        vm.ToggleCalibrationMode();
-
-        // Assert
-        vm.IsCalibrationMode.Should().BeFalse();
-        line.IsCalibrationMode.Should().BeFalse();
-    }
-
-    [Fact]
-    public void DismissCalibrationToast_HidesToast()
-    {
-        // Arrange
-        SignalRPlaybackClient client = new();
-        LyricsViewModel vm = new(client);
-        vm.IsCalibrationToastVisible = true;
-        vm.CalibrationToastMessage = "Test message";
-
-        // Act
-        vm.DismissCalibrationToast();
-
-        // Assert
-        vm.IsCalibrationToastVisible.Should().BeFalse();
-    }
-
-    [Fact]
     public void ToggleStaticLyricsMode_TogglesStateAndVisibilities()
     {
         // Arrange
@@ -205,8 +163,8 @@ public sealed class LyricsViewModelTests
         vm.HasLyrics = true;
 
         vm.IsStaticLyricsMode.Should().BeFalse();
-        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
-        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
+        vm.SyncedLyricsVisibility.Should().Be(Visibility.Visible);
+        vm.StaticLyricsVisibility.Should().Be(Visibility.Collapsed);
         vm.ModeToggleText.Should().Be("Static View");
 
         // Act
@@ -214,8 +172,8 @@ public sealed class LyricsViewModelTests
 
         // Assert
         vm.IsStaticLyricsMode.Should().BeTrue();
-        vm.SyncedLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Collapsed);
-        vm.StaticLyricsVisibility.Should().Be(Microsoft.UI.Xaml.Visibility.Visible);
+        vm.SyncedLyricsVisibility.Should().Be(Visibility.Collapsed);
+        vm.StaticLyricsVisibility.Should().Be(Visibility.Visible);
         vm.ModeToggleText.Should().Be("Live Synced");
     }
 
@@ -233,20 +191,32 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void LyricLineViewModel_PopulateWords_CreatesWordViewModelsWithTimestamps()
+    public async Task NudgeOffsetAsync_UpdatesOffsetDisplay()
     {
         // Arrange
-        LyricLineViewModel line = new() { TimestampMs = 10000, Text = "Sing along with me" };
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        vm.OffsetText.Should().Be("+0.0s");
 
-        // Act
-        line.PopulateWords(TimeSpan.FromSeconds(4));
+        // Act - without playing track, nudge is safe no-op
+        await vm.NudgeOffsetAsync(500);
 
         // Assert
-        line.Words.Should().HaveCount(4);
-        line.Words[0].Word.Should().Be("Sing");
-        line.Words[0].TimestampMs.Should().Be(10000);
-        line.Words[^1].Word.Should().Be("me");
-        line.Words[^1].TimestampMs.Should().BeGreaterThan(10000);
+        vm.OffsetText.Should().Be("+0.0s");
+    }
+
+    [Fact]
+    public async Task ResetOffsetAsync_ResetsOffsetDisplay()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+
+        // Act
+        await vm.ResetOffsetAsync();
+
+        // Assert
+        vm.OffsetText.Should().Be("+0.0s");
     }
 
     [Fact]
@@ -281,6 +251,9 @@ public sealed class LyricsViewModelTests
         vm.IsAuthorized.Should().BeFalse();
         vm.CurrentTitle.Should().Be("No Track Playing");
         vm.IsPlaying.Should().BeFalse();
+        vm.HasLyrics.Should().BeFalse();
+        vm.IsStaticLyricsMode.Should().BeFalse();
+        vm.LyricLines.Should().BeEmpty();
     }
 
     [Fact]
@@ -293,9 +266,71 @@ public sealed class LyricsViewModelTests
         // Assert
         vm.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
     }
+
+    [Fact]
+    public void OnLyricsReceived_WithPlainLyricsOnly_AutoSwitchesToStaticMode()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+
+        LyricsPayload payload = new()
+        {
+            TrackId = "track-plain-1",
+            Title = "Plain Song",
+            Artist = "Plain Artist",
+            IsSynced = false,
+            Lines = new List<LyricLinePayload>(),
+            PlainLyrics = "Line 1 of plain lyrics\nLine 2 of plain lyrics"
+        };
+
+        // Act
+        client.RaiseLyricsReceived(payload);
+
+        // Assert
+        vm.HasLyrics.Should().BeTrue();
+        vm.HasSyncedLyrics.Should().BeFalse();
+        vm.HasPlainLyrics.Should().BeTrue();
+        vm.IsStaticLyricsMode.Should().BeTrue();
+        vm.ModeToggleVisibility.Should().Be(Visibility.Collapsed);
+        vm.StaticLyricsVisibility.Should().Be(Visibility.Visible);
+        vm.SyncedLyricsVisibility.Should().Be(Visibility.Collapsed);
+        vm.StaticLyricsText.Should().Be("Line 1 of plain lyrics\nLine 2 of plain lyrics");
+    }
+
+    [Fact]
+    public void OnLyricsReceived_WithSyncedLyrics_EnablesSyncedModeAndToggle()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+
+        LyricsPayload payload = new()
+        {
+            TrackId = "track-synced-1",
+            Title = "Synced Song",
+            Artist = "Synced Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new() { TimestampMs = 1000, Text = "First line" },
+                new() { TimestampMs = 3000, Text = "Second line" }
+            },
+            PlainLyrics = "First line\nSecond line"
+        };
+
+        // Act
+        client.RaiseLyricsReceived(payload);
+
+        // Assert
+        vm.HasLyrics.Should().BeTrue();
+        vm.HasSyncedLyrics.Should().BeTrue();
+        vm.HasPlainLyrics.Should().BeTrue();
+        vm.IsStaticLyricsMode.Should().BeFalse();
+        vm.ModeToggleVisibility.Should().Be(Visibility.Visible);
+        vm.StaticLyricsVisibility.Should().Be(Visibility.Collapsed);
+        vm.SyncedLyricsVisibility.Should().Be(Visibility.Visible);
+        vm.LyricLines.Should().HaveCount(2);
+    }
 }
-
-
-
-
 

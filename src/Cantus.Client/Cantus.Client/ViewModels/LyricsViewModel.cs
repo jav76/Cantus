@@ -57,12 +57,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isInstrumentalBreak;
     private string _instrumentalBreakText = string.Empty;
     private bool _isKioskMode;
-    private bool _isCalibrationMode;
     private bool _isStaticLyricsMode;
-    private int? _previousOffsetMs;
-    private string? _calibrationToastMessage;
-    private bool _isCalibrationToastVisible;
-    private DispatcherTimer? _toastDismissTimer;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
@@ -245,8 +240,21 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public bool HasLyrics
     {
         get => _hasLyrics;
-        set { if (_hasLyrics != value) { _hasLyrics = value; OnPropertyChanged(); } }
+        set
+        {
+            if (_hasLyrics != value)
+            {
+                _hasLyrics = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SyncedLyricsVisibility));
+                OnPropertyChanged(nameof(StaticLyricsVisibility));
+                OnPropertyChanged(nameof(ModeToggleVisibility));
+            }
+        }
     }
+
+    public bool HasSyncedLyrics => _lastLyrics?.Lines is not null && _lastLyrics.Lines.Count > 0;
+    public bool HasPlainLyrics => !string.IsNullOrWhiteSpace(_lastLyrics?.PlainLyrics);
 
     public bool IsInstrumental
     {
@@ -300,29 +308,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool IsCalibrationMode
-    {
-        get => _isCalibrationMode;
-        set
-        {
-            if (_isCalibrationMode != value)
-            {
-                _isCalibrationMode = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CalibrationModeVisibility));
-                OnPropertyChanged(nameof(CalibrationButtonBrush));
-                foreach (LyricLineViewModel line in LyricLines)
-                {
-                    line.IsCalibrationMode = value;
-                }
-            }
-        }
-    }
-
-    public Visibility CalibrationModeVisibility => _isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush CalibrationButtonBrush =>
-        _isCalibrationMode ? PrimaryAccentBrush : TextPrimaryBrush;
-
     public bool IsStaticLyricsMode
     {
         get => _isStaticLyricsMode;
@@ -351,7 +336,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Visibility StaticLyricsVisibility =>
         (IsStaticLyricsMode && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
-    public Visibility ModeToggleVisibility => HasLyrics ? Visibility.Visible : Visibility.Collapsed;
+
+    public Visibility ModeToggleVisibility => (HasSyncedLyrics && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
     public string ModeToggleText => IsStaticLyricsMode ? "Live Synced" : "Static View";
     public string ModeToggleGlyph => IsStaticLyricsMode ? "\uE895" : "\uE8C4";
 
@@ -359,52 +345,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         IsStaticLyricsMode = !IsStaticLyricsMode;
     }
-
-    public int? PreviousOffsetMs
-    {
-        get => _previousOffsetMs;
-        private set
-        {
-            if (_previousOffsetMs != value)
-            {
-                _previousOffsetMs = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CanUndoCalibration));
-            }
-        }
-    }
-
-    public bool CanUndoCalibration => _previousOffsetMs.HasValue;
-
-    public string? CalibrationToastMessage
-    {
-        get => _calibrationToastMessage;
-        set
-        {
-            if (_calibrationToastMessage != value)
-            {
-                _calibrationToastMessage = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public bool IsCalibrationToastVisible
-    {
-        get => _isCalibrationToastVisible;
-        set
-        {
-            if (_isCalibrationToastVisible != value)
-            {
-                _isCalibrationToastVisible = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CalibrationToastVisibility));
-            }
-        }
-    }
-
-    public Visibility CalibrationToastVisibility =>
-        _isCalibrationToastVisible ? Visibility.Visible : Visibility.Collapsed;
 
     public int ActiveLineIndex
     {
@@ -622,7 +562,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ConnectButtonText));
         OnPropertyChanged(nameof(ConnectButtonGlyph));
 
-        // Update Theme Manager for Dynamic Palette Sampling
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
         long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
@@ -651,8 +590,23 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (lyrics is null) return;
 
         _lastLyrics = lyrics;
-        HasLyrics = lyrics.Lines is not null && lyrics.Lines.Count > 0;
+        bool hasSynced = lyrics.Lines is not null && lyrics.Lines.Count > 0;
+        bool hasPlain = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
+        HasLyrics = hasSynced || hasPlain;
         IsInstrumental = lyrics.IsInstrumental;
+
+        if (hasSynced)
+        {
+            IsStaticLyricsMode = false;
+        }
+        else if (hasPlain)
+        {
+            IsStaticLyricsMode = true;
+        }
+        else
+        {
+            IsStaticLyricsMode = false;
+        }
 
         LyricLines.Clear();
         if (lyrics.Lines is not null)
@@ -668,18 +622,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
-                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text,
-                    IsCalibrationMode = _isCalibrationMode
+                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
                 };
-
-                long nextTimestamp = (i < lyrics.Lines.Count - 1 && lyrics.Lines[i + 1] is not null)
-                    ? lyrics.Lines[i + 1].TimestampMs
-                    : line.TimestampMs + 4000;
-                TimeSpan lineDuration = TimeSpan.FromMilliseconds(Math.Max(1000, nextTimestamp - line.TimestampMs));
-                lineVm.PopulateWords(lineDuration);
-
-                lineVm.LineClicked += async l => await CalibrateToTimestampAsync(l.TimestampMs);
-                lineVm.WordClicked += async w => await CalibrateToTimestampAsync(w.TimestampMs);
 
                 lineVm.RefreshFontSizes(active, inactive, past);
                 LyricLines.Add(lineVm);
@@ -691,6 +635,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SyncedLyricsVisibility));
         OnPropertyChanged(nameof(StaticLyricsVisibility));
         OnPropertyChanged(nameof(ModeToggleVisibility));
+        OnPropertyChanged(nameof(HasSyncedLyrics));
+        OnPropertyChanged(nameof(HasPlainLyrics));
     }
 
     private void OnTrackOffsetReceived(TrackOffsetPayload? offset)
@@ -829,7 +775,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 ActiveLineChanged?.Invoke(idx);
             }
 
-            // Check for Instrumental Break
             EvaluateInstrumentalBreak(idx, currentWithOffset);
         }
         else
@@ -851,7 +796,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         if (activeIdx < 0)
         {
-            // Intro before first line
             nextTimestampMs = LyricLines[0].TimestampMs;
             hasNextLine = true;
         }
@@ -931,79 +875,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, 0);
     }
 
-    public void ToggleCalibrationMode()
-    {
-        IsCalibrationMode = !IsCalibrationMode;
-    }
-
-    public async Task CalibrateToTimestampAsync(long targetLyricTimestampMs)
-    {
-        if (_lastPlaybackState?.CurrentTrack is null) return;
-        if (!_isCalibrationMode) return;
-
-        int currentProgress = (int)_interpolatedProgressMs;
-        int rawOffset = (int)(targetLyricTimestampMs - currentProgress);
-
-        // Clamp to a sane track calibration window (+/- 20 seconds)
-        int newOffset = Math.Clamp(rawOffset, -20000, 20000);
-        int delta = newOffset - _userOffsetMs;
-
-        PreviousOffsetMs = _userOffsetMs;
-        _userOffsetMs = newOffset;
-        double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
-
-        double deltaSec = delta / 1000.0;
-        string deltaStr = $"{(delta >= 0 ? "+" : "")}{deltaSec:0.0}s";
-        CalibrationToastMessage = $"Offset calibrated: {OffsetText} (Δ {deltaStr})";
-        IsCalibrationToastVisible = true;
-        StartToastTimer();
-
-        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, newOffset);
-    }
-
-    public async Task UndoLastCalibrationAsync()
-    {
-        if (!_previousOffsetMs.HasValue || _lastPlaybackState?.CurrentTrack is null) return;
-
-        _userOffsetMs = _previousOffsetMs.Value;
-        PreviousOffsetMs = null;
-        double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
-        CalibrationToastMessage = $"Reverted offset to {OffsetText}";
-        IsCalibrationToastVisible = true;
-        StartToastTimer();
-
-        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, _userOffsetMs);
-    }
-
-    public void DismissCalibrationToast()
-    {
-        IsCalibrationToastVisible = false;
-        _toastDismissTimer?.Stop();
-    }
-
-    private void StartToastTimer()
-    {
-        if (_toastDismissTimer is null)
-        {
-            _toastDismissTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(5)
-            };
-            _toastDismissTimer.Tick += (s, e) =>
-            {
-                _toastDismissTimer.Stop();
-                IsCalibrationToastVisible = false;
-            };
-        }
-        else
-        {
-            _toastDismissTimer.Stop();
-        }
-        _toastDismissTimer.Start();
-    }
-
     public async Task SubscribeToUserAsync(string? userId)
     {
         await _client.SubscribeToUserAsync(userId);
@@ -1021,8 +892,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         CurrentAlbum = string.Empty;
         AlbumArtUrl = null;
         IsPlaying = false;
+        _lastLyrics = null;
         LyricLines.Clear();
         HasLyrics = false;
+        IsStaticLyricsMode = false;
         ActiveLineIndex = -1;
         _themeManager.UpdateTrackMetadata(null, null, null);
         OnPropertyChanged(nameof(CurrentUserSession));
@@ -1031,6 +904,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ConnectButtonGlyph));
         OnPropertyChanged(nameof(NoSessionsVisibility));
         OnPropertyChanged(nameof(HasSessionsVisibility));
+        OnPropertyChanged(nameof(HasSyncedLyrics));
+        OnPropertyChanged(nameof(HasPlainLyrics));
+        OnPropertyChanged(nameof(ModeToggleVisibility));
     }
 
     private static string FormatTime(long ms)

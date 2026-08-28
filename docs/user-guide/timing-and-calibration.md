@@ -1,6 +1,6 @@
-# Timing & Latency Calibration
+# Timing & Latency Offset Adjustment
 
-Different sound systems introduce varying degrees of audio transmission delay. Cantus includes a precision **Latency Calibration Engine** that allows you to shift lyric timing in real time to match what your ears are actually hearing.
+Different sound systems introduce varying degrees of audio transmission delay. Cantus includes a precision **Latency Offset Engine** that allows you to shift lyric timing in real time to match what your ears are actually hearing.
 
 ---
 
@@ -15,21 +15,29 @@ When playing music from Spotify, the Spotify API reports where the playback curs
 | **Standard Bluetooth (SBC / AAC)** | `120ms – 250ms` | Wireless packet buffering and encoding. |
 | **AirPlay / Chromecast Audio** | `1000ms – 2000ms` | Multi-room streaming buffer sync. |
 
-Without calibration, lyrics would highlight slightly before you hear the vocal line on Bluetooth or AirPlay speakers.
+Without offset adjustment, lyrics would highlight slightly before you hear the vocal line on Bluetooth or AirPlay speakers.
 
 ---
 
-## Real-Time Offset Calibration
+## Real-Time Offset Adjustment
 
 Cantus allows you to adjust the timing offset on the fly while a song is playing:
 
 ```mermaid
 flowchart LR
     A[Spotify Position: 01:23.400] --> B[NTP Clock Synchronizer]
-    B --> C{+ User Calibrated Offset}
+    B --> C{+ User Adjusted Offset}
     C -->|Offset: +150ms| D[Effective Render Time: 01:23.550]
     D --> E[Highlighted Lyric Matches Ear]
 ```
+
+### Adjusting Timing via UI Steppers
+
+In the **Track Card** (Desktop/Tablet) or **Settings View** (Mobile), use the `SYNC OFFSET` stepper buttons:
+
+- **`-0.5s` / `-0.1s`**: Nudges lyrics earlier if the text is highlighting after you hear the singer.
+- **`+0.1s` / `+0.5s`**: Nudges lyrics later if the text is highlighting before you hear the singer.
+- **`Reset`**: Resets the track offset back to `+0.0s`.
 
 ### Adjusting Timing via Keyboard
 
@@ -44,10 +52,10 @@ flowchart LR
 
 ## Per-Track Offset Persistence
 
-Cantus automatically stores your calibrated offset in its SQLite database keyed by the Spotify **Track ID**:
+Cantus automatically stores your adjusted offset in its SQLite database keyed by the Spotify **Track ID**:
 
-- When the same song plays again in the future, Cantus instantly applies your custom calibrated offset.
-- Track-level calibrations do not affect other songs that may have different mastering or timing alignments.
+- When the same song plays again in the future, Cantus instantly applies your custom offset.
+- Track-level offsets do not affect other songs that may have different mastering or timing alignments.
 
 ---
 

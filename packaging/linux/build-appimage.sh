@@ -4,6 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
+PUBLISH_EXPLICIT=0
+if [ $# -ge 1 ]; then
+    PUBLISH_EXPLICIT=1
+fi
+
 SOURCE_DIR="${1:-${SCRIPT_DIR}/publish}"
 OUTPUT_DIR="${2:-${SCRIPT_DIR}/artifacts}"
 VERSION="${3:-1.0.0}"
@@ -12,9 +17,9 @@ echo "==> Building Cantus AppImage version: ${VERSION}"
 echo "    Source directory: ${SOURCE_DIR}"
 echo "    Output directory: ${OUTPUT_DIR}"
 
-# If source directory does not exist or does not contain Cantus.Client, build and publish it automatically
-if [ ! -d "${SOURCE_DIR}" ] || [ ! -f "${SOURCE_DIR}/Cantus.Client" ]; then
-    echo "==> Published binaries not found in ${SOURCE_DIR}. Running dotnet publish..."
+# If no custom source directory was explicitly passed as argument, or if binaries don't exist, publish fresh binaries
+if [ "${PUBLISH_EXPLICIT}" -eq 0 ] || [ ! -d "${SOURCE_DIR}" ] || [ ! -f "${SOURCE_DIR}/Cantus.Client" ]; then
+    echo "==> Running dotnet publish to ensure fresh Release binaries..."
     mkdir -p "${SOURCE_DIR}"
     dotnet publish "${REPO_ROOT}/src/Cantus.Client/Cantus.Client/Cantus.Client.csproj" \
         -f net10.0-desktop \

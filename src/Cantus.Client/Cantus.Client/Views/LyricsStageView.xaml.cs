@@ -26,7 +26,7 @@ public sealed partial class LyricsStageView : UserControl
 
     public LyricsStageView()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     public void ScrollToActiveLine(int idx)
@@ -84,7 +84,8 @@ public sealed partial class LyricsStageView : UserControl
         return bp switch
         {
             LayoutBreakpoint.Small => 12.0,
-            _ => 14.0
+            LayoutBreakpoint.Medium => 14.0,
+            _ => 16.0
         };
     }
 
@@ -112,63 +113,8 @@ public sealed partial class LyricsStageView : UserControl
         return tm.UpcomingLyricBrush;
     }
 
-    public Visibility GetQuickCalibrateButtonVisibility(bool? hasLyrics, bool isCalibrationMode)
-    {
-        return hasLyrics.GetValueOrDefault() && !isCalibrationMode ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    public Visibility GetUndoVisibility(bool canUndo) => canUndo ? Visibility.Visible : Visibility.Collapsed;
-
-    private void OnToggleCalibrationClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel?.ToggleCalibrationMode();
-    }
-
-    private void OnExitCalibrationClicked(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel is not null)
-        {
-            ViewModel.IsCalibrationMode = false;
-        }
-    }
-
-    private void OnLyricItemClicked(object sender, ItemClickEventArgs e)
-    {
-        if (ViewModel is not null &&
-            ViewModel.IsCalibrationMode &&
-            e.ClickedItem is LyricLineViewModel lineVm)
-        {
-            lineVm.OnLineClicked();
-        }
-    }
-
-    private void OnWordButtonClicked(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel is not null &&
-            ViewModel.IsCalibrationMode &&
-            sender is FrameworkElement fe &&
-            fe.DataContext is LyricWordViewModel wordVm)
-        {
-            wordVm.Calibrate();
-        }
-    }
-
-    private async void OnUndoCalibrationClicked(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel is not null)
-        {
-            await ViewModel.UndoLastCalibrationAsync();
-        }
-    }
-
     private void OnToggleStaticModeClicked(object sender, RoutedEventArgs e)
     {
         ViewModel?.ToggleStaticLyricsMode();
     }
-
-    private void OnDismissToastClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel?.DismissCalibrationToast();
-    }
 }
-
