@@ -47,7 +47,37 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string connStr = builder.Configuration.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
 CantusLoggingManager.InitializeServer(loggingConfig, connStr);
 
+LogLevel minLogLevel = loggingConfig switch
+{
+    LoggingConfiguration.None => LogLevel.Information,
+    LoggingConfiguration.Debug => LogLevel.Debug,
+    LoggingConfiguration.Trace => LogLevel.Trace,
+    _ => LogLevel.Information
+};
+
 builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(minLogLevel);
+builder.Services.Configure<LoggerFilterOptions>(options =>
+{
+    options.MinLevel = minLogLevel;
+    options.Rules.Clear();
+    if (loggingConfig is LoggingConfiguration.None)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Information, null));
+        options.Rules.Add(new LoggerFilterRule(null, "Microsoft", LogLevel.Warning, null));
+        options.Rules.Add(new LoggerFilterRule(null, "System", LogLevel.Warning, null));
+    }
+    else if (loggingConfig is LoggingConfiguration.Debug)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Debug, null));
+        options.Rules.Add(new LoggerFilterRule(null, "Microsoft", LogLevel.Information, null));
+        options.Rules.Add(new LoggerFilterRule(null, "System", LogLevel.Information, null));
+    }
+    else if (loggingConfig is LoggingConfiguration.Trace)
+    {
+        options.Rules.Add(new LoggerFilterRule(null, null, LogLevel.Trace, null));
+    }
+});
 builder.Logging.AddProvider(new Log4NetLoggerProvider());
 
 // 3. Exception Handling Services
