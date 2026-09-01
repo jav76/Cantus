@@ -405,5 +405,125 @@ public sealed class LyricsViewModelTests
         vm.ActiveUserName.Should().Be("None");
         vm.IsAuthorized.Should().BeFalse();
     }
+
+    [Fact]
+    public void IsAutoScrollEnabled_DefaultsToTrue_AndTogglesState()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+
+        // Assert default
+        vm.IsAutoScrollEnabled.Should().BeTrue();
+        vm.AutoScrollToggleText.Should().Be("Autoscroll");
+
+        // Act
+        vm.ToggleAutoScroll();
+
+        // Assert toggled
+        vm.IsAutoScrollEnabled.Should().BeFalse();
+        vm.AutoScrollToggleText.Should().Be("Free Scroll");
+
+        // Act again
+        vm.ToggleAutoScroll();
+
+        // Assert
+        vm.IsAutoScrollEnabled.Should().BeTrue();
+        vm.AutoScrollToggleText.Should().Be("Autoscroll");
+    }
+
+    [Fact]
+    public void SetUserScrollingPaused_UpdatesStateAndResumeVisibility()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        LyricsPayload payload = new()
+        {
+            Lines = new List<LyricLinePayload>
+            {
+                new() { TimestampMs = 1000, Text = "Line 1" },
+                new() { TimestampMs = 5000, Text = "Line 2" }
+            }
+        };
+        client.RaiseLyricsReceived(payload);
+
+        vm.IsAutoScrollEnabled = true;
+        vm.IsUserScrollingPaused.Should().BeFalse();
+        vm.ResumeAutoScrollVisibility.Should().Be(Visibility.Collapsed);
+
+        // Act
+        vm.SetUserScrollingPaused(true);
+
+        // Assert
+        vm.IsUserScrollingPaused.Should().BeTrue();
+        vm.ResumeAutoScrollVisibility.Should().Be(Visibility.Visible);
+
+        // Act - Resume
+        vm.ResumeAutoScroll();
+
+        // Assert
+        vm.IsUserScrollingPaused.Should().BeFalse();
+        vm.ResumeAutoScrollVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ResumeAutoScroll_TriggersResumedAndActiveLineEvents()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        LyricsPayload payload = new()
+        {
+            Lines = new List<LyricLinePayload>
+            {
+                new() { TimestampMs = 1000, Text = "Line 1" },
+                new() { TimestampMs = 5000, Text = "Line 2" }
+            }
+        };
+        client.RaiseLyricsReceived(payload);
+
+        bool resumedFired = false;
+        int activeLineReported = -999;
+        vm.AutoScrollResumed += () => resumedFired = true;
+        vm.ActiveLineChanged += idx => activeLineReported = idx;
+
+        vm.SetUserScrollingPaused(true);
+
+        // Act
+        vm.ResumeAutoScroll();
+
+        // Assert
+        resumedFired.Should().BeTrue();
+    }
+
+    [Fact]
+    public void AutoScrollToggleVisibility_RespectsStaticModeAndLyricsState()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        LyricsPayload payload = new()
+        {
+            Lines = new List<LyricLinePayload>
+            {
+                new() { TimestampMs = 1000, Text = "Line 1" }
+            }
+        };
+
+        vm.AutoScrollToggleVisibility.Should().Be(Visibility.Collapsed);
+
+        // Act - Receive synced lyrics
+        client.RaiseLyricsReceived(payload);
+
+        // Assert
+        vm.AutoScrollToggleVisibility.Should().Be(Visibility.Visible);
+
+        // Act - Toggle static mode
+        vm.ToggleStaticLyricsMode();
+
+        // Assert
+        vm.AutoScrollToggleVisibility.Should().Be(Visibility.Collapsed);
+    }
 }
 

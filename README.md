@@ -16,7 +16,7 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 ## Features
 
 - **Sub-Millisecond Synchronization**: Four-timestamp NTP clock offset estimation and smooth position interpolation filter network jitter.
-- **Adaptive Polling**: Dynamically adjusts Spotify polling frequency (500 ms when playing, 3 s when paused, 10 s when idle) and idles when no clients are connected.
+- **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (1.5s when playing, 5s when paused, 10s when idle) and suspends polling when zero viewers are connected to conserve API quota.
 - **Multi-Tier Lyrics Resolution**: Direct local SQLite cache lookups with fallback to LRCLIB and negative caching for instrumental tracks.
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
 - **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time.
@@ -26,14 +26,15 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 
 ## Architecture
 
-The system is structured into four primary solution layers:
+The system is structured following Clean Architecture principles across five solution projects:
 
 | Layer | Project | Description |
 | :--- | :--- | :--- |
-| **Core Domain** | `src/Cantus.Core` | Domain models, LRC parser, and synchronization engine contracts. |
+| **Core Domain** | `src/Cantus.Core` | Domain models (`PlaybackState`, `LyricLine`), LRC parser, and engine contracts. |
 | **Infrastructure** | `src/Cantus.Infrastructure` | Spotify PKCE authentication, LRCLIB integration, SQLite caching, and token encryption. |
 | **Server Engine** | `src/Cantus.Server` | ASP.NET Core host, SignalR `PlaybackHub`, adaptive polling monitor, and REST APIs. |
 | **Client Presentation** | `src/Cantus.Client` | Uno Platform application targeting WebAssembly and Skia desktop runtimes. |
+| **Source Generators** | `src/Cantus.Generators` | Roslyn source generator for compile-time method tracing (`[TraceLog]`). |
 
 ---
 
@@ -97,9 +98,9 @@ Cantus requires a registered Spotify Developer application to communicate with S
 
 1. Navigate to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
 2. Select **Create App** and specify an application name and description.
-3. In **Redirect URIs**, add the exact callback endpoint for your instance:
-   - Local: `http://localhost:5000/api/auth/callback`
-   - Production: `https://cantus.yourdomain.com/api/auth/callback`
+3. In **Redirect URIs**, add the callback endpoints for your instance:
+   - Localhost: `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`
+   - Production: `https://cantus.yourdomain.com/api/auth/spotify/callback`
 4. Select **Web API** under the requested APIs.
 5. Save the configuration and copy the generated **Client ID** into your environment configuration.
 
@@ -112,18 +113,20 @@ Because Cantus uses the OAuth 2.0 PKCE (Proof Key for Code Exchange) flow, a Cli
 Cantus is configured via environment variables or `appsettings.json`:
 
 | Variable | Required | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `SPOTIFY_CLIENT_ID` | Yes | None | Spotify Developer Application Client ID. |
+| :--- | :---: | :---: | :--- |
+| `SPOTIFY_CLIENT_ID` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
 | `CANTUS_HOST_URL` | Yes | `http://localhost:5000` | Canonical external URL used for OAuth redirects and SignalR handshakes. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
 | `DATA_DIR` | No | `/app/data` | Path to persistent storage for SQLite database and encryption keys. |
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
+| `CANTUS_LOG_CONFIGURATION` | No | `none` | Log verbosity profile: `none`, `debug`, or `trace`. |
+| `PlaybackPoller__ActivePollIntervalMs` | No | `1500` | Spotify polling cadence (ms) during active playback. |
 
 ### Persistent Data Layout
 
 Mount `/app/data` to persistent storage to preserve user sessions and cached lyrics:
 - `/app/data/cantus.db`: SQLite database storing user sessions, track offsets, and cached LRC lyrics.
-- `/app/data/DataProtection-Keys/`: Cryptographic key ring used to encrypt refresh tokens at rest.
+- `/app/data/keys/`: Cryptographic key ring used by ASP.NET Core Data Protection to encrypt tokens at rest.
 
 ---
 
@@ -204,6 +207,13 @@ Comprehensive guides, system architecture diagrams, and API specifications are a
 - [NTP Clock Synchronization Architecture](https://cantus.docs.jav26122.net/architecture/ntp-clock-sync/)
 - [Adaptive Polling Engine Architecture](https://cantus.docs.jav26122.net/architecture/adaptive-polling/)
 - [SignalR PlaybackHub Protocol Reference](https://cantus.docs.jav26122.net/reference/signalr-api/)
+- [Contributing Guide](https://cantus.docs.jav26122.net/contributing/) (or see [CONTRIBUTING.md](CONTRIBUTING.md))
+
+---
+
+## Contributing
+
+We welcome community contributions! Please review our [Contributing Guide](CONTRIBUTING.md) and [Development Documentation](https://cantus.docs.jav26122.net/contributing/) for details on getting started, coding standards, and submitting pull requests.
 
 ---
 
