@@ -1,7 +1,7 @@
 using System;
 using System.CommandLine;
+using Cantus.Client.Services;
 using Cantus.Core.Logging;
-using Cantus.Infrastructure.Logging;
 using Uno.UI.Hosting;
 
 namespace Cantus.Client;
@@ -28,9 +28,7 @@ internal class Program
             ? logConfigValue
             : Environment.GetEnvironmentVariable("CANTUS_LOG_CONFIGURATION");
 
-        LoggingConfiguration loggingConfig = CantusLoggingManager.ParseConfiguration(logConfigRaw);
-        CantusLoggingManager.InitializeClient(loggingConfig);
-
+        LoggingConfiguration loggingConfig = ClientLoggingManager.ParseConfiguration(logConfigRaw);
         App.InitializeLogging(loggingConfig);
 
         UnoPlatformHostBuilder.Create()

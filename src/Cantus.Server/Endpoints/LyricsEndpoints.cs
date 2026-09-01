@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Server.Hubs;
@@ -17,36 +19,65 @@ public static class LyricsEndpoints
     {
         RouteGroupBuilder group = endpoints.MapGroup("/api/lyrics").WithTags("Lyrics & Playback");
 
-        group.MapGet("/{trackId}", async (
-            string trackId,
-            ILyricsCacheRepository cacheRepository,
-            CancellationToken cancellationToken) =>
+        group.MapGet("/{trackId}", HandleGetCachedLyrics)
+            .WithName("GetCachedLyrics")
+            .WithSummary("Retrieves cached lyrics for a specific track ID.");
+
+        group.MapPost("/offset", HandleSetTrackOffset)
+            .WithName("SetTrackOffset")
+            .WithSummary("Saves a manual timing offset adjustment for a track.");
+
+        return endpoints;
+    }
+
+    private static async Task<IResult> HandleGetCachedLyrics(
+        string trackId,
+        ILyricsCacheRepository cacheRepository,
+        CancellationToken cancellationToken)
+    {
+        SyncedLyrics? lyrics = await cacheRepository.GetCachedLyricsAsync(trackId, cancellationToken);
+        if (lyrics is null)
         {
-            SyncedLyrics? lyrics = await cacheRepository.GetCachedLyricsAsync(trackId, cancellationToken);
-            if (lyrics is null)
+            return Results.NotFound(new { Message = $"Lyrics for track '{trackId}' not found in cache." });
+        }
+
+        return Results.Ok(lyrics.ToDto());
+    }
+
+    private static async Task<IResult> HandleSetTrackOffset(
+        [FromBody] TrackOffsetDto request,
+        ILyricsCacheRepository cacheRepository,
+        IPlaybackSessionRegistry registry,
+        ISessionTokenResolver sessionResolver,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.TrackId))
+        {
+            return Results.BadRequest(new { Message = "TrackId is required." });
+        }
+
+        await cacheRepository.SetTrackOffsetAsync(request.TrackId, request.OffsetMs, cancellationToken);
+
+        string? sessionId = sessionResolver.ResolveSessionId(context);
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            UserPlaybackSnapshot? userSnapshot = registry.GetUserState(sessionId);
+            if (userSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
             {
-                return Results.NotFound(new { Message = $"Lyrics for track '{trackId}' not found in cache." });
+                registry.UpdateUserState(
+                    userSnapshot.UserId,
+                    userSnapshot.DisplayName,
+                    userSnapshot.PlaybackState,
+                    userSnapshot.Lyrics,
+                    request.OffsetMs);
             }
 
-            return Results.Ok(lyrics.ToDto());
-        })
-        .WithName("GetCachedLyrics")
-        .WithSummary("Retrieves cached lyrics for a specific track ID.");
-
-        group.MapPost("/offset", async (
-            [FromBody] TrackOffsetDto request,
-            ILyricsCacheRepository cacheRepository,
-            IPlaybackSessionRegistry registry,
-            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
-            CancellationToken cancellationToken) =>
+            await hubContext.Clients.Group($"user_{sessionId}").ReceiveTrackOffset(request);
+        }
+        else
         {
-            if (string.IsNullOrWhiteSpace(request.TrackId))
-            {
-                return Results.BadRequest(new { Message = "TrackId is required." });
-            }
-
-            await cacheRepository.SetTrackOffsetAsync(request.TrackId, request.OffsetMs, cancellationToken);
-
             UserPlaybackSnapshot? activeSnapshot = registry.GetActivePlaybackSnapshot();
             if (activeSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
             {
@@ -56,15 +87,15 @@ public static class LyricsEndpoints
                     activeSnapshot.PlaybackState,
                     activeSnapshot.Lyrics,
                     request.OffsetMs);
+
+                await hubContext.Clients.Group($"user_{activeSnapshot.UserId}").ReceiveTrackOffset(request);
             }
+            else
+            {
+                await hubContext.Clients.All.ReceiveTrackOffset(request);
+            }
+        }
 
-            await hubContext.Clients.All.ReceiveTrackOffset(request);
-
-            return Results.Ok(request);
-        })
-        .WithName("SetTrackOffset")
-        .WithSummary("Saves a manual timing offset adjustment for a track.");
-
-        return endpoints;
+        return Results.Ok(request);
     }
 }

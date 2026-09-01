@@ -112,6 +112,7 @@ builder.Services.Configure<PlaybackPollerOptions>(
     builder.Configuration.GetSection(PlaybackPollerOptions.SECTION_NAME));
 builder.Services.AddSingleton<IPlaybackSessionRegistry, PlaybackSessionRegistry>();
 builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
+builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 
 // 7. Reverse Proxy & Forwarded Headers
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
