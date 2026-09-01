@@ -22,6 +22,7 @@ public sealed class PlaybackHubTests
     private readonly Mock<IHubCallerClients<IPlaybackClient>> _mockClients = new();
     private readonly Mock<IPlaybackClient> _mockCaller = new();
     private readonly Mock<IPlaybackClient> _mockUserGroup = new();
+    private readonly Mock<ISessionTokenResolver> _mockSessionResolver = new();
     private readonly Mock<IGroupManager> _mockGroups = new();
     private readonly Mock<HubCallerContext> _mockContext = new();
 
@@ -37,6 +38,7 @@ public sealed class PlaybackHubTests
             _mockRegistry.Object,
             _mockLyricsCache.Object,
             _mockAuthService.Object,
+            _mockSessionResolver.Object,
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,
@@ -106,6 +108,7 @@ public sealed class PlaybackHubTests
             100,
             DateTimeOffset.UtcNow);
 
+        _mockSessionResolver.Setup(s => s.ResolveSessionId(It.IsAny<HttpContext>())).Returns("session-123");
         _mockAuthService.Setup(a => a.GetSessionAsync("session-123", default)).ReturnsAsync(userSession);
         _mockRegistry.Setup(r => r.GetUserState("user-1")).Returns(snapshot);
 
@@ -193,6 +196,7 @@ public sealed class PlaybackHubTests
         _mockContext.Setup(c => c.Features).Returns(featureCollection);
 
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns((string?)null);
+        _mockSessionResolver.Setup(s => s.ResolveSessionId(It.IsAny<HttpContext>())).Returns("user-2");
         _mockAuthService.Setup(a => a.GetSessionAsync("user-2", default)).ReturnsAsync(new UserSession
         {
             Id = "user-2",

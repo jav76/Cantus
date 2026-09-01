@@ -46,18 +46,18 @@ This guide provides solutions to common setup, authentication, and network issue
 
 ---
 
-## 3. Spotify API Rate Limiting (HTTP 429)
+## 4. Spotify API Rate Limiting (HTTP 429)
 
 ### Symptom: Logs show `Spotify rate limit exceeded (429)`
 - **Cause**: Too many requests within a short timeframe.
 - **Mitigation Built into Cantus**:
-  - Cantus employs an **Adaptive Polling Engine** that automatically backs off to 3s intervals when playback is paused, 10s when idle, and completely halts polling when zero clients are connected to a room.
+  - Cantus employs an **Adaptive Polling Engine** that automatically backs off to 5s intervals when playback is paused, 10s when idle, and completely halts polling when zero clients are connected to a room.
 - **Operator Action**:
   - If sharing an instance among multiple active listeners, ensure non-active browser tabs are closed. Cantus will automatically spin down polling for disconnected rooms.
 
 ---
 
-## 4. Clock Skew & Lyric Timing Drift
+## 5. Clock Skew & Lyric Timing Drift
 
 ### Symptom: Lyrics appear ahead or behind audio on specific machines
 - **Diagnostics**:
@@ -71,7 +71,7 @@ This guide provides solutions to common setup, authentication, and network issue
 
 ---
 
-## 5. Health Checks & Server Logs
+## 6. Health Checks & Server Logs
 
 ### Checking Endpoint Health
 

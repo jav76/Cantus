@@ -10,16 +10,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python-
     && rm -rf /var/lib/apt/lists/*
 RUN dotnet workload install wasm-tools
 
-# Copy solution files and project descriptors for caching
+# Copy solution files and central package management props for caching
 COPY global.json ./
 COPY Cantus.slnx ./
-COPY src/Cantus.Client/Directory.Build.props src/Cantus.Client/
-COPY src/Cantus.Client/Directory.Packages.props src/Cantus.Client/
+COPY Directory.Build.props ./
+COPY Directory.Packages.props ./
 
-# Copy Core, Infrastructure, Generators and Client source code
+# Copy Core, Generators and Client source code
 COPY src/Cantus.Generators/ src/Cantus.Generators/
 COPY src/Cantus.Core/ src/Cantus.Core/
-COPY src/Cantus.Infrastructure/ src/Cantus.Infrastructure/
 COPY src/Cantus.Client/ src/Cantus.Client/
 
 # Publish WASM Client
@@ -36,6 +35,8 @@ WORKDIR /src
 
 COPY global.json ./
 COPY Cantus.slnx ./
+COPY Directory.Build.props ./
+COPY Directory.Packages.props ./
 COPY src/Cantus.Generators/ src/Cantus.Generators/
 COPY src/Cantus.Core/ src/Cantus.Core/
 COPY src/Cantus.Infrastructure/ src/Cantus.Infrastructure/

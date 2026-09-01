@@ -14,7 +14,7 @@ flowchart TD
         Client[Web Browser / TV Display] -->|HTTPS :443 / WSS| Proxy[Reverse Proxy: Caddy / Nginx / Traefik]
     end
     subgraph Docker Container: Cantus
-        Proxy -->|HTTP :5000 / WS| App[ASP.NET Core 9 Minimal API + SignalR]
+        Proxy -->|HTTP :5000 / WS| App[ASP.NET Core 10 Minimal API + SignalR]
         App --> WASM[Static Uno WebAssembly Client]
         App --> Engine[Adaptive Spotify Polling Engine]
         App --> Cache[(SQLite DB & Data Protection Keys)]

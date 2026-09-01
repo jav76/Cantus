@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpotifyAPI.Web;
 
 namespace Cantus.Server.BackgroundServices;
 
@@ -141,7 +142,12 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         session.AccessToken,
                         cancellationToken);
                 }
+                catch (APITooManyRequestsException tooManyEx)
+                {
+                    _logger.LogWarning(tooManyEx, "Spotify API rate limit hit for user {UserId}. Retry after {RetryAfter}", session.Id, tooManyEx.RetryAfter);
+                }
                 catch (Exception ex) when (
+                    ex is APIUnauthorizedException ||
                     ex.Message.Contains("401") ||
                     ex.Message.Contains("Unauthorized") ||
                     ex.GetType().Name.Contains("Unauthorized"))
@@ -210,6 +216,20 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         if (lyrics is not null)
                         {
                             await _hubContext.Clients.Group(userGroup).ReceiveLyrics(lyrics.ToDto());
+                        }
+                        else if (currentPlayback.CurrentTrack is not null)
+                        {
+                            await _hubContext.Clients.Group(userGroup).ReceiveLyrics(new LyricsDto
+                            {
+                                TrackId = currentPlayback.CurrentTrack.Id,
+                                Title = currentPlayback.CurrentTrack.Title,
+                                Artist = currentPlayback.CurrentTrack.Artist,
+                                Album = currentPlayback.CurrentTrack.Album,
+                                Lines = [],
+                                IsSynced = false,
+                                IsInstrumental = false,
+                                PlainLyrics = null
+                            });
                         }
 
                         if (currentPlayback.CurrentTrack is not null)

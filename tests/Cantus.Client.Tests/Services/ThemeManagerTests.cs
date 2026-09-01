@@ -111,4 +111,25 @@ public sealed class ThemeManagerTests
         blue.G.Should().Be(0);
         blue.B.Should().Be(255);
     }
+
+    [Fact]
+    public void ThemeManager_PaletteUpdatesAndNotifiesOnThemeChange()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.MidnightViolet);
+        tm.ActivePalette.Should().Be(ColorPalette.MidnightViolet);
+
+        ColorPalette? notifiedPalette = null;
+        tm.PaletteChanged += p => notifiedPalette = p;
+
+        // Act
+        tm.SetThemeMode(ThemeMode.EmeraldSynth);
+
+        // Assert
+        tm.ActivePalette.Should().Be(ColorPalette.EmeraldSynth);
+        tm.ActivePalette.Background.Should().Be(ColorPalette.EmeraldSynth.Background);
+        tm.ActivePalette.PrimaryAccent.Should().Be(ColorPalette.EmeraldSynth.PrimaryAccent);
+        notifiedPalette.Should().Be(ColorPalette.EmeraldSynth);
+    }
 }

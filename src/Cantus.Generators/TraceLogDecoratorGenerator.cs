@@ -311,7 +311,8 @@ public class TraceLogDecoratorGenerator : IIncrementalGenerator
         // Format arguments string
         if (model.CaptureParameters && method.Parameters.Length > 0)
         {
-            List<string> argFormatParts = new List<string>();
+            List<string> argFormatParts = new();
+            List<string> argValueExpressions = new();
             foreach (ParameterModel p in method.Parameters)
             {
                 if (p.RefKind == RefKind.Out)
@@ -325,12 +326,14 @@ public class TraceLogDecoratorGenerator : IIncrementalGenerator
                 else
                 {
                     argFormatParts.Add($"{p.Name}={{{p.Name}}}");
+                    argValueExpressions.Add(p.Name);
                 }
             }
             string formattedArgs = string.Join(", ", argFormatParts);
+            string argsValuesList = argValueExpressions.Count > 0 ? ", " + string.Join(", ", argValueExpressions) : string.Empty;
             sb.AppendLine($"        if (_logger.IsEnabled(global::Microsoft.Extensions.Logging.LogLevel.Trace))");
             sb.AppendLine("        {");
-            sb.AppendLine($"            _logger.LogTrace(\"[TRACE] Entering {model.InterfaceName}.{method.Name}({formattedArgs})\");");
+            sb.AppendLine($"            _logger.LogTrace(\"[TRACE] Entering {model.InterfaceName}.{method.Name}({formattedArgs})\"{argsValuesList});");
             sb.AppendLine("        }");
         }
         else

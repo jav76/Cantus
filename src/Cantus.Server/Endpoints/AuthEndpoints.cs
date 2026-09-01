@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Server.Hubs;
@@ -10,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using SpotifyAPI.Web;
 
 namespace Cantus.Server.Endpoints;
@@ -21,275 +24,250 @@ public static class AuthEndpoints
     {
         RouteGroupBuilder group = endpoints.MapGroup("/api/auth").WithTags("Authentication");
 
-        Delegate loginHandler = (
-            [FromQuery] bool? json,
-            [FromQuery(Name = "client_id")] string? clientId,
-            ISpotifyAuthService authService,
-            IHostUrlResolver hostUrlResolver,
-            HttpContext context) =>
-        {
-            string state = Guid.NewGuid().ToString("N");
-            string verifier = PkceHelper.GenerateCodeVerifier();
-            string challenge = PkceHelper.GenerateCodeChallenge(verifier);
-            string redirectUri = hostUrlResolver.ResolveSpotifyRedirectUri(context);
-
-            CookieOptions cookieOptions = new()
-            {
-                HttpOnly = true,
-                Secure = context.Request.IsHttps,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(10)
-            };
-
-            context.Response.Cookies.Append("cantus_oauth_state", state, cookieOptions);
-            context.Response.Cookies.Append("cantus_pkce_verifier", verifier, cookieOptions);
-            context.Response.Cookies.Append("cantus_oauth_redirect_uri", redirectUri, cookieOptions);
-
-            if (!string.IsNullOrWhiteSpace(clientId))
-            {
-                context.Response.Cookies.Append("cantus_client_id", clientId, cookieOptions);
-            }
-
-            Uri uri = authService.GetAuthorizationUri(state, challenge, redirectUri);
-
-            if (json == true)
-            {
-                return Results.Ok(new { AuthorizationUrl = uri.ToString() });
-            }
-
-            return Results.Redirect(uri.ToString());
-        };
-
-        group.MapGet("/spotify/login", loginHandler)
+        group.MapGet("/spotify/login", HandleLogin)
             .WithName("SpotifyLogin")
             .WithSummary("Initiates Spotify OAuth2 PKCE login flow.");
 
-        group.MapGet("/login", loginHandler)
+        group.MapGet("/login", HandleLogin)
             .WithName("AuthLoginAlias")
             .WithSummary("Initiates Spotify OAuth2 PKCE login flow (alias).");
 
-        Delegate callbackHandler = async (
-            [FromQuery] string? code,
-            [FromQuery] string? state,
-            [FromQuery] string? error,
-            ISpotifyAuthService authService,
-            IPlaybackSessionRegistry registry,
-            IHostUrlResolver hostUrlResolver,
-            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
-            HttpContext context,
-            ILoggerFactory loggerFactory,
-            CancellationToken cancellationToken) =>
-        {
-            ILogger logger = loggerFactory.CreateLogger("AuthEndpoints");
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                logger.LogWarning("Spotify OAuth returned error: {Error}", error);
-                return Results.Redirect("/?auth=error&message=" + Uri.EscapeDataString(error));
-            }
-
-            if (string.IsNullOrEmpty(code))
-            {
-                return Results.BadRequest("Missing authorization code.");
-            }
-
-            context.Request.Cookies.TryGetValue("cantus_oauth_state", out string? expectedState);
-            context.Request.Cookies.TryGetValue("cantus_pkce_verifier", out string? verifier);
-            context.Request.Cookies.TryGetValue("cantus_oauth_redirect_uri", out string? redirectUri);
-            context.Request.Cookies.TryGetValue("cantus_client_id", out string? clientId);
-
-            if (string.IsNullOrEmpty(expectedState) || expectedState != state)
-            {
-                logger.LogWarning("OAuth state mismatch. Expected {Expected}, got {State}", expectedState, state);
-                return Results.BadRequest("Invalid OAuth state parameter.");
-            }
-
-            if (string.IsNullOrEmpty(verifier))
-            {
-                logger.LogWarning("Missing PKCE code verifier cookie.");
-                return Results.BadRequest("Missing PKCE code verifier cookie.");
-            }
-
-            string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri)
-                ? redirectUri
-                : hostUrlResolver.ResolveSpotifyRedirectUri(context);
-
-            try
-            {
-                UserSession session = await authService.ExchangeCodeAsync(
-                    code,
-                    verifier,
-                    effectiveRedirectUri,
-                    cancellationToken);
-                registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
-
-                UserPlaybackSnapshot? userSnap = registry.GetUserState(session.Id);
-                bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
-                AuthorizedSessionDto dto = session.ToDto(isPlaying);
-
-                if (!string.IsNullOrWhiteSpace(clientId))
-                {
-                    await hubContext.Clients.Group($"client_{clientId}").ReceiveAuthSession(dto);
-                    await hubContext.Clients.Client(clientId).ReceiveAuthSession(dto);
-                    await hubContext.Clients.Group($"client_{clientId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
-                }
-
-                await hubContext.Clients.Group($"user_{session.Id}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
-
-                // Set session cookie
-                context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = context.Request.IsHttps,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(30)
-                });
-
-                // Clear OAuth cookies
-                context.Response.Cookies.Delete("cantus_oauth_state");
-                context.Response.Cookies.Delete("cantus_pkce_verifier");
-                context.Response.Cookies.Delete("cantus_oauth_redirect_uri");
-                context.Response.Cookies.Delete("cantus_client_id");
-
-                return Results.Content(GenerateAuthSuccessHtml(session), "text/html");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to exchange Spotify authorization code.");
-                return Results.Redirect("/?auth=error&message=" + Uri.EscapeDataString(ex.Message));
-            }
-        };
-
-        group.MapGet("/spotify/callback", callbackHandler)
+        group.MapGet("/spotify/callback", HandleCallback)
             .WithName("SpotifyCallback")
             .WithSummary("Handles Spotify OAuth2 PKCE callback.");
 
-        group.MapGet("/callback", callbackHandler)
+        group.MapGet("/callback", HandleCallback)
             .WithName("AuthCallbackAlias")
             .WithSummary("Handles Spotify OAuth2 PKCE callback (alias).");
 
-        group.MapGet("/sessions", async (
-            ISpotifyAuthService authService,
-            IPlaybackSessionRegistry registry,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            string? sessionId = ResolveSessionId(context);
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                return Results.Ok(Array.Empty<AuthorizedSessionDto>());
-            }
+        group.MapGet("/sessions", HandleGetSessions)
+            .WithName("GetAuthorizedSessions")
+            .WithSummary("Lists the current authorized Spotify account session.");
 
-            UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
-            if (session is null)
-            {
-                return Results.Ok(Array.Empty<AuthorizedSessionDto>());
-            }
+        group.MapGet("/me", HandleGetCurrentUser)
+            .WithName("GetCurrentUser")
+            .WithSummary("Gets the currently authenticated session.");
 
-            UserPlaybackSnapshot? snap = registry.GetUserState(session.Id);
-            bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
-            return Results.Ok(new List<AuthorizedSessionDto> { session.ToDto(isPlaying) });
-        })
-        .WithName("GetAuthorizedSessions")
-        .WithSummary("Lists the current authorized Spotify account session.");
+        group.MapDelete("/sessions/{userId}", HandleRevokeSession)
+            .WithName("RevokeSession")
+            .WithSummary("Revokes an authorized Spotify account session.");
 
-        group.MapGet("/me", async (
-            ISpotifyAuthService authService,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            string? sessionId = ResolveSessionId(context);
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                return Results.Unauthorized();
-            }
-
-            UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
-            if (session is null)
-            {
-                return Results.Unauthorized();
-            }
-
-            return Results.Ok(session.ToDto());
-        })
-        .WithName("GetCurrentUser")
-        .WithSummary("Gets the currently authenticated session.");
-
-        group.MapDelete("/sessions/{userId}", async (
-            string userId,
-            ISpotifyAuthService authService,
-            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
-            CancellationToken cancellationToken) =>
-        {
-            bool revoked = await authService.RevokeSessionAsync(userId, cancellationToken);
-            if (!revoked)
-            {
-                return Results.NotFound(new { Message = $"Session '{userId}' not found." });
-            }
-
-            await hubContext.Clients.Group($"user_{userId}").ReceiveSessionRevoked(userId);
-            await hubContext.Clients.Group($"user_{userId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
-
-            return Results.Ok(new { Message = $"Session '{userId}' revoked." });
-        })
-        .WithName("RevokeSession")
-        .WithSummary("Revokes an authorized Spotify account session.");
-
-        group.MapPost("/logout", async (
-            ISpotifyAuthService authService,
-            IHubContext<PlaybackHub, IPlaybackClient> hubContext,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            string? sessionId = ResolveSessionId(context);
-            if (!string.IsNullOrEmpty(sessionId))
-            {
-                await authService.RevokeSessionAsync(sessionId, cancellationToken);
-                await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
-                await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
-            }
-
-            context.Response.Cookies.Delete("cantus_session_id");
-            return Results.Ok(new { Message = "Logged out and session revoked." });
-        })
-        .WithName("Logout")
-        .WithSummary("Clears current user session cookie and revokes session.");
+        group.MapPost("/logout", HandleLogout)
+            .WithName("Logout")
+            .WithSummary("Clears current user session cookie and revokes session.");
 
         return endpoints;
     }
 
-    private static string? ResolveSessionId(HttpContext context)
+    private static IResult HandleLogin(
+        [FromQuery] bool? json,
+        [FromQuery(Name = "client_id")] string? clientId,
+        ISpotifyAuthService authService,
+        IHostUrlResolver hostUrlResolver,
+        HttpContext context)
     {
-        if (context.Request.Cookies.TryGetValue("cantus_session_id", out string? cookieSessionId) &&
-            !string.IsNullOrWhiteSpace(cookieSessionId))
+        string state = Guid.NewGuid().ToString("N");
+        string verifier = PkceHelper.GenerateCodeVerifier();
+        string challenge = PkceHelper.GenerateCodeChallenge(verifier);
+        string redirectUri = hostUrlResolver.ResolveSpotifyRedirectUri(context);
+
+        CookieOptions cookieOptions = new()
         {
-            return cookieSessionId;
+            HttpOnly = true,
+            Secure = context.Request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(10)
+        };
+
+        context.Response.Cookies.Append("cantus_oauth_state", state, cookieOptions);
+        context.Response.Cookies.Append("cantus_pkce_verifier", verifier, cookieOptions);
+        context.Response.Cookies.Append("cantus_oauth_redirect_uri", redirectUri, cookieOptions);
+
+        if (!string.IsNullOrWhiteSpace(clientId))
+        {
+            context.Response.Cookies.Append("cantus_client_id", clientId, cookieOptions);
         }
 
-        if (context.Request.Query.TryGetValue("access_token", out StringValues queryToken) &&
-            !string.IsNullOrWhiteSpace(queryToken))
+        Uri uri = authService.GetAuthorizationUri(state, challenge, redirectUri);
+
+        if (json == true)
         {
-            return queryToken.ToString();
+            return Results.Ok(new { AuthorizationUrl = uri.ToString() });
         }
 
-        if (context.Request.Query.TryGetValue("session_id", out StringValues sessionId) &&
-            !string.IsNullOrWhiteSpace(sessionId))
+        return Results.Redirect(uri.ToString());
+    }
+
+    private static async Task<IResult> HandleCallback(
+        [FromQuery] string? code,
+        [FromQuery] string? state,
+        [FromQuery] string? error,
+        ISpotifyAuthService authService,
+        IPlaybackSessionRegistry registry,
+        IHostUrlResolver hostUrlResolver,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        HttpContext context,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken)
+    {
+        ILogger logger = loggerFactory.CreateLogger("AuthEndpoints");
+
+        if (!string.IsNullOrEmpty(error))
         {
-            return sessionId.ToString();
+            logger.LogWarning("Spotify OAuth returned error: {Error}", error);
+            return Results.Redirect("/?auth=error&message=" + Uri.EscapeDataString(error));
         }
 
-        if (context.Request.Headers.TryGetValue("Authorization", out StringValues authHeader) &&
-            !string.IsNullOrWhiteSpace(authHeader))
+        if (string.IsNullOrEmpty(code))
         {
-            string headerStr = authHeader.ToString().Trim();
-            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Results.BadRequest("Missing authorization code.");
+        }
+
+        context.Request.Cookies.TryGetValue("cantus_oauth_state", out string? expectedState);
+        context.Request.Cookies.TryGetValue("cantus_pkce_verifier", out string? verifier);
+        context.Request.Cookies.TryGetValue("cantus_oauth_redirect_uri", out string? redirectUri);
+        context.Request.Cookies.TryGetValue("cantus_client_id", out string? clientId);
+
+        if (string.IsNullOrEmpty(expectedState) || expectedState != state)
+        {
+            logger.LogWarning("OAuth state mismatch. Expected {Expected}, got {State}", expectedState, state);
+            return Results.BadRequest("Invalid OAuth state parameter.");
+        }
+
+        if (string.IsNullOrEmpty(verifier))
+        {
+            logger.LogWarning("Missing PKCE code verifier cookie.");
+            return Results.BadRequest("Missing PKCE code verifier cookie.");
+        }
+
+        string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri)
+            ? redirectUri
+            : hostUrlResolver.ResolveSpotifyRedirectUri(context);
+
+        try
+        {
+            UserSession session = await authService.ExchangeCodeAsync(
+                code,
+                verifier,
+                effectiveRedirectUri,
+                cancellationToken);
+            registry.UpdateUserState(session.Id, session.DisplayName, null, null, 0);
+
+            UserPlaybackSnapshot? userSnap = registry.GetUserState(session.Id);
+            bool isPlaying = userSnap?.PlaybackState?.IsPlaying ?? false;
+            AuthorizedSessionDto dto = session.ToDto(isPlaying);
+
+            if (!string.IsNullOrWhiteSpace(clientId))
             {
-                return headerStr.Substring(7).Trim();
+                await hubContext.Clients.Group($"client_{clientId}").ReceiveAuthSession(dto);
+                await hubContext.Clients.Client(clientId).ReceiveAuthSession(dto);
+                await hubContext.Clients.Group($"client_{clientId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
             }
-            return headerStr;
+
+            await hubContext.Clients.Group($"user_{session.Id}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
+
+            context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = context.Request.IsHttps,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddDays(30)
+            });
+
+            context.Response.Cookies.Delete("cantus_oauth_state");
+            context.Response.Cookies.Delete("cantus_pkce_verifier");
+            context.Response.Cookies.Delete("cantus_oauth_redirect_uri");
+            context.Response.Cookies.Delete("cantus_client_id");
+
+            return Results.Content(GenerateAuthSuccessHtml(session), "text/html");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to exchange Spotify authorization code.");
+            return Results.Redirect("/?auth=error&message=" + Uri.EscapeDataString(ex.Message));
+        }
+    }
+
+    private static async Task<IResult> HandleGetSessions(
+        ISpotifyAuthService authService,
+        IPlaybackSessionRegistry registry,
+        ISessionTokenResolver sessionResolver,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        string? sessionId = sessionResolver.ResolveSessionId(context);
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            return Results.Ok(Array.Empty<AuthorizedSessionDto>());
         }
 
-        return null;
+        UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
+        if (session is null)
+        {
+            return Results.Ok(Array.Empty<AuthorizedSessionDto>());
+        }
+
+        UserPlaybackSnapshot? snap = registry.GetUserState(session.Id);
+        bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
+        return Results.Ok(new List<AuthorizedSessionDto> { session.ToDto(isPlaying) });
+    }
+
+    private static async Task<IResult> HandleGetCurrentUser(
+        ISpotifyAuthService authService,
+        ISessionTokenResolver sessionResolver,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        string? sessionId = sessionResolver.ResolveSessionId(context);
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            return Results.Unauthorized();
+        }
+
+        UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
+        if (session is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Ok(session.ToDto());
+    }
+
+    private static async Task<IResult> HandleRevokeSession(
+        string userId,
+        ISpotifyAuthService authService,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        CancellationToken cancellationToken)
+    {
+        bool revoked = await authService.RevokeSessionAsync(userId, cancellationToken);
+        if (!revoked)
+        {
+            return Results.NotFound(new { Message = $"Session '{userId}' not found." });
+        }
+
+        await hubContext.Clients.Group($"user_{userId}").ReceiveSessionRevoked(userId);
+        await hubContext.Clients.Group($"user_{userId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+
+        return Results.Ok(new { Message = $"Session '{userId}' revoked." });
+    }
+
+    private static async Task<IResult> HandleLogout(
+        ISpotifyAuthService authService,
+        ISessionTokenResolver sessionResolver,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        string? sessionId = sessionResolver.ResolveSessionId(context);
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            await authService.RevokeSessionAsync(sessionId, cancellationToken);
+            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
+            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+        }
+
+        context.Response.Cookies.Delete("cantus_session_id");
+        return Results.Ok(new { Message = "Logged out and session revoked." });
     }
 
     private static string GenerateAuthSuccessHtml(UserSession session)
@@ -341,10 +319,10 @@ public static class AuthEndpoints
         .icon-badge {
             width: 64px;
             height: 64px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 2px solid var(--accent-green);
             border-radius: 50%;
-            display: inline-flex;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid var(--accent-green);
+            display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 24px auto;

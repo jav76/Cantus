@@ -14,17 +14,20 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
     private readonly IPlaybackSessionRegistry _registry;
     private readonly ILyricsCacheRepository _lyricsCache;
     private readonly ISpotifyAuthService _authService;
+    private readonly ISessionTokenResolver _sessionResolver;
     private readonly ILogger<PlaybackHub> _logger;
 
     public PlaybackHub(
         IPlaybackSessionRegistry registry,
         ILyricsCacheRepository lyricsCache,
         ISpotifyAuthService authService,
+        ISessionTokenResolver sessionResolver,
         ILogger<PlaybackHub> logger)
     {
         _registry = registry;
         _lyricsCache = lyricsCache;
         _authService = authService;
+        _sessionResolver = sessionResolver;
         _logger = logger;
     }
 
@@ -36,7 +39,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         try
         {
             HttpContext? httpContext = Context.GetHttpContext();
-            resolvedSessionId = ResolveSessionId(httpContext);
+            resolvedSessionId = _sessionResolver.ResolveSessionId(httpContext);
 
             if (!string.IsNullOrWhiteSpace(resolvedSessionId))
             {
@@ -167,7 +170,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public async Task SubscribeToUser(string? userId)
     {
-        string? callingSessionId = ResolveSessionId(Context.GetHttpContext());
+        string? callingSessionId = _sessionResolver.ResolveSessionId(Context.GetHttpContext());
         if (string.IsNullOrEmpty(callingSessionId))
         {
             return;
@@ -261,47 +264,5 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             TrackId = trackId,
             OffsetMs = offsetMs
         });
-    }
-
-    private static string? ResolveSessionId(HttpContext? httpContext)
-    {
-        if (httpContext is null)
-        {
-            return null;
-        }
-
-        // 1. Cookie
-        if (httpContext.Request.Cookies.TryGetValue("cantus_session_id", out string? cookieSessionId) &&
-            !string.IsNullOrWhiteSpace(cookieSessionId))
-        {
-            return cookieSessionId;
-        }
-
-        // 2. Query String (access_token or session_id)
-        if (httpContext.Request.Query.TryGetValue("access_token", out StringValues queryToken) &&
-            !string.IsNullOrWhiteSpace(queryToken))
-        {
-            return queryToken.ToString();
-        }
-
-        if (httpContext.Request.Query.TryGetValue("session_id", out StringValues querySessionId) &&
-            !string.IsNullOrWhiteSpace(querySessionId))
-        {
-            return querySessionId.ToString();
-        }
-
-        // 3. Authorization Header
-        if (httpContext.Request.Headers.TryGetValue("Authorization", out StringValues authHeader) &&
-            !string.IsNullOrWhiteSpace(authHeader))
-        {
-            string headerStr = authHeader.ToString().Trim();
-            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                return headerStr.Substring(7).Trim();
-            }
-            return headerStr;
-        }
-
-        return null;
     }
 }

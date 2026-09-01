@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Self-hosted, real-time synchronized lyrics display platform integrating Spotify playback, LRCLIB lyrics caching, sub-millisecond NTP interpolation, and Uno Platform multi-client streaming.",
-    "analyzedAt": "2026-08-28T02:38:18.235Z",
-    "gitCommitHash": "c8e3dfab62e55981e7c87cd4e3272db1ef502f3e"
+    "analyzedAt": "2026-09-01T01:24:21.190Z",
+    "gitCommitHash": "347359916129b0f78810ed1b8a6c78ca5a61ca3c"
   },
   "nodes": [
     {
@@ -222,7 +222,7 @@
           "UserPlaybackSnapshot"
         ],
         "businessRules": [
-          "Dynamic polling cadence: 500ms playing, 3000ms paused, 10000ms idle",
+          "Dynamic polling cadence: 1500ms playing, 5000ms paused, 10000ms idle (configurable via PlaybackPollerOptions)",
           "Polling is halted when no SignalR clients are subscribed to conserve Spotify rate limits",
           "Automatic lyric prefetching triggered on track transitions"
         ],
@@ -428,7 +428,7 @@
       "id": "flow:track-latency-offset-adjustment",
       "type": "flow",
       "name": "Track Latency Offset Calibration",
-      "summary": "Allows clients to nudge lyric synchronization offsets in \u00b150ms increments and saves persistent offsets per track.",
+      "summary": "Allows clients to nudge lyric synchronization offsets in ±50ms increments and saves persistent offsets per track.",
       "tags": [
         "latency",
         "calibration",
@@ -665,6 +665,39 @@
       "lineRange": [
         1,
         220
+      ]
+    },
+    {
+      "id": "flow:system-health-check",
+      "type": "flow",
+      "name": "System Health & Readiness Probe",
+      "summary": "Probes SQLite database connectivity and active session counts for Docker/Kubernetes container health checks.",
+      "tags": [
+        "health",
+        "monitoring",
+        "probe"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "GET /api/health",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:system-health-check:verify-db-and-sessions",
+      "type": "step",
+      "name": "Verify Database Connectivity and Active Sessions",
+      "summary": "Executes CantusDbContext.Database.CanConnectAsync and queries PlaybackSessionRegistry for connected session metrics.",
+      "tags": [
+        "health",
+        "sqlite",
+        "registry"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "lineRange": [
+        15,
+        52
       ]
     }
   ],
@@ -924,6 +957,13 @@
       "direction": "forward",
       "description": "Supplies parsed synced lyric lines and custom track offsets to the client smooth scroll renderer.",
       "weight": 0.6
+    },
+    {
+      "id": "edge:flow:system-health-check->step:system-health-check:verify-db-and-sessions",
+      "source": "flow:system-health-check",
+      "target": "step:system-health-check:verify-db-and-sessions",
+      "type": "contains",
+      "order": 1
     }
   ],
   "layers": [],

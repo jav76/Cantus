@@ -1,4 +1,7 @@
+using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Core.Parsers;
@@ -22,6 +25,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         CancellationToken cancellationToken = default)
     {
         CachedLyricsEntity? entity = await _dbContext.CachedLyrics
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (entity is null)
@@ -32,9 +36,6 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         DateTimeOffset now = DateTimeOffset.UtcNow;
         if (entity.ExpiresAtUtc.HasValue && entity.ExpiresAtUtc.Value <= now)
         {
-            // Expired cache entry
-            _dbContext.CachedLyrics.Remove(entity);
-            await _dbContext.SaveChangesAsync(cancellationToken);
             return null;
         }
 
@@ -42,10 +43,6 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         {
             return null;
         }
-
-        // Update last accessed
-        entity.LastAccessedAtUtc = now;
-        await _dbContext.SaveChangesAsync(cancellationToken);
 
         if (entity.IsInstrumental)
         {
@@ -77,17 +74,17 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         string trackId,
         CancellationToken cancellationToken = default)
     {
-        var entry = await _dbContext.CachedLyrics
-            .Where(c => c.TrackId == trackId)
-            .Select(c => new { c.IsNotFound, c.ExpiresAtUtc })
-            .FirstOrDefaultAsync(cancellationToken);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        CachedLyricsEntity? entry = await _dbContext.CachedLyrics
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (entry is null || !entry.IsNotFound)
         {
             return false;
         }
 
-        if (entry.ExpiresAtUtc.HasValue && entry.ExpiresAtUtc.Value <= DateTimeOffset.UtcNow)
+        if (entry.ExpiresAtUtc.HasValue && entry.ExpiresAtUtc.Value <= now)
         {
             return false;
         }
@@ -103,46 +100,23 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         ArgumentNullException.ThrowIfNull(lyrics);
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        CachedLyricsEntity? existing = await _dbContext.CachedLyrics
-            .FirstOrDefaultAsync(c => c.TrackId == lyrics.TrackId, cancellationToken);
+        CachedLyricsEntity entity = await GetOrCreateLyricsEntityAsync(
+            lyrics.TrackId,
+            lyrics.Title,
+            lyrics.Artist,
+            cancellationToken);
 
-        string? rawLrc = GenerateRawLrc(lyrics);
-
-        if (existing is not null)
-        {
-            existing.TrackName = lyrics.Title;
-            existing.ArtistName = lyrics.Artist;
-            existing.AlbumName = lyrics.Album;
-            existing.PlainLyrics = lyrics.PlainLyrics;
-            existing.RawSyncedLrc = rawLrc;
-            existing.IsSynced = lyrics.IsSynced;
-            existing.IsInstrumental = lyrics.IsInstrumental;
-            existing.IsNotFound = false;
-            existing.FetchedAtUtc = now;
-            existing.LastAccessedAtUtc = now;
-            existing.ExpiresAtUtc = timeToLive.HasValue ? now.Add(timeToLive.Value) : null;
-        }
-        else
-        {
-            CachedLyricsEntity entity = new()
-            {
-                TrackId = lyrics.TrackId,
-                TrackName = lyrics.Title,
-                ArtistName = lyrics.Artist,
-                AlbumName = lyrics.Album,
-                DurationMs = 0,
-                PlainLyrics = lyrics.PlainLyrics,
-                RawSyncedLrc = rawLrc,
-                IsSynced = lyrics.IsSynced,
-                IsInstrumental = lyrics.IsInstrumental,
-                IsNotFound = false,
-                FetchedAtUtc = now,
-                LastAccessedAtUtc = now,
-                ExpiresAtUtc = timeToLive.HasValue ? now.Add(timeToLive.Value) : null
-            };
-
-            await _dbContext.CachedLyrics.AddAsync(entity, cancellationToken);
-        }
+        entity.TrackName = lyrics.Title;
+        entity.ArtistName = lyrics.Artist;
+        entity.AlbumName = lyrics.Album;
+        entity.PlainLyrics = lyrics.PlainLyrics;
+        entity.RawSyncedLrc = GenerateRawLrc(lyrics);
+        entity.IsSynced = lyrics.IsSynced;
+        entity.IsInstrumental = lyrics.IsInstrumental;
+        entity.IsNotFound = false;
+        entity.FetchedAtUtc = now;
+        entity.LastAccessedAtUtc = now;
+        entity.ExpiresAtUtc = timeToLive.HasValue ? now.Add(timeToLive.Value) : null;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -157,47 +131,50 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         CancellationToken cancellationToken = default)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        CachedLyricsEntity entity = await GetOrCreateLyricsEntityAsync(
+            trackId,
+            trackName,
+            artistName,
+            cancellationToken);
+
+        entity.TrackName = trackName;
+        entity.ArtistName = artistName;
+        entity.AlbumName = albumName;
+        entity.DurationMs = durationMs;
+        entity.IsNotFound = true;
+        entity.IsSynced = false;
+        entity.IsInstrumental = false;
+        entity.PlainLyrics = null;
+        entity.RawSyncedLrc = null;
+        entity.FetchedAtUtc = now;
+        entity.LastAccessedAtUtc = now;
+        entity.ExpiresAtUtc = now.Add(timeToLive);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<CachedLyricsEntity> GetOrCreateLyricsEntityAsync(
+        string trackId,
+        string trackName,
+        string artistName,
+        CancellationToken cancellationToken)
+    {
         CachedLyricsEntity? existing = await _dbContext.CachedLyrics
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (existing is not null)
         {
-            existing.TrackName = trackName;
-            existing.ArtistName = artistName;
-            existing.AlbumName = albumName;
-            existing.DurationMs = durationMs;
-            existing.IsNotFound = true;
-            existing.IsSynced = false;
-            existing.IsInstrumental = false;
-            existing.PlainLyrics = null;
-            existing.RawSyncedLrc = null;
-            existing.FetchedAtUtc = now;
-            existing.LastAccessedAtUtc = now;
-            existing.ExpiresAtUtc = now.Add(timeToLive);
+            return existing;
         }
-        else
+
+        CachedLyricsEntity entity = new()
         {
-            CachedLyricsEntity entity = new()
-            {
-                TrackId = trackId,
-                TrackName = trackName,
-                ArtistName = artistName,
-                AlbumName = albumName,
-                DurationMs = durationMs,
-                IsNotFound = true,
-                IsSynced = false,
-                IsInstrumental = false,
-                PlainLyrics = null,
-                RawSyncedLrc = null,
-                FetchedAtUtc = now,
-                LastAccessedAtUtc = now,
-                ExpiresAtUtc = now.Add(timeToLive)
-            };
-
-            await _dbContext.CachedLyrics.AddAsync(entity, cancellationToken);
-        }
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            TrackId = trackId,
+            TrackName = trackName,
+            ArtistName = artistName
+        };
+        await _dbContext.CachedLyrics.AddAsync(entity, cancellationToken);
+        return entity;
     }
 
     public async Task<int> GetTrackOffsetAsync(
@@ -210,6 +187,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         }
 
         TrackOffsetEntity? entity = await _dbContext.TrackOffsets
+            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.TrackId == trackId, cancellationToken);
 
         return entity?.OffsetMs ?? 0;
@@ -261,7 +239,29 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             int min = (int)line.Timestamp.TotalMinutes;
             int sec = line.Timestamp.Seconds;
             int csec = line.Timestamp.Milliseconds / 10;
-            sb.AppendFormat("[{0:D2}:{1:D2}.{2:D2}]{3}\n", min, sec, csec, line.Text);
+            sb.AppendFormat("[{0:D2}:{1:D2}.{2:D2}]", min, sec, csec);
+
+            if (line.Syllables is not null && line.Syllables.Count > 0)
+            {
+                for (int i = 0; i < line.Syllables.Count; i++)
+                {
+                    LyricSyllable syl = line.Syllables[i];
+                    int sylMin = (int)syl.Timestamp.TotalMinutes;
+                    int sylSec = syl.Timestamp.Seconds;
+                    int sylCsec = syl.Timestamp.Milliseconds / 10;
+                    if (i > 0)
+                    {
+                        sb.Append(' ');
+                    }
+                    sb.AppendFormat("<{0:D2}:{1:D2}.{2:D2}>{3}", sylMin, sylSec, sylCsec, syl.Text);
+                }
+                sb.Append('\n');
+            }
+            else
+            {
+                sb.Append(line.Text);
+                sb.Append('\n');
+            }
         }
 
         return sb.ToString();

@@ -28,8 +28,8 @@
       "GitHub Actions"
     ],
     "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
-    "analyzedAt": "2026-08-28T02:38:18.235Z",
-    "gitCommitHash": "c8e3dfab62e55981e7c87cd4e3272db1ef502f3e"
+    "analyzedAt": "2026-09-01T01:24:21.190Z",
+    "gitCommitHash": "347359916129b0f78810ed1b8a6c78ca5a61ca3c"
   },
   "nodes": [
     {
@@ -11295,6 +11295,91 @@
         "csharp"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "type": "file",
+      "name": "HealthEndpoints.cs",
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "summary": "Minimal API endpoint for system health, database liveness, and session readiness probes.",
+      "tags": [
+        "endpoint",
+        "health",
+        "server-api"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthEndpoints",
+      "type": "class",
+      "name": "HealthEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "summary": "Static class mapping health check endpoints.",
+      "tags": [
+        "endpoint",
+        "health"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "type": "function",
+      "name": "MapHealthEndpoints",
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "summary": "Registers GET /api/health with ASP.NET Core endpoint routing.",
+      "tags": [
+        "routing",
+        "health"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthResponseDto",
+      "type": "class",
+      "name": "HealthResponseDto",
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "summary": "Record payload containing system status, version, active sessions, and database connectivity.",
+      "tags": [
+        "dto",
+        "model",
+        "health"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs",
+      "type": "file",
+      "name": "HealthEndpointsTests.cs",
+      "filePath": "tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs",
+      "summary": "Integration test verifying GET /api/health endpoint response payload and HTTP status.",
+      "tags": [
+        "test",
+        "integration-test",
+        "health"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:HealthEndpointsTests",
+      "type": "class",
+      "name": "HealthEndpointsTests",
+      "filePath": "tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs",
+      "summary": "Test class for health endpoints using WebApplicationFactory.",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:GetHealth_ReturnsOk_WithValidStatusPayload",
+      "type": "function",
+      "name": "GetHealth_ReturnsOk_WithValidStatusPayload",
+      "filePath": "tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs",
+      "summary": "Fact test asserting GET /api/health returns 200 OK and Healthy status.",
+      "tags": [
+        "test"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -12389,6 +12474,48 @@
       "type": "contains",
       "direction": "forward",
       "weight": 1
+    },
+    {
+      "id": "edge:file:src/Cantus.Server/Endpoints/HealthEndpoints.cs->class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthEndpoints",
+      "source": "file:src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthEndpoints",
+      "type": "contains"
+    },
+    {
+      "id": "edge:file:src/Cantus.Server/Endpoints/HealthEndpoints.cs->function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "source": "file:src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "target": "function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "type": "contains"
+    },
+    {
+      "id": "edge:file:src/Cantus.Server/Endpoints/HealthEndpoints.cs->class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthResponseDto",
+      "source": "file:src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "target": "class:src/Cantus.Server/Endpoints/HealthEndpoints.cs:HealthResponseDto",
+      "type": "contains"
+    },
+    {
+      "id": "edge:file:src/Cantus.Server/Program.cs->function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "source": "file:src/Cantus.Server/Program.cs",
+      "target": "function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "type": "calls"
+    },
+    {
+      "id": "edge:file:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs->class:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:HealthEndpointsTests",
+      "source": "file:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs",
+      "target": "class:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:HealthEndpointsTests",
+      "type": "contains"
+    },
+    {
+      "id": "edge:class:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:HealthEndpointsTests->function:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:GetHealth_ReturnsOk_WithValidStatusPayload",
+      "source": "class:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:HealthEndpointsTests",
+      "target": "function:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:GetHealth_ReturnsOk_WithValidStatusPayload",
+      "type": "contains"
+    },
+    {
+      "id": "edge:function:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:GetHealth_ReturnsOk_WithValidStatusPayload->function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "source": "function:tests/Cantus.Server.Tests/Endpoints/HealthEndpointsTests.cs:GetHealth_ReturnsOk_WithValidStatusPayload",
+      "target": "function:src/Cantus.Server/Endpoints/HealthEndpoints.cs:MapHealthEndpoints",
+      "type": "tests"
     }
   ],
   "layers": [

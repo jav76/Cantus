@@ -37,7 +37,7 @@ hide:
     <div class="cantus-card-icon">🧠</div>
     <h3>Adaptive Polling Engine</h3>
     <p>
-      Intelligently modulates Spotify polling frequency (500ms when playing, 3s when paused, 10s when idle) and sleeps when zero viewers are connected to conserve API rate limits.
+      Intelligently modulates Spotify polling frequency (1.5s when playing, 5s when paused, 10s when idle) and sleeps when zero viewers are connected to conserve API rate limits.
     </p>
     <a href="architecture/adaptive-polling/" class="card-link">Learn about Adaptive Polling &rarr;</a>
   </div>

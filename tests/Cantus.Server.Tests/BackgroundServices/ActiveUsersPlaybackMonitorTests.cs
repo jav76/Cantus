@@ -226,4 +226,48 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Times.AtLeastOnce);
         _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
     }
+
+    [Fact]
+    public async Task WhenTrackChangesToLyriclessTrack_BroadcastsEmptyLyricsToUserGroup()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        TrackInfo track = new() { Id = "instrumental-1", Title = "Instrumental Track", Artist = "Composer" };
+        PlaybackState playback = new()
+        {
+            CurrentTrack = track,
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(5)
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(playback);
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SyncedLyrics?)null);
+
+        using CancellationTokenSource cts = new(150);
+        await _monitor.StartAsync(cts.Token);
+        await Task.Delay(80);
+        await _monitor.StopAsync(CancellationToken.None);
+
+        _mockUser1Group.Verify(
+            c => c.ReceiveLyrics(It.Is<LyricsDto>(l =>
+                l.TrackId == "instrumental-1" &&
+                l.Title == "Instrumental Track" &&
+                l.Lines.Count == 0)),
+            Times.AtLeastOnce);
+    }
 }

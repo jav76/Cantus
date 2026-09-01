@@ -6,7 +6,7 @@ This document provides step-by-step instructions for configuring **GitHub Branch
 
 ## 1. Overview of Cantus CI Architecture
 
-The Cantus continuous integration pipeline ([`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml)) is designed for speed, cross-platform coverage, and strict merge verification:
+The Cantus continuous integration pipeline ([`.github/workflows/ci.yml`](https://github.com/jav76/Cantus/blob/main/.github/workflows/ci.yml)) is designed for speed, cross-platform coverage, and strict merge verification:
 
 | Trigger Event | Execution Strategy | Target Environments |
 | :--- | :--- | :--- |

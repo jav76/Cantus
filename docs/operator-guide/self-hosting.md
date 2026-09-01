@@ -63,11 +63,11 @@ Cantus stores all state inside the `/app/data` directory within the container:
 | Path | Purpose | Importance |
 | :--- | :--- | :--- |
 | `/app/data/cantus.db` | SQLite database storing user sessions, LRCLIB cache, and track latency calibrations. | Critical |
-| `/app/data/DataProtection-Keys/` | XML cryptographic key ring used by ASP.NET Core Data Protection to encrypt Spotify OAuth refresh tokens. | Critical |
+| `/app/data/keys/` | XML cryptographic key ring used by ASP.NET Core Data Protection to encrypt Spotify OAuth refresh tokens. | Critical |
 
-> [!CAUTION]
-> Always mount a persistent volume (such as `cantus_data:/app/data` or a host bind mount `./data:/app/data`).
-> If this volume is destroyed or lost, stored sessions will become unreadable and users will need to re-authenticate with Spotify.
+!!! caution "Volume Persistence Required"
+    Always mount a persistent volume (such as `cantus_data:/app/data` or a host bind mount `./data:/app/data`).
+    If this volume is destroyed or lost, stored sessions will become unreadable and users will need to re-authenticate with Spotify.
 
 ---
 

@@ -99,4 +99,32 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
         SyncedLyrics? retrieved = await _repository.GetCachedLyricsAsync("track_expiring");
         retrieved.Should().BeNull();
     }
+
+    [Fact]
+    public async Task SaveLyricsAsync_WithSyllables_PreservesSyllableTimingOnRoundtrip()
+    {
+        LyricSyllable syl1 = new(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(500), "Hello");
+        LyricSyllable syl2 = new(TimeSpan.FromMilliseconds(1500), TimeSpan.FromMilliseconds(500), "World");
+        LyricLine line = new(TimeSpan.FromSeconds(1), "Hello World", [syl1, syl2]);
+
+        SyncedLyrics lyrics = new()
+        {
+            TrackId = "track_syllables",
+            Title = "Syllable Song",
+            Artist = "Syllable Artist",
+            IsSynced = true,
+            Lines = [line]
+        };
+
+        await _repository.SaveLyricsAsync(lyrics);
+
+        SyncedLyrics? retrieved = await _repository.GetCachedLyricsAsync("track_syllables");
+        retrieved.Should().NotBeNull();
+        retrieved!.Lines.Should().HaveCount(1);
+        retrieved.Lines[0].Text.Should().Be("Hello World");
+        retrieved.Lines[0].Syllables.Should().NotBeNull();
+        retrieved.Lines[0].Syllables!.Should().HaveCount(2);
+        retrieved.Lines[0].Syllables![0].Text.Should().Be("Hello");
+        retrieved.Lines[0].Syllables![1].Text.Should().Be("World");
+    }
 }
