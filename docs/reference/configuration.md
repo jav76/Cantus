@@ -8,17 +8,20 @@ This document lists all environment variables and configuration options supporte
 
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`SPOTIFY_CLIENT_ID`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
+| **`SPOTIFY_CLIENT_ID`** / **`Spotify__ClientId`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
 | **`CANTUS_HOST_URL`** | `string` | `http://localhost:5000` | Public root URL of your Cantus instance (used for OAuth redirect callbacks). | **Yes** |
+| **`Spotify__ClientSecret`** | `string` | — | Optional Spotify Client Secret (for developer override). | No |
+| **`DATA_DIR`** | `string` | `/app/data` | Base directory for persistent database and encryption keys. | No |
+| **`ConnectionStrings__CantusDatabase`** | `string` | `Data Source=cantus.db` | SQLite connection string. | No |
+| **`PlaybackPoller__ActivePollIntervalMs`** | `int` | `1500` | Polling cadence (ms) when Spotify is actively playing. | No |
+| **`PlaybackPoller__PausedPollIntervalMs`** | `int` | `5000` | Polling cadence (ms) when Spotify playback is paused. | No |
+| **`PlaybackPoller__IdlePollIntervalMs`** | `int` | `10000` | Polling cadence (ms) when Spotify has been inactive > 60s. | No |
+| **`PlaybackPoller__DiagnosticsBroadcastIntervalMs`** | `int` | `5000` | Interval (ms) for SignalR diagnostics broadcast telemetry. | No |
+| **`Lrclib__BaseUrl`** | `string` | `https://lrclib.net` | LRCLIB lyrics service base URL. | No |
+| **`Lrclib__NegativeCacheDays`** | `int` | `7` | Duration in days to cache tracks confirmed to have no lyrics. | No |
+| **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` | Logging configuration level: `none`, `debug`, or `trace`. | No |
 | **`ASPNETCORE_ENVIRONMENT`** | `string` | `Production` | ASP.NET Core environment mode (`Development`, `Staging`, `Production`). | No |
 | **`ASPNETCORE_URLS`** | `string` | `http://+:5000` | Listening binding address and port. | No |
-| **`CANTUS_DEFAULT_LATENCY_OFFSET_MS`** | `int` | `0` | Base latency offset in milliseconds applied to all lyric renders (useful for persistent Bluetooth delay). | No |
-| **`CANTUS_DB_PATH`** | `string` | `/app/data/cantus.db` | Absolute or relative file path to the SQLite database. | No |
-| **`CANTUS_DATA_PROTECTION_DIR`** | `string` | `/app/data/DataProtection-Keys` | Directory path where ASP.NET Core Data Protection cryptographic keys are stored. | No |
-| **`CANTUS_POLL_INTERVAL_PLAYING_MS`** | `int` | `500` | Polling cadence when Spotify is actively playing. | No |
-| **`CANTUS_POLL_INTERVAL_PAUSED_MS`** | `int` | `3000` | Polling cadence when Spotify playback is paused. | No |
-| **`CANTUS_POLL_INTERVAL_IDLE_MS`** | `int` | `10000` | Polling cadence when Spotify has been inactive > 60s. | No |
-| **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` | Logging configuration level: `none`, `debug`, or `trace`. | No |
 
 ---
 
@@ -53,7 +56,7 @@ When running Cantus, the application expects the `/app/data` volume to be writab
 ├── cantus.db                 # SQLite database (Sessions, Cache, Track Offsets)
 ├── cantus.db-shm             # SQLite shared memory file (WAL mode)
 ├── cantus.db-wal             # SQLite write-ahead log
-└── DataProtection-Keys/      # XML Keyring for OAuth token encryption at rest
+└── keys/                     # XML Keyring for OAuth token encryption at rest
     └── key-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xml
 ```
 

@@ -9,42 +9,42 @@ Cantus is built following **Clean Architecture** principles to separate concerns
 The system is organized into five distinct layers:
 
 ```mermaid
-graph TB
-    subgraph Client Presentation Layer
+flowchart TB
+    subgraph Layer1["1. Client Presentation Layer"]
         UnoUI["Uno Platform Client<br/>(WASM Browser / Linux Skia / Windows)"]
         VM["MVVM ViewModels<br/>(LyricsViewModel, LyricLineViewModel)"]
         UnoUI --> VM
     end
 
-    subgraph Server Engine & Application Layer
+    subgraph Layer2["2. Server Engine & Application Layer"]
         Hub["SignalR PlaybackHub<br/>(WebSocket Real-Time Broadcast)"]
         Engine["Adaptive Polling Engine<br/>(ActiveUsersPlaybackMonitor)"]
-        Endpoints["ASP.NET Core Minimal APIs<br/>(/api/auth, /api/health)"]
+        Endpoints["ASP.NET Core Minimal APIs<br/>(/api/auth, /api/lyrics, /api/health)"]
     end
 
-    subgraph Core Domain Layer
+    subgraph Layer3["3. Core Domain Layer"]
         Models["Domain Models<br/>(PlaybackState, SyncedLyrics, LyricLine)"]
         Parser["LRC Parser Engine<br/>(LrcParser, Timestamp Normalizer)"]
         Interfaces["Repository Interfaces<br/>(ILyricsCacheRepository, ISessionRepository)"]
     end
 
-    subgraph Infrastructure & Persistence Layer
-        Spotify["Spotify Integration<br/>(SpotifyAuthService, SpotifyApiClient)"]
+    subgraph Layer4["4. Infrastructure & Persistence Layer"]
+        Spotify["Spotify Integration<br/>(SpotifyAuthService, SpotifyPlayerClient)"]
         LRCLIB["Lyrics Provider<br/>(LrclibLyricsProvider)"]
         DB["SQLite Database & EF Core<br/>(CantusDbContext)"]
         Crypto["ASP.NET Core Data Protection<br/>(DataProtectionTokenEncryptionService)"]
     end
 
-    subgraph DevOps & Deployment
+    subgraph Layer5["5. DevOps & Deployment"]
         Docker["Multi-Arch Container<br/>(amd64 / arm64)"]
     end
 
-    Client Presentation Layer -->|SignalR / HTTP| Server Engine & Application Layer
-    Server Engine & Application Layer --> Core Domain Layer
-    Server Engine & Application Layer --> Infrastructure & Persistence Layer
-    Infrastructure & Persistence Layer --> Core Domain Layer
-    DevOps & Deployment -. Hosts .-> Server Engine & Application Layer
-    DevOps & Deployment -. Serves .-> Client Presentation Layer
+    Layer1 -->|SignalR / HTTP| Layer2
+    Layer2 --> Layer3
+    Layer2 --> Layer4
+    Layer4 --> Layer3
+    Layer5 -. Hosts .-> Layer2
+    Layer5 -. Serves .-> Layer1
 ```
 
 ---
@@ -56,11 +56,11 @@ graph TB
 - **Responsibilities**: Renders high-frame-rate scrolling lyrics, extracts dynamic color palettes from album artwork, performs local sub-millisecond clock interpolation, and dispatches UI events.
 
 ### 2. Server Engine & Real-Time Hub (ASP.NET Core)
-- **Technology**: ASP.NET Core 9 Minimal APIs, Microsoft SignalR.
+- **Technology**: ASP.NET Core 10 Minimal APIs, Microsoft SignalR.
 - **Responsibilities**: Coordinates connected client display rooms, manages the background adaptive polling loop, orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
 
 ### 3. Core Domain Models & Contracts
-- **Technology**: Pure .NET 9 Standard library (Zero external framework dependencies).
+- **Technology**: Pure .NET 10 Standard library (Zero external framework dependencies).
 - **Responsibilities**: Contains entity definitions (`PlaybackState`, `SyncedLyrics`, `LyricLine`, `UserSession`), parsing algorithms (`LrcParser`), and abstract provider/repository contracts.
 
 ### 4. Infrastructure & External Services

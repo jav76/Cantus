@@ -213,6 +213,7 @@ app.MapHub<PlaybackHub>("/hubs/playback");
 // 16. REST API Route Groups
 app.MapAuthEndpoints();
 app.MapLyricsEndpoints();
+app.MapHealthEndpoints();
 
 // 17. SPA Fallback
 app.MapFallbackToFile("index.html");

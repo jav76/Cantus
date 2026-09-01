@@ -18,35 +18,36 @@ Clients negotiate connection parameters over HTTP and upgrade to WebSockets.
 
 Clients invoke these methods on the hub:
 
-### `JoinRoom(userId)`
-Subscribes the connection to updates for a specific Spotify user ID room.
-- **Parameters**: `userId` (`string`) — Spotify User Account identifier.
-- **Behavior**: Increments active viewer count in `SessionRegistry`. If the account was sleeping, resumes active Spotify polling immediately.
+### `SubscribeToUser(userId)`
+Subscribes the connection to updates for a specific Spotify user ID.
+- **Parameters**: `userId` (`string?`) — Spotify User Account identifier.
+- **Behavior**: Associates the connection with `user_{userId}` group in `SessionRegistry`. Upon subscription, the caller immediately receives initial snapshots of `ReceivePlaybackState`, `ReceiveLyrics`, `ReceiveTrackOffset`, and `ReceiveDiagnostics`.
 
-### `LeaveRoom(userId)`
-Unsubscribes the connection from a room.
-- **Parameters**: `userId` (`string`) — Spotify User Account identifier.
-- **Behavior**: Decrements active viewer count. If viewer count reaches 0, halts background polling for that account.
+### `RegisterClientLogin(clientId)`
+Subscribes the connection to an ephemeral client login channel.
+- **Parameters**: `clientId` (`string`) — Temporary client handshake identifier.
+- **Behavior**: Used by desktop and remote displays to receive authenticated session tokens following browser OAuth PKCE completion (`ReceiveAuthSession`).
 
-### `SyncClock(clientSendTimeTicks)`
+### `SyncClock(clientSendTimeMs)`
 Initiates a 4-timestamp NTP clock sync sample.
-- **Parameters**: `clientSendTimeTicks` (`long`) — Client local UTC time in .NET Ticks ($t_0$).
-- **Response**: Triggers `SyncClockResponse` event back to the calling client.
+- **Parameters**: `clientSendTimeMs` (`long`) — Client local UTC Unix epoch timestamp in milliseconds ($t_0$).
+- **Returns / Broadcasts**: Returns or dispatches `ClockSyncResponse` containing $(t_0, t_1, t_2)$ in milliseconds.
 
-### `CalibrateOffset(trackId, offsetMs)`
+### `SetTrackOffset(trackId, offsetMs)`
 Stores a manual latency calibration offset for a specific track.
 - **Parameters**:
   - `trackId` (`string`) — Spotify Track ID.
   - `offsetMs` (`int`) — Desired offset in milliseconds (e.g. `+150` or `-50`).
+- **Behavior**: Persists the offset in SQLite and broadcasts `ReceiveTrackOffset` to all active viewers in the user group.
 
 ---
 
 ## Server-to-Client Events (Broadcasts)
 
-The server broadcasts these events to connected room subscribers:
+The server broadcasts these events to connected subscribers (`IPlaybackClient`):
 
 ### `ReceivePlaybackState`
-Dispatched whenever track state changes (progress, play/pause, volume, new track).
+Dispatched whenever track state changes (progress, play/pause, track change).
 
 ```json
 {
@@ -58,7 +59,9 @@ Dispatched whenever track state changes (progress, play/pause, volume, new track
   "durationMs": 213573,
   "progressMs": 45200,
   "isPlaying": true,
-  "serverTimestampUtcTicks": 638600000000000000
+  "serverTimeUtc": "2026-09-01T01:15:00.000Z",
+  "userId": "spotify_user_123",
+  "displayName": "Rick"
 }
 ```
 
@@ -84,13 +87,40 @@ Dispatched when a new track starts playing or lyrics finish resolving.
 }
 ```
 
-### `SyncClockResponse`
-Direct response to a client `SyncClock` invocation for NTP offset computation.
+### `ReceiveTrackOffset`
+Dispatched when a user modifies or loads the latency offset for a track.
 
 ```json
 {
-  "t0": 638600000000100000,
-  "t1": 638600000000115000,
-  "t2": 638600000000116000
+  "trackId": "4cOdK2wGLETKBW3PvgPWqT",
+  "offsetMs": 150
 }
 ```
+
+### `ReceiveClockSync`
+Response payload for NTP round-trip offset and jitter computation.
+
+```json
+{
+  "clientSendTimeMs": 1788225300000,
+  "serverReceiveTimeMs": 1788225300015,
+  "serverSendTimeMs": 1788225300016
+}
+```
+
+### `ReceiveDiagnostics`
+Periodic runtime telemetry broadcast.
+
+```json
+{
+  "connectedClients": 2,
+  "authorizedSessions": 1,
+  "pollerStatus": "Active (Playing)",
+  "activeUserId": "spotify_user_123",
+  "activeUserName": "Rick",
+  "serverTimeUtc": "2026-09-01T01:15:00.000Z"
+}
+```
+
+### `ReceiveSessions` & `ReceiveAuthSession`
+Broadcasts list of authorized Spotify accounts or notifies a newly authenticated login.

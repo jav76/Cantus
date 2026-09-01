@@ -39,8 +39,8 @@ flowchart LR
     Cantus -->|5. Encrypt & Save Session| SQLite[(Local SQLite)]
 ```
 
-> [!IMPORTANT]
-> The redirect URI configured in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/spotify/callback` (or `/api/auth/callback`), including protocol (`http://` vs `https://`) and port. You can add multiple redirect URIs in the Spotify dashboard (e.g. both `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`).
+!!! warning "Strict Redirect URI Matching"
+    The redirect URI configured in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/spotify/callback` (or `/api/auth/callback`), including protocol (`http://` vs `https://`) and port. You can add multiple redirect URIs in the Spotify dashboard (e.g. both `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`).
 
 ---
 
@@ -53,8 +53,8 @@ flowchart LR
    SPOTIFY_CLIENT_ID=abcdef0123456789abcdef0123456789
    ```
 
-> [!NOTE]
-> Because Cantus uses the **PKCE** extension, a Client Secret is **not** required or used, ensuring your client secret is never exposed or logged.
+!!! note "PKCE Flow Security"
+    Because Cantus uses the **PKCE** extension, a Client Secret is **not** required or used, ensuring your client secret is never exposed or logged.
 
 ---
 

@@ -44,11 +44,11 @@ To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi d
 3. Enter fullscreen mode (press <kbd>F11</kbd> or use the TV browser's fullscreen button).
 4. The cursor will auto-hide after 3 seconds of inactivity to keep the display clean.
 
-> [!TIP]
-> If using a Raspberry Pi or wall tablet, launch Chromium in kiosk mode:
-> ```bash
-> chromium-browser --kiosk --noerrdialogs --disable-infobars http://cantus.local:5000
-> ```
+!!! tip "Raspberry Pi & Kiosk Launch"
+    If using a Raspberry Pi or wall tablet, launch Chromium in kiosk mode:
+    ```bash
+    chromium-browser --kiosk --noerrdialogs --disable-infobars http://cantus.local:5000
+    ```
 
 ---
 
