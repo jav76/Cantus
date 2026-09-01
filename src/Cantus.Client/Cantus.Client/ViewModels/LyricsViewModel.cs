@@ -58,6 +58,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private string _instrumentalBreakText = string.Empty;
     private bool _isKioskMode;
     private bool _isStaticLyricsMode;
+    private const string SETTINGS_KEY_AUTOSCROLL = "cantus_autoscroll";
+    private bool _isAutoScrollEnabled = LoadAutoScrollPreference();
+    private bool _isUserScrollingPaused;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
@@ -249,6 +252,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(SyncedLyricsVisibility));
                 OnPropertyChanged(nameof(StaticLyricsVisibility));
                 OnPropertyChanged(nameof(ModeToggleVisibility));
+                OnPropertyChanged(nameof(AutoScrollToggleVisibility));
+                OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
             }
         }
     }
@@ -322,6 +327,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(ModeToggleText));
                 OnPropertyChanged(nameof(ModeToggleGlyph));
                 OnPropertyChanged(nameof(StaticLyricsText));
+                OnPropertyChanged(nameof(AutoScrollToggleVisibility));
+                OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
             }
         }
     }
@@ -341,9 +348,75 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public string ModeToggleText => IsStaticLyricsMode ? "Live Synced" : "Static View";
     public string ModeToggleGlyph => IsStaticLyricsMode ? "\uE895" : "\uE8C4";
 
+    public bool IsAutoScrollEnabled
+    {
+        get => _isAutoScrollEnabled;
+        set
+        {
+            if (_isAutoScrollEnabled != value)
+            {
+                _isAutoScrollEnabled = value;
+                SaveAutoScrollPreference(value);
+                if (!value)
+                {
+                    IsUserScrollingPaused = false;
+                }
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AutoScrollToggleText));
+                OnPropertyChanged(nameof(AutoScrollToggleGlyph));
+                OnPropertyChanged(nameof(AutoScrollToggleVisibility));
+                OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
+                AutoScrollEnabledChanged?.Invoke(value);
+            }
+        }
+    }
+
+    public bool IsUserScrollingPaused
+    {
+        get => _isUserScrollingPaused;
+        private set
+        {
+            if (_isUserScrollingPaused != value)
+            {
+                _isUserScrollingPaused = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
+            }
+        }
+    }
+
+    public string AutoScrollToggleText => IsAutoScrollEnabled ? "Autoscroll" : "Free Scroll";
+    public string AutoScrollToggleGlyph => IsAutoScrollEnabled ? "\uE73E" : "\uE711";
+    public Visibility AutoScrollToggleVisibility => (HasSyncedLyrics && HasLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility ResumeAutoScrollVisibility => (IsAutoScrollEnabled && IsUserScrollingPaused && HasSyncedLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
+
+    public event Action<bool>? AutoScrollEnabledChanged;
+    public event Action? AutoScrollResumed;
+
     public void ToggleStaticLyricsMode()
     {
         IsStaticLyricsMode = !IsStaticLyricsMode;
+    }
+
+    public void ToggleAutoScroll()
+    {
+        IsAutoScrollEnabled = !IsAutoScrollEnabled;
+    }
+
+    public void SetUserScrollingPaused(bool paused)
+    {
+        if (!IsAutoScrollEnabled && paused) return;
+        IsUserScrollingPaused = paused;
+    }
+
+    public void ResumeAutoScroll()
+    {
+        IsUserScrollingPaused = false;
+        AutoScrollResumed?.Invoke();
+        if (ActiveLineIndex >= 0)
+        {
+            ActiveLineChanged?.Invoke(ActiveLineIndex);
+        }
     }
 
     public int ActiveLineIndex
@@ -634,11 +707,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             }
         }
         ActiveLineIndex = -1;
+        IsUserScrollingPaused = false;
 
         OnPropertyChanged(nameof(StaticLyricsText));
         OnPropertyChanged(nameof(SyncedLyricsVisibility));
         OnPropertyChanged(nameof(StaticLyricsVisibility));
         OnPropertyChanged(nameof(ModeToggleVisibility));
+        OnPropertyChanged(nameof(AutoScrollToggleVisibility));
+        OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
         OnPropertyChanged(nameof(HasSyncedLyrics));
         OnPropertyChanged(nameof(HasPlainLyrics));
     }
@@ -979,6 +1055,34 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         TimeSpan ts = TimeSpan.FromMilliseconds(ms);
         return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";
+    }
+
+    private static bool LoadAutoScrollPreference()
+    {
+        try
+        {
+            object? val = Windows.Storage.ApplicationData.Current?.LocalSettings?.Values[SETTINGS_KEY_AUTOSCROLL];
+            if (val is bool b) return b;
+            if (val is string s && bool.TryParse(s, out bool parsed)) return parsed;
+        }
+        catch
+        {
+        }
+        return true;
+    }
+
+    private static void SaveAutoScrollPreference(bool value)
+    {
+        try
+        {
+            if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
+            {
+                settings[SETTINGS_KEY_AUTOSCROLL] = value;
+            }
+        }
+        catch
+        {
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
