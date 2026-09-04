@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using SpotifyAPI.Web;
 using Xunit;
 
 namespace Cantus.Server.Tests.BackgroundServices;
@@ -269,5 +270,54 @@ public sealed class ActiveUsersPlaybackMonitorTests
                 l.Title == "Instrumental Track" &&
                 l.Lines.Count == 0)),
             Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task WhenSpotifyReturnsRateLimit_PausesPollingAndBroadcastsRateLimitedDiagnostics()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+
+        Mock<SpotifyAPI.Web.Http.IResponse> mockResponse = new();
+        mockResponse.Setup(r => r.Headers).Returns(new Dictionary<string, string>
+        {
+            { "Retry-After", "120" }
+        });
+
+        APITooManyRequestsException rateLimitException = new(mockResponse.Object);
+
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(rateLimitException);
+
+        using CancellationTokenSource cts = new(250);
+        await _monitor.StartAsync(cts.Token);
+        await Task.Delay(150);
+        await _monitor.StopAsync(CancellationToken.None);
+
+        _monitor.IsRateLimited.Should().BeTrue();
+        _monitor.RateLimitUntilUtc.Should().BeAfter(DateTimeOffset.UtcNow);
+
+        _mockUser1Group.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d =>
+                d.PollerStatus.StartsWith("Rate Limited"))),
+            Times.AtLeastOnce);
+
+        // Should NOT have called GetCurrentPlaybackAsync in a tight loop
+        _mockSpotifyClient.Verify(
+            s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
