@@ -19,8 +19,13 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly IHubContext<PlaybackHub, IPlaybackClient> _hubContext;
     private readonly PlaybackPollerOptions _options;
     private readonly ILogger<ActiveUsersPlaybackMonitor> _logger;
-    private readonly SemaphoreSlim _wakeSignal = new(0, 1);
+    private readonly object _wakeLock = new();
+    private CancellationTokenSource _wakeCts = new();
+    private DateTimeOffset _rateLimitUntilUtc = DateTimeOffset.MinValue;
     private DateTimeOffset _lastDiagnosticsBroadcast = DateTimeOffset.MinValue;
+
+    public DateTimeOffset RateLimitUntilUtc => _rateLimitUntilUtc;
+    public bool IsRateLimited => DateTimeOffset.UtcNow < _rateLimitUntilUtc;
 
     public ActiveUsersPlaybackMonitor(
         IServiceScopeFactory scopeFactory,
@@ -41,14 +46,17 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
     public void TriggerImmediatePoll()
     {
-        if (_wakeSignal.CurrentCount == 0)
+        lock (_wakeLock)
         {
-            try
+            if (!_wakeCts.IsCancellationRequested)
             {
-                _wakeSignal.Release();
-            }
-            catch (ObjectDisposedException)
-            {
+                try
+                {
+                    _wakeCts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
     }
@@ -61,18 +69,28 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         {
             try
             {
+                CancellationTokenSource currentWakeCts;
+                lock (_wakeLock)
+                {
+                    if (_wakeCts.IsCancellationRequested)
+                    {
+                        _wakeCts.Dispose();
+                        _wakeCts = new();
+                    }
+                    currentWakeCts = _wakeCts;
+                }
+
                 // If zero connected clients, wait for someone to connect
                 if (!_registry.HasConnectedClients)
                 {
                     try
                     {
-                        await Task.WhenAny(
-                            Task.Delay(1000, stoppingToken),
-                            _wakeSignal.WaitAsync(stoppingToken));
+                        using CancellationTokenSource linkedZeroClients =
+                            CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token);
+                        await Task.Delay(1000, linkedZeroClients.Token);
                     }
-                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                     {
-                        break;
                     }
                     continue;
                 }
@@ -82,13 +100,12 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 // Delay according to adaptive rate or immediate wake signal
                 try
                 {
-                    await Task.WhenAny(
-                        Task.Delay(pollDelayMs, stoppingToken),
-                        _wakeSignal.WaitAsync(stoppingToken));
+                    using CancellationTokenSource linkedDelay =
+                        CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token);
+                    await Task.Delay(pollDelayMs, linkedDelay.Token);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                 {
-                    break;
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -120,6 +137,36 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             return _options.IdlePollIntervalMs;
         }
 
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        if (now < _rateLimitUntilUtc)
+        {
+            TimeSpan remaining = _rateLimitUntilUtc - now;
+            string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(remaining)})";
+
+            foreach (string userId in activeUserIds)
+            {
+                UserSession? session = await authService.GetSessionAsync(userId, cancellationToken);
+                if (session is null)
+                {
+                    continue;
+                }
+
+                string userGroup = $"user_{session.Id}";
+                await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                {
+                    ConnectedClients = _registry.ConnectedClientsCount,
+                    AuthorizedSessions = 1,
+                    PollerStatus = rateLimitStatus,
+                    ActivePollIntervalMs = (int)Math.Min(remaining.TotalMilliseconds, 10000),
+                    ActiveUserId = session.Id,
+                    ActiveUserName = session.DisplayName,
+                    ServerTimeUtc = DateTimeOffset.UtcNow
+                });
+            }
+
+            return (int)Math.Clamp(remaining.TotalMilliseconds, 1000, 10000);
+        }
+
         bool anyPlaying = false;
         bool anyActive = false;
 
@@ -135,6 +182,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
                 UserPlaybackSnapshot? previousSnapshot = _registry.GetUserState(session.Id);
                 PlaybackState? currentPlayback = null;
+                string userGroup = $"user_{session.Id}";
 
                 try
                 {
@@ -144,7 +192,29 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 }
                 catch (APITooManyRequestsException tooManyEx)
                 {
-                    _logger.LogWarning(tooManyEx, "Spotify API rate limit hit for user {UserId}. Retry after {RetryAfter}", session.Id, tooManyEx.RetryAfter);
+                    TimeSpan retryAfter = tooManyEx.RetryAfter > TimeSpan.Zero
+                        ? tooManyEx.RetryAfter
+                        : TimeSpan.FromSeconds(60);
+                    _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
+                    _logger.LogWarning(
+                        "Spotify API rate limit hit for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                        session.Id,
+                        _rateLimitUntilUtc,
+                        retryAfter);
+
+                    string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
+                    await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                    {
+                        ConnectedClients = _registry.ConnectedClientsCount,
+                        AuthorizedSessions = 1,
+                        PollerStatus = rateLimitStatus,
+                        ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                        ActiveUserId = session.Id,
+                        ActiveUserName = session.DisplayName,
+                        ServerTimeUtc = DateTimeOffset.UtcNow
+                    });
+
+                    return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
                 }
                 catch (Exception ex) when (
                     ex is APIUnauthorizedException ||
@@ -162,13 +232,37 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             refreshedSession.AccessToken,
                             cancellationToken);
                     }
+                    catch (APITooManyRequestsException refreshTooManyEx)
+                    {
+                        TimeSpan retryAfter = refreshTooManyEx.RetryAfter > TimeSpan.Zero
+                            ? refreshTooManyEx.RetryAfter
+                            : TimeSpan.FromSeconds(60);
+                        _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
+                        _logger.LogWarning(
+                            "Spotify API rate limit hit during token refresh for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                            session.Id,
+                            _rateLimitUntilUtc,
+                            retryAfter);
+
+                        string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
+                        await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                        {
+                            ConnectedClients = _registry.ConnectedClientsCount,
+                            AuthorizedSessions = 1,
+                            PollerStatus = rateLimitStatus,
+                            ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                            ActiveUserId = session.Id,
+                            ActiveUserName = session.DisplayName,
+                            ServerTimeUtc = DateTimeOffset.UtcNow
+                        });
+
+                        return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
+                    }
                     catch (Exception refreshEx)
                     {
                         _logger.LogError(refreshEx, "Failed to refresh token for user {UserId}", session.Id);
                     }
                 }
-
-                string userGroup = $"user_{session.Id}";
 
                 if (currentPlayback is not null)
                 {
@@ -300,5 +394,23 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         }
 
         return _options.IdlePollIntervalMs;
+    }
+
+    private static string FormatTimeSpan(TimeSpan ts)
+    {
+        if (ts.TotalHours >= 1)
+        {
+            return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+        return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+    }
+
+    public override void Dispose()
+    {
+        lock (_wakeLock)
+        {
+            _wakeCts.Dispose();
+        }
+        base.Dispose();
     }
 }

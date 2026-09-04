@@ -89,7 +89,6 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
             DateTimeOffset.UtcNow);
 
         _userSnapshots[userId] = snapshot;
-        OnSessionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public UserPlaybackSnapshot? GetUserState(string userId)
