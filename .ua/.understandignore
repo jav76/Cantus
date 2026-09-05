@@ -11,8 +11,13 @@ artifacts/
 all_artifacts/
 wasm_dist/
 server_dist/
+dist/
+dist_test/
+publish/
+site/
 packaging/windows/Output/
 packaging/linux/AppDir/
+packaging/linux/publish/
 
 # --- Excluded secrets & local configs ---
 .env

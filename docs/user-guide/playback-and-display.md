@@ -33,6 +33,27 @@ flowchart TD
 
 ---
 
+## Auto-Scrolling & Interactive Controls
+
+Cantus combines automated karaoke-style tracking with full manual freedom:
+
+### 1. Dynamic Auto-Centering
+During playback, the lyrics stage dynamically scrolls to maintain the active singing line in the optical center of the display. Padding at the top and bottom of the container dynamically adjusts based on viewport height so the first and last lines can be centered comfortably.
+
+### 2. Manual Scroll Detection & Free Browsing
+If you want to read ahead or check previous lyrics:
+- Simply scroll using your mouse wheel, trackpad gesture, or touchscreen drag.
+- Cantus immediately detects user intervention and sets auto-scroll to **Paused**.
+- The active line continues to highlight in time with the music, but the scroll position will not jump or fight against your scrolling.
+
+### 3. Floating Resume Button & 3-Second Auto-Resume
+When manual scrolling pauses the display:
+- A floating **"Resume Auto-Scroll"** pill button appears at the bottom-center of the stage.
+- If no scrolling interaction occurs for **3 seconds**, Cantus automatically resumes auto-scrolling with a smooth transition back to the currently active line.
+- You can also tap the floating **Resume** button at any time to re-center immediately.
+
+---
+
 ## Display Environments
 
 ### 1. Smart TV & Kiosk Display

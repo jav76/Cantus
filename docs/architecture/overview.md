@@ -57,7 +57,7 @@ flowchart TB
 
 ### 2. Server Engine & Real-Time Hub (ASP.NET Core)
 - **Technology**: ASP.NET Core 10 Minimal APIs, Microsoft SignalR.
-- **Responsibilities**: Coordinates connected client display rooms, manages the background adaptive polling loop, orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
+- **Responsibilities**: Coordinates connected client display rooms, manages the background adaptive polling engine (featuring end-of-track acceleration, graduated backoff, client tab visibility throttling, and on-demand refresh), orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
 
 ### 3. Core Domain Models & Contracts
 - **Technology**: Pure .NET 10 Standard library (Zero external framework dependencies).
@@ -65,7 +65,7 @@ flowchart TB
 
 ### 4. Infrastructure & External Services
 - **Technology**: Entity Framework Core with SQLite, ASP.NET Core Data Protection, `HttpClient`.
-- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB for synchronized lyrics with fuzzy matching, manages 30-day positive caching and 7-day negative caching for instrumental songs, and encrypts OAuth refresh tokens at rest.
+- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB for synchronized lyrics with fuzzy matching, manages SQLite caching with 30-day negative caching for instrumental songs, and encrypts OAuth refresh tokens at rest.
 
 ### 5. DevOps & Containerization
 - **Technology**: Multi-stage Docker build, Docker Compose, GitHub Actions.

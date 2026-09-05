@@ -40,6 +40,15 @@ Stores a manual latency calibration offset for a specific track.
   - `offsetMs` (`int`) — Desired offset in milliseconds (e.g. `+150` or `-50`).
 - **Behavior**: Persists the offset in SQLite and broadcasts `ReceiveTrackOffset` to all active viewers in the user group.
 
+### `ReportClientVisibility(isVisible)`
+Notifies the server whether the client window or browser tab is actively visible or hidden.
+- **Parameters**: `isVisible` (`bool`) — `true` if active in viewport; `false` if minimized, hidden, or tabbed away.
+- **Behavior**: Updates visibility state in `PlaybackSessionRegistry`. If `isVisible` is `true`, immediately requests user activity to wake up the polling engine without waiting for the scheduled background interval.
+
+### `RefreshPlayback()`
+Requests an immediate on-demand Spotify playback refresh for the caller's subscribed user.
+- **Behavior**: Invokes `IPlaybackSessionRegistry.RequestUserActivity`, cancelling the background poller's wait delay to query Spotify within milliseconds. Ideal for tab refocus or after manual playback operations.
+
 ---
 
 ## Server-to-Client Events (Broadcasts)
@@ -116,11 +125,19 @@ Periodic runtime telemetry broadcast.
   "connectedClients": 2,
   "authorizedSessions": 1,
   "pollerStatus": "Active (Playing)",
+  "activePollIntervalMs": 4000,
   "activeUserId": "spotify_user_123",
   "activeUserName": "Rick",
   "serverTimeUtc": "2026-09-01T01:15:00.000Z"
 }
 ```
+
+**`pollerStatus` Values**:
+- `"Active (Playing)"`: User has active playback and at least one client tab is visible.
+- `"Active (Background)"`: User has active playback but all connected client tabs are hidden/minimized.
+- `"Paused"`: Playback is currently paused (cadence shifts from 5s up to 30s based on duration).
+- `"Idle"`: No active playback detected on Spotify (cadence shifts from 10s up to 60s).
+- `"Rate Limited (mm:ss)"`: Temporary cooldown after receiving an HTTP 429 from Spotify API.
 
 ### `ReceiveSessions` & `ReceiveAuthSession`
 Broadcasts list of authorized Spotify accounts or notifies a newly authenticated login.
