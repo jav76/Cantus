@@ -628,6 +628,34 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         }
     }
 
+    public async Task ReportVisibilityAsync(bool isVisible)
+    {
+        if (_connection is not null && _connection.State == HubConnectionState.Connected)
+        {
+            try
+            {
+                await _connection.InvokeAsync("ReportClientVisibility", isVisible);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    public async Task RefreshPlaybackAsync()
+    {
+        if (_connection is not null && _connection.State == HubConnectionState.Connected)
+        {
+            try
+            {
+                await _connection.InvokeAsync("RefreshPlayback");
+            }
+            catch
+            {
+            }
+        }
+    }
+
     public async Task LogoutAsync()
     {
         try

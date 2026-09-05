@@ -265,4 +265,30 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             OffsetMs = offsetMs
         });
     }
+
+    public Task ReportClientVisibility(bool isVisible)
+    {
+        _registry.SetConnectionVisibility(Context.ConnectionId, isVisible);
+        if (isVisible)
+        {
+            string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                _registry.RequestUserActivity(userId);
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task RefreshPlayback()
+    {
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (!string.IsNullOrEmpty(userId))
+        {
+            _registry.RequestUserActivity(userId);
+        }
+
+        return Task.CompletedTask;
+    }
 }

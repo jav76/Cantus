@@ -53,9 +53,13 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockClients.Setup(c => c.Group("user_user-1")).Returns(_mockUser1Group.Object);
         _mockClients.Setup(c => c.Group("user_user-2")).Returns(_mockUser2Group.Object);
 
+        _mockRegistry.Setup(r => r.IsUserVisible(It.IsAny<string>())).Returns(true);
+
         IOptions<PlaybackPollerOptions> options = Options.Create(new PlaybackPollerOptions
         {
             ActivePollIntervalMs = 50,
+            ApproachingEndPollIntervalMs = 50,
+            ImminentEndPollIntervalMs = 50,
             PausedPollIntervalMs = 50,
             IdlePollIntervalMs = 50,
             DiagnosticsBroadcastIntervalMs = 50
@@ -319,5 +323,138 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockSpotifyClient.Verify(
             s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task WhenTrackIsNearEnd_BroadcastsImminentEndInterval()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        TrackInfo track = new()
+        {
+            Id = "track-ending",
+            Title = "Ending Soon",
+            Artist = "Artist",
+            Duration = TimeSpan.FromSeconds(100)
+        };
+
+        // Remaining = 2 seconds (<= ImminentEndThresholdMs which is default 5000ms)
+        PlaybackState playback = new()
+        {
+            CurrentTrack = track,
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(98),
+            TimestampUtc = DateTimeOffset.UtcNow
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(playback);
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SyncedLyrics?)null);
+
+        IOptions<PlaybackPollerOptions> customOptions = Options.Create(new PlaybackPollerOptions
+        {
+            ActivePollIntervalMs = 4000,
+            ApproachingEndPollIntervalMs = 2500,
+            ImminentEndPollIntervalMs = 1234,
+            ImminentEndThresholdMs = 5000,
+            ApproachingEndThresholdMs = 15000
+        });
+
+        ActiveUsersPlaybackMonitor customMonitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            customOptions,
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+
+        using CancellationTokenSource cts = new(150);
+        await customMonitor.StartAsync(cts.Token);
+        await Task.Delay(80);
+        await customMonitor.StopAsync(CancellationToken.None);
+
+        _mockUser1Group.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d =>
+                d.ActivePollIntervalMs == 1234 &&
+                d.PollerStatus == "Active (Playing)")),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task WhenUserTabIsHidden_BroadcastsBackgroundInterval()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+        _mockRegistry.Setup(r => r.IsUserVisible("user-1")).Returns(false);
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        TrackInfo track = new()
+        {
+            Id = "track-1",
+            Title = "Song",
+            Artist = "Artist",
+            Duration = TimeSpan.FromMinutes(3)
+        };
+
+        PlaybackState playback = new()
+        {
+            CurrentTrack = track,
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(30),
+            TimestampUtc = DateTimeOffset.UtcNow
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(playback);
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SyncedLyrics?)null);
+
+        IOptions<PlaybackPollerOptions> customOptions = Options.Create(new PlaybackPollerOptions
+        {
+            ActivePollIntervalMs = 4000,
+            BackgroundPollIntervalMs = 8888
+        });
+
+        ActiveUsersPlaybackMonitor customMonitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            customOptions,
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+
+        using CancellationTokenSource cts = new(150);
+        await customMonitor.StartAsync(cts.Token);
+        await Task.Delay(80);
+        await customMonitor.StopAsync(CancellationToken.None);
+
+        _mockUser1Group.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d =>
+                d.ActivePollIntervalMs == 8888 &&
+                d.PollerStatus == "Active (Background)")),
+            Times.AtLeastOnce);
     }
 }

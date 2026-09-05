@@ -50,6 +50,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
 
     public void Dispose()
     {
+        SpotifyAuthService.ClearCache();
         _dbContext.Dispose();
         _connection.Dispose();
     }
@@ -112,5 +113,45 @@ public sealed class SpotifyAuthServiceTests : IDisposable
     {
         Core.Models.UserSession? session = await _authService.GetSessionAsync("nonexistent_user");
         session.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSessionAsync_CachesSessionInMemory_AndInvalidatesOnRevoke()
+    {
+        string rawAccessToken = "access_token_123";
+        string rawRefreshToken = "refresh_token_456";
+
+        UserSessionEntity entity = new()
+        {
+            Id = "user_cache_test",
+            SpotifyUserId = "sp_user_cache",
+            DisplayName = "Cached User",
+            Email = "cached@example.com",
+            EncryptedAccessToken = _encryptionService.Encrypt(rawAccessToken),
+            EncryptedRefreshToken = _encryptionService.Encrypt(rawRefreshToken),
+            ExpiresAtUtc = DateTimeOffset.UtcNow.AddHours(1),
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        await _dbContext.UserSessions.AddAsync(entity);
+        await _dbContext.SaveChangesAsync();
+
+        // First call populates cache
+        Core.Models.UserSession? session1 = await _authService.GetSessionAsync("user_cache_test");
+        session1.Should().NotBeNull();
+
+        // Second call should return cached instance even if database entity is removed behind the scenes
+        _dbContext.UserSessions.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        Core.Models.UserSession? session2 = await _authService.GetSessionAsync("user_cache_test");
+        session2.Should().NotBeNull();
+        session2!.Id.Should().Be("user_cache_test");
+
+        // Revoke should clear cache
+        await _authService.RevokeSessionAsync("user_cache_test");
+        Core.Models.UserSession? session3 = await _authService.GetSessionAsync("user_cache_test");
+        session3.Should().BeNull();
     }
 }

@@ -151,4 +151,39 @@ public sealed class PlaybackSessionRegistryTests
         // user-1 has no remaining connections
         registry.GetActiveUserIdsWithConnectedClients().Should().BeEquivalentTo(new[] { "user-2" });
     }
+
+    [Fact]
+    public void VisibilityTracking_ReportsCorrectUserVisibility()
+    {
+        PlaybackSessionRegistry registry = new();
+
+        registry.RegisterConnection("conn-1", "user-1");
+        registry.RegisterConnection("conn-2", "user-1");
+
+        // Initially visible
+        registry.IsUserVisible("user-1").Should().BeTrue();
+
+        // One tab hidden, other still visible -> user is visible
+        registry.SetConnectionVisibility("conn-1", false);
+        registry.IsUserVisible("user-1").Should().BeTrue();
+
+        // Both tabs hidden -> user is not visible
+        registry.SetConnectionVisibility("conn-2", false);
+        registry.IsUserVisible("user-1").Should().BeFalse();
+
+        // One tab becomes visible again -> user is visible
+        registry.SetConnectionVisibility("conn-1", true);
+        registry.IsUserVisible("user-1").Should().BeTrue();
+    }
+
+    [Fact]
+    public void RequestUserActivity_RaisesOnUserActivityRequested()
+    {
+        PlaybackSessionRegistry registry = new();
+        string? signaledUser = null;
+        registry.OnUserActivityRequested += (_, uid) => signaledUser = uid;
+
+        registry.RequestUserActivity("user-99");
+        signaledUser.Should().Be("user-99");
+    }
 }
