@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Self-hosted, real-time synchronized lyrics display platform integrating Spotify playback, LRCLIB lyrics caching, sub-millisecond NTP interpolation, and Uno Platform multi-client streaming.",
-    "analyzedAt": "2026-09-01T01:24:21.190Z",
-    "gitCommitHash": "347359916129b0f78810ed1b8a6c78ca5a61ca3c"
+    "analyzedAt": "2026-09-05T15:28:48.804Z",
+    "gitCommitHash": "86f10104976fbffa8e77e93eb6bb2413e02d913c"
   },
   "nodes": [
     {
@@ -86,7 +86,7 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
       "lineRange": [
-        10,
+        8,
         28
       ]
     },
@@ -102,8 +102,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        32,
-        44
+        33,
+        48
       ]
     },
     {
@@ -118,8 +118,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        46,
-        108
+        50,
+        120
       ]
     },
     {
@@ -167,8 +167,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        110,
-        150
+        122,
+        175
       ]
     },
     {
@@ -183,8 +183,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs",
       "lineRange": [
-        115,
-        149
+        122,
+        175
       ]
     },
     {
@@ -200,7 +200,7 @@
       "filePath": "src/Cantus.Infrastructure/Persistence/CantusDbContext.cs",
       "lineRange": [
         1,
-        51
+        65
       ]
     },
     {
@@ -222,9 +222,12 @@
           "UserPlaybackSnapshot"
         ],
         "businessRules": [
-          "Dynamic polling cadence: 1500ms playing, 5000ms paused, 10000ms idle (configurable via PlaybackPollerOptions)",
-          "Polling is halted when no SignalR clients are subscribed to conserve Spotify rate limits",
-          "Automatic lyric prefetching triggered on track transitions"
+          "Dynamic polling cadence: 4000ms baseline playing, ramping to 2500ms (<=15s) and 1200ms (<=5s) remaining to track end",
+          "Graduated backoff for paused (5s -> 15s -> 30s) and idle (10s -> 30s -> 60s) states",
+          "Background throttling slows polling to 20000ms when all connected client tabs are hidden",
+          "On-demand refresh wakes the poller loop immediately upon client activity or focus",
+          "Polling is suspended when zero connected SignalR viewers are present to conserve Spotify rate limits",
+          "Automatic lyric prefetching and offset resolution triggered on track transitions"
         ],
         "crossDomainInteractions": [
           "Triggers lyrics retrieval in Synchronized Lyrics domain on track change",
@@ -260,8 +263,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
       "lineRange": [
-        18,
-        59
+        80,
+        118
       ]
     },
     {
@@ -277,7 +280,7 @@
       "filePath": "src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs",
       "lineRange": [
         17,
-        95
+        99
       ]
     },
     {
@@ -292,8 +295,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
       "lineRange": [
-        71,
-        215
+        305,
+        500
       ]
     },
     {
@@ -306,10 +309,10 @@
         "broadcast"
       ],
       "complexity": "moderate",
-      "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
       "lineRange": [
-        28,
-        90
+        370,
+        426
       ]
     },
     {
@@ -334,7 +337,7 @@
         ],
         "businessRules": [
           "Cache-first strategy: checks local SQLite before requesting external providers",
-          "7-day negative cache prevents repeated API spam for instrumental or unlisted songs",
+          "30-day negative cache prevents repeated API spam for instrumental or unlisted songs (7-day fallback)",
           "LRC parser handles standard timestamps, syllable timings, and offset metadata",
           "Per-track manual latency offsets persist across sessions"
         ],
@@ -371,7 +374,7 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        20,
+        23,
         72
       ]
     },
@@ -388,8 +391,8 @@
       "complexity": "complex",
       "filePath": "src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs",
       "lineRange": [
-        37,
-        128
+        44,
+        150
       ]
     },
     {
@@ -405,7 +408,7 @@
       "filePath": "src/Cantus.Core/Parsers/LrcParser.cs",
       "lineRange": [
         8,
-        164
+        175
       ]
     },
     {
@@ -420,7 +423,7 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        94,
+        95,
         194
       ]
     },
@@ -428,7 +431,7 @@
       "id": "flow:track-latency-offset-adjustment",
       "type": "flow",
       "name": "Track Latency Offset Calibration",
-      "summary": "Allows clients to nudge lyric synchronization offsets in ±50ms increments and saves persistent offsets per track.",
+      "summary": "Allows clients to nudge lyric synchronization offsets in \u00b150ms increments and saves persistent offsets per track.",
       "tags": [
         "latency",
         "calibration",
@@ -452,8 +455,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        143,
-        172
+        234,
+        267
       ]
     },
     {
@@ -468,8 +471,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
       "lineRange": [
-        209,
-        237
+        196,
+        227
       ]
     },
     {
@@ -484,8 +487,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        165,
-        171
+        262,
+        266
       ]
     },
     {
@@ -509,9 +512,11 @@
           "DiagnosticsDto"
         ],
         "businessRules": [
-          "Continuous 4-timestamp NTP ping round trips calculate RTT and clock skew",
-          "Sub-millisecond interpolation smooths playback progress across network jitter",
-          "Adaptive color palette generator extracts dominant hues from cover art"
+          "Sub-millisecond NTP 4-timestamp exchange computes network RTT and clock skew",
+          "PLL (Phase-Locked Loop) clock steering smoothly nudges position up to +/-5% without abrupt visual skips",
+          "Manual scrolling pauses auto-scroll to allow browsing lyrics without viewport jumping",
+          "Auto-scroll automatically resumes after 3 seconds of scroll inactivity or via manual resume action",
+          "WebAssembly client tracks document visibility and reports active/background status to the server"
         ],
         "crossDomainInteractions": [
           "Consumes PlaybackState updates from Real-Time Playback Monitoring domain",
@@ -547,8 +552,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
       "lineRange": [
-        140,
-        165
+        537,
+        563
       ]
     },
     {
@@ -563,8 +568,8 @@
       "complexity": "simple",
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
       "lineRange": [
-        100,
-        109
+        152,
+        161
       ]
     },
     {
@@ -579,8 +584,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs",
       "lineRange": [
-        167,
-        215
+        565,
+        615
       ]
     },
     {
@@ -613,7 +618,7 @@
       "filePath": "src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs",
       "lineRange": [
         23,
-        115
+        116
       ]
     },
     {
@@ -645,8 +650,8 @@
       "complexity": "moderate",
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
       "lineRange": [
-        378,
-        515
+        869,
+        950
       ]
     },
     {
@@ -698,6 +703,58 @@
       "lineRange": [
         15,
         52
+      ]
+    },
+    {
+      "id": "step:adaptive-playback-polling:track-client-visibility",
+      "type": "step",
+      "name": "Track Client Tab Visibility",
+      "summary": "Maintains client connection visibility state and slows polling to background cadence when all connections are hidden.",
+      "tags": [
+        "visibility",
+        "signalr",
+        "optimization"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+      "lineRange": [
+        75,
+        96
+      ]
+    },
+    {
+      "id": "step:adaptive-playback-polling:on-demand-playback-refresh",
+      "type": "step",
+      "name": "On-Demand Playback Refresh",
+      "summary": "Handles instant playback poll wake-up requests triggered by user focus, resumption, or client interaction.",
+      "tags": [
+        "polling",
+        "signalr",
+        "low-latency"
+      ],
+      "complexity": "simple",
+      "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+      "lineRange": [
+        70,
+        78
+      ]
+    },
+    {
+      "id": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+      "type": "step",
+      "name": "Manual Scroll Detection & Auto-Resume",
+      "summary": "Detects user pointer/wheel scrolling to temporarily pause auto-scroll and resumes tracking after 3 seconds of inactivity or user click.",
+      "tags": [
+        "ui",
+        "scrolling",
+        "user-experience",
+        "uno-platform"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs",
+      "lineRange": [
+        37,
+        105
       ]
     }
   ],
@@ -964,6 +1021,27 @@
       "target": "step:system-health-check:verify-db-and-sessions",
       "type": "contains",
       "order": 1
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:track-client-visibility",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.35
+    },
+    {
+      "source": "flow:adaptive-playback-polling",
+      "target": "step:adaptive-playback-polling:on-demand-playback-refresh",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.85
+    },
+    {
+      "source": "flow:real-time-lyrics-scrolling",
+      "target": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.95
     }
   ],
   "layers": [],

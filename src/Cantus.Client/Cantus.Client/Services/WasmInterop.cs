@@ -53,4 +53,22 @@ public static class WasmInterop
         }
 #endif
     }
+
+    public static bool IsDocumentVisible()
+    {
+#if __WASM__
+        try
+        {
+            string val = Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                "window.CantusInterop && window.CantusInterop.isDocumentVisible ? (window.CantusInterop.isDocumentVisible() ? 'true' : 'false') : 'true'");
+            return bool.TryParse(val, out bool isVis) ? isVis : true;
+        }
+        catch
+        {
+            return true;
+        }
+#else
+        return true;
+#endif
+    }
 }

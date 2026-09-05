@@ -153,6 +153,7 @@ dotnet test Cantus.slnx --logger "console;verbosity=normal"
 Unit and integration tests reside in `tests/`:
 - `tests/Cantus.Core.Tests`: LRC parser, time calculations, domain model logic.
 - `tests/Cantus.Infrastructure.Tests`: Caching layers, token encryption, SQLite persistence.
+- `tests/Cantus.Client.Tests`: MVVM ViewModels, auto-scrolling logic, theme manager, and responsive layout calculation.
 - `tests/Cantus.Server.Tests`: SignalR hub broadcasting, REST API endpoints, adaptive poller state transitions.
 
 ---

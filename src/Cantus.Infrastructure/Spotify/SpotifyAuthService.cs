@@ -12,6 +12,7 @@ namespace Cantus.Infrastructure.Spotify;
 
 public sealed class SpotifyAuthService : ISpotifyAuthService
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, UserSession> _sessionCache = new();
     private readonly CantusDbContext _dbContext;
     private readonly ITokenEncryptionService _encryptionService;
     private readonly SpotifyOptions _options;
@@ -99,7 +100,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new UserSession
+        UserSession session = new()
         {
             Id = sessionEntity.Id,
             SpotifyUserId = sessionEntity.SpotifyUserId,
@@ -112,6 +113,10 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             CreatedAtUtc = sessionEntity.CreatedAtUtc,
             UpdatedAtUtc = sessionEntity.UpdatedAtUtc
         };
+
+        _sessionCache[session.Id] = session;
+        _sessionCache[session.SpotifyUserId] = session;
+        return session;
     }
 
     public async Task<UserSession> RefreshTokenAsync(
@@ -142,7 +147,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new UserSession
+        UserSession session = new()
         {
             Id = sessionEntity.Id,
             SpotifyUserId = sessionEntity.SpotifyUserId,
@@ -157,17 +162,30 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             CreatedAtUtc = sessionEntity.CreatedAtUtc,
             UpdatedAtUtc = sessionEntity.UpdatedAtUtc
         };
+
+        _sessionCache[session.Id] = session;
+        _sessionCache[session.SpotifyUserId] = session;
+        return session;
     }
 
     public async Task<UserSession?> GetSessionAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
+        if (_sessionCache.TryGetValue(userId, out UserSession? cached) && cached is not null)
+        {
+            if (cached.ExpiresAtUtc > DateTimeOffset.UtcNow.AddMinutes(2))
+            {
+                return cached;
+            }
+        }
+
         UserSessionEntity? sessionEntity = await _dbContext.UserSessions
             .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
 
         if (sessionEntity is null)
         {
+            _sessionCache.TryRemove(userId, out _);
             return null;
         }
 
@@ -184,7 +202,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             }
         }
 
-        return new UserSession
+        UserSession loadedSession = new()
         {
             Id = sessionEntity.Id,
             SpotifyUserId = sessionEntity.SpotifyUserId,
@@ -197,6 +215,10 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             CreatedAtUtc = sessionEntity.CreatedAtUtc,
             UpdatedAtUtc = sessionEntity.UpdatedAtUtc
         };
+
+        _sessionCache[loadedSession.Id] = loadedSession;
+        _sessionCache[loadedSession.SpotifyUserId] = loadedSession;
+        return loadedSession;
     }
 
     public async Task<IReadOnlyList<UserSession>> GetAllSessionsAsync(
@@ -235,11 +257,20 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         if (entity is null)
         {
+            _sessionCache.TryRemove(userId, out _);
             return false;
         }
+
+        _sessionCache.TryRemove(entity.Id, out _);
+        _sessionCache.TryRemove(entity.SpotifyUserId, out _);
 
         _dbContext.UserSessions.Remove(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public static void ClearCache()
+    {
+        _sessionCache.Clear();
     }
 }

@@ -31,6 +31,33 @@ public sealed partial class MainPage : Page
 
         ViewModel.ActiveLineChanged += OnActiveLineChanged;
         this.KeyDown += OnPageKeyDown;
+
+        DispatcherTimer visibilityChecker = new() { Interval = TimeSpan.FromSeconds(2) };
+        bool lastVisibility = true;
+        visibilityChecker.Tick += async (s, e) =>
+        {
+            bool currentVis = WasmInterop.IsDocumentVisible();
+            if (currentVis != lastVisibility)
+            {
+                lastVisibility = currentVis;
+                await ViewModel.ReportVisibilityAsync(currentVis);
+                if (currentVis)
+                {
+                    await ViewModel.RefreshPlaybackAsync();
+                }
+            }
+        };
+        visibilityChecker.Start();
+
+        this.PointerPressed += async (s, e) =>
+        {
+            if (!lastVisibility)
+            {
+                lastVisibility = true;
+                await ViewModel.ReportVisibilityAsync(true);
+                await ViewModel.RefreshPlaybackAsync();
+            }
+        };
     }
 
     private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)

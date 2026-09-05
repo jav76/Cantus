@@ -529,6 +529,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         await _client.SubscribeToUserAsync(userId);
     }
 
+    public async Task ReportVisibilityAsync(bool isVisible)
+    {
+        await _client.ReportVisibilityAsync(isVisible);
+    }
+
+    public async Task RefreshPlaybackAsync()
+    {
+        await _client.RefreshPlaybackAsync();
+    }
+
     public void ToggleKioskMode()
     {
         IsKioskMode = !IsKioskMode;

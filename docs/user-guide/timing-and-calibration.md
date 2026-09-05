@@ -25,10 +25,10 @@ Cantus allows you to adjust the timing offset on the fly while a song is playing
 
 ```mermaid
 flowchart LR
-    A[Spotify Position: 01:23.400] --> B[NTP Clock Synchronizer]
-    B --> C{+ User Adjusted Offset}
-    C -->|Offset: +150ms| D[Effective Render Time: 01:23.550]
-    D --> E[Highlighted Lyric Matches Ear]
+    A["Spotify Position: 01:23.400"] --> B["NTP Clock Synchronizer"]
+    B --> C{"+ User Adjusted Offset"}
+    C -->|Offset: +150ms| D["Effective Render Time: 01:23.550"]
+    D --> E["Highlighted Lyric Matches Ear"]
 ```
 
 ### Adjusting Timing via UI Steppers

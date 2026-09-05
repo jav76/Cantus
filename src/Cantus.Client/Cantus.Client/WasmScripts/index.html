@@ -121,6 +121,7 @@
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #ffffff 0%, #c084fc 60%, #818cf8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             z-index: 1;
         }
@@ -233,6 +234,9 @@
                     var cleanUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
                 }
+            },
+            isDocumentVisible: function() {
+                return !document.hidden;
             }
         };
 

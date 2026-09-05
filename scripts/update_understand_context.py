@@ -22,7 +22,8 @@ INTERMEDIATE_DIR = UA_DIR / "intermediate"
 
 EXCLUDED_DIR_NAMES = {
     ".git", ".ua", "tests", "graphify-out", "artifacts", "all_artifacts",
-    "wasm_dist", "server_dist", "bin", "obj", "node_modules", "site", ".trash-1787498678", "data"
+    "wasm_dist", "server_dist", "dist", "dist_test", "publish", "bin", "obj",
+    "node_modules", "site", ".trash-1787498678", "data"
 }
 
 
@@ -45,7 +46,15 @@ def is_path_excluded(p: Path) -> bool:
     if parts & EXCLUDED_DIR_NAMES:
         return True
     rel_str = str(rel)
-    if rel_str.startswith("packaging/windows/Output") or rel_str.startswith("packaging/linux/AppDir"):
+    if (
+        rel_str.startswith("packaging/windows/Output")
+        or rel_str.startswith("packaging/linux/AppDir")
+        or rel_str.startswith("packaging/linux/publish")
+        or rel_str.startswith("publish")
+        or rel_str.startswith("dist_test")
+        or rel_str.startswith("dist")
+        or rel_str.startswith("site")
+    ):
         return True
     name = p.name
     if name == ".env" or name.startswith(".env."):
@@ -324,7 +333,7 @@ def update_knowledge_graph(all_files: List[Path], commit_hash: str, timestamp: s
             n["name"] = Path(new_fp).name
             old_fp = new_fp
 
-        if old_fp and old_fp not in valid_rel_paths and not (ROOT_DIR / old_fp).exists():
+        if old_fp and (old_fp not in valid_rel_paths or is_path_excluded(ROOT_DIR / old_fp) or not (ROOT_DIR / old_fp).exists()):
             removed_node_ids.add(n["id"])
             continue
 
@@ -427,31 +436,103 @@ def update_domain_graph(commit_hash: str, timestamp: str) -> Dict[str, Any]:
 
     # Exact step line calibrations based on current source implementations
     step_calibrations = {
-        "step:spotify-pkce-login:generate-pkce-challenge": ("src/Cantus.Server/Services/PkceHelper.cs", [10, 28]),
-        "step:spotify-pkce-login:redirect-spotify-auth": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [32, 44]),
-        "step:spotify-pkce-login:exchange-auth-code": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [46, 108]),
+        "step:spotify-pkce-login:generate-pkce-challenge": ("src/Cantus.Server/Services/PkceHelper.cs", [8, 28]),
+        "step:spotify-pkce-login:redirect-spotify-auth": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [33, 48]),
+        "step:spotify-pkce-login:exchange-auth-code": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [50, 120]),
         "step:spotify-pkce-login:persist-encrypted-session": ("src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs", [15, 34]),
-        "step:token-refresh-lifecycle:check-token-expiration": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [110, 150]),
-        "step:token-refresh-lifecycle:refresh-tokens-via-spotify": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [115, 149]),
-        "step:token-refresh-lifecycle:update-stored-session": ("src/Cantus.Infrastructure/Persistence/CantusDbContext.cs", [1, 51]),
-        "step:adaptive-playback-polling:evaluate-active-listeners": ("src/Cantus.Server/Services/PlaybackSessionRegistry.cs", [18, 59]),
-        "step:adaptive-playback-polling:query-spotify-playback": ("src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs", [17, 95]),
-        "step:adaptive-playback-polling:detect-state-transitions": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [71, 215]),
-        "step:adaptive-playback-polling:broadcast-playback-update": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [28, 90]),
-        "step:fetch-and-cache-lyrics:check-sqlite-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [20, 72]),
-        "step:fetch-and-cache-lyrics:fetch-external-lrclib": ("src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs", [37, 128]),
-        "step:fetch-and-cache-lyrics:parse-lrc-timestamps": ("src/Cantus.Core/Parsers/LrcParser.cs", [8, 164]),
-        "step:fetch-and-cache-lyrics:save-lyrics-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [94, 194]),
-        "step:track-latency-offset-adjustment:receive-offset-nudge": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [143, 172]),
-        "step:track-latency-offset-adjustment:persist-track-offset": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [209, 237]),
-        "step:track-latency-offset-adjustment:broadcast-offset-sync": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [165, 171]),
-        "step:ntp-clock-synchronization:send-ntp-ping": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [140, 165]),
-        "step:ntp-clock-synchronization:server-ntp-timestamp": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [100, 109]),
-        "step:ntp-clock-synchronization:compute-skew-and-rtt": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [167, 215]),
-        "step:real-time-lyrics-scrolling:interpolate-playback-clock": ("src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs", [23, 115]),
+        "step:token-refresh-lifecycle:check-token-expiration": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [122, 175]),
+        "step:token-refresh-lifecycle:refresh-tokens-via-spotify": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [122, 175]),
+        "step:token-refresh-lifecycle:update-stored-session": ("src/Cantus.Infrastructure/Persistence/CantusDbContext.cs", [1, 65]),
+        "step:adaptive-playback-polling:evaluate-active-listeners": ("src/Cantus.Server/Services/PlaybackSessionRegistry.cs", [80, 118]),
+        "step:adaptive-playback-polling:track-client-visibility": ("src/Cantus.Server/Services/PlaybackSessionRegistry.cs", [75, 96]),
+        "step:adaptive-playback-polling:query-spotify-playback": ("src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs", [17, 99]),
+        "step:adaptive-playback-polling:detect-state-transitions": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [305, 500]),
+        "step:adaptive-playback-polling:on-demand-playback-refresh": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [70, 78]),
+        "step:adaptive-playback-polling:broadcast-playback-update": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [370, 426]),
+        "step:fetch-and-cache-lyrics:check-sqlite-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [23, 72]),
+        "step:fetch-and-cache-lyrics:fetch-external-lrclib": ("src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs", [44, 150]),
+        "step:fetch-and-cache-lyrics:parse-lrc-timestamps": ("src/Cantus.Core/Parsers/LrcParser.cs", [8, 175]),
+        "step:fetch-and-cache-lyrics:save-lyrics-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [95, 194]),
+        "step:track-latency-offset-adjustment:receive-offset-nudge": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [234, 267]),
+        "step:track-latency-offset-adjustment:persist-track-offset": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [196, 227]),
+        "step:track-latency-offset-adjustment:broadcast-offset-sync": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [262, 266]),
+        "step:ntp-clock-synchronization:send-ntp-ping": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [537, 563]),
+        "step:ntp-clock-synchronization:server-ntp-timestamp": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [152, 161]),
+        "step:ntp-clock-synchronization:compute-skew-and-rtt": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [565, 615]),
+        "step:real-time-lyrics-scrolling:interpolate-playback-clock": ("src/Cantus.Infrastructure/Clock/PlaybackInterpolator.cs", [23, 116]),
         "step:real-time-lyrics-scrolling:calculate-active-lyric-line": ("src/Cantus.Core/Models/SyncedLyrics.cs", [14, 46]),
-        "step:real-time-lyrics-scrolling:update-ui-and-theme": ("src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs", [378, 515]),
+        "step:real-time-lyrics-scrolling:update-ui-and-theme": ("src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs", [869, 950]),
+        "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume": ("src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs", [37, 105]),
     }
+
+    # Add missing domain step nodes if not present
+    existing_node_ids = {n["id"] for n in dg.get("nodes", [])}
+    new_step_nodes = [
+        {
+            "id": "step:adaptive-playback-polling:track-client-visibility",
+            "type": "step",
+            "name": "Track Client Tab Visibility",
+            "summary": "Maintains client connection visibility state and slows polling to background cadence when all connections are hidden.",
+            "tags": ["visibility", "signalr", "optimization"],
+            "complexity": "simple",
+            "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+            "lineRange": [75, 96]
+        },
+        {
+            "id": "step:adaptive-playback-polling:on-demand-playback-refresh",
+            "type": "step",
+            "name": "On-Demand Playback Refresh",
+            "summary": "Handles instant playback poll wake-up requests triggered by user focus, resumption, or client interaction.",
+            "tags": ["polling", "signalr", "low-latency"],
+            "complexity": "simple",
+            "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+            "lineRange": [70, 78]
+        },
+        {
+            "id": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+            "type": "step",
+            "name": "Manual Scroll Detection & Auto-Resume",
+            "summary": "Detects user pointer/wheel scrolling to temporarily pause auto-scroll and resumes tracking after 3 seconds of inactivity or user click.",
+            "tags": ["ui", "scrolling", "user-experience", "uno-platform"],
+            "complexity": "moderate",
+            "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs",
+            "lineRange": [37, 105]
+        }
+    ]
+    for sn in new_step_nodes:
+        if sn["id"] not in existing_node_ids:
+            dg["nodes"].append(sn)
+            existing_node_ids.add(sn["id"])
+
+    # Ensure edges exist
+    existing_edges = {(e.get("source"), e.get("target")) for e in dg.get("edges", [])}
+    new_edges = [
+        {
+            "source": "flow:adaptive-playback-polling",
+            "target": "step:adaptive-playback-polling:track-client-visibility",
+            "type": "flow_step",
+            "direction": "forward",
+            "weight": 0.35
+        },
+        {
+            "source": "flow:adaptive-playback-polling",
+            "target": "step:adaptive-playback-polling:on-demand-playback-refresh",
+            "type": "flow_step",
+            "direction": "forward",
+            "weight": 0.85
+        },
+        {
+            "source": "flow:real-time-lyrics-scrolling",
+            "target": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+            "type": "flow_step",
+            "direction": "forward",
+            "weight": 0.95
+        }
+    ]
+    for ne in new_edges:
+        if (ne["source"], ne["target"]) not in existing_edges:
+            dg["edges"].append(ne)
+            existing_edges.add((ne["source"], ne["target"]))
 
     for n in dg.get("nodes", []):
         nid = n.get("id")
@@ -459,6 +540,30 @@ def update_domain_graph(commit_hash: str, timestamp: str) -> Dict[str, Any]:
             fpath, lrange = step_calibrations[nid]
             n["filePath"] = fpath
             n["lineRange"] = lrange
+        elif nid == "domain:real-time-playback-monitoring":
+            n.setdefault("domainMeta", {})["businessRules"] = [
+                "Dynamic polling cadence: 4000ms baseline playing, ramping to 2500ms (<=15s) and 1200ms (<=5s) remaining to track end",
+                "Graduated backoff for paused (5s -> 15s -> 30s) and idle (10s -> 30s -> 60s) states",
+                "Background throttling slows polling to 20000ms when all connected client tabs are hidden",
+                "On-demand refresh wakes the poller loop immediately upon client activity or focus",
+                "Polling is suspended when zero connected SignalR viewers are present to conserve Spotify rate limits",
+                "Automatic lyric prefetching and offset resolution triggered on track transitions"
+            ]
+        elif nid == "domain:synchronized-lyrics-retrieval-and-caching":
+            n.setdefault("domainMeta", {})["businessRules"] = [
+                "Cache-first strategy: checks local SQLite before requesting external providers",
+                "30-day negative cache prevents repeated API spam for instrumental or unlisted songs (7-day fallback)",
+                "LRC parser handles standard timestamps, syllable timings, and offset metadata",
+                "Per-track manual latency offsets persist across sessions"
+            ]
+        elif nid == "domain:client-clock-synchronization-and-rendering":
+            n.setdefault("domainMeta", {})["businessRules"] = [
+                "Sub-millisecond NTP 4-timestamp exchange computes network RTT and clock skew",
+                "PLL (Phase-Locked Loop) clock steering smoothly nudges position up to +/-5% without abrupt visual skips",
+                "Manual scrolling pauses auto-scroll to allow browsing lyrics without viewport jumping",
+                "Auto-scroll automatically resumes after 3 seconds of scroll inactivity or via manual resume action",
+                "WebAssembly client tracks document visibility and reports active/background status to the server"
+            ]
 
     dg_path.write_text(json.dumps(dg, indent=2), encoding="utf-8")
     print(f"Updated domain-graph.json ({len(dg.get('nodes', []))} nodes, {len(dg.get('edges', []))} edges)")

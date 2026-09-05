@@ -16,7 +16,7 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 ## Features
 
 - **Sub-Millisecond Synchronization**: Four-timestamp NTP clock offset estimation and smooth position interpolation filter network jitter.
-- **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (1.5s when playing, 5s when paused, 10s when idle) and suspends polling when zero viewers are connected to conserve API quota.
+- **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (4.0s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff when paused/idle, and 20s background tab throttling) and halts polling when zero viewers are connected to conserve API quota.
 - **Multi-Tier Lyrics Resolution**: Direct local SQLite cache lookups with fallback to LRCLIB and negative caching for instrumental tracks.
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
 - **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time.
@@ -120,7 +120,7 @@ Cantus is configured via environment variables or `appsettings.json`:
 | `DATA_DIR` | No | `/app/data` | Path to persistent storage for SQLite database and encryption keys. |
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
 | `CANTUS_LOG_CONFIGURATION` | No | `none` | Log verbosity profile: `none`, `debug`, or `trace`. |
-| `PlaybackPoller__ActivePollIntervalMs` | No | `1500` | Spotify polling cadence (ms) during active playback. |
+| `PlaybackPoller__ActivePollIntervalMs` | No | `4000` | Baseline Spotify polling cadence (ms) during active playback. |
 
 ### Persistent Data Layout
 

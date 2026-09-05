@@ -10,16 +10,16 @@ Cantus features a dynamic responsive layout engine that automatically and fluidl
 
 ```mermaid
 flowchart TD
-    Screen[Screen Size & Form Factor] --> RLM[Responsive Layout Engine]
-    RLM --> Small[Small / Mobile &lt;680px]
-    RLM --> Medium[Medium / Tablet 680-1080px]
-    RLM --> Large[Large / Desktop 1080-1920px]
-    RLM --> TV[Fullscreen / TV 10-Foot &gt;=1920px]
+    Screen["Screen Size & Form Factor"] --> RLM["Responsive Layout Engine"]
+    RLM --> Small["Small / Mobile (< 680px)"]
+    RLM --> Medium["Medium / Tablet (680-1080px)"]
+    RLM --> Large["Large / Desktop (1080-1920px)"]
+    RLM --> TV["Fullscreen / TV 10-Foot (>= 1920px)"]
 
-    Small --> S_View[Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip]
-    Medium --> M_View[Streamlined Dual-Column + 230px Album Art + Compact Telemetry]
-    Large --> L_View[Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills]
-    TV --> TV_View[Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar]
+    Small --> S_View["Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip"]
+    Medium --> M_View["Streamlined Dual-Column + 230px Album Art + Compact Telemetry"]
+    Large --> L_View["Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills"]
+    TV --> TV_View["Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar"]
 ```
 
 ### Form Factor Specifications
@@ -30,6 +30,27 @@ flowchart TD
 | **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork | Balanced 32px active line | Direct dual-pane or adaptive portrait flow |
 | **Large (Desktop)** | `1080px - 1919px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
 | **Fullscreen (TV)** | `>= 1920px` / Kiosk | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
+
+---
+
+## Auto-Scrolling & Interactive Controls
+
+Cantus combines automated karaoke-style tracking with full manual freedom:
+
+### 1. Dynamic Auto-Centering
+During playback, the lyrics stage dynamically scrolls to maintain the active singing line in the optical center of the display. Padding at the top and bottom of the container dynamically adjusts based on viewport height so the first and last lines can be centered comfortably.
+
+### 2. Manual Scroll Detection & Free Browsing
+If you want to read ahead or check previous lyrics:
+- Simply scroll using your mouse wheel, trackpad gesture, or touchscreen drag.
+- Cantus immediately detects user intervention and sets auto-scroll to **Paused**.
+- The active line continues to highlight in time with the music, but the scroll position will not jump or fight against your scrolling.
+
+### 3. Floating Resume Button & 3-Second Auto-Resume
+When manual scrolling pauses the display:
+- A floating **"Resume Auto-Scroll"** pill button appears at the bottom-center of the stage.
+- If no scrolling interaction occurs for **3 seconds**, Cantus automatically resumes auto-scrolling with a smooth transition back to the currently active line.
+- You can also tap the floating **Resume** button at any time to re-center immediately.
 
 ---
 

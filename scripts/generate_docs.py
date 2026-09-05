@@ -45,6 +45,7 @@ def validate_documentation_integrity():
         DOCS_DIR / "reference" / "signalr-api.md",
         DOCS_DIR / "reference" / "rest-api.md",
         DOCS_DIR / "reference" / "configuration.md",
+        DOCS_DIR / "contributing" / "index.md",
     ]
 
     missing = [p for p in required_pages if not p.exists()]

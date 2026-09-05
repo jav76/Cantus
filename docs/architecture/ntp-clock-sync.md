@@ -43,12 +43,16 @@ sequenceDiagram
 From these four timestamps, Cantus calculates two core metrics:
 
 1. **Round-Trip Delay ($\delta$)**:
-   $$\delta = (t_3 - t_0) - (t_2 - t_1)$$
-   Measures pure network transit time excluding server processing overhead.
+
+    $$\delta = (t_3 - t_0) - (t_2 - t_1)$$
+
+    Measures pure network transit time excluding server processing overhead.
 
 2. **Clock Offset ($\theta$)**:
-   $$\theta = \frac{(t_1 - t_0) + (t_2 - t_3)}{2}$$
-   Represents how much the client clock leads or lags behind the server clock.
+
+    $$\theta = \frac{(t_1 - t_0) + (t_2 - t_3)}{2}$$
+
+    Represents how much the client clock leads or lags behind the server clock.
 
 ### Moving Average Jitter Filter
 
@@ -65,10 +69,10 @@ Once the offset is known, the client runs a 60 FPS UI animation timer:
 
 ```mermaid
 flowchart LR
-    A[Last Known Playback Snapshot<br/>Progress: 45.200s @ ServerTime] --> B[Current Client Clock + Offset]
-    B --> C[Interpolated Progress = 45.200s + ElapsedTime]
-    C --> D[Evaluate Active Lyric Line Index]
-    D --> E[Smooth Scroll Animation]
+    A["Last Known Playback Snapshot<br/>Progress: 45.200s @ ServerTime"] --> B["Current Client Clock + Offset"]
+    B --> C["Interpolated Progress = 45.200s + ElapsedTime"]
+    C --> D["Evaluate Active Lyric Line Index"]
+    D --> E["Smooth Scroll Animation"]
 ```
 
 This ensures fluid, 60fps lyric scrolling even when Spotify polling updates arrive every 500ms over the network.
