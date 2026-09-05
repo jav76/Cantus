@@ -28,8 +28,8 @@
       "GitHub Actions"
     ],
     "description": "Cantus is a self-hosted, multi-room synchronized lyrics display platform integrated with Spotify playback via ASP.NET Core, SignalR, and Uno Platform.",
-    "analyzedAt": "2026-09-01T01:24:21.190Z",
-    "gitCommitHash": "347359916129b0f78810ed1b8a6c78ca5a61ca3c"
+    "analyzedAt": "2026-09-05T15:07:13.234Z",
+    "gitCommitHash": "24dec9edb0fe0dbfda090f38cf3076ead105b4cd"
   },
   "nodes": [
     {
@@ -892,28 +892,6 @@
       "summary": "Source file: index.html.",
       "tags": [
         "code"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "config:src/Cantus.Client/Directory.Build.props",
-      "type": "config",
-      "name": "Directory.Build.props",
-      "filePath": "src/Cantus.Client/Directory.Build.props",
-      "summary": "Configuration file for Directory.Build.props.",
-      "tags": [
-        "configuration"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "config:src/Cantus.Client/Directory.Packages.props",
-      "type": "config",
-      "name": "Directory.Packages.props",
-      "filePath": "src/Cantus.Client/Directory.Packages.props",
-      "summary": "Configuration file for Directory.Packages.props.",
-      "tags": [
-        "configuration"
       ],
       "complexity": "simple"
     },
@@ -6977,18 +6955,6 @@
       "complexity": "simple"
     },
     {
-      "id": "document:docs/contributing/github-branch-protection.md",
-      "type": "document",
-      "name": "github-branch-protection.md",
-      "filePath": "docs/contributing/github-branch-protection.md",
-      "summary": "Project docs asset for github-branch-protection.md.",
-      "tags": [
-        "docs",
-        "markdown"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "document:docs/operator-guide/index.md",
       "type": "document",
       "name": "index.md",
@@ -11380,6 +11346,678 @@
         "test"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "document:.agents/agents/code-reviewer.md",
+      "type": "document",
+      "name": "code-reviewer.md",
+      "filePath": ".agents/agents/code-reviewer.md",
+      "summary": "Project docs asset for code-reviewer.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.agents/skills/code-reviewer/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": ".agents/skills/code-reviewer/SKILL.md",
+      "summary": "Project docs asset for SKILL.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.vscode/settings.json",
+      "type": "config",
+      "name": "settings.json",
+      "filePath": ".vscode/settings.json",
+      "summary": "Project config asset for settings.json.",
+      "tags": [
+        "config",
+        "json"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:CONTRIBUTING.md",
+      "type": "document",
+      "name": "CONTRIBUTING.md",
+      "filePath": "CONTRIBUTING.md",
+      "summary": "Project docs asset for CONTRIBUTING.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Directory.Build.props",
+      "type": "config",
+      "name": "Directory.Build.props",
+      "filePath": "Directory.Build.props",
+      "summary": "Project config asset for Directory.Build.props.",
+      "tags": [
+        "config",
+        "props"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:Directory.Packages.props",
+      "type": "config",
+      "name": "Directory.Packages.props",
+      "filePath": "Directory.Packages.props",
+      "summary": "Project config asset for Directory.Packages.props.",
+      "tags": [
+        "config",
+        "props"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/contributing/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "docs/contributing/index.md",
+      "summary": "Project docs asset for index.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:docs/javascripts/mathjax.js",
+      "type": "file",
+      "name": "mathjax.js",
+      "filePath": "docs/javascripts/mathjax.js",
+      "summary": "Project code asset for mathjax.js.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/local/github-branch-protection.md",
+      "type": "document",
+      "name": "github-branch-protection.md",
+      "filePath": "docs/local/github-branch-protection.md",
+      "summary": "Project docs asset for github-branch-protection.md.",
+      "tags": [
+        "docs",
+        "markdown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Infrastructure.dll",
+      "type": "file",
+      "name": "Cantus.Infrastructure.dll",
+      "filePath": "packaging/linux/publish/Cantus.Infrastructure.dll",
+      "summary": "Project code asset for Cantus.Infrastructure.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Cantus.Infrastructure.pdb",
+      "type": "file",
+      "name": "Cantus.Infrastructure.pdb",
+      "filePath": "packaging/linux/publish/Cantus.Infrastructure.pdb",
+      "summary": "Project code asset for Cantus.Infrastructure.pdb.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.Cryptography.Internal.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.Cryptography.Internal.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Cryptography.Internal.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.Cryptography.Internal.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.DataProtection.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.DataProtection.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.DataProtection.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.AspNetCore.DataProtection.dll",
+      "type": "file",
+      "name": "Microsoft.AspNetCore.DataProtection.dll",
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.dll",
+      "summary": "Project code asset for Microsoft.AspNetCore.DataProtection.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Data.Sqlite.dll",
+      "type": "file",
+      "name": "Microsoft.Data.Sqlite.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Data.Sqlite.dll",
+      "summary": "Project code asset for Microsoft.Data.Sqlite.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.EntityFrameworkCore.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.EntityFrameworkCore.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Relational.dll",
+      "type": "file",
+      "name": "Microsoft.EntityFrameworkCore.Relational.dll",
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Relational.dll",
+      "summary": "Project code asset for Microsoft.EntityFrameworkCore.Relational.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Sqlite.dll",
+      "type": "file",
+      "name": "Microsoft.EntityFrameworkCore.Sqlite.dll",
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Sqlite.dll",
+      "summary": "Project code asset for Microsoft.EntityFrameworkCore.Sqlite.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.dll",
+      "type": "file",
+      "name": "Microsoft.EntityFrameworkCore.dll",
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.dll",
+      "summary": "Project code asset for Microsoft.EntityFrameworkCore.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Caching.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Caching.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Caching.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Caching.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Caching.Memory.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Caching.Memory.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Caching.Memory.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Caching.Memory.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.DependencyModel.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.DependencyModel.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyModel.dll",
+      "summary": "Project code asset for Microsoft.Extensions.DependencyModel.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Diagnostics.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Diagnostics.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Diagnostics.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Diagnostics.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Diagnostics.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Diagnostics.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Diagnostics.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Diagnostics.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.FileProviders.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.FileProviders.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.FileProviders.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.FileProviders.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Hosting.Abstractions.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Hosting.Abstractions.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Hosting.Abstractions.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Hosting.Abstractions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Microsoft.Extensions.Http.dll",
+      "type": "file",
+      "name": "Microsoft.Extensions.Http.dll",
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Http.dll",
+      "summary": "Project code asset for Microsoft.Extensions.Http.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/Newtonsoft.Json.dll",
+      "type": "file",
+      "name": "Newtonsoft.Json.dll",
+      "filePath": "packaging/linux/publish/Newtonsoft.Json.dll",
+      "summary": "Project code asset for Newtonsoft.Json.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SQLitePCLRaw.batteries_v2.dll",
+      "type": "file",
+      "name": "SQLitePCLRaw.batteries_v2.dll",
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.batteries_v2.dll",
+      "summary": "Project code asset for SQLitePCLRaw.batteries_v2.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SQLitePCLRaw.core.dll",
+      "type": "file",
+      "name": "SQLitePCLRaw.core.dll",
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.core.dll",
+      "summary": "Project code asset for SQLitePCLRaw.core.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SQLitePCLRaw.provider.e_sqlite3.dll",
+      "type": "file",
+      "name": "SQLitePCLRaw.provider.e_sqlite3.dll",
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.provider.e_sqlite3.dll",
+      "summary": "Project code asset for SQLitePCLRaw.provider.e_sqlite3.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/SpotifyAPI.Web.dll",
+      "type": "file",
+      "name": "SpotifyAPI.Web.dll",
+      "filePath": "packaging/linux/publish/SpotifyAPI.Web.dll",
+      "summary": "Project code asset for SpotifyAPI.Web.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.CommandLine.dll",
+      "type": "file",
+      "name": "System.CommandLine.dll",
+      "filePath": "packaging/linux/publish/System.CommandLine.dll",
+      "summary": "Project code asset for System.CommandLine.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Configuration.ConfigurationManager.dll",
+      "type": "file",
+      "name": "System.Configuration.ConfigurationManager.dll",
+      "filePath": "packaging/linux/publish/System.Configuration.ConfigurationManager.dll",
+      "summary": "Project code asset for System.Configuration.ConfigurationManager.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Pkcs.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Pkcs.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Pkcs.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Pkcs.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.ProtectedData.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.ProtectedData.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.ProtectedData.dll",
+      "summary": "Project code asset for System.Security.Cryptography.ProtectedData.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Cryptography.Xml.dll",
+      "type": "file",
+      "name": "System.Security.Cryptography.Xml.dll",
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Xml.dll",
+      "summary": "Project code asset for System.Security.Cryptography.Xml.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/System.Security.Permissions.dll",
+      "type": "file",
+      "name": "System.Security.Permissions.dll",
+      "filePath": "packaging/linux/publish/System.Security.Permissions.dll",
+      "summary": "Project code asset for System.Security.Permissions.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/cs/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/cs/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/de/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/de/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/es/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/es/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/fr/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/fr/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/it/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/it/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/ja/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/ja/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/ko/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/ko/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/libe_sqlite3.so",
+      "type": "file",
+      "name": "libe_sqlite3.so",
+      "filePath": "packaging/linux/publish/libe_sqlite3.so",
+      "summary": "Project code asset for libe_sqlite3.so.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/log4net.dll",
+      "type": "file",
+      "name": "log4net.dll",
+      "filePath": "packaging/linux/publish/log4net.dll",
+      "summary": "Project code asset for log4net.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/pl/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/pl/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/pt-BR/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/pt-BR/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/ru/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/ru/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/tr/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/tr/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/zh-Hans/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/zh-Hans/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packaging/linux/publish/zh-Hant/System.CommandLine.resources.dll",
+      "type": "file",
+      "name": "System.CommandLine.resources.dll",
+      "filePath": "packaging/linux/publish/zh-Hant/System.CommandLine.resources.dll",
+      "summary": "Project code asset for System.CommandLine.resources.dll.",
+      "tags": [
+        "code",
+        "unknown"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Client/Cantus.Client/Services/ClientLoggingManager.cs",
+      "type": "file",
+      "name": "ClientLoggingManager.cs",
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ClientLoggingManager.cs",
+      "summary": "Project code asset for ClientLoggingManager.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/ISessionTokenResolver.cs",
+      "type": "file",
+      "name": "ISessionTokenResolver.cs",
+      "filePath": "src/Cantus.Server/Services/ISessionTokenResolver.cs",
+      "summary": "Project code asset for ISessionTokenResolver.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/Cantus.Server/Services/SessionTokenResolver.cs",
+      "type": "file",
+      "name": "SessionTokenResolver.cs",
+      "filePath": "src/Cantus.Server/Services/SessionTokenResolver.cs",
+      "summary": "Project code asset for SessionTokenResolver.cs.",
+      "tags": [
+        "code",
+        "csharp"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [
@@ -12748,15 +13386,16 @@
       "name": "DevOps, Build & Architecture Documentation",
       "description": "Containerization (Docker), CI/CD release automation, project configuration, and ADR documentation.",
       "nodeIds": [
+        "config:.vscode/settings.json",
         "config:Cantus.slnx",
+        "config:Directory.Build.props",
+        "config:Directory.Packages.props",
         "config:dist_test/Cantus.Client.runtimeconfig.json",
         "config:dist_test/Cantus.Client.staticwebassets.endpoints.json",
         "config:global.json",
         "config:packaging/linux/publish/Cantus.Client.deps.json",
         "config:packaging/linux/publish/Cantus.Client.runtimeconfig.json",
         "config:src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
-        "config:src/Cantus.Client/Directory.Build.props",
-        "config:src/Cantus.Client/Directory.Packages.props",
         "config:src/Cantus.Core/Cantus.Core.csproj",
         "config:src/Cantus.Generators/Cantus.Generators.csproj",
         "config:src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
@@ -12764,9 +13403,12 @@
         "config:src/Cantus.Server/appsettings.Development.json",
         "config:src/Cantus.Server/appsettings.Production.json",
         "config:src/Cantus.Server/appsettings.json",
+        "document:.agents/agents/code-reviewer.md",
         "document:.agents/rules/code-style.md",
         "document:.agents/rules/understand-context.md",
         "document:.agents/skills/architecture-designer/SKILL.md",
+        "document:.agents/skills/code-reviewer/SKILL.md",
+        "document:CONTRIBUTING.md",
         "document:LICENSE",
         "document:README.md",
         "document:TODO.md",
@@ -12775,12 +13417,13 @@
         "document:docs/architecture/lyrics-caching.md",
         "document:docs/architecture/ntp-clock-sync.md",
         "document:docs/architecture/overview.md",
-        "document:docs/contributing/github-branch-protection.md",
+        "document:docs/contributing/index.md",
         "document:docs/index.md",
         "document:docs/local/ImplementationPlan.md",
         "document:docs/local/architecture/ADR-001-spotify-synced-lyrics-platform.md",
         "document:docs/local/architecture/ADR-002-docker-containerization-and-host-configuration.md",
         "document:docs/local/architecture/ADR-003-ci-cd-and-release-packaging.md",
+        "document:docs/local/github-branch-protection.md",
         "document:docs/local/keysetup.md",
         "document:docs/operator-guide/index.md",
         "document:docs/operator-guide/reverse-proxy.md",
@@ -13140,6 +13783,7 @@
         "file:dist_test/wwwroot/service-worker.js",
         "file:dist_test/wwwroot/service-worker.js.br",
         "file:dist_test/wwwroot/service-worker.js.gz",
+        "file:docs/javascripts/mathjax.js",
         "file:docs/requirements.txt",
         "file:docs/stylesheets/extra.css",
         "file:mkdocs.yml",
@@ -13151,10 +13795,15 @@
         "file:packaging/linux/publish/Cantus.Client.pdb",
         "file:packaging/linux/publish/Cantus.Core.dll",
         "file:packaging/linux/publish/Cantus.Core.pdb",
+        "file:packaging/linux/publish/Cantus.Infrastructure.dll",
+        "file:packaging/linux/publish/Cantus.Infrastructure.pdb",
         "file:packaging/linux/publish/CommonServiceLocator.dll",
         "file:packaging/linux/publish/HarfBuzzSharp.dll",
         "file:packaging/linux/publish/LibVLCSharp.dll",
         "file:packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.Cryptography.Internal.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.DataProtection.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.AspNetCore.DataProtection.dll",
         "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Client.dll",
         "file:packaging/linux/publish/Microsoft.AspNetCore.Http.Connections.Common.dll",
         "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Client.Core.dll",
@@ -13162,12 +13811,25 @@
         "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Common.dll",
         "file:packaging/linux/publish/Microsoft.AspNetCore.SignalR.Protocols.Json.dll",
         "file:packaging/linux/publish/Microsoft.CSharp.dll",
+        "file:packaging/linux/publish/Microsoft.Data.Sqlite.dll",
+        "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Relational.dll",
+        "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.Sqlite.dll",
+        "file:packaging/linux/publish/Microsoft.EntityFrameworkCore.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Caching.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Caching.Memory.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Configuration.Binder.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Configuration.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.DependencyInjection.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.DependencyModel.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Diagnostics.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Diagnostics.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Features.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "file:packaging/linux/publish/Microsoft.Extensions.Http.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Logging.Abstractions.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Logging.Configuration.dll",
         "file:packaging/linux/publish/Microsoft.Extensions.Logging.Console.dll",
@@ -13179,12 +13841,17 @@
         "file:packaging/linux/publish/Microsoft.VisualBasic.dll",
         "file:packaging/linux/publish/Microsoft.Win32.Primitives.dll",
         "file:packaging/linux/publish/Microsoft.Win32.Registry.dll",
+        "file:packaging/linux/publish/Newtonsoft.Json.dll",
+        "file:packaging/linux/publish/SQLitePCLRaw.batteries_v2.dll",
+        "file:packaging/linux/publish/SQLitePCLRaw.core.dll",
+        "file:packaging/linux/publish/SQLitePCLRaw.provider.e_sqlite3.dll",
         "file:packaging/linux/publish/SkiaSharp.Resources.dll",
         "file:packaging/linux/publish/SkiaSharp.SceneGraph.dll",
         "file:packaging/linux/publish/SkiaSharp.Skottie.dll",
         "file:packaging/linux/publish/SkiaSharp.Views.Windows.dll",
         "file:packaging/linux/publish/SkiaSharp.Views.Windows.pdb",
         "file:packaging/linux/publish/SkiaSharp.dll",
+        "file:packaging/linux/publish/SpotifyAPI.Web.dll",
         "file:packaging/linux/publish/System.AppContext.dll",
         "file:packaging/linux/publish/System.Buffers.dll",
         "file:packaging/linux/publish/System.Collections.Concurrent.dll",
@@ -13192,12 +13859,14 @@
         "file:packaging/linux/publish/System.Collections.NonGeneric.dll",
         "file:packaging/linux/publish/System.Collections.Specialized.dll",
         "file:packaging/linux/publish/System.Collections.dll",
+        "file:packaging/linux/publish/System.CommandLine.dll",
         "file:packaging/linux/publish/System.ComponentModel.Annotations.dll",
         "file:packaging/linux/publish/System.ComponentModel.DataAnnotations.dll",
         "file:packaging/linux/publish/System.ComponentModel.EventBasedAsync.dll",
         "file:packaging/linux/publish/System.ComponentModel.Primitives.dll",
         "file:packaging/linux/publish/System.ComponentModel.TypeConverter.dll",
         "file:packaging/linux/publish/System.ComponentModel.dll",
+        "file:packaging/linux/publish/System.Configuration.ConfigurationManager.dll",
         "file:packaging/linux/publish/System.Configuration.dll",
         "file:packaging/linux/publish/System.Console.dll",
         "file:packaging/linux/publish/System.Core.dll",
@@ -13308,9 +13977,13 @@
         "file:packaging/linux/publish/System.Security.Cryptography.Csp.dll",
         "file:packaging/linux/publish/System.Security.Cryptography.Encoding.dll",
         "file:packaging/linux/publish/System.Security.Cryptography.OpenSsl.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Pkcs.dll",
         "file:packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.ProtectedData.dll",
         "file:packaging/linux/publish/System.Security.Cryptography.X509Certificates.dll",
+        "file:packaging/linux/publish/System.Security.Cryptography.Xml.dll",
         "file:packaging/linux/publish/System.Security.Cryptography.dll",
+        "file:packaging/linux/publish/System.Security.Permissions.dll",
         "file:packaging/linux/publish/System.Security.Principal.Windows.dll",
         "file:packaging/linux/publish/System.Security.Principal.dll",
         "file:packaging/linux/publish/System.Security.SecureString.dll",
@@ -13444,6 +14117,13 @@
         "file:packaging/linux/publish/Uno.pdb",
         "file:packaging/linux/publish/WindowsBase.dll",
         "file:packaging/linux/publish/createdump",
+        "file:packaging/linux/publish/cs/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/de/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/es/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/fr/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/it/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/ja/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/ko/System.CommandLine.resources.dll",
         "file:packaging/linux/publish/libHarfBuzzSharp.so",
         "file:packaging/linux/publish/libSkiaSharp.so",
         "file:packaging/linux/publish/libSystem.Globalization.Native.so",
@@ -13456,16 +14136,25 @@
         "file:packaging/linux/publish/libclrjit.so",
         "file:packaging/linux/publish/libcoreclr.so",
         "file:packaging/linux/publish/libcoreclrtraceptprovider.so",
+        "file:packaging/linux/publish/libe_sqlite3.so",
         "file:packaging/linux/publish/libhostfxr.so",
         "file:packaging/linux/publish/libhostpolicy.so",
         "file:packaging/linux/publish/libmscordaccore.so",
         "file:packaging/linux/publish/libmscordbi.so",
+        "file:packaging/linux/publish/log4net.dll",
         "file:packaging/linux/publish/mscorlib.dll",
         "file:packaging/linux/publish/netstandard.dll",
+        "file:packaging/linux/publish/pl/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/pt-BR/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/ru/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/tr/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/zh-Hans/System.CommandLine.resources.dll",
+        "file:packaging/linux/publish/zh-Hant/System.CommandLine.resources.dll",
         "file:packaging/windows/installer.iss",
         "file:scripts/generate_docs.py",
         "file:scripts/update_understand_context.py",
         "file:src/Cantus.Client/Cantus.Client/Models/LayoutBreakpoint.cs",
+        "file:src/Cantus.Client/Cantus.Client/Services/ClientLoggingManager.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/ResponsiveLayoutManager.cs",
         "file:src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs",
@@ -13493,6 +14182,8 @@
         "file:src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
         "file:src/Cantus.Infrastructure/Persistence/Entities/LogEntryEntity.cs",
         "file:src/Cantus.Server/Middleware/GlobalExceptionHandler.cs",
+        "file:src/Cantus.Server/Services/ISessionTokenResolver.cs",
+        "file:src/Cantus.Server/Services/SessionTokenResolver.cs",
         "pipeline:.github/workflows/ci.yml",
         "pipeline:.github/workflows/docs.yml",
         "pipeline:.github/workflows/release.yml",

@@ -51,7 +51,7 @@ dotnet run --project src/Cantus.Server -- --log-configuration debug
 
 When running Cantus, the application expects the `/app/data` volume to be writable:
 
-```
+```text
 /app/data/
 ├── cantus.db                 # SQLite database (Sessions, Cache, Track Offsets)
 ├── cantus.db-shm             # SQLite shared memory file (WAL mode)

@@ -1,8 +1,18 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "c8e3dfab62e55981e7c87cd4e3272db1ef502f3e",
-  "generatedAt": "2026-08-28T02:38:18.235Z",
+  "gitCommitHash": "24dec9edb0fe0dbfda090f38cf3076ead105b4cd",
+  "generatedAt": "2026-09-05T15:07:13.234Z",
   "files": {
+    ".agents/agents/code-reviewer.md": {
+      "filePath": ".agents/agents/code-reviewer.md",
+      "contentHash": "2065d2f0a4adcf87f9eada22b4910b37b3dddd076121f0b4c675a61b728a85a0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 187,
+      "hasStructuralAnalysis": true
+    },
     ".agents/rules/code-style.md": {
       "filePath": ".agents/rules/code-style.md",
       "contentHash": "4aa72dc917f8d791caadbaadf6e2178de3f289285994014a15d24060cc32bed2",
@@ -31,6 +41,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    ".agents/skills/code-reviewer/SKILL.md": {
+      "filePath": ".agents/skills/code-reviewer/SKILL.md",
+      "contentHash": "f4debf29452953894b2ab5939361ad8ea160726f5d4ff8fd75f0ec9d9d6ab237",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
       "hasStructuralAnalysis": true
     },
     ".dockerignore": {
@@ -103,6 +123,26 @@
       "totalLines": 35,
       "hasStructuralAnalysis": false
     },
+    ".vscode/settings.json": {
+      "filePath": ".vscode/settings.json",
+      "contentHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "CONTRIBUTING.md": {
+      "filePath": "CONTRIBUTING.md",
+      "contentHash": "a5c871815dfaddf855a4b400086cf8d422558f285bc8c68fe86c19f84acca236",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
     "Cantus.slnx": {
       "filePath": "Cantus.slnx",
       "contentHash": "796408dc63b36826794229538f4ed7f35ef807b6b5eb4c601ae003c24a8c5b0c",
@@ -113,14 +153,34 @@
       "totalLines": 17,
       "hasStructuralAnalysis": false
     },
-    "Dockerfile": {
-      "filePath": "Dockerfile",
-      "contentHash": "101419362921afd3632aa8b80b2a23d6e1b34d901ba9d3d99d820d982f5c7974",
+    "Directory.Build.props": {
+      "filePath": "Directory.Build.props",
+      "contentHash": "0434fa8b5bd6acb5ed1affaf360908e3a462aee7202b1fd07952094517c8eb07",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 76,
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "Directory.Packages.props": {
+      "filePath": "Directory.Packages.props",
+      "contentHash": "20c4cb56fa717074d68538670cf269f6eef951eb6bfcdcc59288e647d209e041",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "0b8de1a95438b130f2e705870abc7cafed4d75ed1db139e6ac1223f4b58c3c72",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
       "hasStructuralAnalysis": false
     },
     "LICENSE": {
@@ -135,12 +195,12 @@
     },
     "README.md": {
       "filePath": "README.md",
-      "contentHash": "c6ce0f60902703966cde873a462f1f1ea034da14af585f3b98b20021e93d6474",
+      "contentHash": "3ff90d1c28bbedbf60c5fec84baee73875795a1191875d4c38b1738db08d6b7f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 212,
+      "totalLines": 222,
       "hasStructuralAnalysis": true
     },
     "TODO.md": {
@@ -3625,7 +3685,7 @@
     },
     "docs/architecture/adaptive-polling.md": {
       "filePath": "docs/architecture/adaptive-polling.md",
-      "contentHash": "4fd55083d20b578ab7279002b23841b405fdfb312656a5e192caff9b7220d8b5",
+      "contentHash": "ae3f31bf7a7893d74e94f717e6e50a3717bce255416cfb886813618124e8678a",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3645,7 +3705,7 @@
     },
     "docs/architecture/lyrics-caching.md": {
       "filePath": "docs/architecture/lyrics-caching.md",
-      "contentHash": "1e63f4ee210dc0ad31bb39c55dfd5e80ef818bba41ebe28cb32857759b36182c",
+      "contentHash": "b266be2821afbf71188480d963bd9376fb5f81f2a354b94b4c174c45dc62e064",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3655,17 +3715,17 @@
     },
     "docs/architecture/ntp-clock-sync.md": {
       "filePath": "docs/architecture/ntp-clock-sync.md",
-      "contentHash": "2d453e680a8ebfc831678b4af42f79792c0404e28a81eee1989702123728925c",
+      "contentHash": "28c9fec17de9923262740622d29037479cb4c57958f9d2921314f3c3af63ccf4",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 74,
+      "totalLines": 78,
       "hasStructuralAnalysis": true
     },
     "docs/architecture/overview.md": {
       "filePath": "docs/architecture/overview.md",
-      "contentHash": "3d5ccf8ed98fcf6c7a3311d7f45ccd5e6659d5008338eb89b795ad6fd0a4d450",
+      "contentHash": "996694ef4a9733dce6461cab0bb5b73e644b51f063344747b11cfc6267fe2824",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3673,25 +3733,35 @@
       "totalLines": 83,
       "hasStructuralAnalysis": true
     },
-    "docs/contributing/github-branch-protection.md": {
-      "filePath": "docs/contributing/github-branch-protection.md",
-      "contentHash": "435c808387ff328d5779cfc11ed1462c3fbb4b3ce8b122e0102483483b06319f",
+    "docs/contributing/index.md": {
+      "filePath": "docs/contributing/index.md",
+      "contentHash": "460662d52cb2e911128abf94bb84000b510e19871282e0bc4800de1c186b4cd2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 134,
+      "totalLines": 258,
       "hasStructuralAnalysis": true
     },
     "docs/index.md": {
       "filePath": "docs/index.md",
-      "contentHash": "ccfb43ef54ee180d0141a33cbe4781c6cae3f83b5892ff91049d5f7198cd524b",
+      "contentHash": "c45eba686aa2dcf7ee742a24a3bdad7c0dddcd5951f058df6fe330345b8b2ef1",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
       "totalLines": 144,
       "hasStructuralAnalysis": true
+    },
+    "docs/javascripts/mathjax.js": {
+      "filePath": "docs/javascripts/mathjax.js",
+      "contentHash": "bced49b5a341b1a23e5c8329592b9cab48d52dba2973e1ed900cf282db4a55c5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
     },
     "docs/local/ImplementationPlan.md": {
       "filePath": "docs/local/ImplementationPlan.md",
@@ -3733,6 +3803,16 @@
       "totalLines": 173,
       "hasStructuralAnalysis": true
     },
+    "docs/local/github-branch-protection.md": {
+      "filePath": "docs/local/github-branch-protection.md",
+      "contentHash": "e4f5822016b70f3a7ec3920149d05aec73748ce76f2145bd804e5ca476de3ef7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
     "docs/local/keysetup.md": {
       "filePath": "docs/local/keysetup.md",
       "contentHash": "59bf07fbdd77738de1185cb5662b2c69b1e9a8098357c1ce8fef9890f4475d89",
@@ -3745,7 +3825,7 @@
     },
     "docs/operator-guide/index.md": {
       "filePath": "docs/operator-guide/index.md",
-      "contentHash": "36dc8b2342a9b01c838645441d3052181fcfc1f28fb4ef6248ae280fe71f8a5b",
+      "contentHash": "4dea9700d0019d6bf21cf1d98092a68a5865b0063e5d13b28f681ac2f5f67164",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3765,7 +3845,7 @@
     },
     "docs/operator-guide/self-hosting.md": {
       "filePath": "docs/operator-guide/self-hosting.md",
-      "contentHash": "8c491540620b58e66bb7de9cb2c7acf8a8e43c11741a1d290049284dd4b4cad8",
+      "contentHash": "61b40cb82ae19a0e2d739c50291d6c94430cd9aff3f150a7fb26c1f40cbf19f6",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3775,7 +3855,7 @@
     },
     "docs/operator-guide/spotify-setup.md": {
       "filePath": "docs/operator-guide/spotify-setup.md",
-      "contentHash": "f66f26dd947adb2a6b174832f8092f0aa253f419910432cd9bfbb3f918444ecb",
+      "contentHash": "ad17b00915296bde14ede3c1b62e2c37004b1f1dcc32643a3b78244c0c499bcb",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3785,7 +3865,7 @@
     },
     "docs/operator-guide/troubleshooting.md": {
       "filePath": "docs/operator-guide/troubleshooting.md",
-      "contentHash": "bd3379c8986010bd53d52b442914aff6fad22b49041a964a2c5dadd63d9dfcc7",
+      "contentHash": "4040d9a83a9f2f3fe612ac2163c6e26ad712c404bddf71dbbc7cc99af15bb336",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3795,32 +3875,32 @@
     },
     "docs/reference/configuration.md": {
       "filePath": "docs/reference/configuration.md",
-      "contentHash": "bae46cd13f70ea35d7de36729ecc6deca866f53f6ca9a4ee11e5d83f2c3c38d3",
+      "contentHash": "e90a6fa665da74c5b1324c22e2955fdb036a2bdd4bdc5a02dba5d70774fe50b0",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 66,
+      "totalLines": 69,
       "hasStructuralAnalysis": true
     },
     "docs/reference/rest-api.md": {
       "filePath": "docs/reference/rest-api.md",
-      "contentHash": "d59a24bb06ff2d86363bccdf4933a7bed25bf6cd96d199d68aaf0138e1783c30",
+      "contentHash": "df31c18c15bf3fe9b3928c1969f2d80d5d15f9d94836354b5466bd9c8d70f4cb",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 78,
+      "totalLines": 129,
       "hasStructuralAnalysis": true
     },
     "docs/reference/signalr-api.md": {
       "filePath": "docs/reference/signalr-api.md",
-      "contentHash": "55f0bc5e4af2ffaad500fe92ce2b750f4f0c7f80f94dfa9f3760a83af988a4ca",
+      "contentHash": "d55c671e33958481a17b707dbb55a8b9ab410befdebea291362ff3c332129bcf",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 96,
+      "totalLines": 126,
       "hasStructuralAnalysis": true
     },
     "docs/requirements.txt": {
@@ -3855,7 +3935,7 @@
     },
     "docs/user-guide/playback-and-display.md": {
       "filePath": "docs/user-guide/playback-and-display.md",
-      "contentHash": "301720d0ac1e1111c98fc27e465378443b08b46113adbba7717fe35dc0dd9c57",
+      "contentHash": "988aaee7624fb5ac737d4028bdb427765835c3eb050ba5064d7df436e622d9fb",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3875,7 +3955,7 @@
     },
     "docs/user-guide/timing-and-calibration.md": {
       "filePath": "docs/user-guide/timing-and-calibration.md",
-      "contentHash": "31c5c3bcce112460bafb4649034f82328b4e5885d1b9ad5bef1f43487ab9fe43",
+      "contentHash": "5ed870087a6eeb3d8a25b9741b16c6361266e9e949430a1c6a28d1998ab5bb24",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3895,12 +3975,12 @@
     },
     "mkdocs.yml": {
       "filePath": "mkdocs.yml",
-      "contentHash": "d7733b12b86ac598888c1af783f65b23f1a66d56a37638aa56ac664ce7e2ce25",
+      "contentHash": "1b4a965d2e73b5b02bd6ac457d9ac14dbe78322e9ab39856415d6c1e99afda95",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 101,
+      "totalLines": 107,
       "hasStructuralAnalysis": true
     },
     "packaging/linux/AppRun": {
@@ -3945,17 +4025,17 @@
     },
     "packaging/linux/publish/Cantus.Client.deps.json": {
       "filePath": "packaging/linux/publish/Cantus.Client.deps.json",
-      "contentHash": "95de6cd0ca3321466807c1e35fbca753059b6710c7238b8580adeccf6baa61ad",
+      "contentHash": "8959be2de9eee896fe92a465c506281360d70a18a82ddf099eb1fdc141f08d94",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1945,
+      "totalLines": 2555,
       "hasStructuralAnalysis": false
     },
     "packaging/linux/publish/Cantus.Client.dll": {
       "filePath": "packaging/linux/publish/Cantus.Client.dll",
-      "contentHash": "63b957a55730d1859e21122d732560db2cebabaee2a39e993dd8ad4b460847bc",
+      "contentHash": "dc6d7f4edbbba37790fb2a96857ee6f6c3af67094972b71d2ec640092f1b0e8a",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3965,7 +4045,7 @@
     },
     "packaging/linux/publish/Cantus.Client.pdb": {
       "filePath": "packaging/linux/publish/Cantus.Client.pdb",
-      "contentHash": "3fef43c7c48b19c90d31d91a74bfaf1740f1102f1a14fb1d531d0e8cbf886e41",
+      "contentHash": "a058ad471c60c529d7bcfda1c6e1ff873fb16e17520e0f87ae2cba7e1dfe3d26",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3975,17 +4055,17 @@
     },
     "packaging/linux/publish/Cantus.Client.runtimeconfig.json": {
       "filePath": "packaging/linux/publish/Cantus.Client.runtimeconfig.json",
-      "contentHash": "6a513b0258958ff07c12c5406b8b12b679d840b86a6d6a1e33b6c1866b6e2acd",
+      "contentHash": "43670a0f105ff939a27e538f37e5a0974d6be5cce5ce72a7249c9f702ac07fbb",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 18,
+      "totalLines": 20,
       "hasStructuralAnalysis": false
     },
     "packaging/linux/publish/Cantus.Core.dll": {
       "filePath": "packaging/linux/publish/Cantus.Core.dll",
-      "contentHash": "8f90c463959d2843e76acec799b5b89f0e745d8ed09b47a7a8d040a734c30a98",
+      "contentHash": "bb1b82c0e1d004d520401771f919eb19a72e16b8be25aef5768eebc91f6f3b43",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3995,7 +4075,27 @@
     },
     "packaging/linux/publish/Cantus.Core.pdb": {
       "filePath": "packaging/linux/publish/Cantus.Core.pdb",
-      "contentHash": "d755b2cf0a2e974ad8977e20421b42c0d6a0488c53e89bf3fd96430bbc193987",
+      "contentHash": "b84fe4b44e1fbc8a57c541e33567319a5998e24954f17aec6788d52a8f418cc4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Infrastructure.dll": {
+      "filePath": "packaging/linux/publish/Cantus.Infrastructure.dll",
+      "contentHash": "78b850d0436059fdfa7bd1970d34b90bc63b0c9ca1a965938af18aeabee95760",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Cantus.Infrastructure.pdb": {
+      "filePath": "packaging/linux/publish/Cantus.Infrastructure.pdb",
+      "contentHash": "ba0bc50527bbd5f7874729d16720c4593f142959749064c39abc377664f0f634",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -4036,6 +4136,36 @@
     "packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll": {
       "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Connections.Abstractions.dll",
       "contentHash": "2a6bef96f00683c82cd33fe45c94d45808e3cb52f2db9bcf24aefabe770563e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.Cryptography.Internal.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.Cryptography.Internal.dll",
+      "contentHash": "66fb8bd0b0d78aa254526e95cd91ee114932acb0130ab3d08d38af39fef802e6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.Abstractions.dll",
+      "contentHash": "5314be678a906b98506a8efbc30a98b84cd04d3f94109c0e7216f7c4b0bedfef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.AspNetCore.DataProtection.dll",
+      "contentHash": "1dd6b4a3e725b26cf066972c882e0a7e102185cf1da158635417e302dfaea167",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -4113,6 +4243,76 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/Microsoft.Data.Sqlite.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Data.Sqlite.dll",
+      "contentHash": "121ee7a2f39954645a0564f1b46d57a5d39811496f74c40cfa96c179cdca66da",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.EntityFrameworkCore.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Abstractions.dll",
+      "contentHash": "0a975b26f4e474752ec7cac231bf4da253af8672b8e05e8521a9a40cfabd1190",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.EntityFrameworkCore.Relational.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Relational.dll",
+      "contentHash": "15d091f30f3c1167084fe0bbb9cee71d2a0ddbd4e3d3531fb1ed6d7aab3531f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.EntityFrameworkCore.Sqlite.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.Sqlite.dll",
+      "contentHash": "dd120cb81a670637739808ac607fdeafc524cf0462a10abb50474f2181fad1de",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.EntityFrameworkCore.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.EntityFrameworkCore.dll",
+      "contentHash": "622bf1b39ece86125fe50d2fc038acb057fa2f3ba9e65048ad3fcb34384feb27",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Caching.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Caching.Abstractions.dll",
+      "contentHash": "6427eaf50ea686f996e565f062181109207117d3d34c941bcb9e67fb5a375a9b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Caching.Memory.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Caching.Memory.dll",
+      "contentHash": "6eaeb66e5b1968d7d9b34ae13e533f20c808db7a3e25e3993ddedef581c18f80",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll": {
       "filePath": "packaging/linux/publish/Microsoft.Extensions.Configuration.Abstractions.dll",
       "contentHash": "c47e50f3fc85f18585cc41af8e9900802a68933a34d70b36a08a50dee26ad9f2",
@@ -4163,9 +4363,69 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/Microsoft.Extensions.DependencyModel.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.DependencyModel.dll",
+      "contentHash": "657a06e84111586e636058fdd821607006e00fd62f76961ac478f47d414fc343",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Diagnostics.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Diagnostics.Abstractions.dll",
+      "contentHash": "57e1b63020d5c572d507d858785728d2b642c5c09f564aa87c4ce8633752285a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Diagnostics.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Diagnostics.dll",
+      "contentHash": "2a883e6d79f0a52e04fafacf9ccf789bef519988922419104c146790d966026a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/Microsoft.Extensions.Features.dll": {
       "filePath": "packaging/linux/publish/Microsoft.Extensions.Features.dll",
       "contentHash": "1a7b1c725cd1b8d3a713d663d5d77cccf8815dcd7584731f1a7fb4a9d66b89e5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.FileProviders.Abstractions.dll",
+      "contentHash": "4e98fe245bc96d6af41ef184b23d4bf375d2fb2ec573446ce5a7111934f4e7f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Hosting.Abstractions.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Hosting.Abstractions.dll",
+      "contentHash": "fcd607916b59f30d591e7717eb5a8dcb86593cb1ff46beeddb90971c85805d61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/Microsoft.Extensions.Http.dll": {
+      "filePath": "packaging/linux/publish/Microsoft.Extensions.Http.dll",
+      "contentHash": "74041d53263316a2251b3d2187e0adbe9f9b26c4c7a9c376820e7a6ef6af2a75",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -4283,6 +4543,46 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/Newtonsoft.Json.dll": {
+      "filePath": "packaging/linux/publish/Newtonsoft.Json.dll",
+      "contentHash": "22c649f75fce5be7c7ccda8880473b634ef69ecf33f5d1ab8ad892caf47d5a07",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SQLitePCLRaw.batteries_v2.dll": {
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.batteries_v2.dll",
+      "contentHash": "0981b1e1e24ddf18e42d0f6cea7a318e735b875f987b3e306f555118726b24a7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SQLitePCLRaw.core.dll": {
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.core.dll",
+      "contentHash": "dbcfd04e95aefa9ef0dcad4cd20009b018dd3d2943c8ccf3f40597b9ed9161b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SQLitePCLRaw.provider.e_sqlite3.dll": {
+      "filePath": "packaging/linux/publish/SQLitePCLRaw.provider.e_sqlite3.dll",
+      "contentHash": "30dd6ae7899281f9b715ab9f8ceb1d67b6d4c8d76a21daaafc215955fcf37f0c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/SkiaSharp.Resources.dll": {
       "filePath": "packaging/linux/publish/SkiaSharp.Resources.dll",
       "contentHash": "fa00e0292345194a63aaa201b98c4926a638b1122cfdc803d9c6b6bc22ef5c72",
@@ -4336,6 +4636,16 @@
     "packaging/linux/publish/SkiaSharp.dll": {
       "filePath": "packaging/linux/publish/SkiaSharp.dll",
       "contentHash": "b0f9102f6c51d6daa13e5b682c2c6f7223ff1490418bbd5202797976db18d540",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/SpotifyAPI.Web.dll": {
+      "filePath": "packaging/linux/publish/SpotifyAPI.Web.dll",
+      "contentHash": "0961a59f6140e44671c7fa60e1fbc2242e2a08f78e552b79077711f585aa5d18",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -4413,6 +4723,16 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/System.CommandLine.dll": {
+      "filePath": "packaging/linux/publish/System.CommandLine.dll",
+      "contentHash": "6491803d482cf175229c30392d8fad3c41c1171d9c5d645168a07c7bcee861fc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/System.ComponentModel.Annotations.dll": {
       "filePath": "packaging/linux/publish/System.ComponentModel.Annotations.dll",
       "contentHash": "507327b1e5be86b3cb633bb3e62b31dc18ac07aa3b342b887da81a42f937ac4e",
@@ -4466,6 +4786,16 @@
     "packaging/linux/publish/System.ComponentModel.dll": {
       "filePath": "packaging/linux/publish/System.ComponentModel.dll",
       "contentHash": "55674bba24a101b6a12d91f31cd4f2e963bac3717596889461dec698108d30bc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Configuration.ConfigurationManager.dll": {
+      "filePath": "packaging/linux/publish/System.Configuration.ConfigurationManager.dll",
+      "contentHash": "e814b79f175ecde855c7ae003cd8bc5ed88edea4ab4089d055ed7b63da7bbec9",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -5573,9 +5903,29 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/System.Security.Cryptography.Pkcs.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Pkcs.dll",
+      "contentHash": "97769ad6899c6bfdba4884bd104b4e10a95a0d9881f631a96c298e80e8f16fda",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/System.Security.Cryptography.Primitives.dll": {
       "filePath": "packaging/linux/publish/System.Security.Cryptography.Primitives.dll",
       "contentHash": "b524fa1e9d2d5927e6cd9d904004d50ec0c41716afe7f87f55fa995a224afe25",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Cryptography.ProtectedData.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.ProtectedData.dll",
+      "contentHash": "80566f0839ece5946e66bf9f00d723e59e371ba1341a18e00c7c7a7c49298e1d",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -5593,9 +5943,29 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/System.Security.Cryptography.Xml.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Cryptography.Xml.dll",
+      "contentHash": "bf46fb5062a735e8ab6e67d46daaec6ff9934f3e102898d4d0bf3e1c8810082f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/System.Security.Cryptography.dll": {
       "filePath": "packaging/linux/publish/System.Security.Cryptography.dll",
       "contentHash": "aecad020917aa28e70cda506adbea1558d664f5efc1cfde456c19cf62b1fb874",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/System.Security.Permissions.dll": {
+      "filePath": "packaging/linux/publish/System.Security.Permissions.dll",
+      "contentHash": "8ca99b4d76d2708d27040d82d87c9f2beb26987e283146aea6bc275d92e895ce",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -6933,6 +7303,76 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/cs/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/cs/System.CommandLine.resources.dll",
+      "contentHash": "359f11f8e41e432e0319e75d5631f62c3b12090d7bae2eab3968eb5b00b6e698",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/de/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/de/System.CommandLine.resources.dll",
+      "contentHash": "c5c2d5b549f89977be9f19318613d3628249e7f78b12f9477711f3defd16723d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/es/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/es/System.CommandLine.resources.dll",
+      "contentHash": "31de7a021e45b6cd72918beea9342f9e91fefbc05fe02b34a9ff292a05aa87f8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/fr/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/fr/System.CommandLine.resources.dll",
+      "contentHash": "79317a0cd271c25ca62d05f76e45604c56301cdb2180b1d517c5de4dd021f87d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/it/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/it/System.CommandLine.resources.dll",
+      "contentHash": "902ea57d0a07ed0d7d77611d4b33a65d09c87e46282e13d940d792f60e5e6fde",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/ja/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/ja/System.CommandLine.resources.dll",
+      "contentHash": "8e3f81652629ba1e864aa2e09c638352a98e2a03199cda02c18568b628e607db",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/ko/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/ko/System.CommandLine.resources.dll",
+      "contentHash": "31af252eea321b856ec103f294a1bc5fba928c0b23eb869da513baaa212bb0b3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/libHarfBuzzSharp.so": {
       "filePath": "packaging/linux/publish/libHarfBuzzSharp.so",
       "contentHash": "c952458933ea7f1ce66ade61fa32e708df7dfb2ab8bae77ed5ec06f49223a75c",
@@ -7053,6 +7493,16 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/libe_sqlite3.so": {
+      "filePath": "packaging/linux/publish/libe_sqlite3.so",
+      "contentHash": "478afd10c84cda9db29c6adda40e8a2babba67c7e726c27f91d330ae73e2475b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/libhostfxr.so": {
       "filePath": "packaging/linux/publish/libhostfxr.so",
       "contentHash": "60b1f1cc6b84794e0a8128a54e189f1e27e86409102f6ed61fb419bd7fe0bf85",
@@ -7093,6 +7543,16 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/log4net.dll": {
+      "filePath": "packaging/linux/publish/log4net.dll",
+      "contentHash": "5c2c6d5f4f0658b32b89c35a7927a46e6a1d7897421b37eddf4000659146fd75",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/linux/publish/mscorlib.dll": {
       "filePath": "packaging/linux/publish/mscorlib.dll",
       "contentHash": "a262a7ba587e1b3cf51f466e9fb9ac6a0b97f31ce291e1725be5d0e7ff17b7e5",
@@ -7113,6 +7573,66 @@
       "totalLines": 0,
       "hasStructuralAnalysis": false
     },
+    "packaging/linux/publish/pl/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/pl/System.CommandLine.resources.dll",
+      "contentHash": "5cfba7606997337b0f5e88779ece3e16579e1d3a880a93c30832bc7652ec51b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/pt-BR/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/pt-BR/System.CommandLine.resources.dll",
+      "contentHash": "770a74f321ec0b8d63cd094674965675e601b963cb6aa625aff539614b2c280e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/ru/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/ru/System.CommandLine.resources.dll",
+      "contentHash": "3779ba777b2deb72e8a4814a4cb60c60313c935e2b6c0aa893788000b60c0fc0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/tr/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/tr/System.CommandLine.resources.dll",
+      "contentHash": "ffd72086f9b665877b81931df7f1d4125e40b2a7620f3e67d9ddd0c81f5ca88f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/zh-Hans/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/zh-Hans/System.CommandLine.resources.dll",
+      "contentHash": "66ce022d07b7628b789548012540c4e836741b2e643fba043641be03e437d3c3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
+    "packaging/linux/publish/zh-Hant/System.CommandLine.resources.dll": {
+      "filePath": "packaging/linux/publish/zh-Hant/System.CommandLine.resources.dll",
+      "contentHash": "9df307e58b71dfbd09442b4ecaea3c03d4695edb5a141ee816ced9886d5901c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 0,
+      "hasStructuralAnalysis": false
+    },
     "packaging/windows/installer.iss": {
       "filePath": "packaging/windows/installer.iss",
       "contentHash": "ad1e9c158290a15f7187a3153dd213bd92bbf7b506493ce1e12705eeb688d8cb",
@@ -7125,12 +7645,12 @@
     },
     "scripts/generate_docs.py": {
       "filePath": "scripts/generate_docs.py",
-      "contentHash": "e812db2e8fbb27f87b5f3fce4d79a69a1c7cbde5409b53b9e9dd85eb41dae3c2",
+      "contentHash": "f39f3d766ac0603c186312a8b80206cfbf300e704b53f23e31f609d41aa761a5",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 92,
+      "totalLines": 93,
       "hasStructuralAnalysis": false
     },
     "scripts/update_understand_context.py": {
@@ -7155,7 +7675,7 @@
     },
     "src/Cantus.Client/Cantus.Client/App.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/App.xaml.cs",
-      "contentHash": "ee59c8bb92e1126d6e3dc39f31c107f89cc277875675065c3eafa29863bc01e4",
+      "contentHash": "c4e33dd5180dc6688ea4c5842f423bd45b73e7095bd70dc4fb5b5ec0eb32a802",
       "functions": [
         {
           "name": "OnNavigationFailed",
@@ -7170,7 +7690,7 @@
         {
           "name": "InitializeLogging",
           "params": [
-            "CantusLoggingManager.DEFAULT_CONFIGURATION"
+            "ClientLoggingManager.DEFAULT_CONFIGURATION"
           ],
           "returnType": "void",
           "exported": true,
@@ -7187,7 +7707,7 @@
             "MainWindow"
           ],
           "exported": true,
-          "lineCount": 101
+          "lineCount": 62
         }
       ],
       "imports": [
@@ -7204,13 +7724,13 @@
           ]
         },
         {
-          "source": "Cantus.Core.Logging",
+          "source": "Cantus.Client.Services",
           "specifiers": [
-            "Logging"
+            "Services"
           ]
         },
         {
-          "source": "Cantus.Infrastructure.Logging",
+          "source": "Cantus.Core.Logging",
           "specifiers": [
             "Logging"
           ]
@@ -7226,17 +7746,17 @@
         "App",
         "InitializeLogging"
       ],
-      "totalLines": 101,
+      "totalLines": 62,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj": {
       "filePath": "src/Cantus.Client/Cantus.Client/Cantus.Client.csproj",
-      "contentHash": "10c253891e5971b1babc1560c52b4fb7d2943d4cb29716da6fa2f3ff5aef522d",
+      "contentHash": "a3c3b4c203df754fb662fd1fd6c6e084c2f2ddb2b995058c07c9362547636a8c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 46,
+      "totalLines": 47,
       "hasStructuralAnalysis": false
     },
     "src/Cantus.Client/Cantus.Client/GlobalUsings.cs": {
@@ -7615,7 +8135,7 @@
     },
     "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Platforms/Desktop/Program.cs",
-      "contentHash": "10a3320f9a4698256cd7c24ce197a296dee1a18e721216127cc053143c82a45a",
+      "contentHash": "ff394f893937bf0312450c963693b98ccbff69f4e9e939adcecae36dd3f72829",
       "functions": [
         {
           "name": "Main",
@@ -7633,7 +8153,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 45
+          "lineCount": 43
         }
       ],
       "imports": [
@@ -7650,13 +8170,13 @@
           ]
         },
         {
-          "source": "Cantus.Core.Logging",
+          "source": "Cantus.Client.Services",
           "specifiers": [
-            "Logging"
+            "Services"
           ]
         },
         {
-          "source": "Cantus.Infrastructure.Logging",
+          "source": "Cantus.Core.Logging",
           "specifiers": [
             "Logging"
           ]
@@ -7672,7 +8192,7 @@
         "Main",
         "Program"
       ],
-      "totalLines": 45,
+      "totalLines": 43,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Platforms/WebAssembly/Program.cs": {
@@ -7711,6 +8231,86 @@
         "Program"
       ],
       "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Client/Cantus.Client/Services/ClientLoggingManager.cs": {
+      "filePath": "src/Cantus.Client/Cantus.Client/Services/ClientLoggingManager.cs",
+      "contentHash": "ff3ff0edb378b9f8385ce15e5d9ef4cf1eb8f7df0705f22941a22f333fda3fe4",
+      "functions": [
+        {
+          "name": "ParseConfiguration",
+          "params": [
+            "value"
+          ],
+          "returnType": "LoggingConfiguration",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ParseConfiguration",
+          "params": [
+            "value",
+            "defaultConfiguration"
+          ],
+          "returnType": "LoggingConfiguration",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "CreateLoggerFactory",
+          "params": [
+            "DEFAULT_CONFIGURATION"
+          ],
+          "returnType": "ILoggerFactory",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "InitializeLogging",
+          "params": [
+            "DEFAULT_CONFIGURATION"
+          ],
+          "returnType": "ILoggerFactory",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "ClientLoggingManager",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 81
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Cantus.Core.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        },
+        {
+          "source": "Microsoft.Extensions.Logging",
+          "specifiers": [
+            "Logging"
+          ]
+        }
+      ],
+      "exports": [
+        "ClientLoggingManager",
+        "CreateLoggerFactory",
+        "InitializeLogging",
+        "ParseConfiguration"
+      ],
+      "totalLines": 81,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/ISignalRPlaybackClient.cs": {
@@ -8891,8 +9491,27 @@
     },
     "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Services/ThemeManager.cs",
-      "contentHash": "40bc5440b47ffeeae7a89d18f94269e2f9595864d61bac21a452e7dd11287ace",
+      "contentHash": "3cb3a3c3e96ddf419c2de8de41c776a53ae4f7eedd97344777064f2fe78cf64f",
       "functions": [
+        {
+          "name": "GetOrCreateBrush",
+          "params": [
+            "brush",
+            "color"
+          ],
+          "returnType": "SolidColorBrush",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "UpdateBrushes",
+          "params": [
+            "palette"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
         {
           "name": "SetThemeMode",
           "params": [
@@ -8928,6 +9547,17 @@
           "lineCount": 10
         },
         {
+          "name": "ApplyDynamicTheme",
+          "params": [
+            "title",
+            "artist",
+            "albumArtUrl"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
           "name": "OnPropertyChanged",
           "params": [
             "null"
@@ -8941,15 +9571,17 @@
         {
           "name": "ThemeManager",
           "methods": [
+            "UpdateBrushes",
             "SetThemeMode",
             "CycleNextTheme",
             "UpdateTrackMetadata",
             "ApplyTheme",
+            "ApplyDynamicTheme",
             "OnPropertyChanged"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 124
+          "lineCount": 197
         }
       ],
       "imports": [
@@ -8996,7 +9628,7 @@
         "ThemeManager",
         "UpdateTrackMetadata"
       ],
-      "totalLines": 124,
+      "totalLines": 197,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Services/WasmInterop.cs": {
@@ -9164,10 +9796,33 @@
     },
     "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs",
-      "contentHash": "d4b33e9a45d359e53cd2a486359f7457d1b68a4b06ccf4cde333901baf72a49c",
+      "contentHash": "e77217f184e08efa523fdf4cd0ec649bc0758b2469e057f93d6eb1b7e2f21eaa",
       "functions": [
         {
           "name": "ToggleStaticLyricsMode",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ToggleAutoScroll",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "SetUserScrollingPaused",
+          "params": [
+            "paused"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ResumeAutoScroll",
           "params": [],
           "returnType": "void",
           "exported": true,
@@ -9223,29 +9878,6 @@
           "returnType": "void",
           "exported": true,
           "lineCount": 10
-        },
-        {
-          "name": "SetMobileView",
-          "params": [
-            "mode"
-          ],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "CycleMobileView",
-          "params": [],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "OnLayoutManagerChanged",
-          "params": [],
-          "returnType": "void",
-          "exported": false,
-          "lineCount": 10
         }
       ],
       "classes": [
@@ -9253,6 +9885,9 @@
           "name": "LyricsViewModel",
           "methods": [
             "ToggleStaticLyricsMode",
+            "ToggleAutoScroll",
+            "SetUserScrollingPaused",
+            "ResumeAutoScroll",
             "RunOnUIThread",
             "OnLyricLinesCollectionChanged",
             "InitializeAsync",
@@ -9289,7 +9924,7 @@
             "Sessions"
           ],
           "exported": true,
-          "lineCount": 987
+          "lineCount": 1091
         }
       ],
       "imports": [
@@ -9376,15 +10011,18 @@
         "NudgeOffsetAsync",
         "RefreshLyricLineSizes",
         "ResetOffsetAsync",
+        "ResumeAutoScroll",
         "Sessions",
         "SetMobileView",
         "SetSyncOffsetAsync",
+        "SetUserScrollingPaused",
         "SubscribeToUserAsync",
         "SwitchUserSubscriptionAsync",
+        "ToggleAutoScroll",
         "ToggleKioskMode",
         "ToggleStaticLyricsMode"
       ],
-      "totalLines": 987,
+      "totalLines": 1091,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/AdaptiveHeaderBar.xaml": {
@@ -9854,107 +10492,110 @@
     },
     "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml",
-      "contentHash": "e49ebe416eeb383891da8295eb2db656c49434b9851a38986686d3fa69939c8e",
+      "contentHash": "7d299e4eab2041c5d1005af022edf21597ae2d0018faa538201221960cdef3ee",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 105,
+      "totalLines": 144,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs": {
       "filePath": "src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs",
-      "contentHash": "75e2806af2823f369e5a3a7ca08e588317c6d7cc03ff4bf430b3352c07d1bc78",
+      "contentHash": "696b26bf97693153d3580e6173a200103856b71140b35984dafa737ebc50490f",
       "functions": [
+        {
+          "name": "OnViewModelPropertyChanged",
+          "params": [
+            "d",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "OnAutoScrollResumed",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "OnAutoResumeTimerTick",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "OnProgrammaticScrollResetTimerTick",
+          "params": [
+            "sender",
+            "e"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
         {
           "name": "ScrollToActiveLine",
           "params": [
-            "idx"
+            "idx",
+            "false"
           ],
           "returnType": "void",
           "exported": true,
           "lineCount": 10
         },
         {
-          "name": "GetEmptyStateVisibility",
+          "name": "OnPresentationContainerSizeChanged",
           "params": [
-            "null"
+            "sender",
+            "e"
           ],
-          "returnType": "Visibility",
-          "exported": true,
+          "returnType": "void",
+          "exported": false,
           "lineCount": 10
         },
         {
-          "name": "GetLyricsVisibility",
-          "params": [
-            "null"
-          ],
-          "returnType": "Visibility",
-          "exported": true,
+          "name": "UpdateContainerPadding",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
           "lineCount": 10
         },
         {
-          "name": "GetStagePadding",
+          "name": "OnScrollViewerPointerWheelChanged",
           "params": [
-            "null"
+            "sender",
+            "e"
           ],
-          "returnType": "Thickness",
-          "exported": true,
+          "returnType": "void",
+          "exported": false,
           "lineCount": 10
         },
         {
-          "name": "GetEmptyIconSize",
+          "name": "OnScrollViewerPointerPressed",
           "params": [
-            "null"
+            "sender",
+            "e"
           ],
-          "returnType": "double",
-          "exported": true,
+          "returnType": "void",
+          "exported": false,
           "lineCount": 10
         },
         {
-          "name": "GetEmptyTitleSize",
+          "name": "OnScrollViewerViewChanged",
           "params": [
-            "null"
+            "sender",
+            "e"
           ],
-          "returnType": "double",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "GetEmptySubtitleSize",
-          "params": [
-            "null"
-          ],
-          "returnType": "double",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "GetListHorizontalAlignment",
-          "params": [
-            "null"
-          ],
-          "returnType": "HorizontalAlignment",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "GetLineTextAlignment",
-          "params": [
-            "null"
-          ],
-          "returnType": "TextAlignment",
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "GetLineColor",
-          "params": [
-            "null",
-            "null"
-          ],
-          "returnType": "SolidColorBrush",
-          "exported": true,
+          "returnType": "void",
+          "exported": false,
           "lineCount": 10
         }
       ],
@@ -9962,15 +10603,26 @@
         {
           "name": "LyricsStageView",
           "methods": [
+            "OnAutoScrollResumed",
+            "OnAutoResumeTimerTick",
+            "OnProgrammaticScrollResetTimerTick",
             "ScrollToActiveLine",
+            "OnPresentationContainerSizeChanged",
+            "UpdateContainerPadding",
+            "OnScrollViewerPointerWheelChanged",
+            "OnScrollViewerPointerPressed",
+            "OnScrollViewerViewChanged",
+            "OnUserManualScroll",
+            "OnToggleAutoScrollClicked",
+            "OnResumeAutoScrollClicked",
+            "OnToggleStaticModeClicked",
             "GetEmptyIconSize",
             "GetEmptyTitleSize",
-            "GetEmptySubtitleSize",
-            "OnToggleStaticModeClicked"
+            "GetEmptySubtitleSize"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 120
+          "lineCount": 292
         }
       ],
       "imports": [
@@ -10011,9 +10663,21 @@
           ]
         },
         {
+          "source": "Microsoft.UI.Xaml.Input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
           "source": "Microsoft.UI.Xaml.Media",
           "specifiers": [
             "Media"
+          ]
+        },
+        {
+          "source": "Windows.Foundation",
+          "specifiers": [
+            "Foundation"
           ]
         },
         {
@@ -10024,6 +10688,7 @@
         }
       ],
       "exports": [
+        "GetAutoScrollButtonBackground",
         "GetEmptyIconSize",
         "GetEmptyStateVisibility",
         "GetEmptySubtitleSize",
@@ -10036,7 +10701,7 @@
         "LyricsStageView",
         "ScrollToActiveLine"
       ],
-      "totalLines": 120,
+      "totalLines": 292,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Client/Cantus.Client/Views/MiniPlaybackBar.xaml": {
@@ -10442,29 +11107,9 @@
       "totalLines": 360,
       "hasStructuralAnalysis": true
     },
-    "src/Cantus.Client/Directory.Build.props": {
-      "filePath": "src/Cantus.Client/Directory.Build.props",
-      "contentHash": "41cfa9ea98f1d766c4e5a876c7dee95e0d310e7648316fc9ca83fbf9305d5d4b",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 15,
-      "hasStructuralAnalysis": false
-    },
-    "src/Cantus.Client/Directory.Packages.props": {
-      "filePath": "src/Cantus.Client/Directory.Packages.props",
-      "contentHash": "15443a94b9e59afcae45a81c6b85ff2339da0d41faf1387482d472fbeebeed51",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 14,
-      "hasStructuralAnalysis": false
-    },
     "src/Cantus.Core/Cantus.Core.csproj": {
       "filePath": "src/Cantus.Core/Cantus.Core.csproj",
-      "contentHash": "0787a1e08d5dbfa6ee606f992d338c3aeb40435f24e4aed9405967adc6b00b8a",
+      "contentHash": "3ff90f5d6001796d1cb1ef15a8b7d2c881e085278a418f5b7a41f1d153a0b057",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -11017,7 +11662,7 @@
     },
     "src/Cantus.Generators/Cantus.Generators.csproj": {
       "filePath": "src/Cantus.Generators/Cantus.Generators.csproj",
-      "contentHash": "e986250579d37734b52f314e8bc999bc5992b81396a7d2966c5e63b88f53f094",
+      "contentHash": "ade06c4f613f3a11560d7569eea0f90ccc01783ffdd073495784e8cb4949d36f",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -11027,7 +11672,7 @@
     },
     "src/Cantus.Generators/TraceLogDecoratorGenerator.cs": {
       "filePath": "src/Cantus.Generators/TraceLogDecoratorGenerator.cs",
-      "contentHash": "d84fb954f7b1d0304c538a57569146bb40abcd0837e7f6c594aba21d57e72cde",
+      "contentHash": "d1306c0ccc2ac5d628e82f51b972a841d4e11162e4fe488bf9fb7dff5421e97b",
       "functions": [
         {
           "name": "Initialize",
@@ -11144,7 +11789,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         },
         {
           "name": "InterfaceToDecorate",
@@ -11175,7 +11820,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         },
         {
           "name": "MethodModel",
@@ -11206,7 +11851,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         },
         {
           "name": "ParameterModel",
@@ -11237,7 +11882,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         },
         {
           "name": "PropertyModel",
@@ -11268,7 +11913,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         },
         {
           "name": "EventModel",
@@ -11299,7 +11944,7 @@
             "HasSetter"
           ],
           "exported": true,
-          "lineCount": 618
+          "lineCount": 621
         }
       ],
       "imports": [
@@ -11388,12 +12033,12 @@
         "TraceLogDecoratorGenerator",
         "Type"
       ],
-      "totalLines": 618,
+      "totalLines": 621,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj": {
       "filePath": "src/Cantus.Infrastructure/Cantus.Infrastructure.csproj",
-      "contentHash": "681dc89400a51daa855976e3eb654b6a35e66fe5093ed424ce4e52ae82bb4beb",
+      "contentHash": "60ae4b59afdfdce5709a066021cd52ea03320a229fc05de4f29a48f82b08f1f3",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -12192,7 +12837,7 @@
     },
     "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs": {
       "filePath": "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs",
-      "contentHash": "5b37e9406f9ec849c186a97a38c4723d1daa08ff331f4646bb8884d5bcf7ebc9",
+      "contentHash": "37d910ff52d82f1c5aba41ac4db9ce75afbe3aa904bfa815ecf5b883b543b48e",
       "functions": [
         {
           "name": "GetCachedLyricsAsync",
@@ -12241,6 +12886,18 @@
           "lineCount": 10
         },
         {
+          "name": "GetOrCreateLyricsEntityAsync",
+          "params": [
+            "trackId",
+            "trackName",
+            "artistName",
+            "cancellationToken"
+          ],
+          "returnType": "Task<CachedLyricsEntity>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
           "name": "GetTrackOffsetAsync",
           "params": [
             "trackId",
@@ -12279,6 +12936,7 @@
             "IsMarkedNotFoundAsync",
             "SaveLyricsAsync",
             "MarkNotFoundAsync",
+            "GetOrCreateLyricsEntityAsync",
             "GetTrackOffsetAsync",
             "SetTrackOffsetAsync"
           ],
@@ -12289,9 +12947,27 @@
       ],
       "imports": [
         {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
           "source": "System.Text",
           "specifiers": [
             "Text"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
           ]
         },
         {
@@ -12492,7 +13168,7 @@
     },
     "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs": {
       "filePath": "src/Cantus.Infrastructure/Migrations/20260828004637_AddLogEntriesTable.cs",
-      "contentHash": "80746aa774b4ea0964dceccda5783e18db21540b6872ff7cc3572e9227800129",
+      "contentHash": "3fe6d62bcfb85b88dcf062559f4ba0a2e677e57a1f53b24359579a3bb1c578a4",
       "functions": [],
       "classes": [
         {
@@ -12504,6 +13180,12 @@
         }
       ],
       "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
         {
           "source": "Microsoft.EntityFrameworkCore.Migrations",
           "specifiers": [
@@ -13143,7 +13825,7 @@
     },
     "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs": {
       "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
-      "contentHash": "00d66776bbe4c48c4fd7e296c36991124bca4d6aecd29d91bfab1ec673508b8e",
+      "contentHash": "fb148e08f04fb375801a8170b807281d36b9584410e55c96553f836297d813fa",
       "functions": [
         {
           "name": "TriggerImmediatePoll",
@@ -13160,6 +13842,15 @@
           "returnType": "Task<int>",
           "exported": false,
           "lineCount": 10
+        },
+        {
+          "name": "FormatTimeSpan",
+          "params": [
+            "ts"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -13171,7 +13862,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 284
+          "lineCount": 416
         }
       ],
       "imports": [
@@ -13236,6 +13927,24 @@
           ]
         },
         {
+          "source": "SpotifyAPI.Web",
+          "specifiers": [
+            "Web"
+          ]
+        },
+        {
+          "source": "CancellationTokenSource linkedZeroClients =\n                            CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token)",
+          "specifiers": [
+            "Token)"
+          ]
+        },
+        {
+          "source": "CancellationTokenSource linkedDelay =\n                        CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token)",
+          "specifiers": [
+            "Token)"
+          ]
+        },
+        {
           "source": "IServiceScope scope = _scopeFactory.CreateScope()",
           "specifiers": [
             "CreateScope()"
@@ -13246,7 +13955,7 @@
         "ActiveUsersPlaybackMonitor",
         "TriggerImmediatePoll"
       ],
-      "totalLines": 284,
+      "totalLines": 416,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/BackgroundServices/PlaybackPollerOptions.cs": {
@@ -13280,7 +13989,7 @@
     },
     "src/Cantus.Server/Cantus.Server.csproj": {
       "filePath": "src/Cantus.Server/Cantus.Server.csproj",
-      "contentHash": "2b2c94cf880cbf474f09a17ef4ffa01ac02a176c708a263097f05c8d94abee09",
+      "contentHash": "26710a08b6264fdbf08b064e19571ce65b5040e5764f55bf1efe9df2bb253c6e",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -13290,7 +13999,7 @@
     },
     "src/Cantus.Server/Endpoints/AuthEndpoints.cs": {
       "filePath": "src/Cantus.Server/Endpoints/AuthEndpoints.cs",
-      "contentHash": "1b7291bb7ab502ade2c5f5ffa5811a5a217bdfd9b52c51a370361cc08d7ba36b",
+      "contentHash": "8639e56e9c2d48487cfa342baa9fd74cf7f6dc5da5978aa82b49d06a86605c81",
       "functions": [
         {
           "name": "MapAuthEndpoints",
@@ -13302,11 +14011,83 @@
           "lineCount": 10
         },
         {
-          "name": "ResolveSessionId",
+          "name": "HandleLogin",
           "params": [
-            "context"
+            "json",
+            "\"client_id\""
           ],
-          "returnType": "string?",
+          "returnType": "IResult",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleCallback",
+          "params": [
+            "code",
+            "state",
+            "error",
+            "authService",
+            "registry",
+            "hostUrlResolver",
+            "IHubContext<PlaybackHub",
+            "hubContext",
+            "context",
+            "loggerFactory",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleGetSessions",
+          "params": [
+            "authService",
+            "registry",
+            "sessionResolver",
+            "context",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleGetCurrentUser",
+          "params": [
+            "authService",
+            "sessionResolver",
+            "context",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleRevokeSession",
+          "params": [
+            "userId",
+            "authService",
+            "IHubContext<PlaybackHub",
+            "hubContext",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleLogout",
+          "params": [
+            "authService",
+            "sessionResolver",
+            "IHubContext<PlaybackHub",
+            "hubContext",
+            "context",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
           "exported": false,
           "lineCount": 10
         },
@@ -13326,14 +14107,38 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 425
+          "lineCount": 403
         }
       ],
       "imports": [
         {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "System.Collections.Generic",
+          "specifiers": [
+            "Generic"
+          ]
+        },
+        {
           "source": "System.Security.Cryptography",
           "specifiers": [
             "Cryptography"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
           ]
         },
         {
@@ -13403,12 +14208,6 @@
           ]
         },
         {
-          "source": "Microsoft.Extensions.Primitives",
-          "specifiers": [
-            "Primitives"
-          ]
-        },
-        {
           "source": "SpotifyAPI.Web",
           "specifiers": [
             "Web"
@@ -13419,12 +14218,117 @@
         "AuthEndpoints",
         "MapAuthEndpoints"
       ],
-      "totalLines": 425,
+      "totalLines": 403,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Endpoints/HealthEndpoints.cs": {
+      "filePath": "src/Cantus.Server/Endpoints/HealthEndpoints.cs",
+      "contentHash": "19451cfaad9b7df05cc557ee18efa0ab3f94cffc412e40918c28e3a35243cd0e",
+      "functions": [
+        {
+          "name": "MapHealthEndpoints",
+          "params": [
+            "endpoints"
+          ],
+          "returnType": "IEndpointRouteBuilder",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleHealthCheck",
+          "params": [
+            "dbContext",
+            "sessionRegistry",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "HealthEndpoints",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 59
+        },
+        {
+          "name": "HealthResponseDto",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 59
+        }
+      ],
+      "imports": [
+        {
+          "source": "System.Reflection",
+          "specifiers": [
+            "Reflection"
+          ]
+        },
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
+        {
+          "source": "Cantus.Infrastructure.Persistence",
+          "specifiers": [
+            "Persistence"
+          ]
+        },
+        {
+          "source": "Cantus.Server.Services",
+          "specifiers": [
+            "Services"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Builder",
+          "specifiers": [
+            "Builder"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Routing",
+          "specifiers": [
+            "Routing"
+          ]
+        },
+        {
+          "source": "Microsoft.EntityFrameworkCore",
+          "specifiers": [
+            "EntityFrameworkCore"
+          ]
+        }
+      ],
+      "exports": [
+        "HealthEndpoints",
+        "HealthResponseDto",
+        "MapHealthEndpoints"
+      ],
+      "totalLines": 59,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Endpoints/LyricsEndpoints.cs": {
       "filePath": "src/Cantus.Server/Endpoints/LyricsEndpoints.cs",
-      "contentHash": "d86b9798482cfb33b5556854d655c7d72546b881b8c98de96670b506e616efbd",
+      "contentHash": "dbbb61dba0c949165b9f1c539b3ee77b881478648faa4fee4fc110f2bb5011d6",
       "functions": [
         {
           "name": "MapLyricsEndpoints",
@@ -13434,6 +14338,33 @@
           "returnType": "IEndpointRouteBuilder",
           "exported": true,
           "lineCount": 10
+        },
+        {
+          "name": "HandleGetCachedLyrics",
+          "params": [
+            "trackId",
+            "cacheRepository",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "HandleSetTrackOffset",
+          "params": [
+            "request",
+            "cacheRepository",
+            "registry",
+            "sessionResolver",
+            "IHubContext<PlaybackHub",
+            "hubContext",
+            "context",
+            "cancellationToken"
+          ],
+          "returnType": "Task<IResult>",
+          "exported": false,
+          "lineCount": 10
         }
       ],
       "classes": [
@@ -13442,10 +14373,22 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 70
+          "lineCount": 101
         }
       ],
       "imports": [
+        {
+          "source": "System.Threading",
+          "specifiers": [
+            "Threading"
+          ]
+        },
+        {
+          "source": "System.Threading.Tasks",
+          "specifiers": [
+            "Tasks"
+          ]
+        },
         {
           "source": "Cantus.Core.Interfaces",
           "specifiers": [
@@ -13511,7 +14454,7 @@
         "LyricsEndpoints",
         "MapLyricsEndpoints"
       ],
-      "totalLines": 70,
+      "totalLines": 101,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Hubs/IPlaybackClient.cs": {
@@ -13543,7 +14486,7 @@
     },
     "src/Cantus.Server/Hubs/PlaybackHub.cs": {
       "filePath": "src/Cantus.Server/Hubs/PlaybackHub.cs",
-      "contentHash": "be70b21fa98dd70420f959a8a31fcfc9ddf3053b72addb002bc2eff9f8514e66",
+      "contentHash": "e7166347b98a84acccc861a8d3dd9681ef0a32dd425cd6f26796b749e2be8488",
       "functions": [
         {
           "name": "SyncClock",
@@ -13581,15 +14524,6 @@
           "returnType": "Task",
           "exported": true,
           "lineCount": 10
-        },
-        {
-          "name": "ResolveSessionId",
-          "params": [
-            "httpContext"
-          ],
-          "returnType": "string?",
-          "exported": false,
-          "lineCount": 10
         }
       ],
       "classes": [
@@ -13603,7 +14537,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 307
+          "lineCount": 268
         }
       ],
       "imports": [
@@ -13663,7 +14597,7 @@
         "SubscribeToUser",
         "SyncClock"
       ],
-      "totalLines": 307,
+      "totalLines": 268,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Middleware/GlobalExceptionHandler.cs": {
@@ -14085,7 +15019,7 @@
     },
     "src/Cantus.Server/Program.cs": {
       "filePath": "src/Cantus.Server/Program.cs",
-      "contentHash": "dacf4f148560a9fce86cfabee28089e497fad3db2579d588c760696945a25573",
+      "contentHash": "0781de58de4b0b8570697ec6ab782293be0526eb85eb38d1266fa505b4610b2e",
       "functions": [],
       "classes": [
         {
@@ -14093,7 +15027,7 @@
           "methods": [],
           "properties": [],
           "exported": true,
-          "lineCount": 222
+          "lineCount": 224
         }
       ],
       "imports": [
@@ -14233,7 +15167,7 @@
       "exports": [
         "Program"
       ],
-      "totalLines": 222,
+      "totalLines": 224,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/Services/HostUrlResolver.cs": {
@@ -14396,6 +15330,33 @@
       "totalLines": 38,
       "hasStructuralAnalysis": true
     },
+    "src/Cantus.Server/Services/ISessionTokenResolver.cs": {
+      "filePath": "src/Cantus.Server/Services/ISessionTokenResolver.cs",
+      "contentHash": "642812eb99a8ec37ef22a1f948f9c9845140fa819ee4e4fd277a2abc17b8d29d",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ISessionTokenResolver",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        }
+      ],
+      "exports": [
+        "ISessionTokenResolver"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
     "src/Cantus.Server/Services/PkceHelper.cs": {
       "filePath": "src/Cantus.Server/Services/PkceHelper.cs",
       "contentHash": "75cdfc3ec22248f2b7750e3d32685482b1c7f65e02c9c30208bb0c5bd6f681fa",
@@ -14461,7 +15422,7 @@
     },
     "src/Cantus.Server/Services/PlaybackSessionRegistry.cs": {
       "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
-      "contentHash": "459e733a2b96d0620a5adf15cbb7228c52926d50e1b53b00f71d0ab8f5eca19e",
+      "contentHash": "ca20f9c7dcf375cf62a1a7e5a040c5699100ba3115d4cdf76506b0d088302721",
       "functions": [
         {
           "name": "RegisterConnection",
@@ -14557,7 +15518,7 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 122
+          "lineCount": 121
         }
       ],
       "imports": [
@@ -14586,7 +15547,61 @@
         "UnregisterConnection",
         "UpdateUserState"
       ],
-      "totalLines": 122,
+      "totalLines": 121,
+      "hasStructuralAnalysis": true
+    },
+    "src/Cantus.Server/Services/SessionTokenResolver.cs": {
+      "filePath": "src/Cantus.Server/Services/SessionTokenResolver.cs",
+      "contentHash": "48c795e3267546160d5ad57c018579393d87b8544fba05a2eb87e0e6f7f1efec",
+      "functions": [
+        {
+          "name": "ResolveSessionToken",
+          "params": [
+            "httpContext"
+          ],
+          "returnType": "string?",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "ResolveSessionId",
+          "params": [
+            "httpContext"
+          ],
+          "returnType": "string?",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "SessionTokenResolver",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 73
+        }
+      ],
+      "imports": [
+        {
+          "source": "System",
+          "specifiers": [
+            "System"
+          ]
+        },
+        {
+          "source": "Microsoft.AspNetCore.Http",
+          "specifiers": [
+            "Http"
+          ]
+        }
+      ],
+      "exports": [
+        "ResolveSessionId",
+        "ResolveSessionToken",
+        "SessionTokenResolver"
+      ],
+      "totalLines": 73,
       "hasStructuralAnalysis": true
     },
     "src/Cantus.Server/appsettings.Development.json": {

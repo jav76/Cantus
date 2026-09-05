@@ -47,7 +47,7 @@ flowchart TD
 
 Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates standard LRC text formats into typed timestamp objects:
 
-```
+```text
 [00:12.45]First line of synchronized lyrics
 [00:15.80]Second line of synchronized lyrics
 [00:22.10]Third line after a brief break

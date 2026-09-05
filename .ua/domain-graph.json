@@ -26,8 +26,8 @@
       "GitHub Actions"
     ],
     "description": "Self-hosted, real-time synchronized lyrics display platform integrating Spotify playback, LRCLIB lyrics caching, sub-millisecond NTP interpolation, and Uno Platform multi-client streaming.",
-    "analyzedAt": "2026-09-01T01:24:21.190Z",
-    "gitCommitHash": "347359916129b0f78810ed1b8a6c78ca5a61ca3c"
+    "analyzedAt": "2026-09-05T15:07:13.234Z",
+    "gitCommitHash": "24dec9edb0fe0dbfda090f38cf3076ead105b4cd"
   },
   "nodes": [
     {
@@ -428,7 +428,7 @@
       "id": "flow:track-latency-offset-adjustment",
       "type": "flow",
       "name": "Track Latency Offset Calibration",
-      "summary": "Allows clients to nudge lyric synchronization offsets in ±50ms increments and saves persistent offsets per track.",
+      "summary": "Allows clients to nudge lyric synchronization offsets in \u00b150ms increments and saves persistent offsets per track.",
       "tags": [
         "latency",
         "calibration",

@@ -10,16 +10,16 @@ Cantus features a dynamic responsive layout engine that automatically and fluidl
 
 ```mermaid
 flowchart TD
-    Screen[Screen Size & Form Factor] --> RLM[Responsive Layout Engine]
-    RLM --> Small[Small / Mobile &lt;680px]
-    RLM --> Medium[Medium / Tablet 680-1080px]
-    RLM --> Large[Large / Desktop 1080-1920px]
-    RLM --> TV[Fullscreen / TV 10-Foot &gt;=1920px]
+    Screen["Screen Size & Form Factor"] --> RLM["Responsive Layout Engine"]
+    RLM --> Small["Small / Mobile (< 680px)"]
+    RLM --> Medium["Medium / Tablet (680-1080px)"]
+    RLM --> Large["Large / Desktop (1080-1920px)"]
+    RLM --> TV["Fullscreen / TV 10-Foot (>= 1920px)"]
 
-    Small --> S_View[Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip]
-    Medium --> M_View[Streamlined Dual-Column + 230px Album Art + Compact Telemetry]
-    Large --> L_View[Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills]
-    TV --> TV_View[Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar]
+    Small --> S_View["Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip"]
+    Medium --> M_View["Streamlined Dual-Column + 230px Album Art + Compact Telemetry"]
+    Large --> L_View["Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills"]
+    TV --> TV_View["Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar"]
 ```
 
 ### Form Factor Specifications
