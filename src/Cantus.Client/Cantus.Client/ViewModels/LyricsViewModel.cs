@@ -76,6 +76,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isUserScrollingPaused;
     private Microsoft.UI.Xaml.Media.ImageSource? _ambientBackgroundSource;
     private string? _lastAmbientArtworkUrl;
+    private const string SETTINGS_KEY_KARAOKE = "cantus_karaoke";
+    private bool _isKaraokeModeEnabled = LoadKaraokePreference();
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
@@ -376,6 +378,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(StaticLyricsVisibility));
                 OnPropertyChanged(nameof(ModeToggleVisibility));
                 OnPropertyChanged(nameof(AutoScrollToggleVisibility));
+                OnPropertyChanged(nameof(KaraokeToggleVisibility));
                 OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
             }
         }
@@ -480,6 +483,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(StaticLyricsText));
                 OnPropertyChanged(nameof(AutoScrollToggleVisibility));
                 OnPropertyChanged(nameof(InstrumentalBreakVisibility));
+                OnPropertyChanged(nameof(KaraokeToggleVisibility));
                 OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
             }
         }
@@ -570,6 +574,33 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public string AutoScrollToggleText => IsAutoScrollEnabled ? "Autoscroll" : "Free Scroll";
     public string AutoScrollToggleGlyph => IsAutoScrollEnabled ? "\uE73E" : "\uE711";
     public Visibility AutoScrollToggleVisibility => (HasSyncedLyrics && HasLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
+
+    public bool IsKaraokeModeEnabled
+    {
+        get => _isKaraokeModeEnabled;
+        set
+        {
+            if (_isKaraokeModeEnabled != value)
+            {
+                _isKaraokeModeEnabled = value;
+                SaveKaraokePreference(value);
+                foreach (LyricLineViewModel line in LyricLines)
+                {
+                    line.SetKaraokeEnabled(value);
+                }
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(KaraokeToggleVisibility));
+            }
+        }
+    }
+
+    public Visibility KaraokeToggleVisibility => (HasSyncedLyrics && HasLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
+
+    public void ToggleKaraokeMode()
+    {
+        IsKaraokeModeEnabled = !IsKaraokeModeEnabled;
+    }
     public Visibility ResumeAutoScrollVisibility => (IsAutoScrollEnabled && IsUserScrollingPaused && HasSyncedLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
 
     public event Action<bool>? AutoScrollEnabledChanged;
@@ -897,6 +928,37 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
+    // Mirrors EvaluateInstrumentalBreak's definition of a break-length gap: a
+    // line whose gap to the next line is at least this long has an
+    // instrumental tail, and the underline should not pretend the whole gap is
+    // sung.
+    private const long INSTRUMENTAL_TAIL_GAP_MS = 8000;
+    private const long SUNG_MS_PER_CHAR = 90;
+    private const long SUNG_BASE_MS = 600;
+    private const long MIN_ESTIMATED_SUNG_MS = 1500;
+
+    /// <summary>
+    /// How long the active line's underline takes to fill. For continuous
+    /// singing the gap to the next line IS the sung duration, and using it
+    /// exactly makes the bar complete just as the next line activates. But
+    /// when the gap is break-length (a long musical passage after the words),
+    /// filling over the whole gap misrepresents the singing badly, so the fill
+    /// is capped at a text-length estimate and the bar then sits complete
+    /// while the instrumental-break indicator covers the remainder. "♪"
+    /// placeholder lines keep the full gap: there the fill genuinely tracks
+    /// progress through the interlude.
+    /// </summary>
+    internal static long ComputeLineFillDurationMs(string displayText, long gapMs)
+    {
+        if (gapMs < INSTRUMENTAL_TAIL_GAP_MS || displayText == "♪")
+        {
+            return gapMs;
+        }
+
+        long estimate = SUNG_BASE_MS + (displayText.Length * SUNG_MS_PER_CHAR);
+        return Math.Clamp(estimate, MIN_ESTIMATED_SUNG_MS, gapMs);
+    }
+
     private void OnLyricsReceived(LyricsPayload? lyrics)
     {
         if (lyrics is null) return;
@@ -931,13 +993,31 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             {
                 LyricLinePayload line = lyrics.Lines[i];
                 if (line is null) continue;
+
+                long? nextLineTimestampMs = null;
+                for (int j = i + 1; j < lyrics.Lines.Count; j++)
+                {
+                    if (lyrics.Lines[j] is not null)
+                    {
+                        nextLineTimestampMs = lyrics.Lines[j].TimestampMs;
+                        break;
+                    }
+                }
+
+                string displayText = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text;
+                long? lineDurationMs = nextLineTimestampMs.HasValue && nextLineTimestampMs.Value > line.TimestampMs
+                    ? ComputeLineFillDurationMs(displayText, nextLineTimestampMs.Value - line.TimestampMs)
+                    : null;
+
                 LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
-                    Text = string.IsNullOrWhiteSpace(line.Text) ? "♪" : line.Text
+                    Text = displayText,
+                    DurationMs = lineDurationMs
                 };
 
                 lineVm.RefreshFontSizes(active, inactive, past);
+                lineVm.SetKaraokeEnabled(_isKaraokeModeEnabled);
                 LyricLines.Add(lineVm);
             }
         }
@@ -950,6 +1030,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ModeToggleVisibility));
         OnPropertyChanged(nameof(AutoScrollToggleVisibility));
         OnPropertyChanged(nameof(InstrumentalBreakVisibility));
+        OnPropertyChanged(nameof(KaraokeToggleVisibility));
         OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
         OnPropertyChanged(nameof(HasSyncedLyrics));
         OnPropertyChanged(nameof(HasPlainLyrics));
@@ -1158,6 +1239,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 ActiveLineChanged?.Invoke(idx);
             }
 
+            if (_isKaraokeModeEnabled && idx >= 0 && idx < LyricLines.Count)
+            {
+                LyricLines[idx].UpdateLineProgress(currentWithOffset);
+            }
+
             EvaluateInstrumentalBreak(idx, currentWithOffset);
         }
         else
@@ -1352,6 +1438,34 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
             {
                 settings[SETTINGS_KEY_LATENCY] = value;
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private static bool LoadKaraokePreference()
+    {
+        try
+        {
+            object? val = Windows.Storage.ApplicationData.Current?.LocalSettings?.Values[SETTINGS_KEY_KARAOKE];
+            if (val is bool b) return b;
+            if (val is string s && bool.TryParse(s, out bool parsed)) return parsed;
+        }
+        catch
+        {
+        }
+        return true;
+    }
+
+    private static void SaveKaraokePreference(bool value)
+    {
+        try
+        {
+            if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
+            {
+                settings[SETTINGS_KEY_KARAOKE] = value;
             }
         }
         catch

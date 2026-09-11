@@ -19,6 +19,21 @@
                             Spacing="8"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top">
+                    <!-- Karaoke Line-Progress Toggle Button -->
+                    <Button Click="OnToggleKaraokeClicked"
+                            Background="{x:Bind GetAutoScrollButtonBackground(ViewModel.IsKaraokeModeEnabled), Mode=OneWay}"
+                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,5"
+                            Visibility="{x:Bind ViewModel.KaraokeToggleVisibility, Mode=OneWay}"
+                            ToolTipService.ToolTip="Toggle the karaoke line-progress underline">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE720;" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="Karaoke" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- Autoscroll Toggle Button -->
                     <Button Click="OnToggleAutoScrollClicked"
                             Background="{x:Bind GetAutoScrollButtonBackground(ViewModel.IsAutoScrollEnabled), Mode=OneWay}"
@@ -108,14 +123,32 @@
                                         CornerRadius="10"
                                         Padding="8,6"
                                         Margin="0,4">
-                                    <TextBlock Text="{x:Bind Text}"
-                                               FontSize="{x:Bind FontSize, Mode=OneWay}"
-                                               FontWeight="{x:Bind FontWeight, Mode=OneWay}"
-                                               Opacity="{x:Bind Opacity, Mode=OneWay}"
-                                               Foreground="{x:Bind LineBrush, Mode=OneWay}"
-                                               Margin="0,4"
-                                               TextAlignment="{x:Bind Alignment, Mode=OneWay}"
-                                               TextWrapping="Wrap" />
+                                    <!-- The panel hugs the text so the progress underline's track is
+                                         exactly as wide as the line it belongs to, not the stage. -->
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Text}"
+                                                   FontSize="{x:Bind FontSize, Mode=OneWay}"
+                                                   FontWeight="{x:Bind FontWeight, Mode=OneWay}"
+                                                   Opacity="{x:Bind Opacity, Mode=OneWay}"
+                                                   Foreground="{x:Bind LineBrush, Mode=OneWay}"
+                                                   Margin="0,4"
+                                                   TextAlignment="{x:Bind Alignment, Mode=OneWay}"
+                                                   TextWrapping="Wrap" />
+                                        <!-- Time-progress underline for the active line: fills over the
+                                             line's real duration via an in-place ScaleX mutation. It claims
+                                             elapsed time, never a specific word (lyrics are line-level).
+                                             It grows from zero on every activation, so differing line
+                                             widths never cause a visible width jump. -->
+                                        <Rectangle Height="3"
+                                                   RadiusX="1.5"
+                                                   RadiusY="1.5"
+                                                   Margin="0,2,0,0"
+                                                   HorizontalAlignment="Stretch"
+                                                   Fill="{x:Bind LineProgressBrush, Mode=OneWay}"
+                                                   RenderTransformOrigin="0,0.5"
+                                                   RenderTransform="{x:Bind LineProgressTransform}"
+                                                   Visibility="{x:Bind LineProgressVisibility, Mode=OneWay}" />
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

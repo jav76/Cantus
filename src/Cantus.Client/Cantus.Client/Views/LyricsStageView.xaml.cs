@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Foundation;
 using Windows.UI;
 
@@ -13,9 +14,14 @@ namespace Cantus.Client.Views;
 
 public sealed partial class LyricsStageView : UserControl
 {
+    private const int LINE_ACTIVATION_ANIMATION_MS = 250;
+
     private readonly DispatcherTimer _autoResumeTimer;
     private readonly DispatcherTimer _programmaticScrollResetTimer;
     private bool _isProgrammaticScroll;
+    private int _lastAnimatedIndex = -1;
+    private Storyboard? _activationStoryboard;
+    private Storyboard? _deactivationStoryboard;
 
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.Register(
@@ -117,6 +123,11 @@ public sealed partial class LyricsStageView : UserControl
     public void ScrollToActiveLine(int idx, bool force = false)
     {
         if (ViewModel is null || idx < 0 || idx >= ViewModel.LyricLines.Count) return;
+
+        // Runs before the autoscroll guards: the activation animation should play
+        // even while the user has scrolling paused.
+        AnimateLineActivation(idx);
+
         if (!ViewModel.IsAutoScrollEnabled && !force) return;
         if (ViewModel.IsUserScrollingPaused && !force) return;
 
@@ -157,6 +168,79 @@ public sealed partial class LyricsStageView : UserControl
                 }
             });
         }
+    }
+
+    /// <summary>
+    /// Masks the instant active-line font-size snap with a short scale ease:
+    /// the newly active line grows from its inactive size ratio to full size,
+    /// and the previously active line settles down from its active ratio.
+    /// Scale transforms do not reflow layout, and Storyboards do not raise
+    /// ScrollViewer.ViewChanged, so the manual-scroll detector is unaffected.
+    /// </summary>
+    private void AnimateLineActivation(int newIdx)
+    {
+        if (ViewModel is null || newIdx == _lastAnimatedIndex)
+        {
+            return;
+        }
+
+        int previousIdx = _lastAnimatedIndex;
+        _lastAnimatedIndex = newIdx;
+
+        try
+        {
+            double activeSize = ViewModel.Layout.ActiveLyricsFontSize;
+            double inactiveSize = ViewModel.Layout.InactiveLyricsFontSize;
+            if (activeSize <= 0 || inactiveSize <= 0)
+            {
+                return;
+            }
+
+            _activationStoryboard?.Stop();
+            _activationStoryboard = StartScaleAnimation(newIdx, inactiveSize / activeSize);
+
+            if (previousIdx >= 0 && previousIdx < ViewModel.LyricLines.Count)
+            {
+                _deactivationStoryboard?.Stop();
+                _deactivationStoryboard = StartScaleAnimation(previousIdx, activeSize / inactiveSize);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private Storyboard? StartScaleAnimation(int idx, double fromScale)
+    {
+        if (LyricsItemsControl.ContainerFromIndex(idx) is not FrameworkElement element)
+        {
+            return null;
+        }
+
+        if (element.RenderTransform is not ScaleTransform)
+        {
+            element.RenderTransformOrigin = new Point(0.5, 0.5);
+            element.RenderTransform = new ScaleTransform();
+        }
+
+        Storyboard storyboard = new();
+        foreach (string property in new[] { "ScaleX", "ScaleY" })
+        {
+            DoubleAnimation animation = new()
+            {
+                From = fromScale,
+                To = 1.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(LINE_ACTIVATION_ANIMATION_MS)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                EnableDependentAnimation = true
+            };
+            Storyboard.SetTarget(animation, element.RenderTransform);
+            Storyboard.SetTargetProperty(animation, property);
+            storyboard.Children.Add(animation);
+        }
+
+        storyboard.Begin();
+        return storyboard;
     }
 
     private void OnPresentationContainerSizeChanged(object sender, SizeChangedEventArgs e)
@@ -227,6 +311,11 @@ public sealed partial class LyricsStageView : UserControl
     private void OnToggleStaticModeClicked(object sender, RoutedEventArgs e)
     {
         ViewModel?.ToggleStaticLyricsMode();
+    }
+
+    private void OnToggleKaraokeClicked(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.ToggleKaraokeMode();
     }
 
     public SolidColorBrush GetAutoScrollButtonBackground(bool? isAutoScrollEnabled = null)
