@@ -86,7 +86,7 @@ services:
     container_name: cantus
     restart: unless-stopped
     environment:
-      - SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+      - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=https://cantus.yourdomain.com
     volumes:
       - cantus_data:/app/data

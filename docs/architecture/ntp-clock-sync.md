@@ -59,7 +59,7 @@ From these four timestamps, Cantus calculates two core metrics:
 - When the client connects, it performs a burst of 5 initial sync samples.
 - Samples with abnormally high round-trip latency (spikes/outliers) are discarded.
 - The remaining samples are averaged to compute a stable base clock offset $\theta_{\text{stable}}$.
-- Periodic background syncs occur every 60 seconds to track long-term clock drift smoothly without visual jumps.
+- Periodic background syncs occur every 5 seconds to track long-term clock drift smoothly without visual jumps.
 
 ---
 

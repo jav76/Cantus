@@ -50,7 +50,7 @@ flowchart LR
 2. Locate the **Client ID** (a 32-character hexadecimal string).
 3. Copy this value into your `.env` file:
    ```ini
-   SPOTIFY_CLIENT_ID=abcdef0123456789abcdef0123456789
+   Spotify__ClientId=abcdef0123456789abcdef0123456789
    ```
 
 !!! note "PKCE Flow Security"

@@ -64,7 +64,7 @@ cp .env.example .env
 Edit `.env` to include your Spotify Client ID:
 
 ```ini
-SPOTIFY_CLIENT_ID=your_32_character_client_id
+Spotify__ClientId=your_32_character_client_id
 CANTUS_HOST_URL=http://localhost:5000
 ```
 

@@ -1,5 +1,4 @@
 using Cantus.Core.Interfaces;
-using Cantus.Infrastructure.Clock;
 using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Security;
@@ -20,14 +19,22 @@ public static class DependencyInjection
         // 1. Configure Options
         services.Configure<SpotifyOptions>(
             configuration.GetSection(SpotifyOptions.SECTION_NAME));
+
+        // Configuration binding APPENDS to collection defaults instead of
+        // replacing them, so every scope listed in both SpotifyOptions.Scopes
+        // and appsettings.json ends up in the authorize URL twice. Dedupe once
+        // here so every consumer sees a clean list.
+        services.PostConfigure<SpotifyOptions>(options =>
+        {
+            options.Scopes = options.Scopes.Distinct(StringComparer.Ordinal).ToList();
+        });
+
         services.Configure<LrclibOptions>(
             configuration.GetSection(LrclibOptions.SECTION_NAME));
         services.Configure<NeteaseOptions>(
             configuration.GetSection(NeteaseOptions.SECTION_NAME));
         services.Configure<LyricsCacheOptions>(
             configuration.GetSection(LyricsCacheOptions.SECTION_NAME));
-        services.Configure<PlaybackInterpolatorOptions>(
-            configuration.GetSection(PlaybackInterpolatorOptions.SECTION_NAME));
 
         // 2. Persistence (SQLite EF Core)
         string connectionString = configuration.GetConnectionString("CantusDatabase")
@@ -42,7 +49,6 @@ public static class DependencyInjection
 
         // 4. Clock & Interpolation
         services.AddSingleton(TimeProvider.System);
-        services.AddTransient<IPlaybackInterpolator, PlaybackInterpolator>();
 
         // 5. Lyrics Services
         services.AddScoped<SqliteLyricsCacheRepository>();

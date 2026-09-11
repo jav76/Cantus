@@ -7,7 +7,7 @@ This guide provides solutions to common setup, authentication, and network issue
 ## 1. Spotify Authentication Errors
 
 ### Error: `INVALID_CLIENT: Invalid client id`
-- **Cause**: The `SPOTIFY_CLIENT_ID` environment variable is either unset, contains extra quotes, or is not registered in the Spotify Developer Dashboard.
+- **Cause**: The `Spotify__ClientId` environment variable is either unset, contains extra quotes, or is not registered in the Spotify Developer Dashboard.
 - **Solution**: Verify that the 32-character Client ID in `.env` matches the Developer Dashboard exactly without leading/trailing whitespace.
 
 ### Error: `redirect_uri: Not matching configuration` or `INVALID_CLIENT: Invalid redirect URI`
