@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Net;
 using System.Text.RegularExpressions;
 using Cantus.Core.Logging;
 using Cantus.Infrastructure;
@@ -115,11 +116,45 @@ builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 
 // 7. Reverse Proxy & Forwarded Headers
+// Forwarded headers are only honoured from proxies the operator trusts.
+// Trusting every remote address (the previous KnownProxies/KnownIPNetworks
+// clear) lets any client spoof X-Forwarded-For and X-Forwarded-Proto, which
+// feed host URL resolution and request logging. The ASP.NET default trusts
+// loopback only; proxies elsewhere (containers, another host) are opted in
+// by address or network, or wholesale via TrustAllProxies when the server
+// is not directly reachable by clients.
+bool trustAllProxies = builder.Configuration.GetValue<bool>("ForwardedHeaders:TrustAllProxies");
+string[] knownProxies = builder.Configuration
+    .GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? Array.Empty<string>();
+string[] knownNetworks = builder.Configuration
+    .GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.All;
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
+
+    if (trustAllProxies)
+    {
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+        return;
+    }
+
+    foreach (string proxy in knownProxies)
+    {
+        if (IPAddress.TryParse(proxy, out IPAddress? address))
+        {
+            options.KnownProxies.Add(address);
+        }
+    }
+
+    foreach (string network in knownNetworks)
+    {
+        if (System.Net.IPNetwork.TryParse(network, out System.Net.IPNetwork parsedNetwork))
+        {
+            options.KnownIPNetworks.Add(parsedNetwork);
+        }
+    }
 });
 
 // 8. SignalR & Background Services
@@ -132,15 +167,24 @@ builder.Services.AddSignalR(options =>
 
 builder.Services.AddHostedService<ActiveUsersPlaybackMonitor>();
 
-// 9. CORS Policy (Local network & dev clients)
+// 9. CORS Policy
+// Cross-origin callers are opt-in. The bundled web client is served from this
+// same origin and so needs no CORS grant at all; the previous policy combined
+// AllowCredentials with SetIsOriginAllowed(_ => true), which reflects back any
+// requesting origin and let any site a user happened to visit call this server
+// with their session credentials and read the responses. Operators hosting the
+// client separately list those origins in Cors:AllowedOrigins.
+string[] allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyHeader()
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowed(_ => true);
+              .AllowCredentials();
     });
 });
 

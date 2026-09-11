@@ -11,6 +11,19 @@ Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse 
 - **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host`
 - **Extended Timeouts**: Setting proxy read timeouts to at least `300s` prevents premature WebSocket disconnects during track pauses.
 
+> **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored — which typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
+>
+> ```yaml
+> # Trust a Docker bridge network
+> - ForwardedHeaders__KnownNetworks__0=172.16.0.0/12
+> # ...or a single proxy host
+> - ForwardedHeaders__KnownProxies__0=10.0.0.5
+> # ...or every proxy, ONLY when clients cannot reach Cantus directly
+> - ForwardedHeaders__TrustAllProxies=true
+> ```
+>
+> Prefer the narrowest option that works. `TrustAllProxies` lets any client that *can* reach Cantus directly spoof its own address and scheme, so pair it with removing the published port from `docker-compose.yml`.
+
 ---
 
 ## 1. Caddy (Recommended)

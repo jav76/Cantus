@@ -22,6 +22,18 @@ services:
       # Optional overrides (leave unset to allow automatic dynamic host resolution):
       # - Spotify__RedirectUri=${Spotify__RedirectUri}
       # - Lrclib__BaseUrl=https://lrclib.net
+
+      # Reverse proxy trust. Forwarded headers (X-Forwarded-For/-Proto) are
+      # only honoured from proxies listed here; the default trusts loopback
+      # only. If you front Cantus with a proxy in another container, either
+      # list the proxy network or trust all proxies AND stop publishing the
+      # port below, so clients can only reach Cantus through the proxy.
+      # - ForwardedHeaders__KnownNetworks__0=172.16.0.0/12
+      # - ForwardedHeaders__TrustAllProxies=true
+
+      # Cross-origin callers. The bundled web client is same-origin and needs
+      # nothing here; only set this if you host the client separately.
+      # - Cors__AllowedOrigins__0=https://lyrics.mydomain.com
     volumes:
       # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys
       - cantus-data:/app/data

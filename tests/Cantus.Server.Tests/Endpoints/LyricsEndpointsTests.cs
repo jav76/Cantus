@@ -70,7 +70,7 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
-    public async Task SetTrackOffset_SavesOffsetAndReturnsOk()
+    public async Task SetTrackOffset_WhenAuthenticated_SavesOffsetAndReturnsOk()
     {
         HttpClient client = _factory.CreateClient();
 
@@ -80,10 +80,35 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
             OffsetMs = 500
         };
 
-        HttpResponseMessage response = await client.PostAsJsonAsync("/api/lyrics/offset", request);
+        HttpRequestMessage message = new(HttpMethod.Post, "/api/lyrics/offset")
+        {
+            Content = JsonContent.Create(request)
+        };
+        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+
+        HttpResponseMessage response = await client.SendAsync(message);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         _mockCacheRepo.Verify(c => c.SetTrackOffsetAsync("track-123", 500, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetTrackOffset_WhenUnauthenticated_ReturnsUnauthorizedAndDoesNotWrite()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        TrackOffsetDto request = new()
+        {
+            TrackId = "track-anon",
+            OffsetMs = 500
+        };
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/lyrics/offset", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        _mockCacheRepo.Verify(
+            c => c.SetTrackOffsetAsync("track-anon", It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }
 

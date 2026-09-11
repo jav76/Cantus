@@ -64,6 +64,18 @@ All settings can be configured via environment variables (using double-underscor
 | :--- | :---: | :---: | :--- | :---: |
 | **`LyricsCache__NegativeCacheDays`** | `int` | `30` | Duration in days to cache negative lookups (instrumental tracks / not found across all providers). | No |
 
+### Cross-Origin Requests (`Cors`)
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`Cors__AllowedOrigins__0`** | `string[]` | *(empty)* | Origins permitted to call the API cross-origin with credentials. Empty by default: the bundled web client is served from the same origin and needs no grant. Only set this when hosting the client separately (e.g. `https://lyrics.mydomain.com`). | No |
+
+### Reverse Proxy Trust (`ForwardedHeaders`)
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`ForwardedHeaders__TrustAllProxies`** | `bool` | `false` | Honour `X-Forwarded-*` from any remote address. Only enable when clients cannot reach Cantus directly (proxy-only exposure) — otherwise any client can spoof its address and scheme. | No |
+| **`ForwardedHeaders__KnownProxies__0`** | `string[]` | *(empty)* | Additional proxy IP addresses to trust, beyond the default loopback. | No |
+| **`ForwardedHeaders__KnownNetworks__0`** | `string[]` | *(empty)* | Proxy networks to trust in CIDR form (e.g. `172.16.0.0/12` for a Docker bridge network). | No |
+
 ### Playback Interpolator (`PlaybackInterpolator`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |

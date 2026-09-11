@@ -53,6 +53,16 @@ public static class LyricsEndpoints
         HttpContext context,
         CancellationToken cancellationToken)
     {
+        // Saving an offset mutates shared cache state and is broadcast to the
+        // owning session, so it requires an authenticated caller. The previous
+        // fallback accepted anonymous writes and broadcast them to every
+        // connected client.
+        string? sessionId = sessionResolver.ResolveSessionId(context);
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            return Results.Unauthorized();
+        }
+
         if (string.IsNullOrWhiteSpace(request.TrackId))
         {
             return Results.BadRequest(new { Message = "TrackId is required." });
@@ -60,41 +70,18 @@ public static class LyricsEndpoints
 
         await cacheRepository.SetTrackOffsetAsync(request.TrackId, request.OffsetMs, cancellationToken);
 
-        string? sessionId = sessionResolver.ResolveSessionId(context);
-        if (!string.IsNullOrEmpty(sessionId))
+        UserPlaybackSnapshot? userSnapshot = registry.GetUserState(sessionId);
+        if (userSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
         {
-            UserPlaybackSnapshot? userSnapshot = registry.GetUserState(sessionId);
-            if (userSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
-            {
-                registry.UpdateUserState(
-                    userSnapshot.UserId,
-                    userSnapshot.DisplayName,
-                    userSnapshot.PlaybackState,
-                    userSnapshot.Lyrics,
-                    request.OffsetMs);
-            }
-
-            await hubContext.Clients.Group($"user_{sessionId}").ReceiveTrackOffset(request);
+            registry.UpdateUserState(
+                userSnapshot.UserId,
+                userSnapshot.DisplayName,
+                userSnapshot.PlaybackState,
+                userSnapshot.Lyrics,
+                request.OffsetMs);
         }
-        else
-        {
-            UserPlaybackSnapshot? activeSnapshot = registry.GetActivePlaybackSnapshot();
-            if (activeSnapshot?.PlaybackState?.CurrentTrack?.Id == request.TrackId)
-            {
-                registry.UpdateUserState(
-                    activeSnapshot.UserId,
-                    activeSnapshot.DisplayName,
-                    activeSnapshot.PlaybackState,
-                    activeSnapshot.Lyrics,
-                    request.OffsetMs);
 
-                await hubContext.Clients.Group($"user_{activeSnapshot.UserId}").ReceiveTrackOffset(request);
-            }
-            else
-            {
-                await hubContext.Clients.All.ReceiveTrackOffset(request);
-            }
-        }
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveTrackOffset(request);
 
         return Results.Ok(request);
     }

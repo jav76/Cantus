@@ -244,9 +244,25 @@ public static class AuthEndpoints
     private static async Task<IResult> HandleRevokeSession(
         string userId,
         ISpotifyAuthService authService,
+        ISessionTokenResolver sessionResolver,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        HttpContext context,
         CancellationToken cancellationToken)
     {
+        // A session id is itself the credential here, so only the holder of a
+        // session may revoke it. Without this check any caller that can reach
+        // the server can revoke any session by id.
+        string? callerSessionId = sessionResolver.ResolveSessionId(context);
+        if (string.IsNullOrEmpty(callerSessionId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!string.Equals(callerSessionId, userId, StringComparison.Ordinal))
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
         bool revoked = await authService.RevokeSessionAsync(userId, cancellationToken);
         if (!revoked)
         {

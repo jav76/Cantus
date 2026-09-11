@@ -213,7 +213,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
-    public async Task RevokeSession_WhenSessionExists_ReturnsOk()
+    public async Task RevokeSession_WhenCallerOwnsSession_ReturnsOk()
     {
         HttpClient client = _factory.CreateClient();
 
@@ -221,8 +221,40 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
             .Setup(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        HttpResponseMessage response = await client.DeleteAsync("/api/auth/sessions/sess-1");
+        HttpRequestMessage message = new(HttpMethod.Delete, "/api/auth/sessions/sess-1");
+        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+
+        HttpResponseMessage response = await client.SendAsync(message);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RevokeSession_WhenUnauthenticated_ReturnsUnauthorizedAndDoesNotRevoke()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.DeleteAsync("/api/auth/sessions/sess-1");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        _mockAuthService.Verify(
+            a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RevokeSession_WhenCallerIsADifferentSession_ReturnsForbiddenAndDoesNotRevoke()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        HttpRequestMessage message = new(HttpMethod.Delete, "/api/auth/sessions/victim-session");
+        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "attacker-session");
+
+        HttpResponseMessage response = await client.SendAsync(message);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        _mockAuthService.Verify(
+            a => a.RevokeSessionAsync("victim-session", It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }
