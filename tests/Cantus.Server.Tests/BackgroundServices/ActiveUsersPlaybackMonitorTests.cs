@@ -540,4 +540,95 @@ public sealed class ActiveUsersPlaybackMonitorTests
                 d.PollerStatus == "Active (Background)")),
             Times.AtLeastOnce);
     }
+
+    [Fact]
+    public async Task WhenSpotifyReturnsUnauthorized_RefreshesTheToken()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "expired-tok",
+            RefreshToken = "ref-1"
+        };
+
+        UserSession refreshed = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "fresh-tok",
+            RefreshToken = "ref-1"
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+
+        Mock<SpotifyAPI.Web.Http.IResponse> mockResponse = new();
+        mockResponse.Setup(r => r.Headers).Returns(new Dictionary<string, string>());
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("expired-tok", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new APIUnauthorizedException(mockResponse.Object));
+
+        TaskCompletionSource refreshCalled = CreateSignal();
+        _mockAuthService.Setup(a => a.RefreshTokenAsync("user-1", It.IsAny<CancellationToken>()))
+            .Callback(() => refreshCalled.TrySetResult())
+            .ReturnsAsync(refreshed);
+
+        await RunUntilAsync(_monitor, "the token refresh triggered by a 401", refreshCalled.Task);
+
+        _mockAuthService.Verify(
+            a => a.RefreshTokenAsync("user-1", It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task WhenAnUnrelatedErrorMentions401_DoesNotRefreshTheToken()
+    {
+        // The previous implementation matched on exception text, so any failure
+        // whose message merely contained "401" or "Unauthorized" was treated as
+        // an expired token and triggered a needless refresh.
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+
+        TaskCompletionSource pollAttempted = CreateSignal();
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .Callback(() => pollAttempted.TrySetResult())
+            .ThrowsAsync(new HttpRequestException("Connection reset while reading 401 bytes of payload"));
+
+        TaskCompletionSource refreshCalled = CreateSignal();
+        _mockAuthService.Setup(a => a.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback(() => refreshCalled.TrySetResult())
+            .ReturnsAsync(session);
+
+        await RunUntilAsync(_monitor, "the failing playback poll", pollAttempted.Task);
+
+        // Bounded negative wait: a refresh would be started right after the
+        // catch, so if it has not happened shortly after the poll failed it is
+        // not going to. This shape can only ever produce a false pass.
+        await Task.WhenAny(refreshCalled.Task, Task.Delay(250));
+
+        refreshCalled.Task.IsCompleted.Should().BeFalse(
+            "a transport error that merely mentions 401 is not an expired token");
+        _mockAuthService.Verify(
+            a => a.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

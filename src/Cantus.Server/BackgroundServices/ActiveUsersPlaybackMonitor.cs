@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Server.Hubs;
@@ -252,11 +253,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
                     return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
                 }
-                catch (Exception ex) when (
-                    ex is APIUnauthorizedException ||
-                    ex.Message.Contains("401") ||
-                    ex.Message.Contains("Unauthorized") ||
-                    ex.GetType().Name.Contains("Unauthorized"))
+                catch (Exception ex) when (IsUnauthorized(ex))
                 {
                     _logger.LogWarning("Spotify token expired for user {UserId}. Refreshing...", session.Id);
                     try
@@ -542,6 +539,21 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
         TimeSpan waitTime = earliestNext - DateTimeOffset.UtcNow;
         return (int)Math.Clamp(waitTime.TotalMilliseconds, 500, 10000);
+    }
+
+    /// <summary>
+    /// A 401 from Spotify means the access token expired and the session
+    /// should be refreshed. This matches on the typed exception, plus the
+    /// status code of a plain APIException as a fallback, rather than on
+    /// exception text: the previous check treated any failure whose message
+    /// merely contained "401" or "Unauthorized" as an expired token, so an
+    /// unrelated error could trigger a needless token refresh.
+    /// </summary>
+    private static bool IsUnauthorized(Exception exception)
+    {
+        return exception is APIUnauthorizedException
+            || (exception is APIException apiException
+                && apiException.Response?.StatusCode == HttpStatusCode.Unauthorized);
     }
 
     private static string FormatTimeSpan(TimeSpan ts)
