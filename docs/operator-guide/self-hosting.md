@@ -19,7 +19,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+      - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=https://cantus.yourdomain.com
       - ASPNETCORE_ENVIRONMENT=Production
     volumes:

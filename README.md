@@ -71,7 +71,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+      - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=http://localhost:5000
       - ASPNETCORE_ENVIRONMENT=Production
     volumes:
@@ -114,7 +114,7 @@ Cantus is configured via environment variables or `appsettings.json`:
 
 | Variable | Required | Default | Description |
 | :--- | :---: | :---: | :--- |
-| `SPOTIFY_CLIENT_ID` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
+| `Spotify__ClientId` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
 | `CANTUS_HOST_URL` | Yes | `http://localhost:5000` | Canonical external URL used for OAuth redirects and SignalR handshakes. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
 | `DATA_DIR` | No | `/app/data` | Path to persistent storage for SQLite database and encryption keys. |

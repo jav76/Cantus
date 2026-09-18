@@ -11,7 +11,7 @@ All settings can be configured via environment variables (using double-underscor
 ### Spotify Authentication
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`SPOTIFY_CLIENT_ID`** / **`Spotify__ClientId`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
+| **`Spotify__ClientId`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
 | **`CANTUS_HOST_URL`** | `string` | `http://localhost:5000` | Public root URL of your Cantus instance (used for OAuth redirect callbacks). | **Yes** |
 | **`Spotify__ClientSecret`** | `string` | — | Optional Spotify Client Secret (for developer override). | No |
 | **`Spotify__RedirectUri`** | `string` | `http://localhost:5000/api/auth/spotify/callback` | Default OAuth PKCE redirect URI. | No |
@@ -75,13 +75,6 @@ All settings can be configured via environment variables (using double-underscor
 | **`ForwardedHeaders__TrustAllProxies`** | `bool` | `false` | Honour `X-Forwarded-*` from any remote address. Only enable when clients cannot reach Cantus directly (proxy-only exposure) — otherwise any client can spoof its address and scheme. | No |
 | **`ForwardedHeaders__KnownProxies__0`** | `string[]` | *(empty)* | Additional proxy IP addresses to trust, beyond the default loopback. | No |
 | **`ForwardedHeaders__KnownNetworks__0`** | `string[]` | *(empty)* | Proxy networks to trust in CIDR form (e.g. `172.16.0.0/12` for a Docker bridge network). | No |
-
-### Playback Interpolator (`PlaybackInterpolator`)
-| Variable | Type | Default | Description | Required |
-| :--- | :---: | :---: | :--- | :---: |
-| **`PlaybackInterpolator__SeekThresholdMs`** | `int` | `2000` | Delta threshold (ms) beyond which progress changes are treated as seeks rather than drift. | No |
-| **`PlaybackInterpolator__DriftToleranceMs`** | `int` | `500` | Allowable drift (ms) before progressive correction steering engages. | No |
-| **`PlaybackInterpolator__DriftCorrectionFraction`** | `double` | `0.2` | Fraction of remaining drift corrected per calculation step. | No |
 
 ---
 
