@@ -16,7 +16,7 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
-        SignalRPlaybackClient client = new();
+        SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
         ViewModel = new LyricsViewModel(client, ThemeManager.Instance, ResponsiveLayoutManager.Instance);
         this.InitializeComponent();
 

@@ -91,6 +91,21 @@ dotnet run --project src/Cantus.Server -- --log-configuration debug
 ./Cantus-Linux-x64.AppImage --log-configuration trace
 ```
 
+### CLI Option: `--server-url` (alias: `-s`, Desktop client only)
+Points the desktop client at a Cantus server other than the default `http://127.0.0.1:5000`. Accepts the same address you would open in a browser; the SignalR hub path is appended automatically and any query string is dropped. Also readable from the `CANTUS_SERVER_URL` environment variable, with the CLI option taking precedence. An unparseable value is ignored with a warning rather than preventing startup.
+
+```bash
+# Connect the desktop client to a server behind an HTTPS reverse proxy
+./Cantus-Linux-x64.AppImage --server-url https://lyrics.example.com
+
+# Or via the environment
+CANTUS_SERVER_URL=https://lyrics.example.com ./Cantus-Linux-x64.AppImage
+```
+
+> **Spotify login needs HTTPS for remote servers.** Spotify only accepts `http://` redirect URIs on loopback addresses (`127.0.0.1` or `[::1]`), never `localhost` or a LAN IP. A plain `http://192.168.0.10:5000` server will connect, but Spotify login through it fails. Put remote servers behind HTTPS (see [Reverse Proxy](../operator-guide/reverse-proxy.md)).
+
+> The WebAssembly client ignores this: it is served by the Cantus server, so it always connects back to its own origin.
+
 ### Log Levels & Output Matrix
 | Configuration | Console / Stdout | Rolling File (`%tmp%/cantus/logs`) | SQLite Database (`LogEntries` Table) | Tracing (`[TraceLog]`) |
 | :--- | :---: | :---: | :---: | :---: |

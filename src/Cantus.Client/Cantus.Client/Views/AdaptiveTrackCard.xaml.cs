@@ -158,7 +158,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
                 : $"/api/auth/spotify/login{clientQuery}";
             WasmInterop.NavigateTo(loginUrl);
 #else
-            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://localhost:5000";
+            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://127.0.0.1:5000";
             Uri uri = new($"{baseUrl}/api/auth/spotify/login{clientQuery}");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif

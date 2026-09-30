@@ -368,7 +368,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             return $"{origin}/hubs/playback";
         }
 #endif
-        return "http://localhost:5000/hubs/playback";
+        return "http://127.0.0.1:5000/hubs/playback";
     }
 
     private void EnsureConnectionBuilt()
