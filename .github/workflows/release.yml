@@ -21,7 +21,7 @@ jobs:
   # ============================================================================
   prepare:
     name: Prepare Release Metadata
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cantus]
     outputs:
       version: ${{ steps.meta.outputs.VERSION }}
       tag: ${{ steps.meta.outputs.TAG }}
@@ -92,7 +92,7 @@ jobs:
   publish-docker:
     name: Publish Multi-Arch Docker Image (GHCR)
     needs: [prepare]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cantus]
 
     steps:
       - name: Checkout Code
@@ -153,7 +153,7 @@ jobs:
           - os: windows-latest
             rid: win-x64
             name: Windows-x64
-          - os: ubuntu-latest
+          - os: [self-hosted, cantus]
             rid: linux-x64
             name: Linux-x64
           - os: macos-latest
@@ -258,11 +258,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: [self-hosted, cantus]
             rid: linux-x64
             name: Linux-x64
             archive_ext: tar.gz
-          - os: ubuntu-latest
+          - os: [self-hosted, cantus]
             rid: linux-arm64
             name: Linux-arm64
             archive_ext: tar.gz
@@ -364,7 +364,7 @@ jobs:
   publish-release:
     name: Create GitHub Release
     needs: [prepare, publish-docker, build-desktop-clients, build-server-binaries]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cantus]
     permissions:
       contents: write
 
@@ -403,3 +403,13 @@ jobs:
             gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
               --json assets --jq '.assets[] | "- \(.name) (\(.size) bytes)"'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ============================================================================
+  # 5. Deploy to the Local Development Stack
+  # ============================================================================
+  deploy:
+    name: Deploy to Development Stack
+    needs: [prepare, publish-release]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      tag: ${{ needs.prepare.outputs.tag }}
