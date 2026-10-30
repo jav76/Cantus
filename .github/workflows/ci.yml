@@ -23,7 +23,7 @@ jobs:
   # ============================================================================
   format-check:
     name: Code Style & Formatting (Advisory)
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || fromJSON('["self-hosted", "cantus"]') }}
     continue-on-error: true
 
     steps:
@@ -65,10 +65,12 @@ jobs:
   # 2. Build & Test Matrix (.NET 10)
   #    - On PRs: Fast single-runner execution on Linux (ubuntu-latest)
   #    - On main push: Cross-platform OS matrix (Linux, Windows, macOS)
+  #    Non-PR Linux jobs run on the self-hosted `cantus` runners. PRs never do:
+  #    this repo is public and fork code must not reach the host.
   # ============================================================================
   build-and-test:
     name: Build & Test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && fromJSON('["self-hosted", "cantus"]') || matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -117,7 +119,7 @@ jobs:
   # ============================================================================
   docker-smoke-test:
     name: Docker Build Smoke Test
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || fromJSON('["self-hosted", "cantus"]') }}
 
     steps:
       - name: Checkout Code
@@ -141,7 +143,7 @@ jobs:
   # ============================================================================
   ci-gate:
     name: CI Gatekeeper (All Checks Passed)
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || fromJSON('["self-hosted", "cantus"]') }}
     needs: [format-check, build-and-test, docker-smoke-test]
     if: always()
 
