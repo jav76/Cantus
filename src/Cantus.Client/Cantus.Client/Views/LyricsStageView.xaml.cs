@@ -2,6 +2,7 @@ using System;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -16,8 +17,19 @@ public sealed partial class LyricsStageView : UserControl
 {
     private const int LINE_ACTIVATION_ANIMATION_MS = 250;
 
+    // Tap-to-seek affordance tints, white over the always-dark palettes like
+    // the stage's toggle buttons.
+    private const byte LINE_HOVER_ALPHA = 20;
+    private const byte LINE_PRESSED_ALPHA = 38;
+    private const double TAP_MAX_SCROLL_PX = 10.0;
+
     private readonly DispatcherTimer _autoResumeTimer;
     private readonly DispatcherTimer _programmaticScrollResetTimer;
+    private readonly SolidColorBrush _lineIdleBrush = new(Color.FromArgb(0, 255, 255, 255));
+    private readonly SolidColorBrush _lineHoverBrush = new(Color.FromArgb(LINE_HOVER_ALPHA, 255, 255, 255));
+    private readonly SolidColorBrush _linePressedBrush = new(Color.FromArgb(LINE_PRESSED_ALPHA, 255, 255, 255));
+    private Border? _pressedLine;
+    private double _pressedScrollOffset;
     private bool _isProgrammaticScroll;
     private int _lastAnimatedIndex = -1;
     private Storyboard? _activationStoryboard;
@@ -277,7 +289,127 @@ public sealed partial class LyricsStageView : UserControl
 
     private void OnScrollViewerPointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        // A press on a lyric line may be a tap-to-seek, and pausing here would
+        // flash the Resume Autoscroll button for the length of every tap. If the
+        // press turns into a drag, the line's PointerCanceled/CaptureLost (the
+        // platform taking over the pan) and ViewChanged still pause.
+        if (_pressedLine is not null)
+        {
+            return;
+        }
+
         OnUserManualScroll();
+    }
+
+    private void OnLyricLinePointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        // Touch has no hover: its pointer only "enters" on contact, which the
+        // pressed tint already covers.
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Touch
+            || ViewModel is not { CanSeekToLines: true }
+            || sender is not Border line)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(line, _pressedLine))
+        {
+            line.Background = _lineHoverBrush;
+        }
+
+        SetHandCursor(true);
+    }
+
+    private void OnLyricLinePointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border line)
+        {
+            ClearLineHighlight(line);
+        }
+
+        SetHandCursor(false);
+    }
+
+    private void OnLyricLinePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (ViewModel is not { CanSeekToLines: true } || sender is not Border line)
+        {
+            return;
+        }
+
+        _pressedLine = line;
+        _pressedScrollOffset = LyricsScrollViewer.VerticalOffset;
+        line.Background = _linePressedBrush;
+    }
+
+    private void OnLyricLinePointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border line && ReferenceEquals(line, _pressedLine))
+        {
+            _pressedLine = null;
+            bool isHovering = e.Pointer.PointerDeviceType != PointerDeviceType.Touch;
+            line.Background = isHovering ? _lineHoverBrush : _lineIdleBrush;
+        }
+    }
+
+    private void OnLyricLinePointerCanceled(object sender, PointerRoutedEventArgs e)
+    {
+        // The platform took the pointer over for a pan: this press was a scroll.
+        if (sender is Border line && ReferenceEquals(line, _pressedLine))
+        {
+            ClearLineHighlight(line);
+            OnUserManualScroll();
+        }
+    }
+
+    private async void OnLyricLineTapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (ViewModel is null || sender is not FrameworkElement { DataContext: LyricLineViewModel line })
+        {
+            return;
+        }
+
+        // The gesture recognizer already drops drags, but a flick can still
+        // move the list under a short touch; a moved list means it was a scroll.
+        double scrolledPx = Math.Abs(LyricsScrollViewer.VerticalOffset - _pressedScrollOffset);
+        _pressedLine = null;
+        if (scrolledPx > TAP_MAX_SCROLL_PX)
+        {
+            return;
+        }
+
+        int index = ViewModel.LyricLines.IndexOf(line);
+        if (index < 0)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        _autoResumeTimer.Stop();
+        await ViewModel.SeekToLineAsync(index);
+    }
+
+    private void ClearLineHighlight(Border line)
+    {
+        if (ReferenceEquals(line, _pressedLine))
+        {
+            _pressedLine = null;
+        }
+
+        line.Background = _lineIdleBrush;
+    }
+
+    private void SetHandCursor(bool isHand)
+    {
+        try
+        {
+            ProtectedCursor = isHand ? InputSystemCursor.Create(InputSystemCursorShape.Hand) : null;
+        }
+        catch
+        {
+            // Cursor shapes are a desktop nicety; never let a head without
+            // cursor support break the lyrics stage.
+        }
     }
 
     private void OnScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)

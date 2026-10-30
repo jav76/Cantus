@@ -39,6 +39,8 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     Task<PlayerCommandResult> SetShuffleAsync(bool enabled);
     Task<PlayerCommandResult> SetRepeatAsync(string repeatMode);
     Task SubscribeToUserAsync(string? userId);
+    Task ReportVisibilityAsync(bool isVisible);
+    Task RefreshPlaybackAsync();
     Task LogoutAsync();
     Task ReconnectWithTokenAsync(string? sessionToken);
 }

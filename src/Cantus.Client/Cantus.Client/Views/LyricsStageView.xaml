@@ -141,10 +141,19 @@
                                   ItemsSource="{x:Bind ViewModel.LyricLines, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:LyricLineViewModel">
+                                <!-- Tap/click a line to seek playback to it. The hover and
+                                     pressed tints are applied from code-behind. -->
                                 <Border Background="Transparent"
                                         CornerRadius="10"
                                         Padding="8,6"
-                                        Margin="0,4">
+                                        Margin="0,4"
+                                        Tapped="OnLyricLineTapped"
+                                        PointerEntered="OnLyricLinePointerEntered"
+                                        PointerExited="OnLyricLinePointerExited"
+                                        PointerPressed="OnLyricLinePointerPressed"
+                                        PointerReleased="OnLyricLinePointerReleased"
+                                        PointerCanceled="OnLyricLinePointerCanceled"
+                                        PointerCaptureLost="OnLyricLinePointerCanceled">
                                     <!-- The panel hugs the text so the progress underline's track is
                                          exactly as wide as the line it belongs to, not the stage. -->
                                     <StackPanel HorizontalAlignment="Center">

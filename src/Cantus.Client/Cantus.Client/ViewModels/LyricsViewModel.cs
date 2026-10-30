@@ -15,7 +15,7 @@ namespace Cantus.Client.ViewModels;
 
 public sealed class LyricsViewModel : INotifyPropertyChanged
 {
-    private readonly SignalRPlaybackClient _client;
+    private readonly ISignalRPlaybackClient _client;
     private readonly DispatcherTimer _ticker;
     private readonly ThemeManager _themeManager;
     private readonly ResponsiveLayoutManager _layoutManager;
@@ -37,6 +37,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private const int MIN_LATENCY_COMPENSATION_MS = 0;
     private const int MAX_LATENCY_COMPENSATION_MS = 1000;
     private int _latencyCompensationMs = LoadLatencyCompensation();
+
+    // Tap-to-seek is applied optimistically: the stage jumps to the tapped line
+    // at once, and polls that still report the pre-seek position (Spotify's API
+    // is eventually consistent) are ignored until one agrees with the seek or
+    // the confirmation window lapses. The window covers the hub's two
+    // follow-up polls plus one regular poll.
+    private const long SEEK_CONFIRM_TOLERANCE_MS = 1000;
+    private const long SEEK_CONFIRM_TIMEOUT_MS = 4000;
+    private PlaybackStatePayload? _lastServerPlaybackState;
+    private string? _pendingSeekTrackId;
+    private long _pendingSeekIssuedAtMs;
+    private long? _seekDisplayFloorMs;
+    private int _seekGeneration;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -444,10 +457,182 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
+        ClearSeekAnchor();
         double clamped = Math.Clamp(fraction, 0.0, 1.0);
         long positionMs = (long)(clamped * track.DurationMs);
         ReportTransportResult(await _client.SeekPlaybackAsync(positionMs));
     }
+
+    /// <summary>
+    /// Raw track position at which a synced line is sung: its timestamp with
+    /// the per-track offset undone (the display runs at position + offset).
+    /// Latency compensation is deliberately NOT added. It models audio still in
+    /// flight during continuous playback, but a seek flushes that pipeline, so
+    /// the first audible sample is the seek target itself; adding the latency
+    /// would clip the start of the line (200ms by default, up to a second).
+    /// The cost - the steady-state formula placing the display just before the
+    /// line for that long - is covered by the display floor instead.
+    /// </summary>
+    internal static long ComputeLineSeekTargetMs(long lineTimestampMs, int userOffsetMs, long durationMs)
+    {
+        long targetMs = lineTimestampMs - userOffsetMs;
+        return durationMs > 0 ? Math.Clamp(targetMs, 0, durationMs) : Math.Max(0, targetMs);
+    }
+
+    /// <summary>
+    /// Seeks playback to the moment a synced line is sung. The tapped line
+    /// becomes active and the stage re-centers on it before Spotify answers;
+    /// a rejected seek reverts to the last real playback state. No-op for
+    /// static or unsynced lyrics, which carry no timestamps.
+    /// </summary>
+    public async Task SeekToLineAsync(int lineIndex)
+    {
+        PlaybackStatePayload? state = _lastPlaybackState;
+        if (!CanSeekToLines || state?.CurrentTrack is null || lineIndex < 0 || lineIndex >= LyricLines.Count)
+        {
+            return;
+        }
+
+        TrackInfoPayload track = state.CurrentTrack;
+        long lineTimestampMs = LyricLines[lineIndex].TimestampMs;
+        long targetMs = ComputeLineSeekTargetMs(lineTimestampMs, _userOffsetMs, track.DurationMs);
+        long localNow = GetServerNowMs();
+
+        _lastPlaybackState = CopyWithProgress(
+            state,
+            targetMs,
+            IsPlaying,
+            DateTimeOffset.FromUnixTimeMilliseconds(localNow));
+        _pendingSeekTrackId = track.Id;
+        _pendingSeekIssuedAtMs = localNow;
+        _seekDisplayFloorMs = lineTimestampMs;
+        _interpolatedProgressMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
+        _lastTickTimestampMs = localNow;
+
+        // A tap is an explicit "take me there": it ends any manual-scroll pause.
+        IsUserScrollingPaused = false;
+
+        int previousIndex = ActiveLineIndex;
+        AdvancePlayback();
+        if (ActiveLineIndex == previousIndex && ActiveLineIndex >= 0)
+        {
+            // Tapping the active line restarts it; the stage still re-centers.
+            ActiveLineChanged?.Invoke(ActiveLineIndex);
+        }
+
+        int generation = ++_seekGeneration;
+        PlayerCommandResult result = await _client.SeekPlaybackAsync(targetMs);
+        if (result != PlayerCommandResult.Success && generation == _seekGeneration)
+        {
+            RevertOptimisticSeek();
+        }
+
+        ReportTransportResult(result);
+    }
+
+    private void RevertOptimisticSeek()
+    {
+        ClearSeekAnchor();
+        PlaybackStatePayload? serverState = _lastServerPlaybackState;
+        if (serverState?.CurrentTrack is null)
+        {
+            return;
+        }
+
+        long localNow = GetServerNowMs();
+        _lastPlaybackState = serverState;
+        _interpolatedProgressMs = ComputeTargetProgressMs(serverState, localNow);
+        _lastTickTimestampMs = localNow;
+        AdvancePlayback();
+    }
+
+    private void ClearSeekAnchor()
+    {
+        _pendingSeekTrackId = null;
+        _seekDisplayFloorMs = null;
+    }
+
+    /// <summary>
+    /// Merges an incoming poll with an optimistic seek. While the seek is
+    /// unconfirmed, a poll whose position disagrees with it is stale: its
+    /// timeline is replaced by the optimistic one and everything else (device,
+    /// volume, shuffle) is kept. Once confirmed, a disagreeing poll means
+    /// playback moved elsewhere, so the display floor is dropped.
+    /// </summary>
+    private PlaybackStatePayload ReconcileWithOptimisticSeek(PlaybackStatePayload incoming, long localNow)
+    {
+        PlaybackStatePayload? expected = _lastPlaybackState;
+        if (expected?.CurrentTrack is null || incoming.CurrentTrack?.Id != expected.CurrentTrack.Id)
+        {
+            ClearSeekAnchor();
+            return incoming;
+        }
+
+        long disagreementMs = Math.Abs(ProjectProgressMs(incoming, localNow) - ProjectProgressMs(expected, localNow));
+        bool agrees = disagreementMs <= SEEK_CONFIRM_TOLERANCE_MS;
+
+        if (_pendingSeekTrackId is not null)
+        {
+            if (agrees)
+            {
+                _pendingSeekTrackId = null;
+                return incoming;
+            }
+
+            if (localNow - _pendingSeekIssuedAtMs < SEEK_CONFIRM_TIMEOUT_MS)
+            {
+                return CopyWithProgress(incoming, expected.ProgressMs, expected.IsPlaying, expected.TimestampUtc);
+            }
+
+            ClearSeekAnchor();
+            return incoming;
+        }
+
+        if (!agrees)
+        {
+            ClearSeekAnchor();
+        }
+
+        return incoming;
+    }
+
+    private static PlaybackStatePayload CopyWithProgress(
+        PlaybackStatePayload source,
+        long progressMs,
+        bool isPlaying,
+        DateTimeOffset timestampUtc)
+    {
+        return new PlaybackStatePayload
+        {
+            CurrentTrack = source.CurrentTrack,
+            ProgressMs = progressMs,
+            IsPlaying = isPlaying,
+            TimestampUtc = timestampUtc,
+            DeviceName = source.DeviceName,
+            VolumePercent = source.VolumePercent,
+            IsShuffled = source.IsShuffled,
+            RepeatMode = source.RepeatMode,
+            ActiveUserId = source.ActiveUserId,
+            ActiveUserDisplayName = source.ActiveUserDisplayName,
+        };
+    }
+
+    /// <summary>Spotify's position for a state, extrapolated to now when playing.</summary>
+    private static long ProjectProgressMs(PlaybackStatePayload state, long localNow)
+    {
+        if (!state.IsPlaying)
+        {
+            return state.ProgressMs;
+        }
+
+        long elapsed = Math.Max(0, localNow - state.TimestampUtc.ToUnixTimeMilliseconds());
+        return state.ProgressMs + elapsed;
+    }
+
+    private long ComputeTargetProgressMs(PlaybackStatePayload state, long localNow)
+        => Math.Max(0, ProjectProgressMs(state, localNow) - _latencyCompensationMs);
+
+    private long GetServerNowMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
 
     /// <summary>
     /// Called for every slider tick while the user drags, so the actual
@@ -534,6 +719,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public bool HasSyncedLyrics => _lastLyrics?.Lines is not null && _lastLyrics.Lines.Count > 0;
     public bool HasPlainLyrics => !string.IsNullOrWhiteSpace(_lastLyrics?.PlainLyrics);
+
+    /// <summary>
+    /// Whether tapping a lyric line seeks: only timestamped lines shown live,
+    /// with a track to seek within. Read by the stage's hover/press handlers.
+    /// </summary>
+    public bool CanSeekToLines =>
+        _lastPlaybackState?.CurrentTrack is not null && HasSyncedLyrics && !IsStaticLyricsMode;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
@@ -800,7 +992,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public event Action? LyricsReloaded;
 
     public LyricsViewModel(
-        SignalRPlaybackClient client,
+        ISignalRPlaybackClient client,
         ThemeManager? themeManager = null,
         ResponsiveLayoutManager? layoutManager = null)
     {
@@ -1066,6 +1258,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         if (state is null) return;
 
+        long localNow = GetServerNowMs();
+        _lastServerPlaybackState = state;
+        if (_pendingSeekTrackId is not null || _seekDisplayFloorMs is not null)
+        {
+            state = ReconcileWithOptimisticSeek(state, localNow);
+        }
+
         _lastPlaybackState = state;
         RttMs = _client.RttMs;
         ClockSkewMs = _client.ClockOffsetMs;
@@ -1110,19 +1309,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
-        long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
-        long targetMs = state.ProgressMs;
-        if (state.IsPlaying)
-        {
-            long serverTimestamp = state.TimestampUtc.ToUnixTimeMilliseconds();
-            long elapsed = Math.Max(0, localNow - serverTimestamp);
-            targetMs = Math.Max(0, state.ProgressMs + elapsed - _latencyCompensationMs);
-        }
-        else
-        {
-            targetMs = Math.Max(0, state.ProgressMs - _latencyCompensationMs);
-        }
-
+        long targetMs = ComputeTargetProgressMs(state, localNow);
         long drift = Math.Abs(_interpolatedProgressMs - targetMs);
         if (drift > 1500 || !_isPlaying)
         {
@@ -1226,6 +1413,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         ActiveLineIndex = -1;
         IsUserScrollingPaused = false;
+        ClearSeekAnchor();
 
         OnPropertyChanged(nameof(StaticLyricsText));
         OnPropertyChanged(nameof(SyncedLyricsVisibility));
@@ -1383,6 +1571,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void OnTick(object? sender, object e)
     {
+        AdvancePlayback();
+    }
+
+    /// <summary>
+    /// One frame of the display clock: advances the interpolated position and
+    /// derives the progress bar, active line, karaoke underline, and
+    /// instrumental-break countdown from it.
+    /// </summary>
+    internal void AdvancePlayback()
+    {
         if (_lastPlaybackState?.CurrentTrack is null)
         {
             ProgressFraction = 0;
@@ -1396,16 +1594,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
-        long localNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
+        long localNow = GetServerNowMs();
 
         if (_lastPlaybackState.IsPlaying)
         {
             long dt = _lastTickTimestampMs > 0 ? Math.Clamp(localNow - _lastTickTimestampMs, 1, 100) : 16;
             _lastTickTimestampMs = localNow;
 
-            long serverTimestamp = _lastPlaybackState.TimestampUtc.ToUnixTimeMilliseconds();
-            long elapsed = Math.Max(0, localNow - serverTimestamp);
-            long targetMs = Math.Max(0, _lastPlaybackState.ProgressMs + elapsed - _latencyCompensationMs);
+            long targetMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
 
             // Monotonic Phase-Locked Loop (PLL) tracking
             long error = targetMs - _interpolatedProgressMs;
@@ -1423,11 +1619,27 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         else
         {
-            _interpolatedProgressMs = Math.Max(0, _lastPlaybackState.ProgressMs - _latencyCompensationMs);
+            _interpolatedProgressMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
             _lastTickTimestampMs = localNow;
         }
 
         long currentWithOffset = Math.Clamp(_interpolatedProgressMs + _userOffsetMs, 0, durationMs);
+
+        // After a line seek the latency-compensated position sits just before
+        // the tapped line until the new audio has had time to arrive (and
+        // indefinitely while paused); hold the display on the line until the
+        // estimate catches up, so the previous line never flashes back.
+        if (_seekDisplayFloorMs is long floorMs)
+        {
+            if (currentWithOffset >= floorMs)
+            {
+                _seekDisplayFloorMs = null;
+            }
+            else
+            {
+                currentWithOffset = floorMs;
+            }
+        }
 
         ProgressFraction = (double)currentWithOffset / durationMs;
         ProgressText = FormatTime(currentWithOffset);
@@ -1565,6 +1777,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         AlbumArtUrl = null;
         IsPlaying = false;
         _lastPlaybackState = null;
+        _lastServerPlaybackState = null;
+        ClearSeekAnchor();
         _lastLyrics = null;
         LyricLines.Clear();
         HasLyrics = false;
