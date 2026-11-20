@@ -124,6 +124,7 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsMobileLyricsActive));
                 OnPropertyChanged(nameof(IsMobileNowPlayingActive));
                 OnPropertyChanged(nameof(IsMobileSettingsActive));
+                OnPropertyChanged(nameof(AlbumArtSize));
                 LayoutChanged?.Invoke();
             }
         }
@@ -278,6 +279,11 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
 
         CurrentBreakpoint = computed;
         LayoutChanged?.Invoke();
+    }
+
+    public void ToggleKioskMode()
+    {
+        IsKioskMode = !IsKioskMode;
     }
 
     /// <summary>

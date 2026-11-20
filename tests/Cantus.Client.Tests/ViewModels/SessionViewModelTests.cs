@@ -229,6 +229,40 @@ public sealed class SessionViewModelTests
     }
 
     [Fact]
+    public void SpotifyLoginPath_CarriesTheClientId()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, SessionViewModel session) = CreateSession();
+        client.SetupGet(c => c.ClientId).Returns("client-7");
+
+        // Act & Assert
+        session.SpotifyLoginPath.Should().Be("/api/auth/spotify/login?client_id=client-7");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SpotifyLoginPath_WithoutAClientId_HasNoQuery(string clientId)
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, SessionViewModel session) = CreateSession();
+        client.SetupGet(c => c.ClientId).Returns(clientId);
+
+        // Act & Assert
+        session.SpotifyLoginPath.Should().Be("/api/auth/spotify/login");
+    }
+
+    [Fact]
+    public void ServerBaseUrl_DerivesBaseUrlFromClient()
+    {
+        // Arrange
+        SessionViewModel session = new(new SignalRPlaybackClient("http://192.168.1.50:5000/hubs/playback"));
+
+        // Act & Assert
+        session.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
+    }
+
+    [Fact]
     public void ApplyActiveUser_KeepsTheKnownNameWhenThePollCarriesNone()
     {
         // Arrange

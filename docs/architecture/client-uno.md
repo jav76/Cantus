@@ -43,14 +43,27 @@ flowchart TD
         TrackCard[AdaptiveTrackCard.xaml]
         LyricsStage[LyricsStageView.xaml]
         MobileSettings[MobileSettingsView.xaml]
+        MiniBar[MiniPlaybackBar.xaml]
+        Hud[DiagnosticsHudDialog.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
         MainView --> MobileSettings
+        MainView --> MiniBar
+        Header --> Hud
     end
 
     SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
-    LVM -->|Direct 1-Level Data Binding| MainView
+    LVM -->|lyrics, track, toast| MainView
+    Theme -->|brushes and colors| MainView
+    Layout -->|breakpoint, sizes, mobile tab| MainView
+    Transport -->|controls and status| TrackCard
+    Transport --> MiniBar
+    Timing -->|offset and latency| TrackCard
+    Timing --> MobileSettings
+    Session -->|sign-in state| Header
+    Session --> TrackCard
+    Session --> MobileSettings
 ```
 
 ---
@@ -64,14 +77,31 @@ flowchart TD
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`
-- Coordinates overall state: active playback progress, song metadata, lyrics line collection, and instrumental breaks.
-- Provides flattened 1-level direct visual properties (`BackgroundBrush`, `SurfaceCardBrush`, `NoSessionsVisibility`, `HasSessionsVisibility`, `CurrentBreakpoint`) ensuring thread-safe, compile-time verified XAML `{x:Bind}` execution across all platforms.
+- The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
+- Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
-- Transport controls (play/pause, skip, shuffle, repeat, volume, seek) are thin pass-throughs to `PlaybackTransport`, kept so existing `{x:Bind}` paths stay one level deep. The transport's property notifications are re-raised under the same names.
-- Track offset and latency members (`OffsetText`, `NudgeOffsetAsync`, `ResetOffsetAsync`, `SetSyncOffsetAsync`, `LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`) are pass-throughs to `PlaybackTiming` in the same way. Each tick asks `PlaybackTiming` for the clock target and the render position.
-- Session members (`Sessions`, `CurrentUserSession`, `ActiveUserName`, `ActiveUserId`, `AuthorizedSessionsCount`, `IsAuthorized`, `ConnectButtonText`, `ConnectButtonGlyph`, `NoSessionsVisibility`, `HasSessionsVisibility`, `SubscribeToUserAsync`, `SwitchUserSubscriptionAsync`, `LogoutAsync`) are pass-throughs to `SessionViewModel` in the same way. When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+- Each tick asks `PlaybackTiming` for the clock target and the render position, and asks `PlaybackTransport` to hold the position at an unconfirmed seek.
+- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+
+#### View Binding
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
+- The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
+
+| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Theme` | `Layout` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| `MainPage` | Yes | | | | Yes | Yes |
+| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | Yes |
+| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | Yes |
+| `LyricsStageView` | Yes | | | | Yes | Yes |
+| `MobileSettingsView` | Yes | | Yes | Yes | Yes | |
+| `MobileTabBar` | Yes | | | | Yes | Yes |
+| `MiniPlaybackBar` | Yes | Yes | | | Yes | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | |
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -92,8 +122,8 @@ flowchart TD
   - `LineBrush`, `FontSize`, `FontWeight`, and `Opacity`: Visual styling dynamically driven by theme and active state.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
-- `ThemeManager` extracts dynamic palettes from album artwork bytes and provides WCAG-compliant high-contrast theme brushes.
-- `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints.
+- `ThemeManager` extracts dynamic palettes from album artwork bytes and provides WCAG-compliant high-contrast theme brushes. It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints. It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
 - Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
@@ -118,6 +148,7 @@ flowchart TD
 - Owns sign-in state: the authorized Sessions list (`Sessions`, `CurrentUserSession`, `AuthorizedSessionsCount`), the active user (`ActiveUserName`, `ActiveUserId`), and the derived `IsAuthorized`, connect button text and glyph, and session visibilities.
 - `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
+- `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
 - Display management attaches here.
 
 ---

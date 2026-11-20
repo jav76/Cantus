@@ -1,4 +1,5 @@
 using System;
+using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -12,12 +13,47 @@ public sealed partial class MiniPlaybackBar : UserControl
             nameof(ViewModel),
             typeof(LyricsViewModel),
             typeof(MiniPlaybackBar),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnViewModelChanged));
 
     public LyricsViewModel? ViewModel
     {
         get => (LyricsViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty TransportProperty =
+        DependencyProperty.Register(
+            nameof(Transport),
+            typeof(PlaybackTransport),
+            typeof(MiniPlaybackBar),
+            new PropertyMetadata(null));
+
+    public PlaybackTransport? Transport
+    {
+        get => (PlaybackTransport?)GetValue(TransportProperty);
+        private set => SetValue(TransportProperty, value);
+    }
+
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(MiniPlaybackBar),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        MiniPlaybackBar bar = (MiniPlaybackBar)d;
+        LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        bar.Transport = viewModel?.Transport;
+        bar.Theme = viewModel?.Theme;
     }
 
     public MiniPlaybackBar()
@@ -30,13 +66,13 @@ public sealed partial class MiniPlaybackBar : UserControl
 
     private async void OnProgressBarPointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        if (ViewModel is null || sender is not FrameworkElement element || element.ActualWidth <= 0)
+        if (Transport is null || sender is not FrameworkElement element || element.ActualWidth <= 0)
         {
             return;
         }
 
         double fraction = e.GetCurrentPoint(element).Position.X / element.ActualWidth;
-        await ViewModel.SeekToFractionAsync(fraction);
+        await Transport.SeekToFractionAsync(fraction);
     }
 
     private void OnSeekBarPointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -74,21 +110,21 @@ public sealed partial class MiniPlaybackBar : UserControl
 
     private async void OnSkipPreviousClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.SkipToPreviousAsync();
+        if (Transport is not null) await Transport.SkipToPreviousAsync();
     }
 
     private async void OnTogglePlayPauseClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.TogglePlayPauseAsync();
+        if (Transport is not null) await Transport.TogglePlayPauseAsync();
     }
 
     private async void OnSkipNextClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.SkipToNextAsync();
+        if (Transport is not null) await Transport.SkipToNextAsync();
     }
 
     private void OnToggleKioskClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.ToggleKioskMode();
+        ViewModel?.Layout.ToggleKioskMode();
     }
 }

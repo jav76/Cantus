@@ -16,12 +16,89 @@ public sealed partial class AdaptiveTrackCard : UserControl
             nameof(ViewModel),
             typeof(LyricsViewModel),
             typeof(AdaptiveTrackCard),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnViewModelChanged));
 
     public LyricsViewModel? ViewModel
     {
         get => (LyricsViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty TransportProperty =
+        DependencyProperty.Register(
+            nameof(Transport),
+            typeof(PlaybackTransport),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public PlaybackTransport? Transport
+    {
+        get => (PlaybackTransport?)GetValue(TransportProperty);
+        private set => SetValue(TransportProperty, value);
+    }
+
+    public static readonly DependencyProperty TimingProperty =
+        DependencyProperty.Register(
+            nameof(Timing),
+            typeof(PlaybackTiming),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public PlaybackTiming? Timing
+    {
+        get => (PlaybackTiming?)GetValue(TimingProperty);
+        private set => SetValue(TimingProperty, value);
+    }
+
+    public static readonly DependencyProperty SessionProperty =
+        DependencyProperty.Register(
+            nameof(Session),
+            typeof(SessionViewModel),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public SessionViewModel? Session
+    {
+        get => (SessionViewModel?)GetValue(SessionProperty);
+        private set => SetValue(SessionProperty, value);
+    }
+
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    public static readonly DependencyProperty LayoutProperty =
+        DependencyProperty.Register(
+            nameof(Layout),
+            typeof(ResponsiveLayoutManager),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public ResponsiveLayoutManager? Layout
+    {
+        get => (ResponsiveLayoutManager?)GetValue(LayoutProperty);
+        private set => SetValue(LayoutProperty, value);
+    }
+
+    // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        AdaptiveTrackCard card = (AdaptiveTrackCard)d;
+        LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        card.Transport = viewModel?.Transport;
+        card.Timing = viewModel?.Timing;
+        card.Session = viewModel?.Session;
+        card.Theme = viewModel?.Theme;
+        card.Layout = viewModel?.Layout;
     }
 
     public AdaptiveTrackCard()
@@ -31,37 +108,37 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-500);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(-500);
     }
 
     private async void OnNudgeMinus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-100);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(-100);
     }
 
     private async void OnResetOffsetClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.ResetOffsetAsync();
+        if (Timing is not null) await Timing.ResetOffsetAsync();
     }
 
     private async void OnNudgePlus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(100);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(100);
     }
 
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(500);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(500);
     }
 
     private async void OnShuffleClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.ToggleShuffleAsync();
+        if (Transport is not null) await Transport.ToggleShuffleAsync();
     }
 
     private async void OnRepeatClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.CycleRepeatAsync();
+        if (Transport is not null) await Transport.CycleRepeatAsync();
     }
 
     private const double SEEK_BAR_HEIGHT = 6.0;
@@ -102,18 +179,18 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private async void OnProgressBarPointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        if (ViewModel is null || sender is not FrameworkElement element || element.ActualWidth <= 0)
+        if (Transport is null || sender is not FrameworkElement element || element.ActualWidth <= 0)
         {
             return;
         }
 
         double fraction = e.GetCurrentPoint(element).Position.X / element.ActualWidth;
-        await ViewModel.SeekToFractionAsync(fraction);
+        await Transport.SeekToFractionAsync(fraction);
     }
 
     private void OnVolumeSliderChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
-        if (ViewModel is null)
+        if (Transport is null)
         {
             return;
         }
@@ -122,44 +199,43 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
         // ValueChanged also fires when the binding pushes a state update into
         // the slider; only user-initiated changes differ from the bound value.
-        if (requested == (int)Math.Round(ViewModel.VolumeSliderValue))
+        if (requested == (int)Math.Round(Transport.VolumeSliderValue))
         {
             return;
         }
 
-        ViewModel.RequestVolumeChange(requested);
+        Transport.RequestVolumeChange(requested);
     }
 
     private async void OnSkipPreviousClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.SkipToPreviousAsync();
+        if (Transport is not null) await Transport.SkipToPreviousAsync();
     }
 
     private async void OnTogglePlayPauseClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.TogglePlayPauseAsync();
+        if (Transport is not null) await Transport.TogglePlayPauseAsync();
     }
 
     private async void OnSkipNextClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.SkipToNextAsync();
+        if (Transport is not null) await Transport.SkipToNextAsync();
     }
 
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
     {
         try
         {
-            string clientId = ViewModel?.ClientId ?? string.Empty;
-            string clientQuery = !string.IsNullOrWhiteSpace(clientId) ? $"?client_id={clientId}" : string.Empty;
+            string loginPath = Session?.SpotifyLoginPath ?? SessionViewModel.SPOTIFY_LOGIN_PATH;
 #if __WASM__
             string origin = WasmInterop.GetCurrentOrigin();
             string loginUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin}/api/auth/spotify/login{clientQuery}"
-                : $"/api/auth/spotify/login{clientQuery}";
+                ? $"{origin}{loginPath}"
+                : loginPath;
             WasmInterop.NavigateTo(loginUrl);
 #else
-            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://127.0.0.1:5000";
-            Uri uri = new($"{baseUrl}/api/auth/spotify/login{clientQuery}");
+            string baseUrl = Session?.ServerBaseUrl ?? "http://127.0.0.1:5000";
+            Uri uri = new($"{baseUrl}{loginPath}");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif
         }
@@ -171,9 +247,9 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null)
+        if (Session is not null)
         {
-            await ViewModel.LogoutAsync();
+            await Session.LogoutAsync();
         }
     }
 

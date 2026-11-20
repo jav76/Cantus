@@ -19,12 +19,61 @@ public sealed partial class AdaptiveHeaderBar : UserControl
             nameof(ViewModel),
             typeof(LyricsViewModel),
             typeof(AdaptiveHeaderBar),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnViewModelChanged));
 
     public LyricsViewModel? ViewModel
     {
         get => (LyricsViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty SessionProperty =
+        DependencyProperty.Register(
+            nameof(Session),
+            typeof(SessionViewModel),
+            typeof(AdaptiveHeaderBar),
+            new PropertyMetadata(null));
+
+    public SessionViewModel? Session
+    {
+        get => (SessionViewModel?)GetValue(SessionProperty);
+        private set => SetValue(SessionProperty, value);
+    }
+
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(AdaptiveHeaderBar),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    public static readonly DependencyProperty LayoutProperty =
+        DependencyProperty.Register(
+            nameof(Layout),
+            typeof(ResponsiveLayoutManager),
+            typeof(AdaptiveHeaderBar),
+            new PropertyMetadata(null));
+
+    public ResponsiveLayoutManager? Layout
+    {
+        get => (ResponsiveLayoutManager?)GetValue(LayoutProperty);
+        private set => SetValue(LayoutProperty, value);
+    }
+
+    // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        AdaptiveHeaderBar header = (AdaptiveHeaderBar)d;
+        LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        header.Session = viewModel?.Session;
+        header.Theme = viewModel?.Theme;
+        header.Layout = viewModel?.Layout;
     }
 
     public AdaptiveHeaderBar()
@@ -50,29 +99,28 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private void OnToggleKioskClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.ToggleKioskMode();
+        Layout?.ToggleKioskMode();
     }
 
     private void OnCycleMobileViewClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.CycleMobileView();
+        Layout?.CycleMobileView();
     }
 
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
     {
         try
         {
-            string clientId = ViewModel?.ClientId ?? string.Empty;
-            string clientQuery = !string.IsNullOrWhiteSpace(clientId) ? $"?client_id={clientId}" : string.Empty;
+            string loginPath = Session?.SpotifyLoginPath ?? SessionViewModel.SPOTIFY_LOGIN_PATH;
 #if __WASM__
             string origin = WasmInterop.GetCurrentOrigin();
             string loginUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin}/api/auth/spotify/login{clientQuery}"
-                : $"/api/auth/spotify/login{clientQuery}";
+                ? $"{origin}{loginPath}"
+                : loginPath;
             WasmInterop.NavigateTo(loginUrl);
 #else
-            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://127.0.0.1:5000";
-            Uri uri = new($"{baseUrl}/api/auth/spotify/login{clientQuery}");
+            string baseUrl = Session?.ServerBaseUrl ?? "http://127.0.0.1:5000";
+            Uri uri = new($"{baseUrl}{loginPath}");
             await Launcher.LaunchUriAsync(uri);
 #endif
         }
@@ -84,9 +132,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null)
+        if (Session is not null)
         {
-            await ViewModel.LogoutAsync();
+            await Session.LogoutAsync();
         }
     }
 

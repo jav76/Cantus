@@ -6,11 +6,11 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+    <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="20"
-            Padding="{x:Bind GetStagePadding(ViewModel.CurrentBreakpoint), Mode=OneWay}">
+            Padding="{x:Bind GetStagePadding(Layout.CurrentBreakpoint), Mode=OneWay}">
         <Grid RowDefinitions="Auto,*">
             
             <!-- Top Action Controls -->
@@ -20,8 +20,8 @@
                 <Border Visibility="{x:Bind ViewModel.ThemeToastStageVisibility, Mode=OneWay}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
-                        Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
-                        BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                        Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                         BorderThickness="1"
                         CornerRadius="18"
                         Padding="16,9"
@@ -29,11 +29,11 @@
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <FontIcon Glyph="&#xE790;"
                                   FontSize="14"
-                                  Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
+                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                         <TextBlock Text="{x:Bind ViewModel.ThemeToastText, Mode=OneWay}"
                                    FontSize="13"
                                    FontWeight="SemiBold"
-                                   Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}" />
+                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
@@ -44,45 +44,45 @@
                     <!-- Karaoke Line-Progress Toggle Button -->
                     <Button Click="OnToggleKaraokeClicked"
                             Background="{x:Bind GetAutoScrollButtonBackground(ViewModel.IsKaraokeModeEnabled), Mode=OneWay}"
-                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="10,5"
                             Visibility="{x:Bind ViewModel.KaraokeToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle the karaoke line-progress underline">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE720;" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="Karaoke" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                            <FontIcon Glyph="&#xE720;" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="Karaoke" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
 
                     <!-- Autoscroll Toggle Button -->
                     <Button Click="OnToggleAutoScrollClicked"
                             Background="{x:Bind GetAutoScrollButtonBackground(ViewModel.IsAutoScrollEnabled), Mode=OneWay}"
-                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="10,5"
                             Visibility="{x:Bind ViewModel.AutoScrollToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle dynamic centered lyrics scrolling (Autoscroll)">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="{x:Bind ViewModel.AutoScrollToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.AutoScrollToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                            <FontIcon Glyph="{x:Bind ViewModel.AutoScrollToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.AutoScrollToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
 
                     <!-- Static Lyrics / Live Synced Toggle Button (Visible when synced lines exist) -->
                     <Button Click="OnToggleStaticModeClicked"
                             Background="#15FFFFFF"
-                            BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="10,5"
                             Visibility="{x:Bind ViewModel.ModeToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle between Live Synced and Static Plain Lyrics">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                            <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -96,17 +96,17 @@
                             VerticalAlignment="Center"
                             Spacing="16">
                     <FontIcon Glyph="&#xEC4F;"
-                              FontSize="{x:Bind GetEmptyIconSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                              Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
+                              FontSize="{x:Bind GetEmptyIconSize(Layout.CurrentBreakpoint), Mode=OneWay}"
+                              Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
                               HorizontalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.EmptyStateTitle, Mode=OneWay}"
-                               FontSize="{x:Bind GetEmptyTitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
+                               FontSize="{x:Bind GetEmptyTitleSize(Layout.CurrentBreakpoint), Mode=OneWay}"
                                FontWeight="Bold"
-                               Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
                                HorizontalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.EmptyStateSubtitle, Mode=OneWay}"
-                               FontSize="{x:Bind GetEmptySubtitleSize(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                               Foreground="{x:Bind ViewModel.TextMutedBrush, Mode=OneWay}"
+                               FontSize="{x:Bind GetEmptySubtitleSize(Layout.CurrentBreakpoint), Mode=OneWay}"
+                               Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
                                HorizontalAlignment="Center"
                                TextWrapping="Wrap"
                                TextAlignment="Center" />
@@ -115,13 +115,13 @@
                 <!-- Static Plain Lyrics View -->
                 <ScrollViewer x:Name="StaticLyricsScrollViewer"
                               Visibility="{x:Bind ViewModel.StaticLyricsVisibility, Mode=OneWay}"
-                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                              MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
+                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(Layout.CurrentBreakpoint), Mode=OneWay}"
+                              MaxWidth="{x:Bind Layout.LyricsMaxWidth, Mode=OneWay}"
                               Padding="16,8">
                     <TextBlock Text="{x:Bind ViewModel.StaticLyricsText, Mode=OneWay}"
                                FontSize="18"
                                FontWeight="Normal"
-                               Foreground="{x:Bind ViewModel.TextPrimaryBrush, Mode=OneWay}"
+                               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                                LineHeight="32"
                                TextWrapping="Wrap"
                                TextAlignment="Center" />
@@ -129,8 +129,8 @@
 
                 <!-- Active Synced Lyrics Scroll Viewer -->
                 <ScrollViewer x:Name="LyricsScrollViewer"
-                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(ViewModel.CurrentBreakpoint), Mode=OneWay}"
-                              MaxWidth="{x:Bind ViewModel.LyricsMaxWidth, Mode=OneWay}"
+                              HorizontalAlignment="{x:Bind GetListHorizontalAlignment(Layout.CurrentBreakpoint), Mode=OneWay}"
+                              MaxWidth="{x:Bind Layout.LyricsMaxWidth, Mode=OneWay}"
                               Visibility="{x:Bind ViewModel.SyncedLyricsVisibility, Mode=OneWay}"
                               VerticalScrollBarVisibility="Hidden"
                               HorizontalScrollBarVisibility="Disabled"
@@ -192,8 +192,8 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         Margin="0,8,0,0"
-                        Background="{x:Bind ViewModel.SurfaceCardBrush, Mode=OneWay}"
-                        BorderBrush="{x:Bind ViewModel.CardBorderBrush, Mode=OneWay}"
+                        Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                         BorderThickness="1"
                         CornerRadius="18"
                         Padding="14,8"
@@ -201,7 +201,7 @@
                     <TextBlock Text="{x:Bind ViewModel.InstrumentalBreakText, Mode=OneWay}"
                                FontSize="13"
                                FontWeight="SemiBold"
-                               Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}" />
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                 </Border>
 
                 <!-- Floating Resume Autoscroll Button -->
@@ -211,7 +211,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Bottom"
                         Margin="0,0,0,16"
-                        Background="{x:Bind ViewModel.PrimaryAccentBrush, Mode=OneWay}"
+                        Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                         Foreground="White"
                         BorderThickness="0"
                         CornerRadius="20"
