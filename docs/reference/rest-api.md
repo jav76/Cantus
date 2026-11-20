@@ -16,7 +16,7 @@ A Display (a paired screen) holds a view-only Display token instead of a Session
 
 The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
 
-A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout` and `POST /api/lyrics/offset`. Nothing is changed or revoked.
+A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
 
 ---
 
@@ -128,6 +128,99 @@ Saves a manual timing offset adjustment for a track.
 - **Response `200 OK`**
 - **Response `401 Unauthorized`**: no credential, or the credential does not match a Session id.
 - **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
+
+---
+
+## Display Endpoints
+
+A Display is paired in three steps:
+
+1. The screen opens an anonymous [PlaybackHub](signalr-api.md) connection and calls `POST /api/displays/pairings` with its connection id. It shows the returned code.
+2. The owner enters the code on a signed-in device, which calls `POST /api/displays/pairings/approve` with a name for the Display.
+3. The server sends the new Display token to the screen's connection as [`ReceiveDisplayPaired`](signalr-api.md#receivedisplaypaired). The screen stores the token and reconnects with it.
+
+Pending pairings live in server memory, so a restart drops them. Codes are 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no `0`, `O`, `1`, `I` or `L`), single-use, and expire after 5 minutes. A connection has at most one pending code: a new request replaces the old one, and disconnecting cancels it. Lengths, lifetimes and limits are set under [`DisplayPairing`](configuration.md#display-pairing-displaypairing).
+
+Both pairing endpoints are rate limited per client address, each counted on its own: 10 requests per 60 seconds by default. Over the limit they return `429 Too Many Requests`. Behind a reverse proxy, configure [`ForwardedHeaders`](configuration.md#reverse-proxy-trust-forwardedheaders) so the limit sees real client addresses.
+
+---
+
+### `POST /api/displays/pairings`
+Starts a pairing. No credential needed.
+
+- **Request Body**:
+```json
+{ "connectionId": "<PlaybackHub connection id>" }
+```
+- **Response `200 OK`**:
+```json
+{
+  "pairingId": "3f1c9a0e5b7d4e2a9c6b8d0f1e2a3b4c",
+  "code": "K7QH2MZP",
+  "expiresAtUtc": "2026-11-20T18:05:00Z"
+}
+```
+- **Response `400 Bad Request`**: `connectionId` is missing or is not a live PlaybackHub connection. Call this only after the connection has started.
+- **Response `429 Too Many Requests`**: rate limit reached.
+- **Response `503 Service Unavailable`**: too many pairings are waiting for approval (`DisplayPairing:MaxPendingPairings`).
+
+---
+
+### `POST /api/displays/pairings/approve`
+Approves a code and names the new Display. Requires the caller's [session credential](#session-credential).
+
+- **Request Body**:
+```json
+{ "code": "K7QH-2MZP", "name": "Living room TV" }
+```
+  `code` ignores case, spaces and hyphens. `name` is trimmed and must be 1 to 64 characters.
+- **Response `201 Created`**: the new Display, with `Location: /api/displays/{displayId}`. The token is not in this response; it goes only to the waiting connection.
+```json
+{
+  "id": "9b2e4c6a8d0f4b1e93a5c7e9f1b3d5a7",
+  "name": "Living room TV",
+  "createdAtUtc": "2026-11-20T18:01:12Z",
+  "lastSeenAtUtc": null
+}
+```
+- **Response `400 Bad Request`**: the name is empty or too long. The code stays valid.
+- **Response `401 Unauthorized`**: no Session credential. The code stays valid.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). The code stays valid.
+- **Response `404 Not Found`**: the code is unknown, already used, expired, or its connection has disconnected.
+- **Response `429 Too Many Requests`**: rate limit reached.
+
+---
+
+### `GET /api/displays`
+Lists the caller's Displays, oldest first. Requires the caller's [session credential](#session-credential).
+
+- **Response `200 OK`**: an array of Displays, shaped like the approve response. Neither the Display token nor the owner's Session id is included.
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+
+---
+
+### `PATCH /api/displays/{displayId}`
+Renames one of the caller's Displays. Requires the caller's [session credential](#session-credential).
+
+- **Request Body**:
+```json
+{ "name": "Bedroom" }
+```
+- **Response `204 No Content`**
+- **Response `400 Bad Request`**: the name is empty or longer than 64 characters.
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+- **Response `404 Not Found`**: the caller has no Display with that id.
+
+---
+
+### `DELETE /api/displays/{displayId}`
+Revokes one of the caller's Displays. Requires the caller's [session credential](#session-credential).
+
+Its token stops working at once. Each of its live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed. The owner's Session, its connections and the owner's other Displays are untouched.
+
+- **Response `204 No Content`**
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+- **Response `404 Not Found`**: the caller has no Display with that id.
 
 ---
 

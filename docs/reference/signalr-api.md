@@ -33,6 +33,21 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 
 Every playback broadcast goes to both groups. Displays get the same payloads with `activeUserId` set to `null`, because the owner's Session id is itself a credential. A Display connection counts as a viewer of its owner for [adaptive polling](../architecture/adaptive-polling.md).
 
+Because the credential is resolved only at connect, the server tracks each Display's open connections. [Revoking a Display](rest-api.md#delete-apidisplaysdisplayid) sends `ReceiveDisplayRevoked` to them and then closes them. A connection whose token was validated just before a revocation is closed as soon as it finishes connecting.
+
+---
+
+## Pairing a Display
+
+An unauthenticated connection becomes a Display through the [pairing endpoints](rest-api.md#display-endpoints):
+
+1. Connect to the hub with no credential and wait for the connection to start.
+2. Send the connection id to `POST /api/displays/pairings` and show the returned code (and, optionally, a QR of it).
+3. Once an owner approves the code, the server sends `ReceiveDisplayPaired` to this connection.
+4. Store the token, then reconnect with it. The current connection stays unauthenticated.
+
+Disconnecting before approval cancels the pending code. Request a new code after reconnecting.
+
 ---
 
 ## Client-to-Server Methods (Invocations)
@@ -163,3 +178,18 @@ Periodic runtime telemetry broadcast.
 
 ### `ReceiveSessions` & `ReceiveAuthSession`
 Broadcasts list of authorized Spotify accounts or notifies a newly authenticated login. Never sent to a Display connection.
+
+### `ReceiveDisplayPaired`
+Sent only to the connection that requested a pairing, once an owner approves its code. `token` is the only copy of the Display token: the server keeps just its hash. `pairingId` matches the id returned by `POST /api/displays/pairings`.
+
+```json
+{
+  "pairingId": "3f1c9a0e5b7d4e2a9c6b8d0f1e2a3b4c",
+  "displayId": "9b2e4c6a8d0f4b1e93a5c7e9f1b3d5a7",
+  "name": "Living room TV",
+  "token": "<Display token>"
+}
+```
+
+### `ReceiveDisplayRevoked`
+Sent to each open connection of a Display right before the server closes it, because the owner revoked it. The payload is the Display id (`string`). The token no longer works, so the client should discard it and offer to pair again instead of reconnecting with it.
