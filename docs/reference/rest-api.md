@@ -16,7 +16,7 @@ A Display (a paired screen) holds a view-only Display token instead of a Session
 
 The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
 
-A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `GET /api/lyrics/{trackId}/candidates`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
+A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `GET /api/lyrics/{trackId}/candidates`, `POST /api/lyrics/{trackId}/override`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
 
 ---
 
@@ -262,6 +262,41 @@ Lists the lyrics every enabled provider has for the owner's current track, so a 
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
 - **Response `403 Forbidden`**: the caller holds a Display token. No provider is queried.
 - **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or nothing is playing.
+
+---
+
+### `POST /api/lyrics/{trackId}/override`
+Corrects the lyrics for the owner's current track. An override is stored per track and applies server-wide, like track offsets. It survives restarts, cache expiry and negative caching until it is cleared.
+
+- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Path Parameters**:
+  - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session.
+- **Request Body**:
+```json
+{
+  "action": "candidate",
+  "provider": "LRCLIB",
+  "candidateId": "3396226"
+}
+```
+- **Actions**:
+
+| `action` | Effect |
+| :--- | :--- |
+| `candidate` | Loads the candidate's lyrics from `provider` (as listed by `GET /api/lyrics/{trackId}/candidates`) and stores them as the override. `provider` and `candidateId` are required. |
+| `noLyrics` | Stores a "no lyrics" override. Viewers see an empty lyrics view and no provider is queried for the track. |
+| `refetch` | Removes any override and the cached automatic match (including a "not found" entry), then queries the providers again. |
+| `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. |
+
+- **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
+- **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}` (`lines` is empty when the track has no lyrics).
+- **Response `400 Bad Request`**: unknown `action`, `candidate` without `provider` or `candidateId`, or `provider` is not an enabled provider.
+- **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
+- **Response `403 Forbidden`**: the caller holds a Display token. Nothing is changed and nothing is broadcast.
+- **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or the provider has no lyrics for `candidateId`.
+- **Response `502 Bad Gateway`**: the provider could not be reached while loading the candidate. Nothing is changed.
+
+`GET /api/lyrics/{trackId}` also honors overrides: it returns the chosen candidate's lyrics, or `404` for a `noLyrics` override.
 
 ---
 
