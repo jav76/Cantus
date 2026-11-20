@@ -74,6 +74,8 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
 | **`LyricsCache__NegativeCacheDays`** | `int` | `30` | Duration in days to cache negative lookups (instrumental tracks / not found across all providers). | No |
+| **`LyricsCache__WordTimingUpgradeMaxAttempts`** | `int` | `3` | How many times a cached entry without word timing is re-fetched to look for word-timed lyrics. `0` turns upgrades off. | No |
+| **`LyricsCache__WordTimingUpgradeIntervalDays`** | `int` | `7` | Minimum days between word-timing upgrade attempts for the same track. | No |
 
 ### Cross-Origin Requests (`Cors`)
 | Variable | Type | Default | Description | Required |

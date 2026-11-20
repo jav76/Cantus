@@ -11,20 +11,25 @@ When a track starts playing, Cantus traverses a multi-tiered caching pipeline, t
 ```mermaid
 flowchart TD
     Start[Track Changed / New Track ID] --> QueryOverride{0. Owner Override?}
-    QueryOverride -->|Candidate| ReturnLyrics
+    QueryOverride -->|Candidate| ReturnOverride[Return Override Lyrics As Stored]
     QueryOverride -->|No Lyrics| ReturnNone[Empty Lyrics View]
-    QueryOverride -->|None| QueryLocal{1. Query SQLite Cache}
-    QueryLocal -->|Found Positive LRC| ReturnLyrics[Return Parsed Lyric Lines]
+    QueryOverride -->|None: Automatic Matching| QueryLocal{1. Query SQLite Cache}
     QueryLocal -->|Found Negative Cache| ReturnInstrumental[Flag as Instrumental / No Lyrics]
-    
-    QueryLocal -->|Cache Miss| QueryLRCLIB[2. Query LRCLIB Synced API]
-    
-    QueryLRCLIB -->|Match Found| SavePositive[4. Save to SQLite Positive Cache]
-    QueryLRCLIB -->|Miss| QueryNetease[3. Query NetEase Fallback]
-    QueryNetease -->|Match Found| SavePositive
+    QueryLocal -->|Found, Word-Timed or Instrumental| ReturnLyrics[Return Parsed Lyric Lines]
+    QueryLocal -->|Found, No Word Timing| UpgradeDue{Upgrade Attempt Due?}
+    UpgradeDue -->|No| ReturnLyrics
+    UpgradeDue -->|Yes: Record Attempt| Upgrade[Query Provider Chain]
+    Upgrade -->|Word-Timed Result| SavePositive
+    Upgrade -->|Anything Else| ReturnLyrics
+
+    QueryLocal -->|Cache Miss| QueryLRCLIB[2. Query LRCLIB]
+    QueryLRCLIB -->|Word-Timed or Instrumental| SavePositive[4. Save to SQLite Positive Cache]
+    QueryLRCLIB -->|Line-Level, Plain or Miss| QueryNetease[3. Query NetEase Fallback]
+    QueryNetease -->|Word-Timed Result| SavePositive
+    QueryNetease -->|No Word Timing: Keep First Result Found| SavePositive
     QueryNetease -->|All Providers Answered: Not Found| SaveNegative[5. Save Negative Cache]
-    QueryNetease -->|Any Provider Unreachable| SkipCache[No Cache Entry: Retry Next Poll]
-    
+    QueryNetease -->|Nothing Found, Any Provider Unreachable| SkipCache[No Cache Entry: Retry Next Poll]
+
     SavePositive --> ReturnLyrics
     SaveNegative --> ReturnInstrumental
 ```
@@ -34,9 +39,31 @@ flowchart TD
 Lyric sources implement `ILyricsFetchProvider` and run in a configured order (`CachedLyricsService` walks the list):
 
 1. **LRCLIB** (always first): community-driven, key-free synced and plain lyrics.
-2. **NetEase Cloud Music** (optional fallback, `Netease:Enabled` in `appsettings.json`, on by default): unofficial web API with strong catalog coverage; synced lyrics only. CJK credit lines (lyricist/composer metadata) are stripped before parsing, and payload-level error codes (rate limits, anti-scraping challenges) are treated as transient failures.
+2. **NetEase Cloud Music** (optional fallback, `Netease:Enabled` in `appsettings.json`, on by default): unofficial web API with strong catalog coverage; synced lyrics only. It requests word-by-word lyrics in the same call (see [NetEase Word-by-Word Lyrics](#netease-word-by-word-lyrics-yrcparser)). CJK credit lines (lyricist/composer metadata) are stripped before use, and payload-level error codes (rate limits, anti-scraping challenges) are treated as transient failures.
 
-Every provider classifies its result as *found*, *authoritative miss*, or *transiently unavailable*. The negative cache is only written when **every** provider authoritatively missed — an unreachable provider (network error, 5xx, or NetEase payload error code) leaves the cache untouched so the next playback poll retries.
+Every provider classifies its result as *found*, *authoritative miss*, or *transiently unavailable*. The negative cache is only written when **every** provider authoritatively missed. An unreachable provider (network error, 5xx, or NetEase payload error code) leaves the cache untouched so the next playback poll retries.
+
+### Preference Order
+
+For one track, sources rank as follows:
+
+1. **Owner override** (see [Owner Overrides](#3-owner-overrides)). It always wins, whatever it holds: a chosen candidate is served as stored even when it is line-level and a provider has word timing, and a "no lyrics" override serves nothing. The caches and providers are not consulted while it is active.
+2. **Automatic matching**, used only when there is no override. Provider results rank as follows:
+   1. **Word-timed** (at least one line has syllables). The walk stops at the first one.
+   2. **Instrumental**. The walk stops here too, since no word timing can follow.
+   3. **Line-level synced or plain**: the first one found is kept, but the walk continues so a later provider can replace it with a word-timed result. If none does, the first result is saved, exactly as before word timing existed.
+
+The same ranking applies on a cache miss and on an owner `refetch`. A line-level result is still saved when a later provider is unreachable; the upgrade policy below gives it another chance.
+
+### Upgrading Line-Only Entries
+
+A cached entry without word timing (synced or plain, not instrumental) can be upgraded on a later play without clearing the cache:
+
+- An attempt is due when fewer than `LyricsCache:WordTimingUpgradeMaxAttempts` (default `3`) attempts were made and `LyricsCache:WordTimingUpgradeIntervalDays` (default `7`) have passed since the entry was saved or last checked.
+- The attempt is recorded (`WordTimingUpgradeAttempts`, `WordTimingCheckedAtUtc`) **before** the chain is queried, so a failing or slow provider never causes a refetch on every play.
+- Only a word-timed result replaces the entry. A line-level result, a miss or a provider failure keeps the cached entry and never writes a negative entry.
+- Saving fresh lyrics resets the budget. Entries cached before this feature start with no attempts, so their first attempt is due on the next play.
+- An attempt runs inline with the cache hit, so that play waits for the provider chain once. Set `WordTimingUpgradeMaxAttempts` to `0` to turn upgrades off.
 
 ---
 
@@ -44,12 +71,12 @@ Every provider classifies its result as *found*, *authoritative miss*, or *trans
 
 ### 1. SQLite Local Positive Cache
 - **Duration**: Persistent local storage (auto-renewing on access).
-- **Storage**: Raw LRC string and normalized JSON parsed line objects indexed by Spotify Track ID and Artist/Title hash.
+- **Storage**: Indexed by Spotify Track ID and Artist/Title. `RawSyncedLrc` holds the lines as LRC. Word-timed lyrics are also stored as JSON in `WordTimedLinesJson` (line and syllable start in milliseconds, syllable duration, and text exactly as sent, including a word's trailing space). LRC cannot hold syllable durations or millisecond times, so the JSON is read first and the LRC is only a fallback.
 - **Latency**: `< 1ms` retrieval from local disk.
 
 ### 2. Negative Caching for Instrumental Tracks
 - **Problem**: Many classical, jazz, EDM, and post-rock tracks have no lyrics. Without caching this absence, the server would query LRCLIB on every track transition.
-- **Solution**: Cantus records a **Negative Cache** entry with a configurable 30-day TTL (configured via `LyricsCache:NegativeCacheDays` in `appsettings.json`; the setting is provider-agnostic and applies to the whole fallback chain). When the track plays again, Cantus immediately recognizes it as instrumental without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found" — transient provider failures are never cached.
+- **Solution**: Cantus records a **Negative Cache** entry with a configurable 30-day TTL (configured via `LyricsCache:NegativeCacheDays` in `appsettings.json`; the setting is provider-agnostic and applies to the whole fallback chain). When the track plays again, Cantus immediately recognizes it as instrumental without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found". Transient provider failures are never cached.
 
 ### 3. Owner Overrides
 - **Problem**: An automatic match can be wrong, and a track cached as "not found" stays that way for the whole negative-cache TTL.
@@ -81,6 +108,8 @@ Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates sta
 - Computes start and end durations for each line to trigger smooth visual highlighting and transition states.
 
 ### NetEase Word-by-Word Lyrics (`YrcParser`)
+
+`NeteaseLyricsProvider` requests `/api/song/lyric?id={songId}&lv=1&yv=1&tv=-1`. `yv=1` adds the word-timed `yrc` block to the same response as the line-level `lrc` block, so there is no extra request. When `yrc` has word-timed lyric lines, it is the whole line source (its timeline differs from `lrc` by about 100 ms per line, so the two are never merged). Credit lines are stripped on the joined token text, which also catches credits timed one character at a time. Without usable `yrc` the provider parses `lrc` as before.
 
 `YrcParser` reads NetEase's word-timed `yrc` format. Each line has a `[startMs,durationMs]` header followed by `(startMs,durationMs,flag)text` tokens, all in absolute milliseconds:
 

@@ -104,13 +104,24 @@ Retrieves cached synchronized lyrics for a specific Spotify track ID.
   "isInstrumental": false,
   "lines": [
     {
-      "startTimeMs": 18450,
-      "endTimeMs": 22300,
-      "text": "We're no strangers to love"
+      "timestampMs": 18450,
+      "text": "We're no strangers",
+      "syllables": [
+        { "timestampMs": 18450, "durationMs": 420, "text": "We're " },
+        { "timestampMs": 18870, "durationMs": 310, "text": "no " },
+        { "timestampMs": 19180, "durationMs": 900, "text": "strangers" }
+      ]
+    },
+    {
+      "timestampMs": 22800,
+      "text": "You know the rules and so do I",
+      "syllables": null
     }
   ]
 }
 ```
+
+`syllables` carries real per-word timing (absolute milliseconds; a word's trailing space stays in its `text`) and is `null` for lines with line-level timing only.
 
 ---
 
