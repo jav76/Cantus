@@ -412,7 +412,29 @@ public sealed class PlaybackTransportTests
         });
         transport.ShuffleButtonForeground.Should().BeSameAs(theme.PrimaryAccentBrush);
         transport.RepeatButtonForeground.Should().BeSameAs(theme.PrimaryAccentBrush);
-        transport.RepeatGlyph.Should().Be("");
+        transport.RepeatGlyph.Should().Be("\uE8ED");
+    }
+
+    [Theory]
+    [InlineData(false, "off", "\u25B6", "\uE8EE")]
+    [InlineData(true, "context", "\u23F8", "\uE8EE")]
+    [InlineData(true, "track", "\u23F8", "\uE8ED")]
+    public void Glyphs_MapStateToTheirCodePoints(
+        bool isPlaying,
+        string repeatMode,
+        string expectedPlayPause,
+        string expectedRepeat)
+    {
+        // Arrange
+        (_, PlaybackTransport transport) = CreateTransport();
+
+        // Act
+        transport.IsPlaying = isPlaying;
+        transport.RepeatMode = repeatMode;
+
+        // Assert
+        transport.PlayPauseGlyph.Should().Be(expectedPlayPause);
+        transport.RepeatGlyph.Should().Be(expectedRepeat);
     }
 
     private static (Mock<ISignalRPlaybackClient> Client, PlaybackTransport Transport) CreateTransport()

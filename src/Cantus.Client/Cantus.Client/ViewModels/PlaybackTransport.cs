@@ -94,7 +94,7 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
         }
     }
 
-    public string PlayPauseGlyph => IsPlaying ? "⏸" : "▶";
+    public string PlayPauseGlyph => IsPlaying ? "\u23F8" : "\u25B6";
 
     public bool IsShuffled
     {
@@ -126,7 +126,7 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
         }
     }
 
-    public string RepeatGlyph => _repeatMode == REPEAT_TRACK ? "" : "";
+    public string RepeatGlyph => _repeatMode == REPEAT_TRACK ? "\uE8ED" : "\uE8EE";
 
     public Microsoft.UI.Xaml.Media.SolidColorBrush ShuffleButtonForeground =>
         _isShuffled ? _themeManager.PrimaryAccentBrush : _themeManager.TextMutedBrush;
