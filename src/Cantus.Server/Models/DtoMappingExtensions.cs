@@ -4,6 +4,17 @@ namespace Cantus.Server.Models;
 
 public static class DtoMappingExtensions
 {
+    public static DisplayDto ToDto(this DisplayInfo display)
+    {
+        return new DisplayDto
+        {
+            Id = display.Id,
+            Name = display.Name,
+            CreatedAtUtc = display.CreatedAtUtc,
+            LastSeenAtUtc = display.LastSeenAtUtc
+        };
+    }
+
     public static TrackInfoDto ToDto(this TrackInfo track)
     {
         return new TrackInfoDto

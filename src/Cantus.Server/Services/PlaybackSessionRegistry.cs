@@ -100,6 +100,8 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
         }
     }
 
+    public bool IsConnected(string connectionId) => _connectionSubscriptions.ContainsKey(connectionId);
+
     public void SetConnectionSubscription(string connectionId, string? targetUserId)
     {
         if (_connectionSubscriptions.ContainsKey(connectionId))

@@ -42,6 +42,8 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
     private readonly Mock<IPlaybackClient> _mockCaller = new();
     private readonly Mock<IGroupManager> _mockGroups = new();
     private readonly Mock<HubCallerContext> _mockContext = new();
+    private readonly Mock<IDisplayPairingService> _mockPairings = new();
+    private readonly Mock<IDisplayConnectionTracker> _mockDisplayConnections = new();
 
     public PlaybackHubDisplayCredentialTests()
     {
@@ -49,6 +51,9 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
         _mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(Mock.Of<IPlaybackClient>());
         _mockContext.Setup(c => c.ConnectionId).Returns(CONNECTION_ID);
         _mockContext.Setup(c => c.Items).Returns(new Dictionary<object, object?>());
+        _mockDisplayConnections
+            .Setup(t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>()))
+            .Returns(true);
 
         _mockPlayerClient.Setup(p => p.PausePlaybackAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(PlayerCommandResult.Success);
@@ -169,6 +174,67 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
 
         _registry.GetActiveUserIdsWithConnectedClients().Should().NotContain(owner.Id);
         _mockGroups.Verify(g => g.RemoveFromGroupAsync(CONNECTION_ID, $"display_{owner.Id}", default), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnConnectedAsync_WithDisplayToken_TracksConnectionUnderItsDisplay()
+    {
+        UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
+        CreatedDisplay display = await _store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+
+        await CreateHub(WithCookie(DISPLAY_COOKIE, display.Token)).OnConnectedAsync();
+
+        _mockDisplayConnections.Verify(t => t.Add(display.Display.Id, _mockContext.Object), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnConnectedAsync_ForJustRevokedDisplay_AbortsWithoutJoiningGroup()
+    {
+        UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
+        CreatedDisplay display = await _store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        _mockDisplayConnections.Setup(t => t.Add(display.Display.Id, It.IsAny<HubCallerContext>())).Returns(false);
+
+        await CreateHub(WithCookie(DISPLAY_COOKIE, display.Token)).OnConnectedAsync();
+
+        _mockContext.Verify(c => c.Abort(), Times.Once);
+        _mockGroups.Verify(
+            g => g.AddToGroupAsync(It.IsAny<string>(), It.IsAny<string>(), default),
+            Times.Never);
+        _mockCaller.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnConnectedAsync_WithSession_IsNotTrackedAsDisplay()
+    {
+        await ConnectAsync(CredentialKind.Session);
+
+        _mockDisplayConnections.Verify(
+            t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task OnDisconnectedAsync_ForDisplay_StopsTrackingConnection()
+    {
+        UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
+        CreatedDisplay display = await _store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        PlaybackHub hub = CreateHub(WithCookie(DISPLAY_COOKIE, display.Token));
+        await hub.OnConnectedAsync();
+
+        await hub.OnDisconnectedAsync(null);
+
+        _mockDisplayConnections.Verify(t => t.Remove(display.Display.Id, CONNECTION_ID), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnDisconnectedAsync_ForAnonymousConnection_CancelsItsPendingPairing()
+    {
+        PlaybackHub hub = CreateHub(new DefaultHttpContext());
+        await hub.OnConnectedAsync();
+
+        await hub.OnDisconnectedAsync(null);
+
+        _mockPairings.Verify(p => p.Cancel(CONNECTION_ID), Times.Once);
     }
 
     [Fact]
@@ -344,6 +410,8 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
             _store.CreateAuthService(),
             _mockPlayerClient.Object,
             _store.CreateCredentialResolver(),
+            _mockPairings.Object,
+            _mockDisplayConnections.Object,
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

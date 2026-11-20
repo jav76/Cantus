@@ -42,6 +42,17 @@ All settings can be configured via environment variables (using double-underscor
 | **`PlaybackPoller__BackgroundPollIntervalMs`** | `int` | `20000` | Polling cadence (ms) applied when all connected viewer tabs report hidden/minimized. | No |
 | **`PlaybackPoller__DiagnosticsBroadcastIntervalMs`** | `int` | `5000` | Interval (ms) for SignalR telemetry diagnostics broadcast. | No |
 
+### Display Pairing (`DisplayPairing`)
+Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside the allowed range stop the server at startup.
+
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`DisplayPairing__CodeLength`** | `int` | `8` | Characters in a pairing code (6 to 16). | No |
+| **`DisplayPairing__CodeLifetimeSeconds`** | `int` | `300` | Seconds a pairing code stays valid (30 to 3600). | No |
+| **`DisplayPairing__MaxPendingPairings`** | `int` | `1000` | Pairings that may wait for approval at once, across all clients. Further requests get `503`. | No |
+| **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window. IPv6 addresses in the same `/64` count as one client. | No |
+| **`DisplayPairing__RateLimitWindowSeconds`** | `int` | `60` | Length of the rate limit window in seconds (1 to 3600). | No |
+
 ### Lyrics Provider: LRCLIB (`Lrclib`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |

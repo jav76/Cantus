@@ -12,4 +12,10 @@ public interface IPlaybackClient
     Task ReceiveSessionRevoked(string userId);
     Task ReceiveDiagnostics(DiagnosticsDto diagnostics);
     Task ReceiveClockSync(ClockSyncResponse response);
+
+    /// <summary>Delivers a new Display token to the connection that requested the pairing.</summary>
+    Task ReceiveDisplayPaired(DisplayPairedDto pairing);
+
+    /// <summary>Tells a Display connection its token was revoked, just before it is closed.</summary>
+    Task ReceiveDisplayRevoked(string displayId);
 }
