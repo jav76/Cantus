@@ -170,6 +170,41 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
         _userSnapshots[userId] = snapshot;
     }
 
+    public void UpdateUserPlayback(string userId, string displayName, PlaybackState? playbackState)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        _userSnapshots.AddOrUpdate(
+            userId,
+            _ => new UserPlaybackSnapshot(userId, displayName, playbackState, null, 0, now),
+            (_, existing) => existing with
+            {
+                DisplayName = displayName,
+                PlaybackState = playbackState,
+                LastUpdatedUtc = now
+            });
+    }
+
+    public IReadOnlyList<string> ReplaceLyricsForTrack(string trackId, SyncedLyrics? lyrics)
+    {
+        List<string> updatedUserIds = new();
+        foreach (string userId in _userSnapshots.Keys)
+        {
+            // Compare-and-swap: when another write lands between the read and
+            // the swap, re-read so the track check runs on the newer snapshot.
+            while (_userSnapshots.TryGetValue(userId, out UserPlaybackSnapshot? existing)
+                && string.Equals(existing.PlaybackState?.CurrentTrack?.Id, trackId, StringComparison.Ordinal))
+            {
+                if (_userSnapshots.TryUpdate(userId, existing with { Lyrics = lyrics }, existing))
+                {
+                    updatedUserIds.Add(userId);
+                    break;
+                }
+            }
+        }
+
+        return updatedUserIds;
+    }
+
     public UserPlaybackSnapshot? GetUserState(string userId)
     {
         return _userSnapshots.TryGetValue(userId, out UserPlaybackSnapshot? snapshot) ? snapshot : null;

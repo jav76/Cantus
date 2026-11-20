@@ -161,9 +161,9 @@ public static class LyricsEndpoints
 
     /// <summary>
     /// Overrides are server-wide, so every Session currently on the track, and
-    /// its Displays, gets the new lyrics, not only the owner who changed them. The snapshot is
-    /// updated too, because the poller only re-resolves lyrics on a track
-    /// change and clients that connect later read the snapshot.
+    /// its Displays, gets the new lyrics, not only the owner who changed them.
+    /// The snapshot is updated too, because the poller only re-resolves lyrics
+    /// on a track change and clients that connect later read the snapshot.
     /// </summary>
     private static async Task BroadcastLyricsAsync(
         string trackId,
@@ -172,21 +172,10 @@ public static class LyricsEndpoints
         IPlaybackSessionRegistry registry,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext)
     {
-        foreach (UserPlaybackSnapshot snapshot in registry.GetAllSnapshots())
+        IReadOnlyList<string> userIds = registry.ReplaceLyricsForTrack(trackId, lyrics);
+        foreach (string userId in userIds)
         {
-            if (!string.Equals(snapshot.PlaybackState?.CurrentTrack?.Id, trackId, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            registry.UpdateUserState(
-                snapshot.UserId,
-                snapshot.DisplayName,
-                snapshot.PlaybackState,
-                lyrics,
-                snapshot.TrackOffsetMs);
-
-            await hubContext.Clients.Viewers(snapshot.UserId).ReceiveLyrics(lyricsDto);
+            await hubContext.Clients.Viewers(userId).ReceiveLyrics(lyricsDto);
         }
     }
 

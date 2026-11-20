@@ -696,4 +696,119 @@ public sealed class ActiveUsersPlaybackMonitorTests
             a => a.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WhenLyricsAreReplacedDuringASpotifyPoll_ThePollKeepsTheReplacedLyrics(bool isPlaying)
+    {
+        // A lyrics override lands while the poller is waiting on Spotify. The
+        // poll must not write back the lyrics it read before the call, or a
+        // client that reconnects gets the pre-override lyrics from the snapshot.
+        const int POLL_THAT_IS_HELD = 2;
+        PlaybackSessionRegistry registry = new();
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            registry,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions
+            {
+                ActivePollIntervalMs = 50,
+                ApproachingEndPollIntervalMs = 50,
+                ImminentEndPollIntervalMs = 50,
+                PausedPollIntervalMs = 50,
+                IdlePollIntervalMs = 50,
+                DiagnosticsBroadcastIntervalMs = 50
+            }),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+        TrackInfo track = new()
+        {
+            Id = "track-1",
+            Title = "Song 1",
+            Artist = "Artist 1",
+            Duration = TimeSpan.FromMinutes(4)
+        };
+        PlaybackState playback = new()
+        {
+            CurrentTrack = track,
+            IsPlaying = isPlaying,
+            Progress = TimeSpan.FromSeconds(10)
+        };
+        SyncedLyrics automatic = new()
+        {
+            TrackId = "track-1",
+            Title = "Song 1",
+            Artist = "Artist 1",
+            Lines = [new LyricLine(TimeSpan.Zero, "Automatic")]
+        };
+        SyncedLyrics overridden = new()
+        {
+            TrackId = "track-1",
+            Title = "Song 1",
+            Artist = "Artist 1",
+            Lines = [new LyricLine(TimeSpan.Zero, "Override")]
+        };
+
+        registry.UpdateUserState("user-1", "Alice", playback, automatic, 0);
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(automatic);
+
+        int spotifyCalls = 0;
+        TaskCompletionSource heldPollStarted = CreateSignal();
+        TaskCompletionSource releaseHeldPoll = CreateSignal();
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .Returns(async (string _, CancellationToken _) =>
+            {
+                if (Interlocked.Increment(ref spotifyCalls) == POLL_THAT_IS_HELD)
+                {
+                    heldPollStarted.TrySetResult();
+                    await releaseHeldPoll.Task;
+                }
+
+                return playback;
+            });
+
+        int stateBroadcasts = 0;
+        TaskCompletionSource heldPollFinished = CreateSignal();
+        _mockUser1Group
+            .Setup(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()))
+            .Callback(() =>
+            {
+                if (Interlocked.Increment(ref stateBroadcasts) >= POLL_THAT_IS_HELD)
+                {
+                    heldPollFinished.TrySetResult();
+                }
+            })
+            .Returns(Task.CompletedTask);
+
+        registry.RegisterConnection("conn-1", "user-1");
+
+        using CancellationTokenSource safety = new(SAFETY_STOP_TIMEOUT_MS);
+        await monitor.StartAsync(safety.Token);
+        try
+        {
+            await heldPollStarted.Task.WaitAsync(TimeSpan.FromMilliseconds(SIGNAL_TIMEOUT_MS));
+            registry.ReplaceLyricsForTrack("track-1", overridden);
+            releaseHeldPoll.TrySetResult();
+            await heldPollFinished.Task.WaitAsync(TimeSpan.FromMilliseconds(SIGNAL_TIMEOUT_MS));
+        }
+        finally
+        {
+            releaseHeldPoll.TrySetResult();
+            await monitor.StopAsync(CancellationToken.None);
+        }
+
+        registry.GetUserState("user-1")!.Lyrics.Should().BeSameAs(overridden);
+    }
 }
