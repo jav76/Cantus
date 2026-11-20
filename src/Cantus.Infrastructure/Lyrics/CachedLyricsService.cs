@@ -61,10 +61,10 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return cached;
+            return await TryUpgradeToWordTimingAsync(track, cached, cancellationToken) ?? cached;
         }
 
-        // 3. Query the provider chain in order until one finds lyrics
+        // 3. Query the provider chain in order, preferring a word-timed result
         _logger.LogInformation(
             "Cache miss for track {TrackId} ({Artist} - {Title}). Querying {ProviderCount} lyrics providers...",
             track.Id,
@@ -78,10 +78,11 @@ public sealed class CachedLyricsService : ILyricsProvider
 
     /// <summary>
     /// Queries the provider chain without consulting the override or the
-    /// caches, and stores a definitive answer in the cache: the lyrics, or a
-    /// "not found" mark when every provider answered without a match. When a
-    /// provider was unreachable and none found lyrics, the cache is left as it
-    /// was and the result is not definitive.
+    /// caches, preferring a word-timed result, and stores a definitive answer
+    /// in the cache: the lyrics, or a "not found" mark when every provider
+    /// answered without a match. When a provider was unreachable and none
+    /// found lyrics, the cache is left as it was and the result is not
+    /// definitive.
     /// </summary>
     public async Task<LyricsFetchResult> RefreshFromProvidersAsync(
         TrackInfo track,
@@ -89,48 +90,11 @@ public sealed class CachedLyricsService : ILyricsProvider
     {
         ArgumentNullException.ThrowIfNull(track);
 
-        bool allProvidersDefinitive = true;
-
-        foreach (ILyricsFetchProvider provider in _providers)
+        (SyncedLyrics? found, bool allProvidersDefinitive) = await QueryProvidersAsync(track, cancellationToken);
+        if (found is not null)
         {
-            LyricsFetchResult fetchResult;
-            try
-            {
-                fetchResult = await provider.FetchLyricsAsync(track, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                // A provider must never take down the chain: treat an
-                // unexpected throw as that provider being unavailable.
-                _logger.LogWarning(
-                    ex,
-                    "Lyrics provider {Provider} threw for track {TrackId}; treating as unavailable.",
-                    provider.ProviderName,
-                    track.Id);
-                allProvidersDefinitive = false;
-                continue;
-            }
-
-            if (fetchResult.Lyrics is not null)
-            {
-                _logger.LogInformation(
-                    "Lyrics for track {TrackId} ({Artist} - {Title}) found via {Provider}",
-                    track.Id,
-                    track.Artist,
-                    track.Title,
-                    provider.ProviderName);
-                await _cacheRepository.SaveLyricsAsync(fetchResult.Lyrics, cancellationToken: cancellationToken);
-                return LyricsFetchResult.Found(fetchResult.Lyrics);
-            }
-
-            if (!fetchResult.IsDefinitive)
-            {
-                allProvidersDefinitive = false;
-            }
+            await _cacheRepository.SaveLyricsAsync(found, cancellationToken: cancellationToken);
+            return LyricsFetchResult.Found(found);
         }
 
         // A transient failure anywhere in the chain must not be
@@ -159,5 +123,118 @@ public sealed class CachedLyricsService : ILyricsProvider
             cancellationToken);
 
         return LyricsFetchResult.NotFound();
+    }
+
+    /// <summary>
+    /// Re-queries the chain for a cached entry that has no word timing, at most
+    /// <see cref="LyricsCacheOptions.WordTimingUpgradeMaxAttempts"/> times and no more often than
+    /// <see cref="LyricsCacheOptions.WordTimingUpgradeIntervalDays"/>. The attempt is recorded before
+    /// the fetch, so a failing provider cannot cause a refetch on every play. Returns the word-timed
+    /// lyrics after saving them, or null to keep the cached entry as it is.
+    /// </summary>
+    private async Task<SyncedLyrics?> TryUpgradeToWordTimingAsync(
+        TrackInfo track,
+        SyncedLyrics cached,
+        CancellationToken cancellationToken)
+    {
+        if (cached.IsInstrumental || cached.HasWordTiming || _options.WordTimingUpgradeMaxAttempts <= 0)
+        {
+            return null;
+        }
+
+        bool started = await _cacheRepository.TryStartWordTimingUpgradeAsync(
+            track.Id,
+            _options.WordTimingUpgradeMaxAttempts,
+            TimeSpan.FromDays(_options.WordTimingUpgradeIntervalDays),
+            cancellationToken);
+        if (!started)
+        {
+            return null;
+        }
+
+        (SyncedLyrics? found, _) = await QueryProvidersAsync(track, cancellationToken);
+        if (found is null || !found.HasWordTiming)
+        {
+            _logger.LogDebug(
+                "No word-timed lyrics yet for cached track {TrackId} ({Artist} - {Title})",
+                track.Id,
+                track.Artist,
+                track.Title);
+            return null;
+        }
+
+        _logger.LogInformation(
+            "Upgraded cached lyrics for track {TrackId} ({Artist} - {Title}) to word timing",
+            track.Id,
+            track.Artist,
+            track.Title);
+        await _cacheRepository.SaveLyricsAsync(found, cancellationToken: cancellationToken);
+        return found;
+    }
+
+    /// <summary>
+    /// Walks the providers in order. The first result found is kept unless a later provider returns
+    /// word timing; the walk stops at the first word-timed or instrumental result.
+    /// </summary>
+    private async Task<(SyncedLyrics? Found, bool AllProvidersDefinitive)> QueryProvidersAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken)
+    {
+        SyncedLyrics? found = null;
+        bool allProvidersDefinitive = true;
+
+        foreach (ILyricsFetchProvider provider in _providers)
+        {
+            LyricsFetchResult fetchResult;
+            try
+            {
+                fetchResult = await provider.FetchLyricsAsync(track, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // A provider must never take down the chain: treat an
+                // unexpected throw as that provider being unavailable.
+                _logger.LogWarning(
+                    ex,
+                    "Lyrics provider {Provider} threw for track {TrackId}; treating as unavailable.",
+                    provider.ProviderName,
+                    track.Id);
+                allProvidersDefinitive = false;
+                continue;
+            }
+
+            if (fetchResult.Lyrics is null)
+            {
+                if (!fetchResult.IsDefinitive)
+                {
+                    allProvidersDefinitive = false;
+                }
+
+                continue;
+            }
+
+            if (found is null || fetchResult.Lyrics.HasWordTiming)
+            {
+                found = fetchResult.Lyrics;
+                _logger.LogInformation(
+                    "Lyrics for track {TrackId} ({Artist} - {Title}) found via {Provider} (word timing: {HasWordTiming})",
+                    track.Id,
+                    track.Artist,
+                    track.Title,
+                    provider.ProviderName,
+                    found.HasWordTiming);
+            }
+
+            if (found.HasWordTiming || found.IsInstrumental)
+            {
+                break;
+            }
+        }
+
+        return (found, allProvidersDefinitive);
     }
 }
