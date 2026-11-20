@@ -65,18 +65,16 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            SyncedLyrics? upgraded = await TryUpgradeToWordTimingAsync(track, cached, cancellationToken);
-            if (upgraded is null)
+            (bool queriedProviders, SyncedLyrics? upgraded) = await TryUpgradeToWordTimingAsync(
+                track,
+                cached,
+                cancellationToken);
+            if (!queriedProviders)
             {
                 return cached;
             }
 
-            // The upgrade waited on the providers, so an override the owner applied in the meantime
-            // still wins. The upgraded match stays cached for when the override is cleared.
-            LyricsOverride? appliedDuringUpgrade = await _cacheRepository.GetLyricsOverrideAsync(
-                track.Id,
-                cancellationToken);
-            return appliedDuringUpgrade is null ? upgraded : appliedDuringUpgrade.Lyrics;
+            return await PreferOverrideAppliedDuringFetchAsync(track, upgraded ?? cached, cancellationToken);
         }
 
         // 3. Query the provider chain in order, preferring a word-timed result
@@ -88,7 +86,21 @@ public sealed class CachedLyricsService : ILyricsProvider
             _providers.Count);
 
         LyricsFetchResult result = await RefreshFromProvidersAsync(track, cancellationToken);
-        return result.Lyrics;
+        return await PreferOverrideAppliedDuringFetchAsync(track, result.Lyrics, cancellationToken);
+    }
+
+    /// <summary>
+    /// Re-reads the override after a wait on the providers, so an override the owner applied in the
+    /// meantime wins whatever the providers returned. The fetched result stays cached for when the
+    /// override is cleared.
+    /// </summary>
+    private async Task<SyncedLyrics?> PreferOverrideAppliedDuringFetchAsync(
+        TrackInfo track,
+        SyncedLyrics? fetched,
+        CancellationToken cancellationToken)
+    {
+        LyricsOverride? applied = await _cacheRepository.GetLyricsOverrideAsync(track.Id, cancellationToken);
+        return applied is null ? fetched : applied.Lyrics;
     }
 
     /// <summary>
@@ -147,10 +159,11 @@ public sealed class CachedLyricsService : ILyricsProvider
     /// Re-queries the providers that can return word timing for a cached entry that has none, at most
     /// <see cref="LyricsCacheOptions.WordTimingUpgradeMaxAttempts"/> times and no more often than
     /// <see cref="LyricsCacheOptions.WordTimingUpgradeIntervalDays"/>. The attempt is recorded before
-    /// the fetch, so a failing provider cannot cause a refetch on every play. Returns the word-timed
-    /// lyrics after saving them, or null to keep the cached entry as it is.
+    /// the fetch, so a failing provider cannot cause a refetch on every play. Reports whether the
+    /// providers were queried, and returns the word-timed lyrics after saving them, or null to keep
+    /// the cached entry as it is.
     /// </summary>
-    private async Task<SyncedLyrics?> TryUpgradeToWordTimingAsync(
+    private async Task<(bool QueriedProviders, SyncedLyrics? Upgraded)> TryUpgradeToWordTimingAsync(
         TrackInfo track,
         SyncedLyrics cached,
         CancellationToken cancellationToken)
@@ -160,7 +173,7 @@ public sealed class CachedLyricsService : ILyricsProvider
             || _options.WordTimingUpgradeMaxAttempts <= 0
             || _wordTimingProviders.Count == 0)
         {
-            return null;
+            return (false, null);
         }
 
         bool started;
@@ -182,12 +195,12 @@ public sealed class CachedLyricsService : ILyricsProvider
                 ex,
                 "Could not record a word timing upgrade attempt for track {TrackId}; serving the cached lyrics.",
                 track.Id);
-            return null;
+            return (false, null);
         }
 
         if (!started)
         {
-            return null;
+            return (false, null);
         }
 
         (SyncedLyrics? found, _) = await QueryProvidersAsync(_wordTimingProviders, track, cancellationToken);
@@ -198,7 +211,7 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return null;
+            return (true, null);
         }
 
         _logger.LogInformation(
@@ -207,7 +220,7 @@ public sealed class CachedLyricsService : ILyricsProvider
             track.Artist,
             track.Title);
         await _cacheRepository.SaveLyricsAsync(found, cancellationToken: cancellationToken);
-        return found;
+        return (true, found);
     }
 
     /// <summary>
