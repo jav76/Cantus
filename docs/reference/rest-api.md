@@ -153,7 +153,7 @@ A Display is paired in three steps:
 2. The owner enters the code on a signed-in device, which calls `POST /api/displays/pairings/approve` with a name for the Display.
 3. The server sends the new Display token to the screen's connection as [`ReceiveDisplayPaired`](signalr-api.md#receivedisplaypaired). The screen stores the token and reconnects with it.
 
-The Cantus client's pairing screen shows the code and a QR of the approval link `<server base URL>/?pair=<CODE>`, the app's own address with the code in the `pair` query parameter. A signed-in client opened at that link approves the code from step 2.
+The Cantus client's pairing screen shows the code and a QR of the approval link `<server base URL>/?pair=<CODE>`, the app's own address with the code in the `pair` query parameter. The link shape is reserved for the client's approval prompt, which does not read it yet; until then, approve the code with `POST /api/displays/pairings/approve` as in step 2.
 
 Pending pairings live in server memory, so a restart drops them. Codes are 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no `0`, `O`, `1`, `I` or `L`), single-use, and expire after 5 minutes. A connection has at most one pending code: a new request replaces the old one, and disconnecting cancels it. Lengths, lifetimes and limits are set under [`DisplayPairing`](configuration.md#display-pairing-displaypairing).
 

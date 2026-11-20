@@ -80,14 +80,14 @@ A **Display** is a screen that shows your lyrics and playback without signing in
 
 1. On the screen, open Cantus and choose **Pair as display** in the Spotify account card (on mobile layouts it is under the **Sync & Info** tab).
 2. The screen shows a short code in large type and a QR code. The QR opens `http://<your-server>/?pair=<CODE>` on this Cantus server.
-3. On a phone or computer already signed in to Cantus, scan the QR (or open the server address and enter the code) and approve the screen with a name.
+3. The owner approves the code with a name for the screen. Approving from the Cantus app (scanning the QR or typing the code on a signed-in device) is not available yet. Until then, approve it with [`POST /api/displays/pairings/approve`](../reference/rest-api.md#post-apidisplayspairingsapprove) from a signed-in device.
 4. The screen switches to the lyrics view by itself. It stores its token on the device (browser storage on the web app, local settings on the desktop app), so it reconnects as the same Display after a restart.
 
 Codes expire after 5 minutes by default. The screen requests a new one when the code expires or its connection to the server drops, so a waiting screen always shows a code that works.
 
-A paired Display is view only. It hides the transport controls, seeking, sync offset steppers, device latency controls and account actions, and it shows which Display it is instead.
+A paired Display is view only. It hides the transport controls, seeking, sync offset steppers and account actions, and it shows which Display it is instead. Device latency is a setting of the screen itself, so a Display keeps the **Device Latency** controls and the <kbd>[</kbd> and <kbd>]</kbd> shortcuts to correct a TV's own lag.
 
-If the owner revokes the Display, or the server no longer accepts its token, the screen discards the token and returns to the pairing screen with a message saying why. Pair it again to keep showing lyrics.
+If the owner revokes the Display, the screen discards its token at once and returns to the pairing screen with a message saying why. If the server stops accepting the token, the screen keeps it through a few retries (a server restart can refuse it briefly) and then does the same. Pair it again to keep showing lyrics.
 
 !!! note "Desktop app as a Display"
     The QR and the address under the code use the server address the desktop app connects to. Start it with `--server-url http://<your-server-ip>:5000` (or `CANTUS_SERVER_URL`) so a phone can reach that address; the default `127.0.0.1` only works on the same machine.
@@ -106,8 +106,6 @@ When the Cantus display window is focused, you can use keyboard shortcuts for qu
 | <kbd>0</kbd> | **Reset Calibration** | Resets custom latency offset for the current track to `0ms`. |
 | <kbd>D</kbd> | **Toggle Diagnostics HUD** | Shows real-time NTP roundtrip, clock skew, and SignalR latency. |
 | <kbd>T</kbd> | **Toggle Theme Mode** | Cycles between Dynamic Cover Art, Dark Slate, and Light themes. |
-
-On a paired Display the <kbd>[</kbd> and <kbd>]</kbd> latency shortcuts are off, like the latency controls they mirror.
 
 ---
 
