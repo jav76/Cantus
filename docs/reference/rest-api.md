@@ -11,6 +11,13 @@ Endpoints that act on the caller's Session read its credential from, in order: t
 
 The credential is the Session id issued by the OAuth callback. The server matches it against that exact id only. A Spotify user id is not a credential: `/me` and `POST /api/lyrics/offset` return `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
 
+### Display token
+A Display (a paired screen) holds a view-only Display token instead of a Session. It presents the token in the `cantus_display_token` cookie, the `display_token` query parameter, or the shared `access_token` query parameter or `Authorization: Bearer` header. When a request carries both a valid Session and a Display token, the Session wins.
+
+The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
+
+A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout` and `POST /api/lyrics/offset`. Nothing is changed or revoked.
+
 ---
 
 ### `GET /api/auth/spotify/login` (or `GET /api/auth/login`)
@@ -120,6 +127,7 @@ Saves a manual timing offset adjustment for a track.
 - Requires the caller's [session credential](#session-credential).
 - **Response `200 OK`**
 - **Response `401 Unauthorized`**: no credential, or the credential does not match a Session id.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
 ---
 

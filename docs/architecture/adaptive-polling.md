@@ -127,6 +127,8 @@ When you close the browser tab or turn off your kiosk display:
 3. When viewer count reaches `0`, background polling for that Spotify account is suspended.
 4. When you open the display again, the poller wakes up instantly via `OnClientsConnected`.
 
+A connection holding a Display token counts as a viewer of its owner, the same as a signed-in tab. An unattended paired Display keeps polling alive on its own, so its lyrics keep moving with no owner device open.
+
 ---
 
 ## Token Renewal Coordination
