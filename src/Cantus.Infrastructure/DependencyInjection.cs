@@ -1,4 +1,5 @@
 using Cantus.Core.Interfaces;
+using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Security;
@@ -111,6 +112,13 @@ public static class DependencyInjection
             new TraceLoggingSpotifyPlayerClientDecorator(
                 sp.GetRequiredService<SpotifyPlayerClient>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyPlayerClientDecorator>>()));
+
+        // 7. Displays
+        services.AddScoped<DisplayService>();
+        services.AddScoped<IDisplayService>(sp =>
+            new TraceLoggingDisplayServiceDecorator(
+                sp.GetRequiredService<DisplayService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingDisplayServiceDecorator>>()));
 
         return services;
     }

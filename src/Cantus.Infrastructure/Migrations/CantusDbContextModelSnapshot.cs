@@ -72,6 +72,41 @@ namespace Cantus.Infrastructure.Migrations
                     b.ToTable("CachedLyrics");
                 });
 
+            modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.DisplayEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("LastSeenAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerSessionId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerSessionId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("Displays");
+                });
+
             modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.LogEntryEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -194,6 +229,15 @@ namespace Cantus.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("UserSessions");
+                });
+
+            modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.DisplayEntity", b =>
+                {
+                    b.HasOne("Cantus.Infrastructure.Persistence.Entities.UserSessionEntity", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
