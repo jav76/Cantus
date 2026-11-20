@@ -7,6 +7,7 @@ public sealed class SessionTokenResolver : ISessionTokenResolver
 {
     private const string COOKIE_NAME = "cantus_session_id";
     private const string ACCESS_TOKEN_QUERY_PARAM = "access_token";
+    private const string TOKEN_QUERY_PARAM = "token";
     private const string SESSION_ID_QUERY_PARAM = "session_id";
     private const string AUTHORIZATION_HEADER = "Authorization";
     private const string BEARER_PREFIX = "Bearer ";
@@ -20,57 +21,41 @@ public sealed class SessionTokenResolver : ISessionTokenResolver
 
     public string? ResolveSessionId(HttpContext? httpContext)
     {
+        IReadOnlyList<string> tokens = ResolveSharedTokens(httpContext);
+        return tokens.Count > 0 ? tokens[0] : null;
+    }
+
+    public IReadOnlyList<string> ResolveSharedTokens(HttpContext? httpContext)
+    {
+        List<string> tokens = new();
         if (httpContext is null)
         {
-            return null;
+            return tokens;
         }
 
         // 1. Check HTTP-only Session Cookie
-        if (httpContext.Request.Cookies.TryGetValue(COOKIE_NAME, out string? cookieSessionId) &&
-            !string.IsNullOrWhiteSpace(cookieSessionId))
+        if (httpContext.Request.Cookies.TryGetValue(COOKIE_NAME, out string? cookieSessionId))
         {
-            return cookieSessionId.Trim();
+            AddToken(tokens, cookieSessionId);
         }
 
         // 2. Check Query String (for WebSockets / SignalR negotiation / SSE)
-        if (httpContext.Request.Query.TryGetValue(ACCESS_TOKEN_QUERY_PARAM, out Microsoft.Extensions.Primitives.StringValues accessTokenQuery) &&
-            !string.IsNullOrWhiteSpace(accessTokenQuery))
-        {
-            return accessTokenQuery.ToString().Trim();
-        }
-
-        if (httpContext.Request.Query.TryGetValue("token", out Microsoft.Extensions.Primitives.StringValues tokenQuery) &&
-            !string.IsNullOrWhiteSpace(tokenQuery))
-        {
-            return tokenQuery.ToString().Trim();
-        }
-
-        if (httpContext.Request.Query.TryGetValue(SESSION_ID_QUERY_PARAM, out Microsoft.Extensions.Primitives.StringValues sessionIdQuery) &&
-            !string.IsNullOrWhiteSpace(sessionIdQuery))
-        {
-            return sessionIdQuery.ToString().Trim();
-        }
+        AddToken(tokens, httpContext.Request.Query[ACCESS_TOKEN_QUERY_PARAM].ToString());
+        AddToken(tokens, httpContext.Request.Query[TOKEN_QUERY_PARAM].ToString());
+        AddToken(tokens, httpContext.Request.Query[SESSION_ID_QUERY_PARAM].ToString());
 
         // 3. Check Authorization header (Bearer <token> or raw token)
-        if (httpContext.Request.Headers.TryGetValue(AUTHORIZATION_HEADER, out Microsoft.Extensions.Primitives.StringValues authHeader) &&
-            !string.IsNullOrWhiteSpace(authHeader))
+        string headerVal = httpContext.Request.Headers[AUTHORIZATION_HEADER].ToString().Trim();
+        if (headerVal.StartsWith(BEARER_PREFIX, StringComparison.OrdinalIgnoreCase))
         {
-            string headerVal = authHeader.ToString().Trim();
-            if (headerVal.StartsWith(BEARER_PREFIX, StringComparison.OrdinalIgnoreCase))
-            {
-                string token = headerVal.Substring(BEARER_PREFIX.Length).Trim();
-                if (!string.IsNullOrWhiteSpace(token))
-                {
-                    return token;
-                }
-            }
-            else
-            {
-                return headerVal;
-            }
+            AddToken(tokens, headerVal.Substring(BEARER_PREFIX.Length));
+        }
+        else
+        {
+            AddToken(tokens, headerVal);
         }
 
-        return null;
+        return tokens;
     }
 
     public string? ResolveDisplayToken(HttpContext? httpContext)
@@ -93,5 +78,19 @@ public sealed class SessionTokenResolver : ISessionTokenResolver
         }
 
         return null;
+    }
+
+    private static void AddToken(List<string> tokens, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        string token = value.Trim();
+        if (!tokens.Contains(token, StringComparer.Ordinal))
+        {
+            tokens.Add(token);
+        }
     }
 }

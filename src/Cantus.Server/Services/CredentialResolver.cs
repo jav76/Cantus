@@ -39,15 +39,35 @@ public sealed class CredentialResolver : ICredentialResolver
             }
         }
 
-        // The shared bearer slots (access_token, Authorization) may carry a Display token too,
-        // because the SignalR client sends whatever its access token factory returns there.
-        string? displayCandidate = _tokenResolver.ResolveDisplayToken(httpContext) ?? sessionCandidate;
-        if (string.IsNullOrWhiteSpace(displayCandidate))
+        // The shared slots (access_token, Authorization) may carry a Display token too, because
+        // the SignalR client sends whatever its access token factory returns there. Every slot is
+        // tried, so a stale session cookie cannot hide a Display token sent alongside it.
+        foreach (string candidate in GetDisplayCandidates(httpContext, sessionCandidate))
         {
-            return null;
+            CallerCredential? caller = await ResolveDisplayAsync(candidate, cancellationToken);
+            if (caller is not null)
+            {
+                return caller;
+            }
         }
 
-        DisplayInfo? display = await _displayService.ValidateAsync(displayCandidate, cancellationToken);
+        return null;
+    }
+
+    private IEnumerable<string> GetDisplayCandidates(HttpContext httpContext, string? sessionCandidate)
+    {
+        List<string?> candidates = new() { _tokenResolver.ResolveDisplayToken(httpContext), sessionCandidate };
+        candidates.AddRange(_tokenResolver.ResolveSharedTokens(httpContext) ?? Array.Empty<string>());
+
+        return candidates
+            .Where(candidate => !string.IsNullOrWhiteSpace(candidate))
+            .Select(candidate => candidate!)
+            .Distinct(StringComparer.Ordinal);
+    }
+
+    private async Task<CallerCredential?> ResolveDisplayAsync(string token, CancellationToken cancellationToken)
+    {
+        DisplayInfo? display = await _displayService.ValidateAsync(token, cancellationToken);
         if (display is null)
         {
             return null;

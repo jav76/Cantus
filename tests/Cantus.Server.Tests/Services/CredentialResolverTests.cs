@@ -94,6 +94,31 @@ public sealed class CredentialResolverTests : IDisposable
         caller!.Kind.Should().Be(CredentialKind.Session);
     }
 
+    [Theory]
+    [InlineData("access_token")]
+    [InlineData("token")]
+    [InlineData("Authorization")]
+    public async Task ResolveAsync_WithStaleSessionCookieAndDisplayTokenInSharedSlot_ReturnsDisplayCredential(
+        string slot)
+    {
+        UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
+        CreatedDisplay created = await _store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        DefaultHttpContext httpContext = new();
+        httpContext.Request.Headers.Cookie = $"{SESSION_COOKIE}=revoked-session-id";
+        if (slot == "Authorization")
+        {
+            httpContext.Request.Headers.Authorization = $"Bearer {created.Token}";
+        }
+        else
+        {
+            httpContext.Request.QueryString = QueryString.Create(slot, created.Token);
+        }
+
+        CallerCredential? caller = await Resolve(httpContext);
+
+        AssertDisplay(caller, owner, created);
+    }
+
     [Fact]
     public async Task ResolveAsync_WithRevokedDisplayToken_ReturnsNull()
     {
