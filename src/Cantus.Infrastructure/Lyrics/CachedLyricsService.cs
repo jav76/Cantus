@@ -28,6 +28,19 @@ public sealed class CachedLyricsService : ILyricsProvider
     {
         ArgumentNullException.ThrowIfNull(track);
 
+        // 0. The owner's override wins over every cache entry and provider
+        LyricsOverride? lyricsOverride = await _cacheRepository.GetLyricsOverrideAsync(track.Id, cancellationToken);
+        if (lyricsOverride is not null)
+        {
+            _logger.LogDebug(
+                "Lyrics override {Kind} applies to track {TrackId} ({Artist} - {Title})",
+                lyricsOverride.Kind,
+                track.Id,
+                track.Artist,
+                track.Title);
+            return lyricsOverride.Lyrics;
+        }
+
         // 1. Check negative cache
         if (await _cacheRepository.IsMarkedNotFoundAsync(track.Id, cancellationToken))
         {
