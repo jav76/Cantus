@@ -146,6 +146,56 @@ namespace Cantus.Infrastructure.Migrations
                     b.ToTable("LogEntries");
                 });
 
+            modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.LyricsOverrideEntity", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AlbumName")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArtistName")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsInstrumental")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSynced")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlainLyrics")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderCandidateId")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RawSyncedLrc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TrackName")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TrackId");
+
+                    b.ToTable("LyricsOverrides");
+                });
+
             modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.RoomEntity", b =>
                 {
                     b.Property<string>("RoomCode")
