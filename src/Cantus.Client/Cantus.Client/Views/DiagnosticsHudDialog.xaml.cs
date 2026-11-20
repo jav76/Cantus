@@ -6,9 +6,18 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
 {
     public LyricsViewModel ViewModel { get; }
 
+    public PlaybackTransport Transport { get; }
+
+    public PlaybackTiming Timing { get; }
+
+    public SessionViewModel Session { get; }
+
     public DiagnosticsHudDialog(LyricsViewModel viewModel)
     {
         ViewModel = viewModel;
+        Transport = viewModel.Transport;
+        Timing = viewModel.Timing;
+        Session = viewModel.Session;
         this.InitializeComponent();
     }
 

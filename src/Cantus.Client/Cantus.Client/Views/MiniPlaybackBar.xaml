@@ -80,7 +80,7 @@
                         Height="36"
                         Padding="0"
                         ToolTipService.ToolTip="Play / Pause">
-                    <FontIcon Glyph="{x:Bind ViewModel.PlayPauseGlyph, Mode=OneWay}" FontSize="13" />
+                    <FontIcon Glyph="{x:Bind Transport.PlayPauseGlyph, Mode=OneWay}" FontSize="13" />
                 </Button>
                 <Button Click="OnSkipNextClicked"
                         Background="#22FFFFFF"
@@ -110,8 +110,8 @@
             <!-- Transport Command Feedback -->
             <TextBlock Grid.Row="1"
                        Grid.ColumnSpan="5"
-                       Text="{x:Bind ViewModel.TransportStatusText, Mode=OneWay}"
-                       Visibility="{x:Bind ViewModel.TransportStatusVisibility, Mode=OneWay}"
+                       Text="{x:Bind Transport.TransportStatusText, Mode=OneWay}"
+                       Visibility="{x:Bind Transport.TransportStatusVisibility, Mode=OneWay}"
                        FontSize="12"
                        Foreground="{x:Bind ViewModel.TextSecondaryBrush, Mode=OneWay}"
                        TextWrapping="Wrap"

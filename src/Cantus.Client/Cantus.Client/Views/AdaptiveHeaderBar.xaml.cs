@@ -19,12 +19,33 @@ public sealed partial class AdaptiveHeaderBar : UserControl
             nameof(ViewModel),
             typeof(LyricsViewModel),
             typeof(AdaptiveHeaderBar),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnViewModelChanged));
 
     public LyricsViewModel? ViewModel
     {
         get => (LyricsViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty SessionProperty =
+        DependencyProperty.Register(
+            nameof(Session),
+            typeof(SessionViewModel),
+            typeof(AdaptiveHeaderBar),
+            new PropertyMetadata(null));
+
+    public SessionViewModel? Session
+    {
+        get => (SessionViewModel?)GetValue(SessionProperty);
+        private set => SetValue(SessionProperty, value);
+    }
+
+    // The extracted view models get their own properties so {x:Bind} paths stay one level deep.
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        AdaptiveHeaderBar header = (AdaptiveHeaderBar)d;
+        LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        header.Session = viewModel?.Session;
     }
 
     public AdaptiveHeaderBar()
@@ -84,9 +105,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null)
+        if (Session is not null)
         {
-            await ViewModel.LogoutAsync();
+            await Session.LogoutAsync();
         }
     }
 

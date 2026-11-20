@@ -115,12 +115,12 @@ public sealed partial class MainPage : Page
         }
         else if ((int)e.Key == 219) // [ (OEM4): reduce compensation, lyrics render earlier
         {
-            ViewModel.AdjustLatencyCompensation(-50);
+            ViewModel.Timing.AdjustLatencyCompensation(-50);
             e.Handled = true;
         }
         else if ((int)e.Key == 221) // ] (OEM6): increase compensation, lyrics render later
         {
-            ViewModel.AdjustLatencyCompensation(50);
+            ViewModel.Timing.AdjustLatencyCompensation(50);
             e.Handled = true;
         }
     }

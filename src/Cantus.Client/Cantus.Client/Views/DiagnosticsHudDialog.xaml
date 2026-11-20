@@ -25,7 +25,7 @@
                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetLatencySkewText(ViewModel.RttMs, ViewModel.ClockSkewMs), Mode=OneWay}" Foreground="#8B5CF6" FontWeight="SemiBold" FontSize="13" />
 
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Latency Compensation:" Foreground="#94A3B8" FontSize="13" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.CalibrationText, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind Timing.CalibrationText, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
                 </Grid>
             </StackPanel>
         </Border>
@@ -42,7 +42,7 @@
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.ConnectedClients, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Authorized Accounts:" Foreground="#94A3B8" FontSize="13" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.AuthorizedSessionsCount, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind Session.AuthorizedSessionsCount, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
                 </Grid>
             </StackPanel>
         </Border>
@@ -53,13 +53,13 @@
                 <TextBlock Text="SPOTIFY DEVICE &amp; STREAM" FontSize="11" FontWeight="Bold" Foreground="#94A3B8" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Active User:" Foreground="#94A3B8" FontSize="13" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.ActiveUserName, Mode=OneWay}" Foreground="#F8FAFC" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" Foreground="#F8FAFC" FontWeight="SemiBold" FontSize="13" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Device:" Foreground="#94A3B8" FontSize="13" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Volume:" Foreground="#94A3B8" FontSize="13" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetVolumeText(ViewModel.VolumePercent), Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetVolumeText(Transport.VolumePercent), Mode=OneWay}" Foreground="#F8FAFC" FontSize="13" />
                 </Grid>
             </StackPanel>
         </Border>

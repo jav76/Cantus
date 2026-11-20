@@ -99,8 +99,8 @@
                             Padding="14,8"
                             FontWeight="SemiBold">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="{x:Bind ViewModel.ConnectButtonGlyph, Mode=OneWay}" FontSize="16" />
-                            <TextBlock Text="{x:Bind ViewModel.ConnectButtonText, Mode=OneWay}" FontSize="13" />
+                            <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="16" />
+                            <TextBlock Text="{x:Bind Session.ConnectButtonText, Mode=OneWay}" FontSize="13" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -172,7 +172,7 @@
                             CornerRadius="8"
                             Padding="10,6"
                             FontWeight="SemiBold">
-                        <FontIcon Glyph="{x:Bind ViewModel.ConnectButtonGlyph, Mode=OneWay}" FontSize="14" />
+                        <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="14" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -198,7 +198,7 @@
                             Foreground="White"
                             CornerRadius="6"
                             Padding="8,5">
-                        <FontIcon Glyph="{x:Bind ViewModel.ConnectButtonGlyph, Mode=OneWay}" FontSize="13" />
+                        <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="13" />
                     </Button>
 
                     <!-- Mobile Overflow Menu Button -->

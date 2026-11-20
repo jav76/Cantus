@@ -16,12 +16,47 @@ public sealed partial class MobileSettingsView : UserControl
             nameof(ViewModel),
             typeof(LyricsViewModel),
             typeof(MobileSettingsView),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnViewModelChanged));
 
     public LyricsViewModel? ViewModel
     {
         get => (LyricsViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty TimingProperty =
+        DependencyProperty.Register(
+            nameof(Timing),
+            typeof(PlaybackTiming),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public PlaybackTiming? Timing
+    {
+        get => (PlaybackTiming?)GetValue(TimingProperty);
+        private set => SetValue(TimingProperty, value);
+    }
+
+    public static readonly DependencyProperty SessionProperty =
+        DependencyProperty.Register(
+            nameof(Session),
+            typeof(SessionViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public SessionViewModel? Session
+    {
+        get => (SessionViewModel?)GetValue(SessionProperty);
+        private set => SetValue(SessionProperty, value);
+    }
+
+    // The extracted view models get their own properties so {x:Bind} paths stay one level deep.
+    private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        MobileSettingsView settings = (MobileSettingsView)d;
+        LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        settings.Timing = viewModel?.Timing;
+        settings.Session = viewModel?.Session;
     }
 
     public MobileSettingsView()
@@ -36,37 +71,37 @@ public sealed partial class MobileSettingsView : UserControl
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-500);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(-500);
     }
 
     private async void OnNudgeMinus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(-100);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(-100);
     }
 
     private async void OnResetOffsetClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.ResetOffsetAsync();
+        if (Timing is not null) await Timing.ResetOffsetAsync();
     }
 
     private async void OnNudgePlus100Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(100);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(100);
     }
 
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null) await ViewModel.NudgeOffsetAsync(500);
+        if (Timing is not null) await Timing.NudgeOffsetAsync(500);
     }
 
     private void OnLatencyMinusClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.AdjustLatencyCompensation(-50);
+        Timing?.AdjustLatencyCompensation(-50);
     }
 
     private void OnLatencyPlusClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.AdjustLatencyCompensation(50);
+        Timing?.AdjustLatencyCompensation(50);
     }
 
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
@@ -95,9 +130,9 @@ public sealed partial class MobileSettingsView : UserControl
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
-        if (ViewModel is not null)
+        if (Session is not null)
         {
-            await ViewModel.LogoutAsync();
+            await Session.LogoutAsync();
         }
     }
 
