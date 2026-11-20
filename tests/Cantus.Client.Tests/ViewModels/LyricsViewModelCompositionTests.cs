@@ -24,13 +24,17 @@ public sealed class LyricsViewModelCompositionTests
         vm.Transport.Should().NotBeNull();
         vm.Timing.Should().NotBeNull();
         vm.Session.Should().NotBeNull();
+        vm.Theme.Should().NotBeNull();
+        vm.Layout.Should().NotBeNull();
     }
 
     [Theory]
     [InlineData(typeof(PlaybackTransport))]
     [InlineData(typeof(PlaybackTiming))]
     [InlineData(typeof(SessionViewModel))]
-    public void Root_DoesNotForwardMembersOfAnExtractedViewModel(Type extracted)
+    [InlineData(typeof(ThemeManager))]
+    [InlineData(typeof(ResponsiveLayoutManager))]
+    public void Root_DoesNotForwardMembersOfAComposedType(Type extracted)
     {
         // Arrange
         HashSet<string> rootMembers = VisibleMemberSignatures(typeof(LyricsViewModel));
@@ -43,6 +47,18 @@ public sealed class LyricsViewModelCompositionTests
 
         // Assert
         forwarded.Should().BeEmpty("views bind to {0} directly", extracted.Name);
+    }
+
+    [Theory]
+    [InlineData("ServerBaseUrl")]
+    [InlineData("ClientId")]
+    public void Root_DoesNotForwardClientConnectionDetails(string member)
+    {
+        // Act
+        MemberInfo[] members = typeof(LyricsViewModel).GetMember(member, INSTANCE_MEMBERS);
+
+        // Assert
+        members.Should().BeEmpty("the Spotify sign-in link comes from {0}", nameof(SessionViewModel));
     }
 
     private static HashSet<string> VisibleMemberSignatures(Type type)

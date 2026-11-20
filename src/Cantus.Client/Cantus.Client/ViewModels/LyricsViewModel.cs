@@ -50,7 +50,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isInstrumental;
     private bool _isInstrumentalBreak;
     private string _instrumentalBreakText = string.Empty;
-    private bool _isKioskMode;
     private bool _isStaticLyricsMode;
     private bool _isAutoScrollEnabled;
     private bool _isUserScrollingPaused;
@@ -68,43 +67,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public SessionViewModel Session => _session;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
-    public string ServerBaseUrl => _client.ServerBaseUrl;
 
-    // Flattened Theme Properties for 1-level safe XAML {x:Bind}
-    public Microsoft.UI.Xaml.Media.SolidColorBrush BackgroundBrush => _themeManager.BackgroundBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush SurfaceCardBrush => _themeManager.SurfaceCardBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush CardBorderBrush => _themeManager.CardBorderBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush PrimaryAccentBrush => _themeManager.PrimaryAccentBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush SecondaryAccentBrush => _themeManager.SecondaryAccentBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush TextPrimaryBrush => _themeManager.TextPrimaryBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush TextSecondaryBrush => _themeManager.TextSecondaryBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush TextMutedBrush => _themeManager.TextMutedBrush;
-    public Microsoft.UI.Xaml.Media.SolidColorBrush GlowBrush => _themeManager.GlowBrush;
-    public Windows.UI.Color ActivePrimaryAccentColor => _themeManager.ActivePalette.PrimaryAccent;
-    public Windows.UI.Color ActiveBackgroundColor => _themeManager.ActivePalette.Background;
     public Microsoft.UI.Xaml.Media.ImageSource? AmbientBackgroundSource => _ambientBackgroundSource;
     public Visibility AmbientBackgroundVisibility => _ambientBackgroundSource is null ? Visibility.Collapsed : Visibility.Visible;
-
-    // Flattened Layout Properties for 1-level safe XAML {x:Bind}
-    public LayoutBreakpoint CurrentBreakpoint => _layoutManager.CurrentBreakpoint;
-    public MobileViewMode MobileView => _layoutManager.MobileView;
-    public double SidePanelWidth => _layoutManager.SidePanelWidth;
-    public double AlbumArtSize => _layoutManager.AlbumArtSize;
-    public double LyricsMaxWidth => _layoutManager.LyricsMaxWidth;
-    public Thickness ContentPadding => _layoutManager.ContentPadding;
-
-    public ThemeMode SelectedThemeMode
-    {
-        get => _themeManager.CurrentMode;
-        set
-        {
-            if (_themeManager.CurrentMode != value)
-            {
-                _themeManager.SetThemeMode(value);
-                OnPropertyChanged();
-            }
-        }
-    }
 
     public string AppVersion => BuildInfo.Version;
 
@@ -339,20 +304,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public Visibility InstrumentalBreakVisibility =>
         IsInstrumentalBreak && HasSyncedLyrics && !IsStaticLyricsMode ? Visibility.Visible : Visibility.Collapsed;
 
-    public bool IsKioskMode
-    {
-        get => _isKioskMode;
-        set
-        {
-            if (_isKioskMode != value)
-            {
-                _isKioskMode = value;
-                _layoutManager.IsKioskMode = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
     public bool IsStaticLyricsMode
     {
         get => _isStaticLyricsMode;
@@ -571,8 +522,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _themeToastTimer.Tick += (s, e) => HideThemeToast();
     }
 
-    public string ClientId => _client.ClientId;
-
     private void RunOnUIThread(Action action)
     {
         if (_dispatcherQueue is not null)
@@ -621,37 +570,21 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         await _client.RefreshPlaybackAsync();
     }
 
-    public void ToggleKioskMode()
-    {
-        IsKioskMode = !IsKioskMode;
-    }
-
-    public void SetMobileView(MobileViewMode mode)
-    {
-        _layoutManager.MobileView = mode;
-    }
-
-    public void CycleMobileView()
-    {
-        _layoutManager.CycleMobileView();
-    }
-
     private void OnLayoutManagerChanged()
     {
         RefreshLyricLineSizes();
-        NotifyLayoutProperties();
+        NotifyThemeToastVisibilities();
     }
 
     private void OnLayoutBreakpointChanged(LayoutBreakpoint breakpoint)
     {
         RefreshLyricLineSizes();
-        NotifyLayoutProperties();
+        NotifyThemeToastVisibilities();
     }
 
     private void OnPaletteChanged(ColorPalette palette)
     {
         UpdateAmbientBackground();
-        NotifyThemeProperties();
     }
 
     private void UpdateAmbientBackground()
@@ -718,33 +651,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(ThemeToastPageVisibility));
         OnPropertyChanged(nameof(ThemeToastStageVisibility));
-    }
-
-    private void NotifyLayoutProperties()
-    {
-        NotifyThemeToastVisibilities();
-        OnPropertyChanged(nameof(CurrentBreakpoint));
-        OnPropertyChanged(nameof(MobileView));
-        OnPropertyChanged(nameof(SidePanelWidth));
-        OnPropertyChanged(nameof(AlbumArtSize));
-        OnPropertyChanged(nameof(ContentPadding));
-        OnPropertyChanged(nameof(Layout));
-    }
-
-    private void NotifyThemeProperties()
-    {
-        OnPropertyChanged(nameof(BackgroundBrush));
-        OnPropertyChanged(nameof(SurfaceCardBrush));
-        OnPropertyChanged(nameof(CardBorderBrush));
-        OnPropertyChanged(nameof(PrimaryAccentBrush));
-        OnPropertyChanged(nameof(SecondaryAccentBrush));
-        OnPropertyChanged(nameof(TextPrimaryBrush));
-        OnPropertyChanged(nameof(TextSecondaryBrush));
-        OnPropertyChanged(nameof(TextMutedBrush));
-        OnPropertyChanged(nameof(GlowBrush));
-        OnPropertyChanged(nameof(ActivePrimaryAccentColor));
-        OnPropertyChanged(nameof(ActiveBackgroundColor));
-        OnPropertyChanged(nameof(Theme));
     }
 
     public void RefreshLyricLineSizes()

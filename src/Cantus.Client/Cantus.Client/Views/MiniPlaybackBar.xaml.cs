@@ -1,4 +1,5 @@
 using System;
+using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -33,12 +34,26 @@ public sealed partial class MiniPlaybackBar : UserControl
         private set => SetValue(TransportProperty, value);
     }
 
-    // The extracted view models get their own properties so {x:Bind} paths stay one level deep.
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(MiniPlaybackBar),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         MiniPlaybackBar bar = (MiniPlaybackBar)d;
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         bar.Transport = viewModel?.Transport;
+        bar.Theme = viewModel?.Theme;
     }
 
     public MiniPlaybackBar()
@@ -110,6 +125,6 @@ public sealed partial class MiniPlaybackBar : UserControl
 
     private void OnToggleKioskClicked(object sender, RoutedEventArgs e)
     {
-        ViewModel?.ToggleKioskMode();
+        ViewModel?.Layout.ToggleKioskMode();
     }
 }

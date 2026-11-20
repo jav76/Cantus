@@ -50,13 +50,27 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(SessionProperty, value);
     }
 
-    // The extracted view models get their own properties so {x:Bind} paths stay one level deep.
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         MobileSettingsView settings = (MobileSettingsView)d;
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         settings.Timing = viewModel?.Timing;
         settings.Session = viewModel?.Session;
+        settings.Theme = viewModel?.Theme;
     }
 
     public MobileSettingsView()
@@ -108,17 +122,16 @@ public sealed partial class MobileSettingsView : UserControl
     {
         try
         {
-            string clientId = ViewModel?.ClientId ?? string.Empty;
-            string clientQuery = !string.IsNullOrWhiteSpace(clientId) ? $"?client_id={clientId}" : string.Empty;
+            string loginPath = Session?.SpotifyLoginPath ?? SessionViewModel.SPOTIFY_LOGIN_PATH;
 #if __WASM__
             string origin = WasmInterop.GetCurrentOrigin();
             string loginUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin}/api/auth/spotify/login{clientQuery}"
-                : $"/api/auth/spotify/login{clientQuery}";
+                ? $"{origin}{loginPath}"
+                : loginPath;
             WasmInterop.NavigateTo(loginUrl);
 #else
-            string baseUrl = ViewModel?.ServerBaseUrl ?? "http://127.0.0.1:5000";
-            Uri uri = new($"{baseUrl}/api/auth/spotify/login{clientQuery}");
+            string baseUrl = Session?.ServerBaseUrl ?? "http://127.0.0.1:5000";
+            Uri uri = new($"{baseUrl}{loginPath}");
             await Windows.System.Launcher.LaunchUriAsync(uri);
 #endif
         }

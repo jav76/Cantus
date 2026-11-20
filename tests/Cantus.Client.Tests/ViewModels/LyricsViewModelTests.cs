@@ -80,32 +80,6 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void ToggleKioskMode_TogglesState_AndSynchronizesWithLayoutManager()
-    {
-        // Arrange
-        SignalRPlaybackClient client = new();
-        ResponsiveLayoutManager layout = new();
-        LyricsViewModel vm = new(client, ThemeManager.Instance, layout);
-        vm.IsKioskMode.Should().BeFalse();
-        layout.IsKioskMode.Should().BeFalse();
-
-        // Act
-        vm.ToggleKioskMode();
-
-        // Assert
-        vm.IsKioskMode.Should().BeTrue();
-        layout.IsKioskMode.Should().BeTrue();
-        layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.FullscreenTv);
-
-        // Act
-        vm.ToggleKioskMode();
-
-        // Assert
-        vm.IsKioskMode.Should().BeFalse();
-        layout.IsKioskMode.Should().BeFalse();
-    }
-
-    [Fact]
     public void LayoutManagerBreakpointChange_UpdatesLyricLineFontSizes()
     {
         // Arrange
@@ -131,27 +105,6 @@ public sealed class LyricsViewModelTests
 
         // Assert
         line.FontSize.Should().Be(50.0); // TV active font size
-    }
-
-    [Fact]
-    public void MobileView_Switching_UpdatesViewModelAndLayout()
-    {
-        // Arrange
-        SignalRPlaybackClient client = new();
-        ResponsiveLayoutManager layout = new();
-        LyricsViewModel vm = new(client, ThemeManager.Instance, layout);
-
-        // Act
-        vm.SetMobileView(MobileViewMode.NowPlaying);
-
-        // Assert
-        layout.MobileView.Should().Be(MobileViewMode.NowPlaying);
-
-        // Act
-        vm.CycleMobileView();
-
-        // Assert
-        layout.MobileView.Should().Be(MobileViewMode.SyncAndSettings);
     }
 
     [Fact]
@@ -463,20 +416,20 @@ public sealed class LyricsViewModelTests
 
         // Off: repeat-all glyph, muted brushes
         vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
-        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
-        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
+        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.Theme.TextMutedBrush);
+        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.Theme.TextMutedBrush);
 
         // Context: still the repeat-all glyph, accent brush
         vm.Transport.RepeatMode = "context";
         vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
-        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
+        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.Theme.PrimaryAccentBrush);
 
         // Track: repeat-one glyph
         vm.Transport.RepeatMode = "track";
         vm.Transport.RepeatGlyph.Should().Be("\uE8ED");
 
         vm.Transport.IsShuffled = true;
-        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
+        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.Theme.PrimaryAccentBrush);
     }
 
     [Fact]
@@ -516,17 +469,6 @@ public sealed class LyricsViewModelTests
 
         // The debounce entry point clamps and never throws headless.
         vm.Transport.RequestVolumeChange(150);
-    }
-
-    [Fact]
-    public void ServerBaseUrl_DerivesBaseUrlFromClient()
-    {
-        // Arrange
-        SignalRPlaybackClient client = new("http://192.168.1.50:5000/hubs/playback");
-        LyricsViewModel vm = new(client);
-
-        // Assert
-        vm.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
     }
 
     [Fact]
@@ -1025,7 +967,7 @@ public sealed class LyricsViewModelTests
         vm.ThemeToastPageVisibility.Should().Be(Visibility.Collapsed);
 
         // Act
-        vm.SelectedThemeMode = ThemeMode.EmeraldSynth;
+        vm.Theme.SetThemeMode(ThemeMode.EmeraldSynth);
 
         // Assert
         vm.ThemeToastStageVisibility.Should().Be(Visibility.Visible);
@@ -1043,7 +985,7 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client, new ThemeManager(), layout);
 
         // Act
-        vm.SelectedThemeMode = ThemeMode.SolarizedDark;
+        vm.Theme.SetThemeMode(ThemeMode.SolarizedDark);
 
         // Assert - page overlay on mobile (the lyrics stage may be behind another tab)
         vm.ThemeToastPageVisibility.Should().Be(Visibility.Visible);
@@ -1075,7 +1017,7 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
-        vm.SelectedThemeMode = ThemeMode.NordicSlate;
+        vm.Theme.SetThemeMode(ThemeMode.NordicSlate);
         vm.ThemeToastStageVisibility.Should().Be(Visibility.Visible);
 
         // Act - the auto-hide timer invokes this on expiry
@@ -1094,7 +1036,7 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
 
         // Act
-        vm.SelectedThemeMode = ThemeMode.MidnightViolet;
+        vm.Theme.SetThemeMode(ThemeMode.MidnightViolet);
 
         // Assert
         vm.ThemeToastStageVisibility.Should().Be(Visibility.Collapsed);

@@ -14,6 +14,10 @@ public sealed partial class MainPage : Page
 {
     public LyricsViewModel ViewModel { get; }
 
+    public ThemeManager Theme => ViewModel.Theme;
+
+    public ResponsiveLayoutManager Layout => ViewModel.Layout;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
@@ -95,7 +99,7 @@ public sealed partial class MainPage : Page
     {
         if (e.Key == VirtualKey.F11 || e.Key == VirtualKey.K)
         {
-            ViewModel.ToggleKioskMode();
+            ViewModel.Layout.ToggleKioskMode();
             e.Handled = true;
         }
         else if (e.Key == VirtualKey.T)
@@ -105,12 +109,12 @@ public sealed partial class MainPage : Page
         }
         else if (e.Key == VirtualKey.M && ViewModel.Layout.IsSmall)
         {
-            ViewModel.CycleMobileView();
+            ViewModel.Layout.CycleMobileView();
             e.Handled = true;
         }
-        else if (e.Key == VirtualKey.Escape && ViewModel.IsKioskMode)
+        else if (e.Key == VirtualKey.Escape && ViewModel.Layout.IsKioskMode)
         {
-            ViewModel.IsKioskMode = false;
+            ViewModel.Layout.IsKioskMode = false;
             e.Handled = true;
         }
         else if ((int)e.Key == 219) // [ (OEM4): reduce compensation, lyrics render earlier

@@ -48,6 +48,32 @@ public sealed partial class LyricsStageView : UserControl
         set => SetValue(ViewModelProperty, value);
     }
 
+    public static readonly DependencyProperty ThemeProperty =
+        DependencyProperty.Register(
+            nameof(Theme),
+            typeof(ThemeManager),
+            typeof(LyricsStageView),
+            new PropertyMetadata(null));
+
+    public ThemeManager? Theme
+    {
+        get => (ThemeManager?)GetValue(ThemeProperty);
+        private set => SetValue(ThemeProperty, value);
+    }
+
+    public static readonly DependencyProperty LayoutProperty =
+        DependencyProperty.Register(
+            nameof(Layout),
+            typeof(ResponsiveLayoutManager),
+            typeof(LyricsStageView),
+            new PropertyMetadata(null));
+
+    public ResponsiveLayoutManager? Layout
+    {
+        get => (ResponsiveLayoutManager?)GetValue(LayoutProperty);
+        private set => SetValue(LayoutProperty, value);
+    }
+
     public LyricsStageView()
     {
         InitializeComponent();
@@ -78,6 +104,10 @@ public sealed partial class LyricsStageView : UserControl
     {
         if (d is LyricsStageView view)
         {
+            LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+            view.Theme = viewModel?.Theme;
+            view.Layout = viewModel?.Layout;
+
             if (e.OldValue is LyricsViewModel oldVm)
             {
                 // Animations and the guard index belong to the outgoing view
