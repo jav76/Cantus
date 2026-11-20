@@ -23,11 +23,13 @@ flowchart TD
         Layout[ResponsiveLayoutManager]
         Prefs[LyricsPreferences]
         Transport[PlaybackTransport]
+        Anchor[OptimisticSeekAnchor]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
         LVM --> Prefs
         LVM --> Transport
+        Transport --> Anchor
     end
 
     subgraph XAML Views
@@ -96,6 +98,7 @@ flowchart TD
 - Debounces volume changes: slider ticks only record the value, and the one the slider rests on for `300ms` is sent.
 - Owns the effective playback state. `ApplyServerState` takes each poll, reconciles it with any unconfirmed seek, and returns the state the display clock follows.
 - Line seeks (`SeekToLineAsync`) target the line timestamp minus the per-track offset, without latency compensation (a seek flushes in-flight audio, so adding it would clip the line). The jump is optimistic and raises `SeekApplied` before Spotify answers. `HoldAtSeekFloor` keeps the tapped line active until the latency-compensated estimate catches up. Polls still reporting the pre-seek position are ignored until one confirms the seek (or 4 seconds pass). A rejected seek restores the last poll, raises `SeekReverted`, and reports through the transport status line.
+- The seek anchor itself (pending seek, display floor, seek generation, poll reconciliation) lives in an internal `OptimisticSeekAnchor` owned by the transport. Callers go through `PlaybackTransport` members; `LyricsViewModel` only shares its static `ProjectProgressMs` position estimate.
 
 ---
 
