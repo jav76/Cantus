@@ -437,6 +437,80 @@ public sealed class LyricLineViewModelTests
     }
 
     [Fact]
+    public void OnLyricsReceived_FinalLineLastUntimedWord_GetsAnEstimatedDuration()
+    {
+        // Arrange - [03:10.00]<03:10.00>the <03:10.40>end: the final line has no fill end
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 190000,
+                    Text = "the end",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 190000, DurationMs = 0, Text = "the" },
+                        new() { TimestampMs = 190400, DurationMs = 0, Text = "end" },
+                    },
+                },
+            },
+        });
+        LyricLineViewModel line = vm.LyricLines[0];
+        line.IsActive = true;
+
+        // Assert - "end" fills over a short estimate instead of snapping full at its start
+        line.Syllables![1].DurationMs.Should().BePositive();
+        line.UpdateLineProgress(190400);
+        line.LineProgressFraction.Should().BeApproximately(4.0 / 7, 0.001);
+        line.UpdateLineProgress(190400 + (line.Syllables[1].DurationMs / 2));
+        line.LineProgressFraction.Should().BeApproximately(5.5 / 7, 0.001);
+    }
+
+    [Fact]
+    public void OnLyricsReceived_LastUntimedWordAfterACappedFillEnd_GetsAnEstimatedDuration()
+    {
+        // Arrange - a 20s gap caps the fill at 1.5s, but the last word only starts 2s in
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 1000,
+                    Text = "slow down",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 1000, DurationMs = 0, Text = "slow" },
+                        new() { TimestampMs = 3000, DurationMs = 0, Text = "down" },
+                    },
+                },
+                new() { TimestampMs = 21000, Text = "next" },
+            },
+        });
+
+        // Assert
+        vm.LyricLines[0].Syllables![0].DurationMs.Should().Be(2000);
+        vm.LyricLines[0].Syllables![1].DurationMs.Should().BePositive();
+    }
+
+    [Fact]
     public void AdvancePlayback_SyllableLineUsesRealTiming_PlainLineUsesElapsedTime()
     {
         // Arrange - paused with no latency, so the render position is the poll position

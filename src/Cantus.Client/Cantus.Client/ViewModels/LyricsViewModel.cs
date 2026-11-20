@@ -764,6 +764,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private const long SUNG_MS_PER_CHAR = 90;
     private const long SUNG_BASE_MS = 600;
     private const long MIN_ESTIMATED_SUNG_MS = 1500;
+    private const long MIN_ESTIMATED_WORD_MS = 400;
 
     /// <summary>
     /// How long the active line's underline takes to fill. For continuous
@@ -791,7 +792,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// Copies a line's syllables off the wire. Enhanced LRC word tags carry
     /// only start times, so a syllable without a duration is sung until the
     /// next syllable starts, and the last one until the line's fill end (the
-    /// same capped estimate a line without syllables fills over).
+    /// same capped estimate a line without syllables fills over). When that
+    /// end is missing (the final line) or not after the last syllable's start,
+    /// the last syllable gets a text-length estimate instead of snapping full.
     /// </summary>
     private static IReadOnlyList<SyllableTiming>? MapSyllables(
         List<LyricSyllablePayload>? syllables,
@@ -812,14 +815,25 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             long durationMs = syllable.DurationMs;
             if (durationMs <= 0)
             {
-                long? untilMs = i + 1 < present.Count ? present[i + 1].TimestampMs : lineFillEndMs;
+                bool isLast = i + 1 == present.Count;
+                long? untilMs = isLast ? lineFillEndMs : present[i + 1].TimestampMs;
                 durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
+                if (isLast && durationMs == 0)
+                {
+                    durationMs = EstimateWordSungMs(syllable.Text);
+                }
             }
 
             result.Add(new SyllableTiming(syllable.TimestampMs, durationMs, syllable.Text ?? string.Empty));
         }
 
         return result.Count > 0 ? result : null;
+    }
+
+    private static long EstimateWordSungMs(string? text)
+    {
+        int visibleChars = (text ?? string.Empty).Trim().Length;
+        return Math.Max(visibleChars * SUNG_MS_PER_CHAR, MIN_ESTIMATED_WORD_MS);
     }
 
     private void OnLyricsReceived(LyricsPayload? lyrics)
