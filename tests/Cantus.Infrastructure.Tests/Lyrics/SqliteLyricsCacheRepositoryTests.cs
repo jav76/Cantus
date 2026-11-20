@@ -1,9 +1,11 @@
+using System.Data.Common;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
@@ -283,6 +285,87 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
         bool started = await _repository.TryStartWordTimingUpgradeAsync("track_refetched", 1, TimeSpan.FromDays(7));
 
         started.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task TryStartWordTimingUpgradeAsync_WhenAnotherScopeRecordsTheAttemptFirst_ReturnsFalse()
+    {
+        await _repository.SaveLyricsAsync(LineOnlyLyrics("track_raced"));
+        _timeProvider.Advance(TimeSpan.FromDays(7));
+
+        RecordCompetingAttemptInterceptor interceptor = new("track_raced");
+        DbContextOptions<CantusDbContext> racingOptions = new DbContextOptionsBuilder<CantusDbContext>()
+            .UseSqlite(_connection)
+            .AddInterceptors(interceptor)
+            .Options;
+        await using CantusDbContext racingContext = new(racingOptions);
+        SqliteLyricsCacheRepository racingRepository = new(racingContext, _timeProvider);
+
+        bool started = await racingRepository.TryStartWordTimingUpgradeAsync("track_raced", 3, TimeSpan.FromDays(7));
+
+        interceptor.Raced.Should().BeTrue();
+        started.Should().BeFalse();
+        int attempts = await _dbContext.CachedLyrics
+            .AsNoTracking()
+            .Where(c => c.TrackId == "track_raced")
+            .Select(c => c.WordTimingUpgradeAttempts)
+            .SingleAsync();
+        attempts.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Simulates a second scope winning the race: just before this context writes its attempt, another
+    /// writer records one for the same track.
+    /// </summary>
+    private sealed class RecordCompetingAttemptInterceptor : DbCommandInterceptor
+    {
+        private readonly string _trackId;
+
+        public RecordCompetingAttemptInterceptor(string trackId)
+        {
+            _trackId = trackId;
+        }
+
+        public bool Raced { get; private set; }
+
+        public override async ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            await RaceAsync(command, cancellationToken);
+            return result;
+        }
+
+        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            await RaceAsync(command, cancellationToken);
+            return result;
+        }
+
+        private async Task RaceAsync(DbCommand command, CancellationToken cancellationToken)
+        {
+            if (Raced || !command.CommandText.TrimStart().StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            Raced = true;
+            await using DbCommand competing = command.Connection!.CreateCommand();
+            competing.Transaction = command.Transaction;
+            competing.CommandText =
+                "UPDATE CachedLyrics SET WordTimingUpgradeAttempts = WordTimingUpgradeAttempts + 1 WHERE TrackId = $id";
+            DbParameter id = competing.CreateParameter();
+            id.ParameterName = "$id";
+            id.Value = _trackId;
+            competing.Parameters.Add(id);
+            await competing.ExecuteNonQueryAsync(cancellationToken);
+        }
     }
 
     private static SyncedLyrics LineOnlyLyrics(string trackId) => new()

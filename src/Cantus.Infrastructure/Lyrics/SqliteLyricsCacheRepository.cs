@@ -32,6 +32,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         CancellationToken cancellationToken = default)
     {
         CachedLyricsEntity? entity = await _dbContext.CachedLyrics
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
 
         if (entity is null || entity.IsNotFound || entity.WordTimingUpgradeAttempts >= maxAttempts)
@@ -46,10 +47,34 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             return false;
         }
 
-        entity.WordTimingUpgradeAttempts++;
-        entity.WordTimingCheckedAtUtc = now;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        // Compare-and-swap on the attempt count, so when two scopes pass the checks above for the same
+        // track only the first UPDATE matches and only one of them queries the providers.
+        int observedAttempts = entity.WordTimingUpgradeAttempts;
+        int rowsAffected = await _dbContext.CachedLyrics
+            .Where(c => c.TrackId == trackId
+                && !c.IsNotFound
+                && c.WordTimingUpgradeAttempts == observedAttempts)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(c => c.WordTimingUpgradeAttempts, c => c.WordTimingUpgradeAttempts + 1)
+                    .SetProperty(c => c.WordTimingCheckedAtUtc, now),
+                cancellationToken);
+
+        await RefreshTrackedEntryAsync(trackId, cancellationToken);
+        return rowsAffected == 1;
+    }
+
+    /// <summary>
+    /// ExecuteUpdate bypasses the change tracker, so a row this context already tracks would keep stale
+    /// upgrade counters and a later save could skip resetting them.
+    /// </summary>
+    private async Task RefreshTrackedEntryAsync(string trackId, CancellationToken cancellationToken)
+    {
+        CachedLyricsEntity? tracked = _dbContext.CachedLyrics.Local.FirstOrDefault(c => c.TrackId == trackId);
+        if (tracked is not null)
+        {
+            await _dbContext.Entry(tracked).ReloadAsync(cancellationToken);
+        }
     }
 
     public async Task<SyncedLyrics?> GetCachedLyricsAsync(
