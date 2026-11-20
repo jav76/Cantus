@@ -886,6 +886,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ConnectedClients = diag.ConnectedClients;
         ActivePollIntervalMs = diag.ActivePollIntervalMs;
         _session.ApplyDiagnostics(diag);
+        _pairing.ApplyDiagnostics(diag);
     }
 
     private void OnTick(object? sender, object e)

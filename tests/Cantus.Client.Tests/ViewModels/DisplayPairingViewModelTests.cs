@@ -213,7 +213,7 @@ public sealed class DisplayPairingViewModelTests
     }
 
     [Fact]
-    public async Task CancelPairing_ClosesTheScreenAndStopsRenewing()
+    public async Task CancelPairing_ClosesTheScreenStopsRenewingAndDropsTheConnectionsCode()
     {
         // Arrange
         PairingFixture fixture = new();
@@ -231,6 +231,7 @@ public sealed class DisplayPairingViewModelTests
         fixture.Api.Verify(
             a => a.RequestPairingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Once);
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(null), Times.Once);
     }
 
     [Fact]
@@ -257,20 +258,74 @@ public sealed class DisplayPairingViewModelTests
     }
 
     [Fact]
-    public async Task DisplayPaired_ForAnotherPairingIsIgnored()
+    public async Task DisplayPaired_ForAnEarlierCodeOfThisConnection_IsKept()
     {
-        // Arrange
+        // Arrange: the owner approved the previous code just as it was renewed.
         PairingFixture fixture = new();
         fixture.EnqueueCode("pairing-2", "AAAABBBB");
         await fixture.Pairing.StartPairingAsync();
 
         // Act
-        fixture.Pairing.ApplyDisplayPaired(Paired("pairing-stale"));
+        fixture.Pairing.ApplyDisplayPaired(Paired("pairing-1"));
 
         // Assert
-        fixture.Pairing.State.Should().Be(DisplayPairingState.ShowingCode);
-        fixture.Store.Values.Should().NotContainKey(DisplayCredentialStore.TOKEN_KEY);
+        fixture.Pairing.State.Should().Be(DisplayPairingState.Paired);
+        fixture.Store.Values[DisplayCredentialStore.TOKEN_KEY].Should().Be(TOKEN);
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(TOKEN), Times.Once);
+    }
+
+    [Fact]
+    public async Task DisplayPaired_JustAfterCancel_IsKeptSoTheNewDisplayIsNotOrphaned()
+    {
+        // Arrange
+        PairingFixture fixture = new();
+        fixture.EnqueueCode("pairing-1", "AAAABBBB");
+        await fixture.Pairing.StartPairingAsync();
+        fixture.Pairing.CancelPairing();
+
+        // Act
+        fixture.Pairing.ApplyDisplayPaired(Paired("pairing-1"));
+
+        // Assert
+        fixture.Pairing.State.Should().Be(DisplayPairingState.Paired);
+        new DisplayCredentialStore(fixture.Store).Load()!.Token.Should().Be(TOKEN);
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(TOKEN), Times.Once);
+        AssertDisplayVisibilities(fixture.Pairing);
+    }
+
+    [Fact]
+    public void DisplayPaired_WhenAlreadyADisplay_IsIgnored()
+    {
+        // Arrange
+        PairingFixture fixture = PairedFixture();
+
+        // Act
+        fixture.Pairing.ApplyDisplayPaired(new DisplayPairedPayload
+        {
+            PairingId = "pairing-2",
+            DisplayId = "display-2",
+            Name = "Other",
+            Token = "other-token",
+        });
+
+        // Assert
+        fixture.Pairing.DisplayId.Should().Be("display-1");
+        new DisplayCredentialStore(fixture.Store).Load()!.Token.Should().Be(TOKEN);
         fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public void DisplayPaired_WithoutAToken_IsIgnored()
+    {
+        // Arrange
+        PairingFixture fixture = new();
+
+        // Act
+        fixture.Pairing.ApplyDisplayPaired(new DisplayPairedPayload { PairingId = "pairing-1", Token = " " });
+
+        // Assert
+        fixture.Pairing.IsDisplay.Should().BeFalse();
+        fixture.Store.Values.Should().NotContainKey(DisplayCredentialStore.TOKEN_KEY);
     }
 
     [Fact]
@@ -337,7 +392,7 @@ public sealed class DisplayPairingViewModelTests
     }
 
     [Fact]
-    public void EmptySessionList_WhileADisplay_MeansTheTokenWasRejected()
+    public void EmptySessionList_WhileADisplay_KeepsTheTokenAndRetriesWithIt()
     {
         // Arrange
         PairingFixture fixture = PairedFixture();
@@ -346,11 +401,90 @@ public sealed class DisplayPairingViewModelTests
         fixture.Pairing.ApplySessions(new List<AuthorizedSessionPayload>());
 
         // Assert
+        fixture.Pairing.IsDisplay.Should().BeTrue();
+        fixture.Pairing.IsPairingScreenOpen.Should().BeFalse();
+        new DisplayCredentialStore(fixture.Store).Load()!.Token.Should().Be(TOKEN);
+        fixture.Client.Object.DisplayToken.Should().Be(TOKEN);
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(It.IsAny<string?>()), Times.Never);
+
+        // Act
+        fixture.Time.Advance(TimeSpan.FromSeconds(15));
+
+        // Assert
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(TOKEN), Times.Once);
+    }
+
+    [Fact]
+    public void EmptySessionList_RepeatedWhileADisplay_MeansTheTokenWasRejected()
+    {
+        // Arrange
+        PairingFixture fixture = PairedFixture();
+        int endedCount = 0;
+        fixture.Pairing.DisplayEnded += () => endedCount++;
+
+        // Act
+        RejectToken(fixture.Pairing, DisplayPairingViewModel.MAX_TOKEN_REJECTIONS);
+
+        // Assert
         fixture.Pairing.IsDisplay.Should().BeFalse();
         fixture.Pairing.IsPairingScreenOpen.Should().BeTrue();
         fixture.Pairing.StatusMessage.Should().Be(DisplayPairingViewModel.REJECTED_MESSAGE);
         new DisplayCredentialStore(fixture.Store).Load().Should().BeNull();
         fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(null), Times.Once);
+        endedCount.Should().Be(1);
+
+        // Act: no pending retry reconnects with the discarded token.
+        fixture.Time.Advance(TimeSpan.FromMinutes(5));
+
+        // Assert
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(TOKEN), Times.Never);
+    }
+
+    [Fact]
+    public void AcceptedConnection_BetweenEmptySessionLists_StartsTheCountAgain()
+    {
+        // Arrange
+        PairingFixture fixture = PairedFixture();
+        RejectToken(fixture.Pairing, DisplayPairingViewModel.MAX_TOKEN_REJECTIONS - 1);
+
+        // Act
+        fixture.Pairing.ApplyDiagnostics(new DiagnosticsPayload { AuthorizedSessions = 1 });
+        RejectToken(fixture.Pairing, 1);
+
+        // Assert
+        fixture.Pairing.IsDisplay.Should().BeTrue();
+        new DisplayCredentialStore(fixture.Store).Load()!.Token.Should().Be(TOKEN);
+    }
+
+    [Fact]
+    public void UnauthorizedDiagnostics_DoNotCountAsAnAcceptedConnection()
+    {
+        // Arrange
+        PairingFixture fixture = PairedFixture();
+        RejectToken(fixture.Pairing, DisplayPairingViewModel.MAX_TOKEN_REJECTIONS - 1);
+
+        // Act
+        fixture.Pairing.ApplyDiagnostics(new DiagnosticsPayload { AuthorizedSessions = 0 });
+        RejectToken(fixture.Pairing, 1);
+
+        // Assert
+        fixture.Pairing.IsDisplay.Should().BeFalse();
+        fixture.Pairing.StatusMessage.Should().Be(DisplayPairingViewModel.REJECTED_MESSAGE);
+    }
+
+    [Fact]
+    public void AcceptedConnection_CancelsAPendingRetry()
+    {
+        // Arrange
+        PairingFixture fixture = PairedFixture();
+        RejectToken(fixture.Pairing, 1);
+
+        // Act: an automatic reconnect got through before the retry was due.
+        fixture.Pairing.ApplyDiagnostics(new DiagnosticsPayload { AuthorizedSessions = 1 });
+        fixture.Time.Advance(TimeSpan.FromMinutes(1));
+
+        // Assert
+        fixture.Client.Verify(c => c.ReconnectWithDisplayTokenAsync(It.IsAny<string?>()), Times.Never);
     }
 
     [Fact]
@@ -429,6 +563,14 @@ public sealed class DisplayPairingViewModelTests
         pairing.DisplayInfoVisibility.Should().Be(Visibility.Visible);
         pairing.PairingScreenVisibility.Should().Be(Visibility.Collapsed);
         pairing.MainContentVisibility.Should().Be(Visibility.Visible);
+    }
+
+    private static void RejectToken(DisplayPairingViewModel pairing, int times)
+    {
+        for (int i = 0; i < times; i++)
+        {
+            pairing.ApplySessions(new List<AuthorizedSessionPayload>());
+        }
     }
 
     private static PairingFixture PairedFixture()

@@ -30,6 +30,9 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
     public const string WAITING_FOR_SERVER_TEXT = "Connecting to the Cantus server...";
     public const string REQUESTING_CODE_TEXT = "Getting a pairing code...";
 
+    /// <summary>Empty Session lists in a row before a stored Display token is discarded.</summary>
+    public const int MAX_TOKEN_REJECTIONS = 3;
+
     private const string CONNECTED_STATE = "Connected";
     private const int CODE_GROUP_MIN_LENGTH = 6;
     private const char CODE_GROUP_SEPARATOR = '-';
@@ -39,6 +42,7 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
     private static readonly TimeSpan RATE_LIMITED_RETRY_DELAY = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan MIN_CODE_LIFETIME = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan MAX_CODE_LIFETIME = TimeSpan.FromHours(1);
+    private static readonly TimeSpan TOKEN_REJECTED_RETRY_DELAY = TimeSpan.FromSeconds(15);
 
     private readonly ISignalRPlaybackClient _client;
     private readonly IDisplayPairingApi _api;
@@ -58,6 +62,7 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
     private long _codeDeadlineTimestamp;
     private ITimer? _timer;
     private int _requestGeneration;
+    private int _tokenRejections;
 
     public DisplayPairingViewModel(
         ISignalRPlaybackClient client,
@@ -113,7 +118,10 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
     /// <summary>Whether this client is a paired Display, showing its owner's playback view-only.</summary>
     public bool IsDisplay => State == DisplayPairingState.Paired;
 
-    /// <summary>Whether owner-only commands (transport, seeking, offsets, latency, account) are offered.</summary>
+    /// <summary>
+    /// Whether owner-only commands (transport, seeking, track offsets, account) are offered.
+    /// Device latency is a local preference, so a Display keeps it.
+    /// </summary>
     public bool CanControlPlayback => !IsDisplay;
 
     public bool IsPairingScreenOpen => State is DisplayPairingState.RequestingCode
@@ -179,7 +187,10 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
         await RequestCodeAsync();
     }
 
-    /// <summary>Closes the pairing screen. The pending code is abandoned and expires on the server.</summary>
+    /// <summary>
+    /// Closes the pairing screen. The hub connection is renewed, because the server drops a
+    /// connection's pending code only when that connection closes.
+    /// </summary>
     public void CancelPairing()
     {
         if (!IsPairingScreenOpen)
@@ -193,6 +204,7 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
         SetNotice(null);
         SetError(null);
         State = DisplayPairingState.Unpaired;
+        _ = _client.ReconnectWithDisplayTokenAsync(null);
     }
 
     /// <summary>
@@ -221,15 +233,13 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
 
     /// <summary>
     /// Takes the token an owner's approval sent to this connection: stores it on the
-    /// device and reconnects as the Display.
+    /// device and reconnects as the Display. The server sends it only to the connection
+    /// that requested the code, so it is kept even when a newer code is on screen or the
+    /// screen was just closed: by then the server has created the Display.
     /// </summary>
     public void ApplyDisplayPaired(DisplayPairedPayload? pairing)
     {
-        if (!IsPairingScreenOpen
-            || pairing is null
-            || string.IsNullOrWhiteSpace(pairing.Token)
-            || _pairing is null
-            || pairing.PairingId != _pairing.PairingId)
+        if (IsDisplay || pairing is null || string.IsNullOrWhiteSpace(pairing.Token))
         {
             return;
         }
@@ -239,6 +249,7 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
         _credentials.Save(new DisplayCredential(pairing.DisplayId, pairing.Name, pairing.Token));
         _displayId = pairing.DisplayId;
         _displayName = pairing.Name;
+        _tokenRejections = 0;
         ClearCode();
         SetNotice(null);
         SetError(null);
@@ -267,9 +278,15 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
     /// <summary>
     /// Takes the server's Session list. A Display connection never receives one, so a
     /// list arriving while this client holds a Display token means the token was not
-    /// accepted. An empty list means it was rejected; a non-empty one means an owner
-    /// Session on this device took precedence, so the Display token is dropped quietly.
+    /// accepted. A non-empty list means an owner Session on this device took precedence,
+    /// so the Display token is dropped quietly.
     /// </summary>
+    /// <remarks>
+    /// An empty list is also what the server sends when it fails to check a credential
+    /// (a database error during a restart, say). The token does not expire, so it is kept
+    /// and retried, and discarded only after <see cref="MAX_TOKEN_REJECTIONS"/> empty lists
+    /// with no accepted connection between them.
+    /// </remarks>
     public void ApplySessions(IReadOnlyList<AuthorizedSessionPayload>? sessions)
     {
         if (!IsDisplay)
@@ -279,14 +296,30 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
 
         if (sessions is null || sessions.Count == 0)
         {
-            EndDisplay(REJECTED_MESSAGE);
+            ApplyTokenRejection();
             return;
         }
 
+        StopTimer();
         ForgetCredential();
         State = DisplayPairingState.Unpaired;
         DisplayEnded?.Invoke();
         _ = _client.ReconnectWithDisplayTokenAsync(null);
+    }
+
+    /// <summary>
+    /// Takes the server's diagnostics. A Display connection the server accepted gets them
+    /// with an authorized count, which ends a run of rejections.
+    /// </summary>
+    public void ApplyDiagnostics(DiagnosticsPayload? diagnostics)
+    {
+        if (!IsDisplay || diagnostics is null || diagnostics.AuthorizedSessions <= 0)
+        {
+            return;
+        }
+
+        _tokenRejections = 0;
+        StopTimer();
     }
 
     public static string FormatCode(string? code)
@@ -313,8 +346,28 @@ public sealed class DisplayPairingViewModel : INotifyPropertyChanged
         return $"{baseUrl}/?{PAIR_QUERY_PARAMETER}={Uri.EscapeDataString(code)}";
     }
 
+    private void ApplyTokenRejection()
+    {
+        _tokenRejections++;
+        if (_tokenRejections >= MAX_TOKEN_REJECTIONS)
+        {
+            EndDisplay(REJECTED_MESSAGE);
+            return;
+        }
+
+        StartTimer(TOKEN_REJECTED_RETRY_DELAY * _tokenRejections, Timeout.InfiniteTimeSpan, () =>
+        {
+            if (IsDisplay)
+            {
+                _ = _client.ReconnectWithDisplayTokenAsync(_client.DisplayToken);
+            }
+        });
+    }
+
     private void EndDisplay(string message)
     {
+        StopTimer();
+        _tokenRejections = 0;
         ForgetCredential();
         SetNotice(message);
         SetError(null);

@@ -67,19 +67,33 @@ public sealed class LyricsViewModelDisplayTests
     }
 
     [Fact]
-    public void SessionListEvent_WhileADisplay_IsTreatedAsARejectedToken()
+    public void EmptySessionListEvents_WhileADisplay_AreTreatedAsARejectedToken()
     {
         // Arrange
         (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: true);
 
         // Act
-        IReadOnlyList<AuthorizedSessionPayload> noSessions = new List<AuthorizedSessionPayload>();
-        client.Raise(c => c.SessionsReceived += null, noSessions);
+        RaiseEmptySessions(client, DisplayPairingViewModel.MAX_TOKEN_REJECTIONS);
 
         // Assert
         vm.Pairing.IsDisplay.Should().BeFalse();
         vm.Pairing.StatusMessage.Should().Be(DisplayPairingViewModel.REJECTED_MESSAGE);
         vm.Session.IsAuthorized.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DiagnosticsEvent_ForAnAcceptedDisplay_ResetsTheRejectionCount()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: true);
+        RaiseEmptySessions(client, DisplayPairingViewModel.MAX_TOKEN_REJECTIONS - 1);
+
+        // Act
+        client.Raise(c => c.DiagnosticsReceived += null, new DiagnosticsPayload { AuthorizedSessions = 1 });
+        RaiseEmptySessions(client, 1);
+
+        // Assert
+        vm.Pairing.IsDisplay.Should().BeTrue();
     }
 
     [Fact]
@@ -145,6 +159,15 @@ public sealed class LyricsViewModelDisplayTests
             api.Object,
             new DisplayCredentialStore(store));
         return (client, vm, store);
+    }
+
+    private static void RaiseEmptySessions(Mock<ISignalRPlaybackClient> client, int times)
+    {
+        IReadOnlyList<AuthorizedSessionPayload> noSessions = new List<AuthorizedSessionPayload>();
+        for (int i = 0; i < times; i++)
+        {
+            client.Raise(c => c.SessionsReceived += null, noSessions);
+        }
     }
 
     private static void LoadLyricsAndPlayback(Mock<ISignalRPlaybackClient> client)
