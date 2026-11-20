@@ -12,7 +12,7 @@ namespace Cantus.Client.Views;
 
 /// <summary>
 /// The pairing screen an unpaired client shows while it waits for an owner to
-/// approve its code: the code itself, read across a room, and a QR of the approval link.
+/// approve its code: the code itself, large enough to read from a distance, and a QR of the approval link.
 /// </summary>
 public sealed partial class DisplayPairingView : UserControl
 {

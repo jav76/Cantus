@@ -61,7 +61,7 @@ When manual scrolling pauses the display:
 To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi display:
 
 1. Open your browser on the smart TV (or launch a Chromium kiosk on Raspberry Pi) to your Cantus URL: `http://<your-server-ip>:5000`.
-2. Select your user room from the room selector.
+2. Sign in with Spotify, or pair the screen as a Display (see below) so it never holds your account.
 3. Enter fullscreen mode (press <kbd>F11</kbd> or use the TV browser's fullscreen button).
 4. Press <kbd>K</kbd> (or <kbd>F11</kbd> in the app) to switch into the 10-foot kiosk lyrics stage. Kiosk mode is an explicit toggle, so large monitors keep the full desktop controls unless you opt in; press <kbd>Esc</kbd> to exit.
 5. The cursor will auto-hide after 3 seconds of inactivity to keep the display clean.
@@ -74,12 +74,23 @@ To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi d
 
 ---
 
-### 2. Multi-Room & Shared Displays
+### 2. Pairing a Screen as a Display
 
-Cantus supports multi-room subscriptions:
-- Each authenticated Spotify account generates a dedicated **Room ID**.
-- Any device on your local network (or the internet if reverse-proxied) can navigate to that Room URL.
-- When you change tracks on your phone or Spotify desktop app, all connected room displays update simultaneously in real-time.
+A **Display** is a screen that shows your lyrics and playback without signing in to Spotify on it. It holds its own view-only Display token, so a shared TV never gets your account's full rights.
+
+1. On the screen, open Cantus and choose **Pair as display** in the Spotify account card (on mobile layouts it is under the **Sync & Info** tab).
+2. The screen shows a short code in large type and a QR code. The QR opens `http://<your-server>/?pair=<CODE>` on this Cantus server.
+3. On a phone or computer already signed in to Cantus, scan the QR (or open the server address and enter the code) and approve the screen with a name.
+4. The screen switches to the lyrics view by itself. It stores its token on the device (browser storage on the web app, local settings on the desktop app), so it reconnects as the same Display after a restart.
+
+Codes expire after 5 minutes by default. The screen requests a new one when the code expires or its connection to the server drops, so a waiting screen always shows a code that works.
+
+A paired Display is view only. It hides the transport controls, seeking, sync offset steppers, device latency controls and account actions, and it shows which Display it is instead.
+
+If the owner revokes the Display, or the server no longer accepts its token, the screen discards the token and returns to the pairing screen with a message saying why. Pair it again to keep showing lyrics.
+
+!!! note "Desktop app as a Display"
+    The QR and the address under the code use the server address the desktop app connects to. Start it with `--server-url http://<your-server-ip>:5000` (or `CANTUS_SERVER_URL`) so a phone can reach that address; the default `127.0.0.1` only works on the same machine.
 
 ---
 
@@ -95,6 +106,8 @@ When the Cantus display window is focused, you can use keyboard shortcuts for qu
 | <kbd>0</kbd> | **Reset Calibration** | Resets custom latency offset for the current track to `0ms`. |
 | <kbd>D</kbd> | **Toggle Diagnostics HUD** | Shows real-time NTP roundtrip, clock skew, and SignalR latency. |
 | <kbd>T</kbd> | **Toggle Theme Mode** | Cycles between Dynamic Cover Art, Dark Slate, and Light themes. |
+
+On a paired Display the <kbd>[</kbd> and <kbd>]</kbd> latency shortcuts are off, like the latency controls they mirror.
 
 ---
 
