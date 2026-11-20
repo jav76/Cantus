@@ -43,14 +43,25 @@ flowchart TD
         TrackCard[AdaptiveTrackCard.xaml]
         LyricsStage[LyricsStageView.xaml]
         MobileSettings[MobileSettingsView.xaml]
+        MiniBar[MiniPlaybackBar.xaml]
+        Hud[DiagnosticsHudDialog.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
         MainView --> MobileSettings
+        MainView --> MiniBar
+        Header --> Hud
     end
 
     SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
-    LVM -->|Direct 1-Level Data Binding| MainView
+    LVM -->|lyrics, track, theme, layout| MainView
+    Transport -->|controls and status| TrackCard
+    Transport --> MiniBar
+    Timing -->|offset and latency| TrackCard
+    Timing --> MobileSettings
+    Session -->|sign-in state| Header
+    Session --> TrackCard
+    Session --> MobileSettings
 ```
 
 ---
@@ -64,14 +75,28 @@ flowchart TD
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`
-- Coordinates overall state: active playback progress, song metadata, lyrics line collection, and instrumental breaks.
-- Provides flattened 1-level direct visual properties (`BackgroundBrush`, `SurfaceCardBrush`, `NoSessionsVisibility`, `HasSessionsVisibility`, `CurrentBreakpoint`) ensuring thread-safe, compile-time verified XAML `{x:Bind}` execution across all platforms.
+- The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
+- Composes the extracted view models and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), and `Session` (`SessionViewModel`). It does not forward their members; views bind to them directly.
+- Provides flattened 1-level direct visual properties for the theme and layout managers (`BackgroundBrush`, `SurfaceCardBrush`, `CurrentBreakpoint`) ensuring thread-safe, compile-time verified XAML `{x:Bind}` execution across all platforms.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
-- Transport controls (play/pause, skip, shuffle, repeat, volume, seek) are thin pass-throughs to `PlaybackTransport`, kept so existing `{x:Bind}` paths stay one level deep. The transport's property notifications are re-raised under the same names.
-- Track offset and latency members (`OffsetText`, `NudgeOffsetAsync`, `ResetOffsetAsync`, `SetSyncOffsetAsync`, `LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`) are pass-throughs to `PlaybackTiming` in the same way. Each tick asks `PlaybackTiming` for the clock target and the render position.
-- Session members (`Sessions`, `CurrentUserSession`, `ActiveUserName`, `ActiveUserId`, `AuthorizedSessionsCount`, `IsAuthorized`, `ConnectButtonText`, `ConnectButtonGlyph`, `NoSessionsVisibility`, `HasSessionsVisibility`, `SubscribeToUserAsync`, `SwitchUserSubscriptionAsync`, `LogoutAsync`) are pass-throughs to `SessionViewModel` in the same way. When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+- Each tick asks `PlaybackTiming` for the clock target and the render position, and asks `PlaybackTransport` to hold the position at an unconfirmed seek.
+- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+
+#### View Binding
+- Every view binds through a `ViewModel` property set to the root. Views that need transport, timing, or Session state also expose `Transport`, `Timing`, or `Session` dependency properties, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`). `DiagnosticsHudDialog` takes the root in its constructor and sets the three as plain properties.
+- Button handlers call the composed view model directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing`.
+
+| View | `ViewModel` | `Transport` | `Timing` | `Session` |
+| :--- | :---: | :---: | :---: | :---: |
+| `AdaptiveHeaderBar` | Yes | | | Yes |
+| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes |
+| `LyricsStageView` | Yes | | | |
+| `MobileSettingsView` | Yes | | Yes | Yes |
+| `MobileTabBar` | Yes | | | |
+| `MiniPlaybackBar` | Yes | Yes | | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes |
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
