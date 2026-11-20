@@ -1,0 +1,22 @@
+{
+  "sgc": false,
+  "sfy": false,
+  "qfy": false,
+  "transUser": {
+    "id": 1001,
+    "status": 99,
+    "demand": 1,
+    "userid": 1002,
+    "nickname": "placeholder",
+    "uptime": 1483687401355
+  },
+  "lrc": {
+    "version": 40,
+    "lyric": "[00:00.000] 制作人 : alpha bravo\n[00:01.000] 作词 : charlie delta/echo foxtrot/golf hotel/india juliet/kilo lima/mike november\n[00:02.000] 作曲 : oscar papa/quebec romeo/sierra tango/uniform victor/whiskey xray/yankee zulu\n[00:09.480]alpha2 bravo2 charlie2 delta2 echo2 foxtrot2 golf2 hotel2 india2 juliet2\n[00:11.750]kilo2 lima2 mike2 november2 oscar2 papa2 quebec2\n[00:14.590]romeo2 sierra2 tango2 uniform2 victor2 whiskey2 xray2 yankee2 zulu2\n[00:16.760]alpha3 bravo3 charlie3 delta3 echo3 foxtrot3 golf3\n[00:19.500]hotel3 india3 juliet3 kilo3 lima3 mike3 november3 oscar3 papa3 quebec3\n"
+  },
+  "tlyric": {
+    "version": 15,
+    "lyric": "[00:09.480]甲乙丙丁戊己庚辛壬癸甲乙\n[00:11.750]丙丁戊己庚辛壬\n[00:14.590]癸甲乙丙丁戊己庚辛壬癸甲\n[00:16.760]乙丙丁戊 己庚辛壬癸甲乙"
+  },
+  "code": 200
+}
