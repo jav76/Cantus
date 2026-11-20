@@ -11,11 +11,13 @@ namespace Cantus.Server.Hubs;
 
 public sealed class PlaybackHub : Hub<IPlaybackClient>
 {
+    private const string CREDENTIAL_KIND_ITEM = "cantus.credential_kind";
+
     private readonly IPlaybackSessionRegistry _registry;
     private readonly ILyricsCacheRepository _lyricsCache;
     private readonly ISpotifyAuthService _authService;
     private readonly ISpotifyPlayerClient _playerClient;
-    private readonly ISessionTokenResolver _sessionResolver;
+    private readonly ICredentialResolver _credentialResolver;
     private readonly ILogger<PlaybackHub> _logger;
 
     public PlaybackHub(
@@ -23,82 +25,69 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         ILyricsCacheRepository lyricsCache,
         ISpotifyAuthService authService,
         ISpotifyPlayerClient playerClient,
-        ISessionTokenResolver sessionResolver,
+        ICredentialResolver credentialResolver,
         ILogger<PlaybackHub> logger)
     {
         _registry = registry;
         _lyricsCache = lyricsCache;
         _authService = authService;
         _playerClient = playerClient;
-        _sessionResolver = sessionResolver;
+        _credentialResolver = credentialResolver;
         _logger = logger;
     }
 
     public override async Task OnConnectedAsync()
     {
-        string? resolvedSessionId = null;
-        UserSession? userSession = null;
+        CallerCredential? caller = null;
 
         try
         {
-            HttpContext? httpContext = Context.GetHttpContext();
-            resolvedSessionId = _sessionResolver.ResolveSessionId(httpContext);
-
-            if (!string.IsNullOrWhiteSpace(resolvedSessionId))
-            {
-                userSession = await _authService.GetSessionByIdAsync(resolvedSessionId);
-            }
+            caller = await _credentialResolver.ResolveAsync(Context.GetHttpContext());
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to resolve session for connection {ConnectionId}", Context.ConnectionId);
+            _logger.LogWarning(ex, "Failed to resolve credential for connection {ConnectionId}", Context.ConnectionId);
         }
 
-        string? userId = userSession?.Id;
+        string? userId = caller?.Owner.Id;
+
+        // A Display counts as a viewer of its owner, so adaptive polling keeps running
+        // for an unattended screen.
         _registry.RegisterConnection(Context.ConnectionId, userId);
 
-        if (!string.IsNullOrEmpty(userId))
+        if (caller is not null && !string.IsNullOrEmpty(userId))
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+            Context.Items[CREDENTIAL_KIND_ITEM] = caller.Kind;
+            string group = caller.IsSession ? PlaybackGroups.Owner(userId) : PlaybackGroups.Displays(userId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, group);
         }
 
         _logger.LogInformation(
-            "Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Total: {Count})",
+            "Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Credential: {CredentialKind}, Total: {Count})",
             Context.ConnectionId,
             userId ?? "Unauthenticated",
+            caller?.Kind.ToString() ?? "None",
             _registry.ConnectedClientsCount);
 
         try
         {
-            if (userSession is not null && !string.IsNullOrEmpty(userId))
+            if (caller is not null && !string.IsNullOrEmpty(userId))
             {
+                UserSession userSession = caller.Owner;
+                bool forDisplay = !caller.IsSession;
                 UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
                 bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
                 List<AuthorizedSessionDto> sessionDtos = new() { userSession.ToDto(isPlaying) };
 
-                if (snapshot?.PlaybackState is not null)
+                await SendSnapshotToCallerAsync(snapshot, forDisplay);
+
+                // The session list carries the owner's Session id, which a Display must never see.
+                if (!forDisplay)
                 {
-                    await Clients.Caller.ReceivePlaybackState(
-                        snapshot.PlaybackState.ToDto(snapshot.UserId, snapshot.DisplayName));
+                    await Clients.Caller.ReceiveSessions(sessionDtos);
                 }
 
-                if (snapshot?.Lyrics is not null)
-                {
-                    await Clients.Caller.ReceiveLyrics(snapshot.Lyrics.ToDto());
-                }
-
-                if (snapshot?.PlaybackState?.CurrentTrack is not null)
-                {
-                    await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
-                    {
-                        TrackId = snapshot.PlaybackState.CurrentTrack.Id,
-                        OffsetMs = snapshot.TrackOffsetMs
-                    });
-                }
-
-                await Clients.Caller.ReceiveSessions(sessionDtos);
-
-                await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
+                DiagnosticsDto diagnostics = new()
                 {
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = sessionDtos.Count,
@@ -106,7 +95,9 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                     ActiveUserId = userSession.Id,
                     ActiveUserName = userSession.DisplayName,
                     ServerTimeUtc = DateTimeOffset.UtcNow
-                });
+                };
+
+                await Clients.Caller.ReceiveDiagnostics(forDisplay ? diagnostics.ForDisplay() : diagnostics);
             }
             else
             {
@@ -141,7 +132,10 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
         if (!string.IsNullOrEmpty(userId))
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+            string group = GetCredentialKind() is CredentialKind.Display
+                ? PlaybackGroups.Displays(userId)
+                : PlaybackGroups.Owner(userId);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
         }
 
         _logger.LogInformation(
@@ -163,63 +157,57 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             serverSendTime));
     }
 
+    /// <summary>
+    /// Joins the sign-in handoff group for a client id. A Display connection cannot: the
+    /// handoff hands its listener the owner's Session, and a Display holds view rights only.
+    /// </summary>
     public async Task RegisterClientLogin(string clientId)
     {
+        if (RejectDisplayCaller(nameof(RegisterClientLogin)))
+        {
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(clientId))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"client_{clientId}");
         }
     }
 
+    /// <summary>
+    /// Subscribes a Session connection to its own playback. A Display connection is bound to
+    /// its owner when it connects, so this is a no-op for Displays.
+    /// </summary>
     public async Task SubscribeToUser(string? userId)
     {
-        string? callingSessionId = _sessionResolver.ResolveSessionId(Context.GetHttpContext());
-        if (string.IsNullOrEmpty(callingSessionId))
+        CallerCredential? caller = await _credentialResolver.ResolveAsync(Context.GetHttpContext());
+        if (caller is null || !caller.IsSession)
         {
             return;
         }
 
-        UserSession? userSession = await _authService.GetSessionByIdAsync(callingSessionId);
-        if (userSession is null || (userId is not null && userSession.Id != userId))
+        UserSession userSession = caller.Owner;
+        if (userId is not null && userSession.Id != userId)
         {
             return;
         }
+
+        Context.Items[CREDENTIAL_KIND_ITEM] = CredentialKind.Session;
 
         string? prevUserId = _registry.GetConnectionSubscription(Context.ConnectionId);
         if (!string.IsNullOrEmpty(prevUserId) && prevUserId != userId)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{prevUserId}");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, PlaybackGroups.Owner(prevUserId));
         }
 
         _registry.SetConnectionSubscription(Context.ConnectionId, userId);
 
         if (!string.IsNullOrEmpty(userId))
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+            await Groups.AddToGroupAsync(Context.ConnectionId, PlaybackGroups.Owner(userId));
 
             UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
-            if (snapshot is not null)
-            {
-                if (snapshot.PlaybackState is not null)
-                {
-                    await Clients.Caller.ReceivePlaybackState(
-                        snapshot.PlaybackState.ToDto(snapshot.UserId, snapshot.DisplayName));
-                }
-
-                if (snapshot.Lyrics is not null)
-                {
-                    await Clients.Caller.ReceiveLyrics(snapshot.Lyrics.ToDto());
-                }
-
-                if (snapshot.PlaybackState?.CurrentTrack is not null)
-                {
-                    await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
-                    {
-                        TrackId = snapshot.PlaybackState.CurrentTrack.Id,
-                        OffsetMs = snapshot.TrackOffsetMs
-                    });
-                }
-            }
+            await SendSnapshotToCallerAsync(snapshot, forDisplay: false);
 
             bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
             await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
@@ -236,7 +224,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public async Task SetTrackOffset(string trackId, int offsetMs)
     {
-        if (string.IsNullOrWhiteSpace(trackId))
+        if (RejectDisplayCaller(nameof(SetTrackOffset)) || string.IsNullOrWhiteSpace(trackId))
         {
             return;
         }
@@ -262,7 +250,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                 offsetMs);
         }
 
-        await Clients.Group($"user_{userId}").ReceiveTrackOffset(new TrackOffsetDto
+        await Clients.Viewers(userId).ReceiveTrackOffset(new TrackOffsetDto
         {
             TrackId = trackId,
             OffsetMs = offsetMs
@@ -274,11 +262,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         _registry.SetConnectionVisibility(Context.ConnectionId, isVisible);
         if (isVisible)
         {
-            string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
-            if (!string.IsNullOrEmpty(userId))
-            {
-                _registry.RequestUserActivity(userId);
-            }
+            RequestCallerActivity();
         }
 
         return Task.CompletedTask;
@@ -286,12 +270,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public Task RefreshPlayback()
     {
-        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
-        if (!string.IsNullOrEmpty(userId))
-        {
-            _registry.RequestUserActivity(userId);
-        }
-
+        RequestCallerActivity();
         return Task.CompletedTask;
     }
 
@@ -350,6 +329,11 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         string commandName,
         Func<string, Task<PlayerCommandResult>> action)
     {
+        if (RejectDisplayCaller(commandName))
+        {
+            return (int)PlayerCommandResult.Failed;
+        }
+
         string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
         if (string.IsNullOrEmpty(userId))
         {
@@ -373,6 +357,77 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
 
         return (int)result;
+    }
+
+    /// <summary>
+    /// Asks for an immediate poll of the caller's owner. A Display's requests are throttled per
+    /// owner, so a view-only screen cannot drive the owner's Spotify quota.
+    /// </summary>
+    private void RequestCallerActivity()
+    {
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        if (GetCredentialKind() is CredentialKind.Display)
+        {
+            _registry.RequestDisplayActivity(userId);
+        }
+        else
+        {
+            _registry.RequestUserActivity(userId);
+        }
+    }
+
+    private CredentialKind? GetCredentialKind()
+    {
+        return Context.Items.TryGetValue(CREDENTIAL_KIND_ITEM, out object? kind) && kind is CredentialKind credentialKind
+            ? credentialKind
+            : null;
+    }
+
+    /// <summary>
+    /// Methods that change anything, or could hand out owner rights, are closed to Display
+    /// connections, which are view-only. They also require a subscription, which only a
+    /// Session or Display connect sets, so anonymous callers fail further on.
+    /// </summary>
+    private bool RejectDisplayCaller(string action)
+    {
+        if (GetCredentialKind() is not CredentialKind.Display)
+        {
+            return false;
+        }
+
+        _logger.LogWarning(
+            "Rejected {Action} from Display connection {ConnectionId}",
+            action,
+            Context.ConnectionId);
+        return true;
+    }
+
+    private async Task SendSnapshotToCallerAsync(UserPlaybackSnapshot? snapshot, bool forDisplay)
+    {
+        if (snapshot?.PlaybackState is not null)
+        {
+            PlaybackStateDto state = snapshot.PlaybackState.ToDto(snapshot.UserId, snapshot.DisplayName);
+            await Clients.Caller.ReceivePlaybackState(forDisplay ? state.ForDisplay() : state);
+        }
+
+        if (snapshot?.Lyrics is not null)
+        {
+            await Clients.Caller.ReceiveLyrics(snapshot.Lyrics.ToDto());
+        }
+
+        if (snapshot?.PlaybackState?.CurrentTrack is not null)
+        {
+            await Clients.Caller.ReceiveTrackOffset(new TrackOffsetDto
+            {
+                TrackId = snapshot.PlaybackState.CurrentTrack.Id,
+                OffsetMs = snapshot.TrackOffsetMs
+            });
+        }
     }
 
     // Spotify's API is eventually consistent: a poll fired immediately after

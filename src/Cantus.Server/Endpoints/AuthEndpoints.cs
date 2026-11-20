@@ -197,58 +197,63 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> HandleGetSessions(
-        ISpotifyAuthService authService,
         IPlaybackSessionRegistry registry,
-        ISessionTokenResolver sessionResolver,
+        ICredentialResolver credentialResolver,
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        string? sessionId = sessionResolver.ResolveSessionId(context);
-        if (string.IsNullOrEmpty(sessionId))
+        CallerCredential? caller = await credentialResolver.ResolveAsync(context, cancellationToken);
+        if (caller is null)
         {
             return Results.Ok(Array.Empty<AuthorizedSessionDto>());
         }
 
-        UserSession? session = await authService.GetSessionByIdAsync(sessionId, cancellationToken);
-        if (session is null)
+        // The session list carries the owner's Session id, which is itself a credential.
+        if (!caller.IsSession)
         {
-            return Results.Ok(Array.Empty<AuthorizedSessionDto>());
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
 
+        UserSession session = caller.Owner;
         UserPlaybackSnapshot? snap = registry.GetUserState(session.Id);
         bool isPlaying = snap?.PlaybackState?.IsPlaying ?? false;
         return Results.Ok(new List<AuthorizedSessionDto> { session.ToDto(isPlaying) });
     }
 
     private static async Task<IResult> HandleGetCurrentUser(
-        ISpotifyAuthService authService,
-        ISessionTokenResolver sessionResolver,
+        ICredentialResolver credentialResolver,
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        string? sessionId = sessionResolver.ResolveSessionId(context);
-        if (string.IsNullOrEmpty(sessionId))
+        CallerCredential? caller = await credentialResolver.ResolveAsync(context, cancellationToken);
+        if (caller is null)
         {
             return Results.Unauthorized();
         }
 
-        UserSession? session = await authService.GetSessionByIdAsync(sessionId, cancellationToken);
-        if (session is null)
+        if (!caller.IsSession)
         {
-            return Results.Unauthorized();
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
 
-        return Results.Ok(session.ToDto());
+        return Results.Ok(caller.Owner.ToDto());
     }
 
     private static async Task<IResult> HandleRevokeSession(
         string userId,
         ISpotifyAuthService authService,
         ISessionTokenResolver sessionResolver,
+        ICredentialResolver credentialResolver,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
+        CallerCredential? caller = await credentialResolver.ResolveAsync(context, cancellationToken);
+        if (caller is { IsSession: false })
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
         // A session id is itself the credential here, so only the holder of a
         // session may revoke it. Without this check any caller that can reach
         // the server can revoke any session by id.
@@ -278,10 +283,17 @@ public static class AuthEndpoints
     private static async Task<IResult> HandleLogout(
         ISpotifyAuthService authService,
         ISessionTokenResolver sessionResolver,
+        ICredentialResolver credentialResolver,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
+        CallerCredential? caller = await credentialResolver.ResolveAsync(context, cancellationToken);
+        if (caller is { IsSession: false })
+        {
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
         string? sessionId = sessionResolver.ResolveSessionId(context);
         if (!string.IsNullOrEmpty(sessionId))
         {

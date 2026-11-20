@@ -16,6 +16,25 @@ On connect, the hub reads the connection's Session credential from the same sour
 
 ---
 
+## Credential Kinds
+
+A connection holds a Session or a [Display token](rest-api.md#display-token). A Display passes its token the same way as on REST: the `cantus_display_token` cookie, the `display_token` query parameter, or the client's access token factory (sent as `access_token` on WebSockets). The credential is resolved once, when the connection opens.
+
+| | Session | Display token |
+| :--- | :--- | :--- |
+| Group joined on connect | `user_{sessionId}` | `display_{ownerSessionId}` |
+| Initial snapshot (playback, lyrics, offset, diagnostics) | Yes | Yes |
+| `ReceiveSessions` / `ReceiveAuthSession` / `ReceiveSessionRevoked` | Yes | Never |
+| `SyncClock` | Yes | Yes |
+| `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes, forced polls throttled to one per owner every 5 seconds |
+| `SubscribeToUser` | Yes | No-op (bound to its owner) |
+| `SendPlayerCommand`, `SetPlayerVolume`, `SeekPlayback`, `SetShuffle`, `SetRepeat` | Yes | Rejected: returns `3` (`Failed`) |
+| `SetTrackOffset`, `RegisterClientLogin` | Yes | Rejected: ignored |
+
+Every playback broadcast goes to both groups. Displays get the same payloads with `activeUserId` set to `null`, because the owner's Session id is itself a credential. A Display connection counts as a viewer of its owner for [adaptive polling](../architecture/adaptive-polling.md).
+
+---
+
 ## Client-to-Server Methods (Invocations)
 
 Clients invoke these methods on the hub:
@@ -23,12 +42,12 @@ Clients invoke these methods on the hub:
 ### `SubscribeToUser(userId)`
 Subscribes the connection to updates for the caller's own Session.
 - **Parameters**: `userId` (`string?`): the caller's Session id. Ignored unless the connection's credential resolves to that same Session id.
-- **Behavior**: Associates the connection with `user_{userId}` group in `SessionRegistry`. Upon subscription, the caller immediately receives initial snapshots of `ReceivePlaybackState`, `ReceiveLyrics`, `ReceiveTrackOffset`, and `ReceiveDiagnostics`.
+- **Behavior**: Associates the connection with `user_{userId}` group in `SessionRegistry`. Upon subscription, the caller immediately receives initial snapshots of `ReceivePlaybackState`, `ReceiveLyrics`, `ReceiveTrackOffset`, and `ReceiveDiagnostics`. A no-op on a Display connection.
 
 ### `RegisterClientLogin(clientId)`
 Subscribes the connection to an ephemeral client login channel.
 - **Parameters**: `clientId` (`string`) — Temporary client handshake identifier.
-- **Behavior**: Used by desktop and remote displays to receive authenticated session tokens following browser OAuth PKCE completion (`ReceiveAuthSession`).
+- **Behavior**: Used by the desktop app to receive its owner Session following browser OAuth PKCE completion (`ReceiveAuthSession`). Ignored on a Display connection, since the handoff grants owner rights.
 
 ### `SyncClock(clientSendTimeMs)`
 Initiates a 4-timestamp NTP clock sync sample.
@@ -40,16 +59,17 @@ Stores a manual latency calibration offset for a specific track.
 - **Parameters**:
   - `trackId` (`string`) — Spotify Track ID.
   - `offsetMs` (`int`) — Desired offset in milliseconds (e.g. `+150` or `-50`).
-- **Behavior**: Persists the offset in SQLite and broadcasts `ReceiveTrackOffset` to all active viewers in the user group.
+- **Behavior**: Persists the offset in SQLite and broadcasts `ReceiveTrackOffset` to the owner's Session connections and Displays. Requires a Session; ignored on a Display connection.
 
 ### `ReportClientVisibility(isVisible)`
 Notifies the server whether the client window or browser tab is actively visible or hidden.
 - **Parameters**: `isVisible` (`bool`) — `true` if active in viewport; `false` if minimized, hidden, or tabbed away.
-- **Behavior**: Updates visibility state in `PlaybackSessionRegistry`. If `isVisible` is `true`, immediately requests user activity to wake up the polling engine without waiting for the scheduled background interval.
+- **Behavior**: Updates visibility state in `PlaybackSessionRegistry`. If `isVisible` is `true`, immediately requests user activity to wake up the polling engine without waiting for the scheduled background interval. On a Display connection the wake-up is throttled like `RefreshPlayback`.
 
 ### `RefreshPlayback()`
 Requests an immediate on-demand Spotify playback refresh for the caller's subscribed user.
 - **Behavior**: Invokes `IPlaybackSessionRegistry.RequestUserActivity`, cancelling the background poller's wait delay to query Spotify within milliseconds. Ideal for tab refocus or after manual playback operations.
+- **Display connections**: Invokes `IPlaybackSessionRegistry.RequestDisplayActivity` instead, which forwards at most one refresh per owner every 5 seconds. Extra calls inside that window are dropped; the regular adaptive poll still runs.
 
 ---
 
@@ -142,4 +162,4 @@ Periodic runtime telemetry broadcast.
 - `"Rate Limited (mm:ss)"`: Temporary cooldown after receiving an HTTP 429 from Spotify API.
 
 ### `ReceiveSessions` & `ReceiveAuthSession`
-Broadcasts list of authorized Spotify accounts or notifies a newly authenticated login.
+Broadcasts list of authorized Spotify accounts or notifies a newly authenticated login. Never sent to a Display connection.

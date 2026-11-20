@@ -65,4 +65,28 @@ public sealed class SessionTokenResolverTests
         string? result = _resolver.ResolveSessionId(context);
         result.Should().Be("raw_token_value");
     }
+
+    [Fact]
+    public void ResolveSharedTokens_ReturnsEverySharedSlotInPriorityOrderWithoutDuplicates()
+    {
+        DefaultHttpContext context = new();
+        context.Request.Headers.Cookie = "cantus_session_id=cookie_value";
+        context.Request.Headers.Authorization = "Bearer header_value";
+        context.Request.Query = new QueryCollection(new Dictionary<string, StringValues>
+        {
+            ["access_token"] = "query_value",
+            ["token"] = "query_value",
+            ["session_id"] = "session_value",
+        });
+
+        IReadOnlyList<string> result = _resolver.ResolveSharedTokens(context);
+
+        result.Should().Equal("cookie_value", "query_value", "session_value", "header_value");
+    }
+
+    [Fact]
+    public void ResolveSharedTokens_WhenContextIsNull_ReturnsEmpty()
+    {
+        _resolver.ResolveSharedTokens(null).Should().BeEmpty();
+    }
 }

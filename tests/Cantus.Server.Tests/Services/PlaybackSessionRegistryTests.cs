@@ -1,12 +1,15 @@
 using Cantus.Core.Models;
 using Cantus.Server.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
 namespace Cantus.Server.Tests.Services;
 
 public sealed class PlaybackSessionRegistryTests
 {
+    private const int BURST_SIZE = 20;
+
     [Fact]
     public void RegisterAndUnregister_TracksConnectedClientsCount()
     {
@@ -185,5 +188,52 @@ public sealed class PlaybackSessionRegistryTests
 
         registry.RequestUserActivity("user-99");
         signaledUser.Should().Be("user-99");
+    }
+
+    [Fact]
+    public void RequestDisplayActivity_InABurst_RaisesOncePerOwner()
+    {
+        FakeTimeProvider timeProvider = new();
+        PlaybackSessionRegistry registry = new(timeProvider);
+        List<string> signaled = new();
+        registry.OnUserActivityRequested += (_, uid) => signaled.Add(uid);
+
+        for (int i = 0; i < BURST_SIZE; i++)
+        {
+            registry.RequestDisplayActivity("user-1");
+            registry.RequestDisplayActivity("user-2");
+        }
+
+        signaled.Should().Equal("user-1", "user-2");
+    }
+
+    [Fact]
+    public void RequestDisplayActivity_AfterMinimumInterval_RaisesAgain()
+    {
+        FakeTimeProvider timeProvider = new();
+        PlaybackSessionRegistry registry = new(timeProvider);
+        int signaledCount = 0;
+        registry.OnUserActivityRequested += (_, _) => signaledCount++;
+
+        registry.RequestDisplayActivity("user-1");
+        timeProvider.Advance(TimeSpan.FromMilliseconds(PlaybackSessionRegistry.DISPLAY_ACTIVITY_MIN_INTERVAL_MS));
+        registry.RequestDisplayActivity("user-1");
+
+        signaledCount.Should().Be(2);
+    }
+
+    [Fact]
+    public void RequestUserActivity_IsNotThrottledByDisplayActivity()
+    {
+        FakeTimeProvider timeProvider = new();
+        PlaybackSessionRegistry registry = new(timeProvider);
+        int signaledCount = 0;
+        registry.OnUserActivityRequested += (_, _) => signaledCount++;
+
+        registry.RequestDisplayActivity("user-1");
+        registry.RequestUserActivity("user-1");
+        registry.RequestUserActivity("user-1");
+
+        signaledCount.Should().Be(3);
     }
 }

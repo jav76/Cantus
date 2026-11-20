@@ -1,3 +1,4 @@
+using Cantus.Core.Models;
 using Cantus.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class CantusDbContext : DbContext
     public DbSet<TrackOffsetEntity> TrackOffsets => Set<TrackOffsetEntity>();
     public DbSet<RoomEntity> Rooms => Set<RoomEntity>();
     public DbSet<LogEntryEntity> LogEntries => Set<LogEntryEntity>();
+    public DbSet<DisplayEntity> Displays => Set<DisplayEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +61,18 @@ public class CantusDbContext : DbContext
             entity.Property(e => e.Level).HasMaxLength(32);
             entity.Property(e => e.Logger).HasMaxLength(256);
             entity.Property(e => e.TraceId).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<DisplayEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(DisplayInfo.MAX_NAME_LENGTH);
+            entity.Property(e => e.TokenHash).HasMaxLength(DisplayEntity.TOKEN_HASH_LENGTH);
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.HasOne<UserSessionEntity>()
+                .WithMany()
+                .HasForeignKey(e => e.OwnerSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

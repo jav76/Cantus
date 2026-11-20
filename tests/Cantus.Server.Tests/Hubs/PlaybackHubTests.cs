@@ -33,14 +33,19 @@ public sealed class PlaybackHubTests
     {
         _mockClients.Setup(c => c.Caller).Returns(_mockCaller.Object);
         _mockClients.Setup(c => c.Group("user_user-1")).Returns(_mockUserGroup.Object);
+        _mockClients.Setup(c => c.Group("display_user-1")).Returns(Mock.Of<IPlaybackClient>());
         _mockContext.Setup(c => c.ConnectionId).Returns("test-conn-id");
+        _mockContext.Setup(c => c.Items).Returns(new Dictionary<object, object?>());
 
         _hub = new PlaybackHub(
             _mockRegistry.Object,
             _mockLyricsCache.Object,
             _mockAuthService.Object,
             _mockPlayerClient.Object,
-            _mockSessionResolver.Object,
+            new CredentialResolver(
+                _mockSessionResolver.Object,
+                _mockAuthService.Object,
+                Mock.Of<IDisplayService>()),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

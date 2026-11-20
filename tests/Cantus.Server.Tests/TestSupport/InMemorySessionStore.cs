@@ -1,7 +1,9 @@
+using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Persistence.Entities;
 using Cantus.Infrastructure.Security;
 using Cantus.Infrastructure.Spotify;
+using Cantus.Server.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +64,22 @@ public sealed class InMemorySessionStore : IDisposable
             _encryptionService,
             _options,
             NullLogger<SpotifyAuthService>.Instance);
+    }
+
+    public DisplayService CreateDisplayService()
+    {
+        CantusDbContext dbContext = new(_dbOptions);
+        lock (_contextsLock)
+        {
+            _contexts.Add(dbContext);
+        }
+
+        return new DisplayService(dbContext, TimeProvider.System, NullLogger<DisplayService>.Instance);
+    }
+
+    public CredentialResolver CreateCredentialResolver()
+    {
+        return new CredentialResolver(new SessionTokenResolver(), CreateAuthService(), CreateDisplayService());
     }
 
     public async Task<UserSessionEntity> SeedSessionAsync(string displayName)

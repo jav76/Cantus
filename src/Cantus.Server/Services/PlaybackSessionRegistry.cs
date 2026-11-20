@@ -5,19 +5,61 @@ namespace Cantus.Server.Services;
 
 public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
 {
+    public const int DISPLAY_ACTIVITY_MIN_INTERVAL_MS = 5000;
+
     private readonly ConcurrentDictionary<string, string?> _connectionSubscriptions = new();
     private readonly ConcurrentDictionary<string, UserPlaybackSnapshot> _userSnapshots = new();
     private readonly ConcurrentDictionary<string, bool> _connectionVisibility = new();
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _lastDisplayActivityUtc = new();
     private readonly object _connectionLock = new();
+    private readonly TimeProvider _timeProvider;
 
     public event EventHandler? OnClientsConnected;
     public event EventHandler? OnClientsEmpty;
     public event EventHandler? OnSessionsChanged;
     public event EventHandler<string>? OnUserActivityRequested;
 
+    public PlaybackSessionRegistry()
+        : this(TimeProvider.System)
+    {
+    }
+
+    public PlaybackSessionRegistry(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     public void RequestUserActivity(string userId)
     {
         if (!string.IsNullOrWhiteSpace(userId))
+        {
+            OnUserActivityRequested?.Invoke(this, userId);
+        }
+    }
+
+    public void RequestDisplayActivity(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return;
+        }
+
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        bool allowed = false;
+        _lastDisplayActivityUtc.AddOrUpdate(
+            userId,
+            _ =>
+            {
+                allowed = true;
+                return now;
+            },
+            (_, last) =>
+            {
+                allowed = now - last >= TimeSpan.FromMilliseconds(DISPLAY_ACTIVITY_MIN_INTERVAL_MS);
+                return allowed ? now : last;
+            });
+
+        if (allowed)
         {
             OnUserActivityRequested?.Invoke(this, userId);
         }

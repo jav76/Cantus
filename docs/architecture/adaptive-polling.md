@@ -100,6 +100,8 @@ Rather than waiting for the next polling cycle when resuming playback:
 2. The server calls `IPlaybackSessionRegistry.RequestUserActivity(userId)`, resetting `_nextPollUtc[userId]` to immediately runnable.
 3. The poller cancels its internal delay via `_wakeCts.Cancel()`, awakening the background loop instantly and polling Spotify within milliseconds.
 
+A Display connection goes through `RequestDisplayActivity(userId)` instead, which forwards at most one refresh per owner every 5 seconds (`DISPLAY_ACTIVITY_MIN_INTERVAL_MS`). A view-only screen on shared hardware cannot drive the owner's Spotify quota toward a server-wide 429. Owner Session refreshes are not throttled.
+
 ---
 
 ## Rate Limit Backoff (HTTP 429) & Error Handling
@@ -126,6 +128,8 @@ When you close the browser tab or turn off your kiosk display:
 2. The server's `PlaybackSessionRegistry` decrements the active viewer count for that user.
 3. When viewer count reaches `0`, background polling for that Spotify account is suspended.
 4. When you open the display again, the poller wakes up instantly via `OnClientsConnected`.
+
+A connection holding a Display token counts as a viewer of its owner, the same as a signed-in tab. An unattended paired Display keeps polling alive on its own, so its lyrics keep moving with no owner device open.
 
 ---
 
