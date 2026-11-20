@@ -206,6 +206,27 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
         return candidates;
     }
 
+    public virtual async Task<SyncedLyrics?> GetCandidateLyricsAsync(
+        TrackInfo track,
+        string providerCandidateId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+
+        if (!long.TryParse(providerCandidateId, NumberStyles.None, CultureInfo.InvariantCulture, out long songId))
+        {
+            return null;
+        }
+
+        NeteaseLyricResponseDto? lyric = await GetLyricAsync(songId, cancellationToken);
+        if (lyric is null || lyric.Code != NETEASE_SUCCESS_CODE)
+        {
+            throw new HttpRequestException($"NetEase lyric lookup returned payload code {lyric?.Code}.");
+        }
+
+        return MapLyric(lyric, track, songId).Lyrics;
+    }
+
     private async Task<LyricsCandidate?> GetCandidateAsync(NeteaseSongDto song, CancellationToken ct)
     {
         NeteaseLyricResponseDto? lyric = await GetLyricAsync(song.Id, ct);

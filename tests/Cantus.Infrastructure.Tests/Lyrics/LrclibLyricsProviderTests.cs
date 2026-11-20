@@ -388,4 +388,87 @@ public class LrclibLyricsProviderTests
         await act.Should().ThrowAsync<HttpRequestException>(
             "a failed search must not read as \"LRCLIB has no candidates\"");
     }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_LoadsTheRecordByIdAndLabelsItWithTheTrack()
+    {
+        string? requestedUrl = null;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                requestedUrl = req.RequestUri!.PathAndQuery;
+                string json = """
+                    {
+                        "id": 501,
+                        "trackName": "Miss America (Live)",
+                        "artistName": "Brandon Flowers",
+                        "albumName": "Live Album",
+                        "duration": 301,
+                        "instrumental": false,
+                        "plainLyrics": "I'm writing you this letter",
+                        "syncedLyrics": "[00:01.00]I'm writing you this letter\n[00:04.00]If you ain't figured out"
+                    }
+                    """;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(json, Encoding.UTF8, "application/json")
+                };
+            }
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(CandidateTrack, "501");
+
+        requestedUrl.Should().Be("/api/get/501");
+        lyrics.Should().NotBeNull();
+        lyrics!.TrackId.Should().Be(CandidateTrack.Id);
+        lyrics.Title.Should().Be("Miss America");
+        lyrics.IsSynced.Should().BeTrue();
+        lyrics.Lines.Select(l => l.Text).Should().Equal("I'm writing you this letter", "If you ain't figured out");
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_UnknownId_ReturnsNull()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(CandidateTrack, "999");
+
+        lyrics.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_NonNumericId_ReturnsNullWithoutARequest()
+    {
+        bool requested = false;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ =>
+            {
+                requested = true;
+                return new HttpResponseMessage(HttpStatusCode.NotFound);
+            }
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(CandidateTrack, "../search");
+
+        lyrics.Should().BeNull();
+        requested.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_ServerError_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidateLyricsAsync(CandidateTrack, "501");
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
 }

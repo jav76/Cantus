@@ -25,4 +25,16 @@ public interface ILyricsFetchProvider
     Task<IReadOnlyList<LyricsCandidate>> GetCandidatesAsync(
         TrackInfo track,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loads the lyrics of one candidate listed by <see cref="GetCandidatesAsync"/>,
+    /// labelled with <paramref name="track"/>'s id and metadata so they can stand
+    /// in for the automatic match. Returns null when the provider has no such
+    /// candidate or it carries no usable lyrics; throws when the provider cannot
+    /// be reached or rejects the request.
+    /// </summary>
+    Task<SyncedLyrics?> GetCandidateLyricsAsync(
+        TrackInfo track,
+        string providerCandidateId,
+        CancellationToken cancellationToken = default);
 }
