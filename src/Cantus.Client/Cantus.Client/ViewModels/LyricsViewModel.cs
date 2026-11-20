@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -786,6 +787,41 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         return Math.Clamp(estimate, MIN_ESTIMATED_SUNG_MS, gapMs);
     }
 
+    /// <summary>
+    /// Copies a line's syllables off the wire. Enhanced LRC word tags carry
+    /// only start times, so a syllable without a duration is sung until the
+    /// next syllable starts, and the last one until the line's fill end (the
+    /// same capped estimate a line without syllables fills over).
+    /// </summary>
+    private static IReadOnlyList<SyllableTiming>? MapSyllables(
+        List<LyricSyllablePayload>? syllables,
+        long? lineFillEndMs)
+    {
+        if (syllables is null || syllables.Count == 0)
+        {
+            return null;
+        }
+
+        List<LyricSyllablePayload> present = syllables
+            .Where(s => s is not null)
+            .ToList();
+        List<SyllableTiming> result = new(present.Count);
+        for (int i = 0; i < present.Count; i++)
+        {
+            LyricSyllablePayload syllable = present[i];
+            long durationMs = syllable.DurationMs;
+            if (durationMs <= 0)
+            {
+                long? untilMs = i + 1 < present.Count ? present[i + 1].TimestampMs : lineFillEndMs;
+                durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
+            }
+
+            result.Add(new SyllableTiming(syllable.TimestampMs, durationMs, syllable.Text ?? string.Empty));
+        }
+
+        return result.Count > 0 ? result : null;
+    }
+
     private void OnLyricsReceived(LyricsPayload? lyrics)
     {
         if (lyrics is null) return;
@@ -836,11 +872,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                     ? ComputeLineFillDurationMs(displayText, nextLineTimestampMs.Value - line.TimestampMs)
                     : null;
 
+                long? lineFillEndMs = lineDurationMs.HasValue ? line.TimestampMs + lineDurationMs.Value : null;
+
                 LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
                     Text = displayText,
-                    DurationMs = lineDurationMs
+                    DurationMs = lineDurationMs,
+                    Syllables = MapSyllables(line.Syllables, lineFillEndMs)
                 };
 
                 lineVm.RefreshFontSizes(active, inactive, past);

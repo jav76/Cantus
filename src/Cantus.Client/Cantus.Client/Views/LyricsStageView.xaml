@@ -165,9 +165,10 @@
                                                    Margin="0,4"
                                                    TextAlignment="{x:Bind Alignment, Mode=OneWay}"
                                                    TextWrapping="Wrap" />
-                                        <!-- Time-progress underline for the active line: fills over the
-                                             line's real duration via an in-place ScaleX mutation. It claims
-                                             elapsed time, never a specific word (lyrics are line-level).
+                                        <!-- Progress underline for the active line, driven by an in-place
+                                             ScaleX mutation. With syllable timing it reaches the sung word
+                                             and holds through gaps; without it, it fills over the line's
+                                             duration and claims elapsed time, never a specific word.
                                              It grows from zero on every activation, so differing line
                                              widths never cause a visible width jump. -->
                                         <Rectangle Height="3"
