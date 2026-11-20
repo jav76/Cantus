@@ -25,12 +25,14 @@ flowchart TD
         Transport[PlaybackTransport]
         Anchor[OptimisticSeekAnchor]
         Timing[PlaybackTiming]
+        Session[SessionViewModel]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
         LVM --> Prefs
         LVM --> Transport
         LVM --> Timing
+        LVM --> Session
         Transport --> Anchor
         Timing --> Prefs
     end
@@ -62,13 +64,14 @@ flowchart TD
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`
-- Coordinates overall state: active playback progress, song metadata, lyrics line collection, authorized Spotify sessions, and instrumental breaks.
+- Coordinates overall state: active playback progress, song metadata, lyrics line collection, and instrumental breaks.
 - Provides flattened 1-level direct visual properties (`BackgroundBrush`, `SurfaceCardBrush`, `NoSessionsVisibility`, `HasSessionsVisibility`, `CurrentBreakpoint`) ensuring thread-safe, compile-time verified XAML `{x:Bind}` execution across all platforms.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
 - Transport controls (play/pause, skip, shuffle, repeat, volume, seek) are thin pass-throughs to `PlaybackTransport`, kept so existing `{x:Bind}` paths stay one level deep. The transport's property notifications are re-raised under the same names.
 - Track offset and latency members (`OffsetText`, `NudgeOffsetAsync`, `ResetOffsetAsync`, `SetSyncOffsetAsync`, `LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`) are pass-throughs to `PlaybackTiming` in the same way. Each tick asks `PlaybackTiming` for the clock target and the render position.
+- Session members (`Sessions`, `CurrentUserSession`, `ActiveUserName`, `ActiveUserId`, `AuthorizedSessionsCount`, `IsAuthorized`, `ConnectButtonText`, `ConnectButtonGlyph`, `NoSessionsVisibility`, `HasSessionsVisibility`, `SubscribeToUserAsync`, `SwitchUserSubscriptionAsync`, `LogoutAsync`) are pass-throughs to `SessionViewModel` in the same way. When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -110,6 +113,12 @@ flowchart TD
 - Owns device latency compensation (`LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`): clamped to `0-1000ms` and persisted through `ILyricsPreferences`. `LATENCY_STEP_MS` is the `50ms` step.
 - Owns the per-track offset (`TrackOffsetMs`, `OffsetText`). `NudgeOffsetAsync` and `ResetOffsetAsync` update it and save it for the current track; nudges clamp to `-30s..+30s`. `SetSyncOffsetAsync` only saves. `ApplyTrackOffset` takes the server's saved offset and ignores offsets for any track but the current one.
 - Reads the current track ID through a delegate, so it has no dependency on `PlaybackTransport`.
+
+### 10. `SessionViewModel`
+- Owns sign-in state: the authorized Sessions list (`Sessions`, `CurrentUserSession`, `AuthorizedSessionsCount`), the active user (`ActiveUserName`, `ActiveUserId`), and the derived `IsAuthorized`, connect button text and glyph, and session visibilities.
+- `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
+- `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
+- Display management attaches here.
 
 ---
 
