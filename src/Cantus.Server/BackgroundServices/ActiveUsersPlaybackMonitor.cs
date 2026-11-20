@@ -184,8 +184,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     continue;
                 }
 
-                string userGroup = $"user_{session.Id}";
-                await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                 {
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = 1,
@@ -219,7 +218,6 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 bool isVisible = _registry.IsUserVisible(session.Id);
                 UserPlaybackSnapshot? previousSnapshot = _registry.GetUserState(session.Id);
                 PlaybackState? currentPlayback = null;
-                string userGroup = $"user_{session.Id}";
 
                 try
                 {
@@ -240,7 +238,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         retryAfter);
 
                     string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
-                    await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                    await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                     {
                         ConnectedClients = _registry.ConnectedClientsCount,
                         AuthorizedSessions = 1,
@@ -278,7 +276,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             retryAfter);
 
                         string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
-                        await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                        await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                         {
                             ConnectedClients = _registry.ConnectedClientsCount,
                             AuthorizedSessions = 1,
@@ -377,11 +375,11 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         {
                             if (lyrics is not null)
                             {
-                                await _hubContext.Clients.Group(userGroup).ReceiveLyrics(lyrics.ToDto());
+                                await _hubContext.Clients.Viewers(session.Id).ReceiveLyrics(lyrics.ToDto());
                             }
                             else if (currentPlayback.CurrentTrack is not null)
                             {
-                                await _hubContext.Clients.Group(userGroup).ReceiveLyrics(new LyricsDto
+                                await _hubContext.Clients.Viewers(session.Id).ReceiveLyrics(new LyricsDto
                                 {
                                     TrackId = currentPlayback.CurrentTrack.Id,
                                     Title = currentPlayback.CurrentTrack.Title,
@@ -396,7 +394,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
                             if (currentPlayback.CurrentTrack is not null)
                             {
-                                await _hubContext.Clients.Group(userGroup).ReceiveTrackOffset(new TrackOffsetDto
+                                await _hubContext.Clients.Viewers(session.Id).ReceiveTrackOffset(new TrackOffsetDto
                                 {
                                     TrackId = currentPlayback.CurrentTrack.Id,
                                     OffsetMs = trackOffset
@@ -405,12 +403,12 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         }
 
                         // Broadcast playback state to user group
-                        await _hubContext.Clients.Group(userGroup).ReceivePlaybackState(
+                        await _hubContext.Clients.Viewers(session.Id).ReceivePlaybackState(
                             currentPlayback.ToDto(session.Id, session.DisplayName));
 
                         // Diagnostics for user group
                         string status = isVisible ? "Active (Playing)" : "Active (Background)";
-                        await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                        await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                         {
                             ConnectedClients = _registry.ConnectedClientsCount,
                             AuthorizedSessions = 1,
@@ -451,10 +449,10 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             previousSnapshot?.Lyrics,
                             previousSnapshot?.TrackOffsetMs ?? 0);
 
-                        await _hubContext.Clients.Group(userGroup).ReceivePlaybackState(
+                        await _hubContext.Clients.Viewers(session.Id).ReceivePlaybackState(
                             currentPlayback.ToDto(session.Id, session.DisplayName));
 
-                        await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                        await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                         {
                             ConnectedClients = _registry.ConnectedClientsCount,
                             AuthorizedSessions = 1,
@@ -499,7 +497,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         null,
                         0);
 
-                    await _hubContext.Clients.Group(userGroup).ReceiveDiagnostics(new DiagnosticsDto
+                    await _hubContext.Clients.Viewers(session.Id).ReceiveDiagnostics(new DiagnosticsDto
                     {
                         ConnectedClients = _registry.ConnectedClientsCount,
                         AuthorizedSessions = 1,

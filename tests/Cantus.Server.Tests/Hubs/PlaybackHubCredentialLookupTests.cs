@@ -36,6 +36,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
     {
         _mockClients.Setup(c => c.Caller).Returns(_mockCaller.Object);
         _mockContext.Setup(c => c.ConnectionId).Returns(CONNECTION_ID);
+        _mockContext.Setup(c => c.Items).Returns(new Dictionary<object, object?>());
     }
 
     public void Dispose()
@@ -141,7 +142,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
             Mock.Of<ILyricsCacheRepository>(),
             _store.CreateAuthService(),
             Mock.Of<ISpotifyPlayerClient>(),
-            new SessionTokenResolver(),
+            _store.CreateCredentialResolver(),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

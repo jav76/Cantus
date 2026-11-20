@@ -26,6 +26,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
     private readonly Mock<IHubClients<IPlaybackClient>> _mockClients = new();
     private readonly Mock<IPlaybackClient> _mockUser1Group = new();
     private readonly Mock<IPlaybackClient> _mockUser2Group = new();
+    private readonly Mock<IPlaybackClient> _mockUser1Displays = new();
     private readonly Mock<IPlaybackClient> _mockAll = new();
 
     private readonly Mock<ISpotifyAuthService> _mockAuthService = new();
@@ -53,6 +54,8 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockClients.Setup(c => c.All).Returns(_mockAll.Object);
         _mockClients.Setup(c => c.Group("user_user-1")).Returns(_mockUser1Group.Object);
         _mockClients.Setup(c => c.Group("user_user-2")).Returns(_mockUser2Group.Object);
+        _mockClients.Setup(c => c.Group("display_user-1")).Returns(_mockUser1Displays.Object);
+        _mockClients.Setup(c => c.Group("display_user-2")).Returns(Mock.Of<IPlaybackClient>());
 
         _mockRegistry.Setup(r => r.IsUserVisible(It.IsAny<string>())).Returns(true);
 
@@ -193,6 +196,68 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockUser1Group.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.AtLeastOnce);
         _mockUser1Group.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.AtLeastOnce);
         _mockAll.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task WhenTrackPlays_BroadcastsToOwnersDisplaysWithoutTheSessionId()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        TrackInfo track = new()
+        {
+            Id = "track-1",
+            Title = "Song",
+            Artist = "Artist",
+            Duration = TimeSpan.FromMinutes(4)
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PlaybackState
+            {
+                CurrentTrack = track,
+                IsPlaying = true,
+                Progress = TimeSpan.FromSeconds(10),
+                TimestampUtc = DateTimeOffset.UtcNow
+            });
+        _mockLyricsProvider.Setup(l => l.GetLyricsAsync(track, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncedLyrics { TrackId = "track-1", Title = "Song", Artist = "Artist", Lines = [] });
+
+        TaskCompletionSource diagnosticsBroadcast = CreateSignal();
+        _mockUser1Displays
+            .Setup(c => c.ReceiveDiagnostics(It.IsAny<DiagnosticsDto>()))
+            .Callback(() => diagnosticsBroadcast.TrySetResult())
+            .Returns(Task.CompletedTask);
+
+        await RunUntilAsync(_monitor, "a diagnostics broadcast to user-1's Displays", diagnosticsBroadcast.Task);
+
+        _mockUser1Displays.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.AtLeastOnce);
+        _mockUser1Displays.Verify(c => c.ReceiveTrackOffset(It.IsAny<TrackOffsetDto>()), Times.AtLeastOnce);
+        _mockUser1Displays.Verify(
+            c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(s =>
+                s.ActiveUserId == null && s.ActiveUserDisplayName == "Alice")),
+            Times.AtLeastOnce);
+        _mockUser1Displays.Verify(
+            c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(s => s.ActiveUserId != null)),
+            Times.Never);
+        _mockUser1Displays.Verify(
+            c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d => d.ActiveUserId != null)),
+            Times.Never);
+        _mockUser1Group.Verify(
+            c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(s => s.ActiveUserId == "user-1")),
+            Times.AtLeastOnce);
     }
 
     [Fact]
