@@ -48,8 +48,7 @@ public static class LyricsEndpoints
         [FromBody] TrackOffsetDto request,
         ILyricsCacheRepository cacheRepository,
         IPlaybackSessionRegistry registry,
-        ISessionTokenResolver sessionResolver,
-        ISpotifyAuthService authService,
+        ICredentialResolver credentialResolver,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -58,19 +57,18 @@ public static class LyricsEndpoints
         // owning session, so it requires an authenticated caller. The previous
         // fallback accepted anonymous writes and broadcast them to every
         // connected client.
-        string? credential = sessionResolver.ResolveSessionId(context);
-        if (string.IsNullOrEmpty(credential))
+        CallerCredential? caller = await credentialResolver.ResolveAsync(context, cancellationToken);
+        if (caller is null)
         {
             return Results.Unauthorized();
         }
 
-        UserSession? session = await authService.GetSessionByIdAsync(credential, cancellationToken);
-        if (session is null)
+        if (!caller.IsSession)
         {
-            return Results.Unauthorized();
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
 
-        string sessionId = session.Id;
+        string sessionId = caller.Owner.Id;
 
         if (string.IsNullOrWhiteSpace(request.TrackId))
         {
@@ -90,7 +88,7 @@ public static class LyricsEndpoints
                 request.OffsetMs);
         }
 
-        await hubContext.Clients.Group($"user_{sessionId}").ReceiveTrackOffset(request);
+        await hubContext.Clients.Viewers(sessionId).ReceiveTrackOffset(request);
 
         return Results.Ok(request);
     }
