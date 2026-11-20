@@ -9,7 +9,7 @@ In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal A
 ### Session credential
 Endpoints that act on the caller's Session read its credential from, in order: the `cantus_session_id` cookie, the `access_token`, `token` or `session_id` query parameter, or the `Authorization` header (`Bearer <id>` or the raw id).
 
-The credential is the Session id issued by the OAuth callback. The server matches it against that exact id only. A Spotify user id is not a credential: `/me` returns `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
+The credential is the Session id issued by the OAuth callback. The server matches it against that exact id only. A Spotify user id is not a credential: `/me` and `POST /api/lyrics/offset` return `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
 
 ---
 
@@ -117,7 +117,9 @@ Saves a manual timing offset adjustment for a track.
   "offsetMs": 150
 }
 ```
+- Requires the caller's [session credential](#session-credential).
 - **Response `200 OK`**
+- **Response `401 Unauthorized`**: no credential, or the credential does not match a Session id.
 
 ---
 
