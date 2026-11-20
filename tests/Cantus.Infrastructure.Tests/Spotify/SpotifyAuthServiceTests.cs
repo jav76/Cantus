@@ -77,7 +77,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSessionAsync_WhenSessionExists_DecryptsAndReturnsSession()
+    public async Task GetSessionByIdAsync_WhenSessionExists_DecryptsAndReturnsSession()
     {
         string rawAccessToken = "access_token_secret_123";
         string rawRefreshToken = "refresh_token_secret_456";
@@ -98,7 +98,7 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         await _dbContext.UserSessions.AddAsync(entity);
         await _dbContext.SaveChangesAsync();
 
-        Core.Models.UserSession? session = await _authService.GetSessionAsync("user_abc");
+        Core.Models.UserSession? session = await _authService.GetSessionByIdAsync("user_abc");
 
         session.Should().NotBeNull();
         session!.Id.Should().Be("user_abc");
@@ -109,14 +109,14 @@ public sealed class SpotifyAuthServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSessionAsync_WhenSessionNotFound_ReturnsNull()
+    public async Task GetSessionByIdAsync_WhenSessionNotFound_ReturnsNull()
     {
-        Core.Models.UserSession? session = await _authService.GetSessionAsync("nonexistent_user");
+        Core.Models.UserSession? session = await _authService.GetSessionByIdAsync("nonexistent_user");
         session.Should().BeNull();
     }
 
     [Fact]
-    public async Task GetSessionAsync_CachesSessionInMemory_AndInvalidatesOnRevoke()
+    public async Task GetSessionByIdAsync_CachesSessionInMemory_AndInvalidatesOnRevoke()
     {
         string rawAccessToken = "access_token_123";
         string rawRefreshToken = "refresh_token_456";
@@ -138,20 +138,84 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // First call populates cache
-        Core.Models.UserSession? session1 = await _authService.GetSessionAsync("user_cache_test");
+        Core.Models.UserSession? session1 = await _authService.GetSessionByIdAsync("user_cache_test");
         session1.Should().NotBeNull();
 
         // Second call should return cached instance even if database entity is removed behind the scenes
         _dbContext.UserSessions.Remove(entity);
         await _dbContext.SaveChangesAsync();
 
-        Core.Models.UserSession? session2 = await _authService.GetSessionAsync("user_cache_test");
+        Core.Models.UserSession? session2 = await _authService.GetSessionByIdAsync("user_cache_test");
         session2.Should().NotBeNull();
         session2!.Id.Should().Be("user_cache_test");
 
         // Revoke should clear cache
         await _authService.RevokeSessionAsync("user_cache_test");
-        Core.Models.UserSession? session3 = await _authService.GetSessionAsync("user_cache_test");
+        Core.Models.UserSession? session3 = await _authService.GetSessionByIdAsync("user_cache_test");
         session3.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSessionByIdAsync_WithSpotifyUserId_ReturnsNull()
+    {
+        await SeedSessionAsync("session_by_id", "spotify_by_id");
+
+        Core.Models.UserSession? session = await _authService.GetSessionByIdAsync("spotify_by_id");
+
+        session.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSessionByIdAsync_WithSpotifyUserIdAfterSessionIsCached_ReturnsNull()
+    {
+        await SeedSessionAsync("session_cached", "spotify_cached");
+        (await _authService.GetSessionByIdAsync("session_cached")).Should().NotBeNull();
+
+        Core.Models.UserSession? session = await _authService.GetSessionByIdAsync("spotify_cached");
+
+        session.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("session_for_user")]
+    [InlineData("spotify_for_user")]
+    public async Task GetSessionForUserAsync_WithSessionIdOrSpotifyUserId_ReturnsSession(string userId)
+    {
+        await SeedSessionAsync("session_for_user", "spotify_for_user");
+
+        Core.Models.UserSession? session = await _authService.GetSessionForUserAsync(userId);
+
+        session.Should().NotBeNull();
+        session!.Id.Should().Be("session_for_user");
+    }
+
+    [Fact]
+    public async Task RevokeSessionAsync_WithSpotifyUserId_ReturnsFalseAndKeepsSession()
+    {
+        await SeedSessionAsync("session_revoke", "spotify_revoke");
+        (await _authService.GetSessionByIdAsync("session_revoke")).Should().NotBeNull();
+
+        bool revoked = await _authService.RevokeSessionAsync("spotify_revoke");
+
+        revoked.Should().BeFalse();
+        (await _dbContext.UserSessions.AnyAsync(u => u.Id == "session_revoke")).Should().BeTrue();
+        (await _authService.GetSessionByIdAsync("session_revoke")).Should().NotBeNull();
+    }
+
+    private async Task SeedSessionAsync(string sessionId, string spotifyUserId)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        await _dbContext.UserSessions.AddAsync(new UserSessionEntity
+        {
+            Id = sessionId,
+            SpotifyUserId = spotifyUserId,
+            DisplayName = "Seeded User",
+            EncryptedAccessToken = _encryptionService.Encrypt("access_token"),
+            EncryptedRefreshToken = _encryptionService.Encrypt("refresh_token"),
+            ExpiresAtUtc = now.AddHours(1),
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        });
+        await _dbContext.SaveChangesAsync();
     }
 }

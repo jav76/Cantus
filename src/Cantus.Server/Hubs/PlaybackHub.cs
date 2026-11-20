@@ -46,7 +46,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
             if (!string.IsNullOrWhiteSpace(resolvedSessionId))
             {
-                userSession = await _authService.GetSessionAsync(resolvedSessionId);
+                userSession = await _authService.GetSessionByIdAsync(resolvedSessionId);
             }
         }
         catch (Exception ex)
@@ -179,7 +179,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             return;
         }
 
-        UserSession? userSession = await _authService.GetSessionAsync(callingSessionId);
+        UserSession? userSession = await _authService.GetSessionByIdAsync(callingSessionId);
         if (userSession is null || (userId is not null && userSession.Id != userId))
         {
             return;
@@ -356,7 +356,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             return (int)PlayerCommandResult.Failed;
         }
 
-        UserSession? session = await _authService.GetSessionAsync(userId);
+        UserSession? session = await _authService.GetSessionForUserAsync(userId);
         if (session is null || string.IsNullOrWhiteSpace(session.AccessToken))
         {
             return (int)PlayerCommandResult.Failed;

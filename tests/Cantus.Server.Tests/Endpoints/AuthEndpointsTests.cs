@@ -69,7 +69,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         HttpClient client = _factory.CreateClient();
 
         _mockAuthService
-            .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetSessionByIdAsync("sess-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UserSession
             {
                 Id = "sess-1",
@@ -110,7 +110,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         HttpClient client = _factory.CreateClient();
 
         _mockAuthService
-            .Setup(a => a.GetSessionAsync("sess-1", It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetSessionByIdAsync("sess-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UserSession
             {
                 Id = "sess-1",

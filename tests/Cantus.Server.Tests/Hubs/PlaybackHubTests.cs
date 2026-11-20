@@ -111,7 +111,7 @@ public sealed class PlaybackHubTests
             DateTimeOffset.UtcNow);
 
         _mockSessionResolver.Setup(s => s.ResolveSessionId(It.IsAny<HttpContext>())).Returns("session-123");
-        _mockAuthService.Setup(a => a.GetSessionAsync("session-123", default)).ReturnsAsync(userSession);
+        _mockAuthService.Setup(a => a.GetSessionByIdAsync("session-123", default)).ReturnsAsync(userSession);
         _mockRegistry.Setup(r => r.GetUserState("user-1")).Returns(snapshot);
 
         await _hub.OnConnectedAsync();
@@ -199,7 +199,7 @@ public sealed class PlaybackHubTests
 
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns((string?)null);
         _mockSessionResolver.Setup(s => s.ResolveSessionId(It.IsAny<HttpContext>())).Returns("user-2");
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", default)).ReturnsAsync(new UserSession
+        _mockAuthService.Setup(a => a.GetSessionByIdAsync("user-2", default)).ReturnsAsync(new UserSession
         {
             Id = "user-2",
             SpotifyUserId = "sp-2",
@@ -233,7 +233,7 @@ public sealed class PlaybackHubTests
     public async Task SendPlayerCommand_WhenSubscribedWithSession_ExecutesCommandAndRequestsRefresh(string command)
     {
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns("user-1");
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", default)).ReturnsAsync(new UserSession
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", default)).ReturnsAsync(new UserSession
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
@@ -275,7 +275,7 @@ public sealed class PlaybackHubTests
         PlayerCommandResult rejection)
     {
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns("user-1");
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", default)).ReturnsAsync(new UserSession
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", default)).ReturnsAsync(new UserSession
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
@@ -295,7 +295,7 @@ public sealed class PlaybackHubTests
     public async Task SendPlayerCommand_WithUnknownCommand_Fails()
     {
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns("user-1");
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", default)).ReturnsAsync(new UserSession
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", default)).ReturnsAsync(new UserSession
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
@@ -366,7 +366,7 @@ public sealed class PlaybackHubTests
     private void ArrangeSubscribedSession()
     {
         _mockRegistry.Setup(r => r.GetConnectionSubscription("test-conn-id")).Returns("user-1");
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", default)).ReturnsAsync(new UserSession
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", default)).ReturnsAsync(new UserSession
         {
             Id = "user-1",
             SpotifyUserId = "sp-1",
