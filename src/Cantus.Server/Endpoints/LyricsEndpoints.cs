@@ -16,6 +16,9 @@ namespace Cantus.Server.Endpoints;
 
 public static class LyricsEndpoints
 {
+    private const string PROVIDERS_UNAVAILABLE_MESSAGE =
+        "The lyrics providers could not be reached. The current lyrics are unchanged.";
+
     public static IEndpointRouteBuilder MapLyricsEndpoints(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapGroup("/api/lyrics").WithTags("Lyrics & Playback");
@@ -131,7 +134,15 @@ public static class LyricsEndpoints
                 lyrics = null;
                 break;
             case LyricsOverrideRequestDto.ACTION_REFETCH:
-                lyrics = await overrideService.RefetchAsync(currentTrack, cancellationToken);
+                LyricsOverrideOutcome refetched = await overrideService.RefetchAsync(currentTrack, cancellationToken);
+                if (refetched.Status != LyricsOverrideStatus.Applied)
+                {
+                    return Results.Json(
+                        new { Message = PROVIDERS_UNAVAILABLE_MESSAGE },
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
+
+                lyrics = refetched.Lyrics;
                 break;
             case LyricsOverrideRequestDto.ACTION_CLEAR:
                 lyrics = await overrideService.ClearAsync(currentTrack, cancellationToken);

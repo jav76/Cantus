@@ -140,7 +140,6 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
             string.Empty,
             0,
             TimeSpan.FromDays(30));
-        await repository.RemoveCachedLyricsAsync(TRACK_ID);
 
         LyricsOverride? stored = await repository.GetLyricsOverrideAsync(TRACK_ID);
         stored.Should().NotBeNull();
@@ -172,36 +171,5 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
         await repository.RemoveLyricsOverrideAsync(TRACK_ID);
 
         (await repository.GetLyricsOverrideAsync(TRACK_ID)).Should().BeNull();
-    }
-
-    [Fact]
-    public async Task RemoveCachedLyrics_DropsANegativeCacheEntry()
-    {
-        using CantusDbContext context = CreateContext();
-        SqliteLyricsCacheRepository repository = new(context);
-        await repository.MarkNotFoundAsync(
-            TRACK_ID,
-            "Miss America",
-            "Brandon Flowers",
-            string.Empty,
-            0,
-            TimeSpan.FromDays(30));
-
-        await repository.RemoveCachedLyricsAsync(TRACK_ID);
-
-        (await repository.IsMarkedNotFoundAsync(TRACK_ID)).Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task RemoveCachedLyrics_ThenSaveInTheSameScope_StoresTheNewMatch()
-    {
-        using CantusDbContext context = CreateContext();
-        SqliteLyricsCacheRepository repository = new(context);
-        await repository.SaveLyricsAsync(ChosenLyrics());
-
-        await repository.RemoveCachedLyricsAsync(TRACK_ID);
-        await repository.SaveLyricsAsync(ChosenLyrics());
-
-        (await repository.GetCachedLyricsAsync(TRACK_ID)).Should().NotBeNull();
     }
 }

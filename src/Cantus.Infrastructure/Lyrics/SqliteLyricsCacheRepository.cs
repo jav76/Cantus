@@ -177,21 +177,6 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         return entity;
     }
 
-    // Deletes go through the change tracker rather than ExecuteDelete so an
-    // entity this scope already tracks cannot collide with a re-insert of the
-    // same key later in the scope (a re-fetch removes, then saves).
-    public async Task RemoveCachedLyricsAsync(string trackId, CancellationToken cancellationToken = default)
-    {
-        CachedLyricsEntity? entity = await _dbContext.CachedLyrics
-            .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
-
-        if (entity is not null)
-        {
-            _dbContext.CachedLyrics.Remove(entity);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-    }
-
     public async Task<LyricsOverride?> GetLyricsOverrideAsync(
         string trackId,
         CancellationToken cancellationToken = default)

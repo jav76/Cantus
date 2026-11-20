@@ -83,6 +83,31 @@ public sealed class SqliteLyricsCacheRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveLyricsAsync_OverANotFoundMark_ReplacesItWithTheLyrics()
+    {
+        await _repository.MarkNotFoundAsync(
+            "track_refetched",
+            "Song",
+            "Artist",
+            "Album",
+            180000,
+            TimeSpan.FromDays(7));
+
+        await _repository.SaveLyricsAsync(new SyncedLyrics
+        {
+            TrackId = "track_refetched",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = [new(TimeSpan.FromSeconds(1), "Found now")]
+        });
+
+        (await _repository.IsMarkedNotFoundAsync("track_refetched")).Should().BeFalse();
+        SyncedLyrics? retrieved = await _repository.GetCachedLyricsAsync("track_refetched");
+        retrieved!.Lines.Select(l => l.Text).Should().Equal("Found now");
+    }
+
+    [Fact]
     public async Task GetCachedLyricsAsync_WhenExpired_ReturnsNullAndCleansUp()
     {
         SyncedLyrics lyrics = new()

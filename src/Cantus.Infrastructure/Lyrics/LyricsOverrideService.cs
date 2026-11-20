@@ -8,19 +8,19 @@ namespace Cantus.Infrastructure.Lyrics;
 /// Applies the owner's lyrics corrections for a track. Overrides are stored
 /// apart from the cache, so cache expiry and negative caching never undo them;
 /// re-fetching and clearing hand the track back to automatic matching through
-/// the regular lyrics chain.
+/// <see cref="CachedLyricsService"/>.
 /// </summary>
 public sealed class LyricsOverrideService
 {
     private readonly ILyricsCacheRepository _repository;
     private readonly IReadOnlyList<ILyricsFetchProvider> _providers;
-    private readonly ILyricsProvider _automaticLyrics;
+    private readonly CachedLyricsService _automaticLyrics;
     private readonly ILogger<LyricsOverrideService> _logger;
 
     public LyricsOverrideService(
         ILyricsCacheRepository repository,
         IReadOnlyList<ILyricsFetchProvider> providers,
-        ILyricsProvider automaticLyrics,
+        CachedLyricsService automaticLyrics,
         ILogger<LyricsOverrideService> logger)
     {
         _repository = repository;
@@ -96,15 +96,16 @@ public sealed class LyricsOverrideService
     }
 
     /// <summary>
-    /// Drops the override and the cached automatic match (including a "not
-    /// found" mark), then matches the track again from the providers.
+    /// Matches the track again from the providers, skipping the caches. Only a
+    /// definitive answer replaces the cached match (including a "not found"
+    /// mark) and drops the override; when a provider cannot be reached nothing
+    /// is changed and the outcome is ProviderUnavailable.
     /// </summary>
-    public async Task<SyncedLyrics?> RefetchAsync(TrackInfo track, CancellationToken cancellationToken = default)
+    public async Task<LyricsOverrideOutcome> RefetchAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(track);
-
-        await _repository.RemoveLyricsOverrideAsync(track.Id, cancellationToken);
-        await _repository.RemoveCachedLyricsAsync(track.Id, cancellationToken);
 
         _logger.LogInformation(
             "Re-fetching lyrics for track {TrackId} ({Artist} - {Title})",
@@ -112,7 +113,14 @@ public sealed class LyricsOverrideService
             track.Artist,
             track.Title);
 
-        return await _automaticLyrics.GetLyricsAsync(track, cancellationToken);
+        LyricsFetchResult result = await _automaticLyrics.RefreshFromProvidersAsync(track, cancellationToken);
+        if (!result.IsDefinitive)
+        {
+            return LyricsOverrideOutcome.Rejected(LyricsOverrideStatus.ProviderUnavailable);
+        }
+
+        await _repository.RemoveLyricsOverrideAsync(track.Id, cancellationToken);
+        return LyricsOverrideOutcome.Applied(result.Lyrics);
     }
 
     /// <summary>

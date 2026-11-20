@@ -416,9 +416,46 @@ public sealed class LyricsOverrideEndpointTests : IClassFixture<WebApplicationFa
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         _mockRepository.Verify(r => r.RemoveLyricsOverrideAsync(TRACK_ID, It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepository.Verify(r => r.RemoveCachedLyricsAsync(TRACK_ID, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepository.Verify(
+            r => r.SaveLyricsAsync(
+                It.Is<SyncedLyrics>(l => l.TrackId == TRACK_ID),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
         _ownerGroup.Verify(g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.Lines[0].Text == "Fresh")), Times.Once);
         Registry.GetUserState(OWNER_SESSION_ID)!.Lyrics!.Lines[0].Text.Should().Be("Fresh");
+    }
+
+    [Fact]
+    public async Task Refetch_WhenAProviderIsUnreachable_ReturnsBadGatewayAndKeepsTheCurrentLyrics()
+    {
+        HttpClient client = _factory.CreateClient();
+        SetCurrentTrack(OWNER_SESSION_ID, CurrentTrack, Lyrics("Current"));
+
+        _lrclib
+            .Setup(p => p.FetchLyricsAsync(It.Is<TrackInfo>(t => t.Id == TRACK_ID), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LyricsFetchResult.Unavailable());
+
+        HttpResponseMessage response = await client.SendAsync(
+            OverrideRequest(TRACK_ID, OWNER_SESSION_ID, new LyricsOverrideRequestDto { Action = "refetch" }));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadGateway);
+        VerifyNoOverrideWritten();
+        VerifyNothingBroadcast();
+        _mockRepository.Verify(
+            r => r.SaveLyricsAsync(It.IsAny<SyncedLyrics>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _mockRepository.Verify(
+            r => r.MarkNotFoundAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        Registry.GetUserState(OWNER_SESSION_ID)!.Lyrics!.Lines[0].Text.Should().Be("Current");
     }
 
     [Fact]
@@ -438,8 +475,8 @@ public sealed class LyricsOverrideEndpointTests : IClassFixture<WebApplicationFa
         LyricsDto? dto = await response.Content.ReadFromJsonAsync<LyricsDto>();
         dto!.Lines.Select(l => l.Text).Should().Equal("Automatic");
         _mockRepository.Verify(r => r.RemoveLyricsOverrideAsync(TRACK_ID, It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepository.Verify(
-            r => r.RemoveCachedLyricsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+        _lrclib.Verify(
+            p => p.FetchLyricsAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _ownerGroup.Verify(g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.Lines[0].Text == "Automatic")), Times.Once);
     }

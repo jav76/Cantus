@@ -285,7 +285,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 | :--- | :--- |
 | `candidate` | Loads the candidate's lyrics from `provider` (as listed by `GET /api/lyrics/{trackId}/candidates`) and stores them as the override. `provider` and `candidateId` are required. |
 | `noLyrics` | Stores a "no lyrics" override. Viewers see an empty lyrics view and no provider is queried for the track. |
-| `refetch` | Removes any override and the cached automatic match (including a "not found" entry), then queries the providers again. |
+| `refetch` | Queries the providers again, skipping the caches. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
 | `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. |
 
 - **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
@@ -294,7 +294,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
 - **Response `403 Forbidden`**: the caller holds a Display token. Nothing is changed and nothing is broadcast.
 - **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or the provider has no lyrics for `candidateId`.
-- **Response `502 Bad Gateway`**: the provider could not be reached while loading the candidate. Nothing is changed.
+- **Response `502 Bad Gateway`**: the provider could not be reached while loading the candidate, or a provider could not be reached during a `refetch`. Nothing is changed and nothing is broadcast.
 
 `GET /api/lyrics/{trackId}` also honors overrides: it returns the chosen candidate's lyrics, or `404` for a `noLyrics` override.
 

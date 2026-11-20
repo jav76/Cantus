@@ -22,13 +22,6 @@ public interface ILyricsCacheRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Drops the cached automatic match for a track, including a "not found"
-    /// mark, so the next lookup queries the providers again. Overrides are
-    /// stored separately and are not affected.
-    /// </summary>
-    Task RemoveCachedLyricsAsync(string trackId, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// The owner's override for a track, or null when the track uses automatic
     /// matching. Overrides never expire and cache writes never touch them.
     /// </summary>
