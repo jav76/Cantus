@@ -1,4 +1,5 @@
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Lyrics;
 
 namespace Cantus.Server.Models;
 
@@ -46,6 +47,32 @@ public static class DtoMappingExtensions
             RepeatMode = state.RepeatMode,
             ActiveUserId = activeUserId,
             ActiveUserDisplayName = activeUserName
+        };
+    }
+
+    public static LyricsCandidatesDto ToDto(this LyricsCandidateList list, string trackId)
+    {
+        return new LyricsCandidatesDto
+        {
+            TrackId = trackId,
+            Candidates = list.Candidates.Select(c => c.ToDto()).ToList(),
+            UnavailableProviders = list.UnavailableProviders
+        };
+    }
+
+    public static LyricsCandidateDto ToDto(this LyricsCandidate candidate)
+    {
+        return new LyricsCandidateDto
+        {
+            Provider = candidate.Provider,
+            ProviderCandidateId = candidate.ProviderCandidateId,
+            Title = candidate.Title,
+            Artist = candidate.Artist,
+            Album = candidate.Album,
+            DurationMs = (long)candidate.Duration.TotalMilliseconds,
+            IsSynced = candidate.IsSynced,
+            IsInstrumental = candidate.IsInstrumental,
+            Preview = candidate.Preview
         };
     }
 
