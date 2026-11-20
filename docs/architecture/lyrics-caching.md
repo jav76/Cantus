@@ -79,3 +79,16 @@ Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates sta
 - Handles both 2-digit (`[mm:ss.xx]`) and 3-digit (`[mm:ss.xxx]`) millisecond precision.
 - Normalizes out-of-order lyric lines.
 - Computes start and end durations for each line to trigger smooth visual highlighting and transition states.
+
+### NetEase Word-by-Word Lyrics (`YrcParser`)
+
+`YrcParser` reads NetEase's word-timed `yrc` format. Each line has a `[startMs,durationMs]` header followed by `(startMs,durationMs,flag)text` tokens, all in absolute milliseconds:
+
+```text
+[27360,1290](27360,240,0)alpha (27600,90,0)bravo (27690,360,0)charlie
+[40000,1270](40000,890,0)甲(40890,380,0)乙
+```
+
+- Each token becomes a `LyricSyllable` with its real start and duration. Token text is kept as sent, so a word's trailing space stays on it and split syllables of one word stay joined.
+- The line text is the joined token text, trimmed. Credit lines are returned as ordinary lines; stripping them is up to the caller.
+- A line with an unreadable token falls back to line-level timing (no syllables) and keeps its text. A line with no readable timing at all takes the previous line's timestamp. The parser never throws and never drops a non-blank line.
