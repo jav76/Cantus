@@ -31,6 +31,7 @@ public interface IPlaybackSessionRegistry
 
     void RegisterConnection(string connectionId, string? userId = null);
     void UnregisterConnection(string connectionId);
+    bool IsConnected(string connectionId);
     void SetConnectionSubscription(string connectionId, string? targetUserId);
     string? GetConnectionSubscription(string connectionId);
     void SetConnectionVisibility(string connectionId, bool isVisible);
