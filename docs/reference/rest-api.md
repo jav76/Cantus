@@ -104,13 +104,24 @@ Retrieves cached synchronized lyrics for a specific Spotify track ID.
   "isInstrumental": false,
   "lines": [
     {
-      "startTimeMs": 18450,
-      "endTimeMs": 22300,
-      "text": "We're no strangers to love"
+      "timestampMs": 18450,
+      "text": "We're no strangers",
+      "syllables": [
+        { "timestampMs": 18450, "durationMs": 420, "text": "We're " },
+        { "timestampMs": 18870, "durationMs": 310, "text": "no " },
+        { "timestampMs": 19180, "durationMs": 900, "text": "strangers" }
+      ]
+    },
+    {
+      "timestampMs": 22800,
+      "text": "You know the rules and so do I",
+      "syllables": null
     }
   ]
 }
 ```
+
+`syllables` carries real per-word timing (absolute milliseconds; a word's trailing space stays in its `text`) and is `null` for lines with line-level timing only.
 
 ---
 
@@ -285,8 +296,8 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 | :--- | :--- |
 | `candidate` | Loads the candidate's lyrics from `provider` (as listed by `GET /api/lyrics/{trackId}/candidates`) and stores them as the override. `provider` and `candidateId` are required. |
 | `noLyrics` | Stores a "no lyrics" override. Viewers see an empty lyrics view and no provider is queried for the track. |
-| `refetch` | Queries the providers again, skipping the caches. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
-| `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. |
+| `refetch` | Queries the providers again, skipping the caches and preferring a word-timed result. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
+| `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. A line-only cached match can then get a word timing upgrade attempt (see [Lyrics Caching](../architecture/lyrics-caching.md#upgrading-line-only-entries)). |
 
 - **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
 - **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}` (`lines` is empty when the track has no lyrics).

@@ -63,6 +63,15 @@ namespace Cantus.Infrastructure.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("WordTimedLinesJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("WordTimingCheckedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WordTimingUpgradeAttempts")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("TrackId");
 
                     b.HasIndex("ExpiresAtUtc");
@@ -189,6 +198,9 @@ namespace Cantus.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WordTimedLinesJson")
                         .HasColumnType("TEXT");
 
                     b.HasKey("TrackId");

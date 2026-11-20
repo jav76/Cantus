@@ -44,15 +44,28 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
     private static readonly char[] ArtistDelimiters = [',', '/', '&', ';'];
 
     // NetEase prepends credit lines (lyricist/composer/arranger/etc.) to the
-    // LRC body; they are metadata, not lyrics, and would render as the first
-    // "sung" lines. Matches timestamped lines whose text starts with common
-    // CJK credit labels (full or single-character abbreviations, optionally
-    // composite like 词/曲) or English ones, followed by a colon.
+    // lyric body; they are metadata, not lyrics, and would render as the first
+    // "sung" lines. Matches text that starts with common CJK credit labels
+    // (full or single-character abbreviations, optionally composite like
+    // 词/曲) or English ones, followed by a colon.
+    private const string CREDIT_LABEL_PATTERN =
+        @"\s*(?:(?:作?词|作?曲|词曲|编曲|制作人?|监制|混音|母带|录音|出品|发行|和声|吉他|贝斯|键盘|弦乐|鼓)(?:\s*[/／]\s*(?:作?词|作?曲))?|(?:Lyrics|Music|Written|Produced)(?:\s+by)?)\s*[:：]";
+
+    private const string LRC_TIMESTAMP_PATTERN = @"\[\d{2,}:\d{2}(?:[.:]\d{1,3})?\]";
+
     [GeneratedRegex(
-        @"^\[\d{2,}:\d{2}(?:[.:]\d{1,3})?\]\s*(?:(?:作?词|作?曲|词曲|编曲|制作人?|监制|混音|母带|录音|出品|发行|和声|吉他|贝斯|键盘|弦乐|鼓)(?:\s*[/／]\s*(?:作?词|作?曲))?|(?:Lyrics|Music|Written|Produced)(?:\s+by)?)\s*[:：]",
+        "^" + LRC_TIMESTAMP_PATTERN + CREDIT_LABEL_PATTERN,
         RegexOptions.IgnoreCase,
         matchTimeoutMilliseconds: CREDIT_LINE_REGEX_TIMEOUT_MS)]
     private static partial Regex CreditLineRegex();
+
+    // Word-timed credits can be split into one token per character, so they
+    // are matched on the joined line text rather than on the raw yrc line.
+    [GeneratedRegex(
+        "^" + CREDIT_LABEL_PATTERN,
+        RegexOptions.IgnoreCase,
+        matchTimeoutMilliseconds: CREDIT_LINE_REGEX_TIMEOUT_MS)]
+    private static partial Regex CreditTextRegex();
 
     private readonly HttpClient _httpClient;
     private readonly NeteaseOptions _options;
@@ -74,6 +87,8 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
     }
 
     public string ProviderName => "NetEase";
+
+    public bool SupportsWordTiming => true;
 
     public virtual async Task<LyricsFetchResult> FetchLyricsAsync(
         TrackInfo track,
@@ -371,7 +386,8 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
     private async Task<NeteaseLyricResponseDto?> GetLyricAsync(long songId, CancellationToken ct)
     {
-        string url = $"/api/song/lyric?id={songId}&lv=1&kv=1&tv=-1";
+        // yv=1 adds the word-timed "yrc" lyric to the same response.
+        string url = $"/api/song/lyric?id={songId}&lv=1&yv=1&tv=-1";
 
         using HttpResponseMessage response = await _httpClient.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
@@ -396,34 +412,78 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
             });
         }
 
-        string? lrcText = lyric.Lrc?.Lyric;
-        if (lyric.Uncollected || string.IsNullOrWhiteSpace(lrcText))
+        if (lyric.Uncollected)
         {
             return LyricsFetchResult.NotFound();
         }
 
-        string cleaned = StripCreditLines(lrcText);
+        SyncedLyrics? parsed = MapWordTimedLyric(lyric.Yrc?.Lyric, track) ?? MapLineLyric(lyric.Lrc?.Lyric, track);
+        if (parsed is null)
+        {
+            return LyricsFetchResult.NotFound();
+        }
+
+        _logger.LogInformation(
+            "NetEase lyrics found for track {TrackId} ({Artist} - {Title}) via song id {SongId} (word timing: {HasWordTiming})",
+            track.Id,
+            track.Artist,
+            track.Title,
+            songId,
+            parsed.HasWordTiming);
+
+        return LyricsFetchResult.Found(parsed);
+    }
+
+    /// <summary>
+    /// Builds lyrics from the word-timed yrc block, or returns null when it is missing or has no
+    /// word-timed lyric lines once credits are removed. The yrc timeline differs from the lrc one,
+    /// so yrc is used as the whole line source rather than merged onto lrc lines.
+    /// </summary>
+    private static SyncedLyrics? MapWordTimedLyric(string? yrcText, TrackInfo track)
+    {
+        if (string.IsNullOrWhiteSpace(yrcText))
+        {
+            return null;
+        }
+
+        List<LyricLine> lines = YrcParser.ParseLines(yrcText)
+            .Where(line => !CreditTextRegex().IsMatch(line.Text))
+            .ToList();
+
+        if (!lines.Any(line => line.Syllables is { Count: > 0 }))
+        {
+            return null;
+        }
+
+        return new SyncedLyrics
+        {
+            TrackId = track.Id,
+            Title = track.Title,
+            Artist = track.Artist,
+            Album = track.Album,
+            Lines = lines,
+            IsSynced = true,
+            IsInstrumental = false,
+            PlainLyrics = string.Join("\n", lines.Select(line => line.Text))
+        };
+    }
+
+    private static SyncedLyrics? MapLineLyric(string? lrcText, TrackInfo track)
+    {
+        if (string.IsNullOrWhiteSpace(lrcText))
+        {
+            return null;
+        }
+
         SyncedLyrics parsed = LrcParser.Parse(
-            cleaned,
+            StripCreditLines(lrcText),
             track.Id,
             track.Title,
             track.Artist,
             track.Album,
             plainLyrics: null);
 
-        if (parsed.Lines is not { Count: > 0 })
-        {
-            return LyricsFetchResult.NotFound();
-        }
-
-        _logger.LogInformation(
-            "NetEase lyrics found for track {TrackId} ({Artist} - {Title}) via song id {SongId}",
-            track.Id,
-            track.Artist,
-            track.Title,
-            songId);
-
-        return LyricsFetchResult.Found(parsed);
+        return parsed.Lines is { Count: > 0 } ? parsed : null;
     }
 
     internal static string StripCreditLines(string lrcText)
@@ -494,6 +554,9 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
         [JsonPropertyName("lrc")]
         public NeteaseLrcDto? Lrc { get; set; }
+
+        [JsonPropertyName("yrc")]
+        public NeteaseLrcDto? Yrc { get; set; }
     }
 
     internal sealed class NeteaseLrcDto

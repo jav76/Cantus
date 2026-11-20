@@ -120,18 +120,24 @@ Dispatched when a new track starts playing or lyrics finish resolving.
   "isInstrumental": false,
   "lines": [
     {
-      "startTimeMs": 18450,
-      "endTimeMs": 22300,
-      "text": "We're no strangers to love"
+      "timestampMs": 18450,
+      "text": "We're no strangers",
+      "syllables": [
+        { "timestampMs": 18450, "durationMs": 420, "text": "We're " },
+        { "timestampMs": 18870, "durationMs": 310, "text": "no " },
+        { "timestampMs": 19180, "durationMs": 900, "text": "strangers" }
+      ]
     },
     {
-      "startTimeMs": 22800,
-      "endTimeMs": 26900,
-      "text": "You know the rules and so do I"
+      "timestampMs": 22800,
+      "text": "You know the rules and so do I",
+      "syllables": null
     }
   ]
 }
 ```
+
+Each line has the same shape as in [`GET /api/lyrics/{trackId}`](rest-api.md#get-apilyricstrackid): `syllables` is `null` unless the line has real word timing.
 
 ### `ReceiveTrackOffset`
 Dispatched when a user modifies or loads the latency offset for a track.

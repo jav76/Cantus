@@ -11,6 +11,9 @@ public sealed class SyncedLyrics
     public bool IsInstrumental { get; init; }
     public string? PlainLyrics { get; init; }
 
+    /// <summary>True when at least one line carries real per-word (syllable) timing.</summary>
+    public bool HasWordTiming => Lines.Any(l => l.Syllables is { Count: > 0 });
+
     public int GetActiveLineIndex(TimeSpan position)
     {
         if (Lines.Count == 0 || position < Lines[0].Timestamp)

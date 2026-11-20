@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\Cantus.Core.Tests\Fixtures\Netease\*.json"
+          Link="Fixtures\Netease\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Cantus.Core\Cantus.Core.csproj" />
     <ProjectReference Include="..\..\src\Cantus.Infrastructure\Cantus.Infrastructure.csproj" />
   </ItemGroup>
