@@ -62,6 +62,7 @@ public static class LyricsEndpoints
     private static async Task<IResult> HandleGetLyricsCandidates(
         string trackId,
         LyricsCandidateService candidateService,
+        ILyricsCacheRepository cacheRepository,
         ICredentialResolver credentialResolver,
         IPlaybackSessionRegistry registry,
         HttpContext context,
@@ -82,7 +83,8 @@ public static class LyricsEndpoints
         }
 
         LyricsCandidateList candidates = await candidateService.GetCandidatesAsync(currentTrack, cancellationToken);
-        return Results.Ok(candidates.ToDto(trackId));
+        LyricsOverride? activeOverride = await cacheRepository.GetLyricsOverrideAsync(trackId, cancellationToken);
+        return Results.Ok(candidates.ToDto(trackId, activeOverride));
     }
 
     private static async Task<IResult> HandleSetLyricsOverride(

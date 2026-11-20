@@ -50,13 +50,31 @@ public static class DtoMappingExtensions
         };
     }
 
-    public static LyricsCandidatesDto ToDto(this LyricsCandidateList list, string trackId)
+    public static LyricsCandidatesDto ToDto(
+        this LyricsCandidateList list,
+        string trackId,
+        LyricsOverride? activeOverride = null)
     {
         return new LyricsCandidatesDto
         {
             TrackId = trackId,
             Candidates = list.Candidates.Select(c => c.ToDto()).ToList(),
-            UnavailableProviders = list.UnavailableProviders
+            UnavailableProviders = list.UnavailableProviders,
+            ActiveOverride = activeOverride?.ToDto()
+        };
+    }
+
+    public static LyricsActiveOverrideDto ToDto(this LyricsOverride lyricsOverride)
+    {
+        return new LyricsActiveOverrideDto
+        {
+            Kind = lyricsOverride.Kind switch
+            {
+                LyricsOverrideKind.NoLyrics => LyricsActiveOverrideDto.KIND_NO_LYRICS,
+                _ => LyricsActiveOverrideDto.KIND_CANDIDATE
+            },
+            Provider = lyricsOverride.Provider,
+            CandidateId = lyricsOverride.ProviderCandidateId
         };
     }
 
