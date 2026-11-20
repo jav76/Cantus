@@ -87,6 +87,8 @@ public sealed class ThemeManager : INotifyPropertyChanged
             OnPropertyChanged(nameof(ActiveLyricBrush));
             OnPropertyChanged(nameof(PastLyricBrush));
             OnPropertyChanged(nameof(UpcomingLyricBrush));
+            OnPropertyChanged(nameof(ActivePrimaryAccentColor));
+            OnPropertyChanged(nameof(ActiveBackgroundColor));
             PaletteChanged?.Invoke(value);
         }
     }
@@ -103,6 +105,9 @@ public sealed class ThemeManager : INotifyPropertyChanged
     public SolidColorBrush ActiveLyricBrush => GetOrCreateBrush(ref _activeLyricBrush, ActivePalette.ActiveLyricColor);
     public SolidColorBrush PastLyricBrush => GetOrCreateBrush(ref _pastLyricBrush, ActivePalette.PastLyricColor);
     public SolidColorBrush UpcomingLyricBrush => GetOrCreateBrush(ref _upcomingLyricBrush, ActivePalette.UpcomingLyricColor);
+
+    public Color ActivePrimaryAccentColor => ActivePalette.PrimaryAccent;
+    public Color ActiveBackgroundColor => ActivePalette.Background;
 
     public event Action<ColorPalette>? PaletteChanged;
 

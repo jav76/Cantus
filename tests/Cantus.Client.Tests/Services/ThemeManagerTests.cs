@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -448,5 +449,24 @@ public sealed class ThemeManagerTests
         tm.ActivePalette.Background.Should().Be(ColorPalette.EmeraldSynth.Background);
         tm.ActivePalette.PrimaryAccent.Should().Be(ColorPalette.EmeraldSynth.PrimaryAccent);
         notifiedPalette.Should().Be(ColorPalette.EmeraldSynth);
+    }
+
+    [Fact]
+    public void PaletteChange_ExposesAndNotifiesTheActiveColors()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.MidnightViolet);
+        List<string?> notified = new();
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        tm.SetThemeMode(ThemeMode.EmeraldSynth);
+
+        // Assert
+        tm.ActivePrimaryAccentColor.Should().Be(ColorPalette.EmeraldSynth.PrimaryAccent);
+        tm.ActiveBackgroundColor.Should().Be(ColorPalette.EmeraldSynth.Background);
+        notified.Should().Contain(nameof(ThemeManager.ActivePrimaryAccentColor));
+        notified.Should().Contain(nameof(ThemeManager.ActiveBackgroundColor));
     }
 }

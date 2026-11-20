@@ -20,6 +20,7 @@ namespace Cantus.Client.ViewModels;
 /// </summary>
 public sealed class SessionViewModel : INotifyPropertyChanged
 {
+    public const string SPOTIFY_LOGIN_PATH = "/api/auth/spotify/login";
     private const string NO_ACTIVE_USER_NAME = "None";
     private const string CONNECTED_GLYPH = "";
     private const string CONNECT_GLYPH = "";
@@ -102,6 +103,16 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     public Visibility HasSessionsVisibility =>
         AuthorizedSessionsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public string ServerBaseUrl => _client.ServerBaseUrl;
+
+    /// <summary>
+    /// Server-relative sign-in path. Carries this client's id so the server
+    /// can pair the new Session with it.
+    /// </summary>
+    public string SpotifyLoginPath => string.IsNullOrWhiteSpace(_client.ClientId)
+        ? SPOTIFY_LOGIN_PATH
+        : $"{SPOTIFY_LOGIN_PATH}?client_id={_client.ClientId}";
 
     private bool HasActiveUserName =>
         ActiveUserName != NO_ACTIVE_USER_NAME && !string.IsNullOrEmpty(ActiveUserName);

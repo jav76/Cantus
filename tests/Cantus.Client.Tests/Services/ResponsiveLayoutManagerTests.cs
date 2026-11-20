@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using FluentAssertions;
@@ -226,5 +227,44 @@ public sealed class ResponsiveLayoutManagerTests
 
         // Assert
         receivedBreakpoint.Should().Be(LayoutBreakpoint.Small);
+    }
+
+    [Fact]
+    public void ToggleKioskMode_EntersAndLeavesFullscreenTv()
+    {
+        // Arrange
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(1280, 800);
+
+        // Act
+        layout.ToggleKioskMode();
+
+        // Assert
+        layout.IsKioskMode.Should().BeTrue();
+        layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.FullscreenTv);
+
+        // Act
+        layout.ToggleKioskMode();
+
+        // Assert
+        layout.IsKioskMode.Should().BeFalse();
+        layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.Large);
+    }
+
+    [Fact]
+    public void MobileView_Change_NotifiesAlbumArtSize()
+    {
+        // Arrange
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(375, 667);
+        List<string?> notified = new();
+        layout.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        layout.MobileView = MobileViewMode.NowPlaying;
+
+        // Assert
+        layout.AlbumArtSize.Should().Be(240.0);
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.AlbumArtSize));
     }
 }
