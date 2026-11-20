@@ -151,7 +151,7 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
 
     public double VolumeSliderValue => _volumePercent ?? 0;
 
-    public string VolumeText => _volumePercent is int v ? $"{v}%" : "—";
+    public string VolumeText => _volumePercent is int v ? $"{v}%" : "\u2014";
 
     public string TransportStatusText => _transportStatusText;
 

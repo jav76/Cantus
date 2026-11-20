@@ -362,7 +362,7 @@ public sealed class PlaybackTransportTests
         // Assert
         transport.IsPlaying.Should().BeFalse();
         transport.VolumePercent.Should().BeNull();
-        transport.VolumeText.Should().Be("—");
+        transport.VolumeText.Should().Be("\u2014");
         transport.IsShuffled.Should().BeFalse();
         transport.RepeatMode.Should().Be("off");
     }
