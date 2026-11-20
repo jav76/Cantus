@@ -296,8 +296,8 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 | :--- | :--- |
 | `candidate` | Loads the candidate's lyrics from `provider` (as listed by `GET /api/lyrics/{trackId}/candidates`) and stores them as the override. `provider` and `candidateId` are required. |
 | `noLyrics` | Stores a "no lyrics" override. Viewers see an empty lyrics view and no provider is queried for the track. |
-| `refetch` | Queries the providers again, skipping the caches. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
-| `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. |
+| `refetch` | Queries the providers again, skipping the caches and preferring a word-timed result. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
+| `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. A line-only cached match can then get a word timing upgrade attempt (see [Lyrics Caching](../architecture/lyrics-caching.md#upgrading-line-only-entries)). |
 
 - **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
 - **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}` (`lines` is empty when the track has no lyrics).
