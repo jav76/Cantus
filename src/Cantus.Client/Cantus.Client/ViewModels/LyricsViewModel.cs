@@ -20,6 +20,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly ThemeManager _themeManager;
     private readonly ResponsiveLayoutManager _layoutManager;
     private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
+    private readonly ILyricsPreferences _preferences;
 
     private PlaybackStatePayload? _lastPlaybackState;
     private LyricsPayload? _lastLyrics;
@@ -31,12 +32,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     // Compensates for the delay between a position estimate and the audio
     // actually reaching the listener's ears (Bluetooth speakers, TV audio
     // chains). Persisted per device; [ and ] adjust it in 50ms steps.
-    private const string SETTINGS_KEY_LATENCY = "cantus_latency_ms";
-    private const int DEFAULT_LATENCY_COMPENSATION_MS = 200;
     private const int LATENCY_STEP_MS = 50;
-    private const int MIN_LATENCY_COMPENSATION_MS = 0;
-    private const int MAX_LATENCY_COMPENSATION_MS = 1000;
-    private int _latencyCompensationMs = LoadLatencyCompensation();
+    private int _latencyCompensationMs;
 
     // Tap-to-seek is applied optimistically: the stage jumps to the tapped line
     // at once, and polls that still report the pre-seek position (Spotify's API
@@ -90,8 +87,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private string _instrumentalBreakText = string.Empty;
     private bool _isKioskMode;
     private bool _isStaticLyricsMode;
-    private const string SETTINGS_KEY_AUTOSCROLL = "cantus_autoscroll";
-    private bool _isAutoScrollEnabled = LoadAutoScrollPreference();
+    private bool _isAutoScrollEnabled;
     private bool _isUserScrollingPaused;
     private Microsoft.UI.Xaml.Media.ImageSource? _ambientBackgroundSource;
     private string? _lastAmbientArtworkUrl;
@@ -99,8 +95,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly DispatcherTimer _themeToastTimer;
     private string _themeToastText = string.Empty;
     private bool _isThemeToastVisible;
-    private const string SETTINGS_KEY_KARAOKE = "cantus_karaoke";
-    private bool _isKaraokeModeEnabled = LoadKaraokePreference();
+    private bool _isKaraokeModeEnabled;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
@@ -852,7 +847,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             if (_isAutoScrollEnabled != value)
             {
                 _isAutoScrollEnabled = value;
-                SaveAutoScrollPreference(value);
+                _preferences.IsAutoScrollEnabled = value;
                 if (!value)
                 {
                     IsUserScrollingPaused = false;
@@ -886,11 +881,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         get => _latencyCompensationMs;
         internal set
         {
-            int clamped = Math.Clamp(value, MIN_LATENCY_COMPENSATION_MS, MAX_LATENCY_COMPENSATION_MS);
+            int clamped = LyricsPreferences.ClampLatency(value);
             if (_latencyCompensationMs != clamped)
             {
                 _latencyCompensationMs = clamped;
-                SaveLatencyCompensation(clamped);
+                _preferences.LatencyCompensationMs = clamped;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CalibrationText));
             }
@@ -923,7 +918,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             if (_isKaraokeModeEnabled != value)
             {
                 _isKaraokeModeEnabled = value;
-                SaveKaraokePreference(value);
+                _preferences.IsKaraokeModeEnabled = value;
                 foreach (LyricLineViewModel line in LyricLines)
                 {
                     line.SetKaraokeEnabled(value);
@@ -994,11 +989,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public LyricsViewModel(
         ISignalRPlaybackClient client,
         ThemeManager? themeManager = null,
-        ResponsiveLayoutManager? layoutManager = null)
+        ResponsiveLayoutManager? layoutManager = null,
+        ILyricsPreferences? preferences = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
         _layoutManager = layoutManager ?? ResponsiveLayoutManager.Instance;
+        _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
+        _latencyCompensationMs = _preferences.LatencyCompensationMs;
+        _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
+        _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
 
         try
         {
@@ -1801,93 +1801,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         TimeSpan ts = TimeSpan.FromMilliseconds(ms);
         return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";
-    }
-
-    private static bool LoadAutoScrollPreference()
-    {
-        try
-        {
-            object? val = Windows.Storage.ApplicationData.Current?.LocalSettings?.Values[SETTINGS_KEY_AUTOSCROLL];
-            if (val is bool b) return b;
-            if (val is string s && bool.TryParse(s, out bool parsed)) return parsed;
-        }
-        catch
-        {
-        }
-        return true;
-    }
-
-    private static void SaveAutoScrollPreference(bool value)
-    {
-        try
-        {
-            if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
-            {
-                settings[SETTINGS_KEY_AUTOSCROLL] = value;
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    private static int LoadLatencyCompensation()
-    {
-        try
-        {
-            object? val = Windows.Storage.ApplicationData.Current?.LocalSettings?.Values[SETTINGS_KEY_LATENCY];
-            if (val is int i) return Math.Clamp(i, MIN_LATENCY_COMPENSATION_MS, MAX_LATENCY_COMPENSATION_MS);
-            if (val is string s && int.TryParse(s, out int parsed))
-            {
-                return Math.Clamp(parsed, MIN_LATENCY_COMPENSATION_MS, MAX_LATENCY_COMPENSATION_MS);
-            }
-        }
-        catch
-        {
-        }
-        return DEFAULT_LATENCY_COMPENSATION_MS;
-    }
-
-    private static void SaveLatencyCompensation(int value)
-    {
-        try
-        {
-            if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
-            {
-                settings[SETTINGS_KEY_LATENCY] = value;
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    private static bool LoadKaraokePreference()
-    {
-        try
-        {
-            object? val = Windows.Storage.ApplicationData.Current?.LocalSettings?.Values[SETTINGS_KEY_KARAOKE];
-            if (val is bool b) return b;
-            if (val is string s && bool.TryParse(s, out bool parsed)) return parsed;
-        }
-        catch
-        {
-        }
-        return true;
-    }
-
-    private static void SaveKaraokePreference(bool value)
-    {
-        try
-        {
-            if (Windows.Storage.ApplicationData.Current?.LocalSettings?.Values is { } settings)
-            {
-                settings[SETTINGS_KEY_KARAOKE] = value;
-            }
-        }
-        catch
-        {
-        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
