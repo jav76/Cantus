@@ -27,15 +27,32 @@ public sealed class SyllableFillTimeline
 
     /// <summary>
     /// Builds the timeline, or returns null when no syllable has visible text (the line then uses
-    /// the elapsed-time fill).
+    /// the elapsed-time fill). Character positions are measured against <paramref name="lineText"/>
+    /// when every syllable can be found in it in order, since some sources (enhanced LRC) send
+    /// trimmed syllables and keep the spaces only in the line text. Otherwise they come from the
+    /// joined syllable texts.
     /// </summary>
-    public static SyllableFillTimeline? Create(IReadOnlyList<SyllableTiming>? syllables)
+    public static SyllableFillTimeline? Create(IReadOnlyList<SyllableTiming>? syllables, string? lineText = null)
     {
         if (syllables is null || syllables.Count == 0)
         {
             return null;
         }
 
+        if (!string.IsNullOrEmpty(lineText))
+        {
+            SyllableFillTimeline? located = Build(syllables, lineText);
+            if (located is not null)
+            {
+                return located;
+            }
+        }
+
+        return Build(syllables, null);
+    }
+
+    private static SyllableFillTimeline? Build(IReadOnlyList<SyllableTiming> syllables, string? lineText)
+    {
         List<Segment> segments = new(syllables.Count);
         int offset = 0;
         int firstVisibleChar = -1;
@@ -51,14 +68,28 @@ public sealed class SyllableFillTimeline
             }
 
             string text = syllable.Text ?? string.Empty;
-            int leading = CountLeadingWhitespace(text);
-            int visible = text.Trim().Length;
-            int charStart = offset + leading;
-            offset += text.Length;
+            string trimmed = text.Trim();
+            int visible = trimmed.Length;
+            int charStart = offset + CountLeadingWhitespace(text);
+            if (lineText is null)
+            {
+                offset += text.Length;
+            }
 
             if (visible == 0)
             {
                 continue;
+            }
+
+            if (lineText is not null)
+            {
+                charStart = lineText.IndexOf(trimmed, offset, StringComparison.Ordinal);
+                if (charStart < 0)
+                {
+                    return null;
+                }
+
+                offset = charStart + visible;
             }
 
             if (firstVisibleChar < 0)

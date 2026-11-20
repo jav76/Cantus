@@ -290,6 +290,31 @@ public sealed class LyricLineViewModelTests
         line.LineProgressFraction.Should().Be(1.0);
     }
 
+    [Fact]
+    public void UpdateLineProgress_TrimmedSyllables_TrackTheDisplayedText()
+    {
+        // Arrange - enhanced LRC: trimmed words, spaces only in the displayed text (18 characters)
+        LyricLineViewModel line = new()
+        {
+            TimestampMs = 1000,
+            Text = "We're no strangers",
+            DurationMs = 3000,
+            Syllables = new List<SyllableTiming>
+            {
+                new(1000, 300, "We're"),
+                new(1400, 300, "no"),
+                new(1700, 900, "strangers"),
+            },
+        };
+        line.IsActive = true;
+
+        // Act
+        line.UpdateLineProgress(1399);
+
+        // Assert - "We're" is done: 5 of the 18 displayed characters
+        line.LineProgressFraction.Should().BeApproximately(5.0 / 18, 0.001);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

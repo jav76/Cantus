@@ -118,6 +118,42 @@ public sealed class SyllableFillTimelineTests
     }
 
     [Fact]
+    public void ComputeFraction_TrimmedSyllables_MeasuredAgainstTheSpacedLineText()
+    {
+        // Arrange - enhanced LRC sends trimmed words; the spaces live only in the 18-character line text
+        SyllableFillTimeline? timeline = SyllableFillTimeline.Create(
+            new List<SyllableTiming>
+            {
+                new(1000, 300, "We're"),
+                new(1400, 300, "no"),
+                new(1700, 900, "strangers"),
+            },
+            "We're no strangers");
+
+        // Act & Assert - the space after a word is gap, crossed when the next word starts
+        timeline.Should().NotBeNull();
+        timeline!.ComputeFraction(1150).Should().BeApproximately(2.5 / 18, PRECISION);
+        timeline.ComputeFraction(1399).Should().BeApproximately(5.0 / 18, PRECISION);
+        timeline.ComputeFraction(1400).Should().BeApproximately(6.0 / 18, PRECISION);
+        timeline.ComputeFraction(1550).Should().BeApproximately(7.0 / 18, PRECISION);
+        timeline.ComputeFraction(2600).Should().Be(1.0);
+    }
+
+    [Fact]
+    public void ComputeFraction_SyllableMissingFromLineText_FallsBackToJoinedSyllables()
+    {
+        // Arrange - the line text does not contain the syllables (a placeholder or a mismatch)
+        SyllableFillTimeline? timeline = SyllableFillTimeline.Create(
+            new List<SyllableTiming> { new(0, 500, "hold "), new(2000, 500, "on") },
+            "♪");
+
+        // Act & Assert - same as without line text: "hold on" is 7 characters
+        timeline.Should().NotBeNull();
+        timeline!.ComputeFraction(500).Should().BeApproximately(4.0 / 7, PRECISION);
+        timeline.ComputeFraction(2250).Should().BeApproximately(6.0 / 7, PRECISION);
+    }
+
+    [Fact]
     public void EndMs_IsTheLastSyllableEnd()
     {
         // Arrange

@@ -29,8 +29,9 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     private double _opacity = 0.75;
     private bool _isKaraokeEnabled = true;
     private readonly ScaleTransform? _lineProgressTransform;
+    private readonly string _text = string.Empty;
     private readonly IReadOnlyList<SyllableTiming>? _syllables;
-    private readonly SyllableFillTimeline? _syllableFill;
+    private SyllableFillTimeline? _syllableFill;
 
     public LyricLineViewModel()
     {
@@ -46,7 +47,15 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     }
 
     public long TimestampMs { get; init; }
-    public string Text { get; init; } = string.Empty;
+    public string Text
+    {
+        get => _text;
+        init
+        {
+            _text = value;
+            _syllableFill = SyllableFillTimeline.Create(_syllables, value);
+        }
+    }
 
     /// <summary>
     /// The line's real duration (gap to the next line's timestamp), or null for
@@ -65,7 +74,7 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
         init
         {
             _syllables = value;
-            _syllableFill = SyllableFillTimeline.Create(value);
+            _syllableFill = SyllableFillTimeline.Create(value, _text);
         }
     }
 
