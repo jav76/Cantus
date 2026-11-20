@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Cantus.Server.Tests.Endpoints;
@@ -20,7 +21,10 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
 {
     private const string SESSION_COOKIE = "cantus_session_id";
 
+    private const int TRACK_OFFSET_MS = 250;
+
     private readonly InMemorySessionStore _store = new();
+    private readonly Mock<ILyricsCacheRepository> _mockCacheRepo = new();
     private readonly WebApplicationFactory<Program> _factory;
 
     public AuthCredentialLookupTests(WebApplicationFactory<Program> factory)
@@ -30,6 +34,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
             builder.ConfigureTestServices(services =>
             {
                 services.AddScoped<ISpotifyAuthService>(_ => _store.CreateAuthService());
+                services.AddScoped(_ => _mockCacheRepo.Object);
             });
         });
     }
@@ -161,6 +166,47 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         (await _store.SessionExistsAsync(seeded.Id)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SetTrackOffset_WithSessionIdCookie_SavesOffset()
+    {
+        UserSessionEntity seeded = await _store.SeedSessionAsync("Owner");
+        HttpClient client = _factory.CreateClient();
+        string trackId = $"track-{seeded.Id}";
+
+        HttpResponseMessage response = await client.SendAsync(CreateOffsetRequest(trackId, seeded.Id));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        _mockCacheRepo.Verify(
+            c => c.SetTrackOffsetAsync(trackId, TRACK_OFFSET_MS, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SetTrackOffset_WithSpotifyUserIdCookie_ReturnsUnauthorizedAndDoesNotWrite()
+    {
+        UserSessionEntity seeded = await _store.SeedSessionAsync("Owner");
+        HttpClient client = _factory.CreateClient();
+        string trackId = $"track-{seeded.Id}";
+
+        HttpResponseMessage response = await client.SendAsync(CreateOffsetRequest(trackId, seeded.SpotifyUserId));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        _mockCacheRepo.Verify(
+            c => c.SetTrackOffsetAsync(trackId, It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private static HttpRequestMessage CreateOffsetRequest(string trackId, string credential)
+    {
+        HttpRequestMessage request = CreateCookieRequest(HttpMethod.Post, "/api/lyrics/offset", credential);
+        request.Content = JsonContent.Create(new TrackOffsetDto
+        {
+            TrackId = trackId,
+            OffsetMs = TRACK_OFFSET_MS,
+        });
+        return request;
     }
 
     private static HttpRequestMessage CreateCookieRequest(HttpMethod method, string path, string credential)
