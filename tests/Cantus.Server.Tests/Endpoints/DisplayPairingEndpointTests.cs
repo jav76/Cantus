@@ -81,6 +81,74 @@ public sealed class DisplayPairingEndpointTests : IClassFixture<WebApplicationFa
     }
 
     [Fact]
+    public async Task RequestPairing_WithPathCaseAndTrailingSlashVariants_SharesOneRateLimit()
+    {
+        HubConnection waiting = await _host.ConnectAsync();
+        HttpClient client = _host.CreateClient();
+        DisplayPairingRequestDto request = new() { ConnectionId = waiting.ConnectionId };
+        string[] variants =
+        {
+            "/API/displays/pairings",
+            "/api/Displays/Pairings/",
+            "/Api/DISPLAYS/pairings",
+        };
+
+        foreach (string path in variants)
+        {
+            (await client.PostAsJsonAsync(path, request)).EnsureSuccessStatusCode();
+        }
+
+        HttpResponseMessage limited = await client.PostAsJsonAsync("/api/displays/PAIRINGS/", request);
+
+        limited.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
+    public async Task Approve_WithPathCaseVariants_SharesOneRateLimit()
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        HttpClient client = _host.CreateClient(DisplayTestHost.SESSION_COOKIE, owner.Id);
+        DisplayPairingApprovalDto approval = new() { Code = "UNKNOWN1", Name = DISPLAY_NAME };
+        string[] variants =
+        {
+            "/API/displays/pairings/approve",
+            "/api/Displays/Pairings/Approve/",
+            "/Api/DISPLAYS/pairings/APPROVE",
+        };
+
+        foreach (string path in variants)
+        {
+            (await client.PostAsJsonAsync(path, approval)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        HttpResponseMessage limited = await client.PostAsJsonAsync("/api/displays/pairings/approve/", approval);
+
+        limited.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
+    public async Task RequestPairingAndApprove_HaveSeparateRateLimits()
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        HubConnection waiting = await _host.ConnectAsync();
+        HttpClient client = _host.CreateClient();
+        DisplayPairingRequestDto request = new() { ConnectionId = waiting.ConnectionId };
+
+        for (int i = 0; i < RATE_LIMIT_PERMITS; i++)
+        {
+            (await client.PostAsJsonAsync(DisplayTestHost.PAIRINGS_PATH, request)).EnsureSuccessStatusCode();
+        }
+
+        HttpResponseMessage approval = await _host.ApproveAsync(
+            "UNKNOWN1",
+            DISPLAY_NAME,
+            DisplayTestHost.SESSION_COOKIE,
+            owner.Id);
+
+        approval.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task Approve_OverRateLimit_ReturnsTooManyRequests()
     {
         UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");

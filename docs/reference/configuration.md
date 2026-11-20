@@ -50,7 +50,7 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 | **`DisplayPairing__CodeLength`** | `int` | `8` | Characters in a pairing code (6 to 16). | No |
 | **`DisplayPairing__CodeLifetimeSeconds`** | `int` | `300` | Seconds a pairing code stays valid (30 to 3600). | No |
 | **`DisplayPairing__MaxPendingPairings`** | `int` | `1000` | Pairings that may wait for approval at once, across all clients. Further requests get `503`. | No |
-| **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window. | No |
+| **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window. IPv6 addresses in the same `/64` count as one client. | No |
 | **`DisplayPairing__RateLimitWindowSeconds`** | `int` | `60` | Length of the rate limit window in seconds (1 to 3600). | No |
 
 ### Lyrics Provider: LRCLIB (`Lrclib`)

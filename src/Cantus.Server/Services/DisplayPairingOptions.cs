@@ -5,7 +5,8 @@ namespace Cantus.Server.Services;
 public sealed class DisplayPairingOptions
 {
     public const string SECTION_NAME = "DisplayPairing";
-    public const string RATE_LIMIT_POLICY = "display-pairing";
+    public const string REQUEST_RATE_LIMIT_POLICY = "display-pairing-request";
+    public const string APPROVE_RATE_LIMIT_POLICY = "display-pairing-approve";
 
     public const int MIN_CODE_LENGTH = 6;
     public const int MAX_CODE_LENGTH = 16;
@@ -27,7 +28,7 @@ public sealed class DisplayPairingOptions
 
     /// <summary>
     /// Requests allowed per client address per window, counted separately for pairing requests
-    /// and for approvals.
+    /// and for approvals. IPv6 addresses in the same /64 count as one client.
     /// </summary>
     [Range(1, int.MaxValue)]
     public int RateLimitPermitLimit { get; set; } = 10;

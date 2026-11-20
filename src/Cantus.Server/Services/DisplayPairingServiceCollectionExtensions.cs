@@ -10,11 +10,10 @@ namespace Cantus.Server.Services;
 
 public static class DisplayPairingServiceCollectionExtensions
 {
-    private const string UNKNOWN_CLIENT_ADDRESS = "unknown";
-
     /// <summary>
-    /// Registers pending pairings, Display connection tracking and the pairing rate limit.
-    /// The limit is a fixed window per client address, counted separately per endpoint path.
+    /// Registers pending pairings, Display connection tracking and the pairing rate limits.
+    /// Requests and approvals each get their own fixed window per client address. The partition
+    /// never uses the request path, which callers can vary in case without changing the endpoint.
     /// </summary>
     public static IServiceCollection AddDisplayPairing(this IServiceCollection services, IConfiguration configuration)
     {
@@ -29,23 +28,25 @@ public static class DisplayPairingServiceCollectionExtensions
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy(DisplayPairingOptions.RATE_LIMIT_POLICY, httpContext =>
-            {
-                DisplayPairingOptions pairingOptions = httpContext.RequestServices
-                    .GetRequiredService<IOptions<DisplayPairingOptions>>()
-                    .Value;
-                string address = httpContext.Connection.RemoteIpAddress?.ToString() ?? UNKNOWN_CLIENT_ADDRESS;
-                string partitionKey = $"{httpContext.Request.Path}|{address}";
-
-                return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = pairingOptions.RateLimitPermitLimit,
-                    Window = TimeSpan.FromSeconds(pairingOptions.RateLimitWindowSeconds),
-                    QueueLimit = 0
-                });
-            });
+            options.AddPolicy(DisplayPairingOptions.REQUEST_RATE_LIMIT_POLICY, GetClientAddressPartition);
+            options.AddPolicy(DisplayPairingOptions.APPROVE_RATE_LIMIT_POLICY, GetClientAddressPartition);
         });
 
         return services;
+    }
+
+    private static RateLimitPartition<string> GetClientAddressPartition(HttpContext httpContext)
+    {
+        DisplayPairingOptions pairingOptions = httpContext.RequestServices
+            .GetRequiredService<IOptions<DisplayPairingOptions>>()
+            .Value;
+        string partitionKey = ClientAddressPartition.GetKey(httpContext.Connection.RemoteIpAddress);
+
+        return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = pairingOptions.RateLimitPermitLimit,
+            Window = TimeSpan.FromSeconds(pairingOptions.RateLimitWindowSeconds),
+            QueueLimit = 0
+        });
     }
 }

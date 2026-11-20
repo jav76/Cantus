@@ -26,12 +26,12 @@ public static class DisplayEndpoints
         RouteGroupBuilder group = endpoints.MapGroup("/api/displays").WithTags("Displays");
 
         group.MapPost("/pairings", HandleRequestPairing)
-            .RequireRateLimiting(DisplayPairingOptions.RATE_LIMIT_POLICY)
+            .RequireRateLimiting(DisplayPairingOptions.REQUEST_RATE_LIMIT_POLICY)
             .WithName("RequestDisplayPairing")
             .WithSummary("Starts pairing a Display: returns a short, single-use code for the owner to approve.");
 
         group.MapPost("/pairings/approve", HandleApprovePairing)
-            .RequireRateLimiting(DisplayPairingOptions.RATE_LIMIT_POLICY)
+            .RequireRateLimiting(DisplayPairingOptions.APPROVE_RATE_LIMIT_POLICY)
             .WithName("ApproveDisplayPairing")
             .WithSummary("Approves a pairing code, names the Display and sends its token to the waiting client.");
 
