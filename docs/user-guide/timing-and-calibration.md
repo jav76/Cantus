@@ -39,7 +39,7 @@ In the **Track Card** (Desktop/Tablet) or **Settings View** (Mobile), use the `S
 - **`-0.5s` / `-0.1s`**: Nudges lyrics **later** if the text is highlighting before you hear the singer.
 - **`Reset`**: Resets the track offset back to `+0.0s`.
 
-The track offset ranges from `-30.0s` to `+30.0s`.
+The stepper buttons keep the track offset between `-30.0s` and `+30.0s`.
 
 ### Calibrating Device Latency via Keyboard
 
