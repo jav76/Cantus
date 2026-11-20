@@ -245,6 +245,22 @@
                         </Border>
                     </StackPanel>
 
+                    <!-- Wrong Lyrics Picker (owner only) -->
+                    <Button Click="OnWrongLyricsClicked"
+                            Visibility="{x:Bind LyricsPicker.ActionVisibility, Mode=OneWay}"
+                            HorizontalAlignment="Stretch"
+                            Background="#15FFFFFF"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="10"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE70F;" FontSize="13" />
+                            <TextBlock Text="Wrong lyrics?" FontSize="13" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- Connected Spotify Account Card -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <TextBlock Text="SPOTIFY ACCOUNT" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />

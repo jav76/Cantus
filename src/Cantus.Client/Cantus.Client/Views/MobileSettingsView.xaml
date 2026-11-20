@@ -32,6 +32,32 @@
                 </StackPanel>
             </Border>
 
+            <!-- Wrong Lyrics Picker (owner only) -->
+            <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    Padding="16,14"
+                    Visibility="{x:Bind LyricsPicker.ActionVisibility, Mode=OneWay}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="LYRICS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Pick other lyrics for this track" FontSize="13" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Click="OnWrongLyricsClicked"
+                            Background="#20FFFFFF"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="8"
+                            Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE70F;" FontSize="13" />
+                            <TextBlock Text="Wrong lyrics?" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
             <!-- Device Latency Calibration -->
             <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
                     BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"

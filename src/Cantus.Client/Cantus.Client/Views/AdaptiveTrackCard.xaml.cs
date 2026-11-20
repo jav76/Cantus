@@ -76,6 +76,19 @@ public sealed partial class AdaptiveTrackCard : UserControl
         private set => SetValue(PairingProperty, value);
     }
 
+    public static readonly DependencyProperty LyricsPickerProperty =
+        DependencyProperty.Register(
+            nameof(LyricsPicker),
+            typeof(LyricsPickerViewModel),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public LyricsPickerViewModel? LyricsPicker
+    {
+        get => (LyricsPickerViewModel?)GetValue(LyricsPickerProperty);
+        private set => SetValue(LyricsPickerProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -111,6 +124,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
         card.Timing = viewModel?.Timing;
         card.Session = viewModel?.Session;
         card.Pairing = viewModel?.Pairing;
+        card.LyricsPicker = viewModel?.LyricsPicker;
         card.Theme = viewModel?.Theme;
         card.Layout = viewModel?.Layout;
     }
@@ -143,6 +157,14 @@ public sealed partial class AdaptiveTrackCard : UserControl
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
         if (Timing is not null) await Timing.NudgeOffsetAsync(500);
+    }
+
+    private async void OnWrongLyricsClicked(object sender, RoutedEventArgs e)
+    {
+        if (LyricsPicker is not null)
+        {
+            await LyricsPickerDialog.ShowForAsync(LyricsPicker, XamlRoot);
+        }
     }
 
     private async void OnShuffleClicked(object sender, RoutedEventArgs e)

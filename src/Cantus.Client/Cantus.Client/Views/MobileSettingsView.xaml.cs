@@ -76,6 +76,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(DisplaysProperty, value);
     }
 
+    public static readonly DependencyProperty LyricsPickerProperty =
+        DependencyProperty.Register(
+            nameof(LyricsPicker),
+            typeof(LyricsPickerViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public LyricsPickerViewModel? LyricsPicker
+    {
+        get => (LyricsPickerViewModel?)GetValue(LyricsPickerProperty);
+        private set => SetValue(LyricsPickerProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -98,6 +111,7 @@ public sealed partial class MobileSettingsView : UserControl
         settings.Session = viewModel?.Session;
         settings.Pairing = viewModel?.Pairing;
         settings.Displays = viewModel?.Session.Displays;
+        settings.LyricsPicker = viewModel?.LyricsPicker;
         settings.Theme = viewModel?.Theme;
     }
 
@@ -134,6 +148,14 @@ public sealed partial class MobileSettingsView : UserControl
     private async void OnNudgePlus500Clicked(object sender, RoutedEventArgs e)
     {
         if (Timing is not null) await Timing.NudgeOffsetAsync(500);
+    }
+
+    private async void OnWrongLyricsClicked(object sender, RoutedEventArgs e)
+    {
+        if (LyricsPicker is not null)
+        {
+            await LyricsPickerDialog.ShowForAsync(LyricsPicker, XamlRoot);
+        }
     }
 
     private void OnLatencyMinusClicked(object sender, RoutedEventArgs e)
