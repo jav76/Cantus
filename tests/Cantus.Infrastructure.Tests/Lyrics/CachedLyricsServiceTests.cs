@@ -470,6 +470,81 @@ public class CachedLyricsServiceTests
             Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task GetLyricsAsync_WithLineLevelCandidateOverride_IgnoresWordTimingAndRecordsNoUpgradeAttempt()
+    {
+        TrackInfo track = new() { Id = "t19", Title = "Song", Artist = "Artist" };
+        SyncedLyrics chosen = LineLevel("t19");
+
+        _mockRepo.GetLyricsOverrideAsync("t19").Returns(LyricsOverride.ForCandidate("Primary", "42", chosen));
+        _mockRepo.GetCachedLyricsAsync("t19").Returns(LineLevel("t19"));
+        _mockRepo.TryStartWordTimingUpgradeAsync("t19", 3, TimeSpan.FromDays(14), Arg.Any<CancellationToken>())
+            .Returns(true);
+        _fallbackProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.Found(WordTimed("t19")));
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(chosen, "the owner's pick wins even when a provider has word timing");
+        await AssertNoUpgradeOrFetchAsync();
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WithNoLyricsOverride_DoesNotUpgradeTheCachedLineLevelMatch()
+    {
+        TrackInfo track = new() { Id = "t20", Title = "Song", Artist = "Artist" };
+
+        _mockRepo.GetLyricsOverrideAsync("t20").Returns(LyricsOverride.ForNoLyrics("t20"));
+        _mockRepo.GetCachedLyricsAsync("t20").Returns(LineLevel("t20"));
+        _mockRepo.TryStartWordTimingUpgradeAsync("t20", 3, TimeSpan.FromDays(14), Arg.Any<CancellationToken>())
+            .Returns(true);
+        _fallbackProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.Found(WordTimed("t20")));
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeNull();
+        await AssertNoUpgradeOrFetchAsync();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetLyricsAsync_WhenAnOverrideIsAppliedDuringAnUpgrade_ReturnsTheOverride(bool noLyrics)
+    {
+        TrackInfo track = new() { Id = "t21", Title = "Song", Artist = "Artist" };
+        SyncedLyrics chosen = LineLevel("t21");
+        SyncedLyrics wordTimed = WordTimed("t21");
+        LyricsOverride applied = noLyrics
+            ? LyricsOverride.ForNoLyrics("t21")
+            : LyricsOverride.ForCandidate("Primary", "42", chosen);
+
+        _mockRepo.GetLyricsOverrideAsync("t21").Returns((LyricsOverride?)null, applied);
+        _mockRepo.GetCachedLyricsAsync("t21").Returns(LineLevel("t21"));
+        _mockRepo.TryStartWordTimingUpgradeAsync("t21", 3, TimeSpan.FromDays(14), Arg.Any<CancellationToken>())
+            .Returns(true);
+        _fallbackProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.Found(wordTimed));
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(applied.Lyrics);
+        await _mockRepo.Received(1).SaveLyricsAsync(wordTimed, cancellationToken: Arg.Any<CancellationToken>());
+        await _mockRepo.DidNotReceive().RemoveLyricsOverrideAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    private async Task AssertNoUpgradeOrFetchAsync()
+    {
+        await _mockRepo.DidNotReceive().TryStartWordTimingUpgradeAsync(
+            Arg.Any<string>(),
+            Arg.Any<int>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+        await _fallbackProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+        await _mockRepo.DidNotReceive().SaveLyricsAsync(
+            Arg.Any<SyncedLyrics>(),
+            Arg.Any<TimeSpan?>(),
+            Arg.Any<CancellationToken>());
+    }
+
     private static SyncedLyrics LineLevel(string trackId) => new()
     {
         TrackId = trackId,

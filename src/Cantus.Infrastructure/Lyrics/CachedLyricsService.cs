@@ -65,7 +65,18 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return await TryUpgradeToWordTimingAsync(track, cached, cancellationToken) ?? cached;
+            SyncedLyrics? upgraded = await TryUpgradeToWordTimingAsync(track, cached, cancellationToken);
+            if (upgraded is null)
+            {
+                return cached;
+            }
+
+            // The upgrade waited on the providers, so an override the owner applied in the meantime
+            // still wins. The upgraded match stays cached for when the override is cleared.
+            LyricsOverride? appliedDuringUpgrade = await _cacheRepository.GetLyricsOverrideAsync(
+                track.Id,
+                cancellationToken);
+            return appliedDuringUpgrade is null ? upgraded : appliedDuringUpgrade.Lyrics;
         }
 
         // 3. Query the provider chain in order, preferring a word-timed result
