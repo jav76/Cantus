@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net.Http.Json;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -131,7 +132,9 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
     /// Search results by a matching artist, each confirmed with a lyric
     /// lookup. Duration does not filter here (the owner is correcting a match,
     /// so a live or alternate cut is a valid pick). Like
-    /// <see cref="FetchLyricsAsync"/>, only synced lyrics are offered.
+    /// <see cref="FetchLyricsAsync"/>, only synced lyrics or an instrumental
+    /// marker are offered. A failed lookup drops only that song; the call
+    /// throws when the search fails or failures leave no candidates.
     /// </summary>
     public virtual async Task<IReadOnlyList<LyricsCandidate>> GetCandidatesAsync(
         TrackInfo track,
@@ -155,10 +158,52 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
             .Take(MAX_CANDIDATE_LYRIC_LOOKUPS)
             .ToList();
 
-        LyricsCandidate?[] candidates = await Task.WhenAll(
-            matches.Select(s => GetCandidateAsync(s, cancellationToken)));
+        Task<LyricsCandidate?>[] lookups = matches
+            .Select(s => GetCandidateAsync(s, cancellationToken))
+            .ToArray();
 
-        return candidates.OfType<LyricsCandidate>().ToList();
+        try
+        {
+            await Task.WhenAll(lookups);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Each lookup's outcome is inspected below, so one failed song
+            // does not hide the songs whose lyrics were found.
+        }
+
+        List<LyricsCandidate> candidates = new();
+        Exception? firstFailure = null;
+        for (int i = 0; i < lookups.Length; i++)
+        {
+            Task<LyricsCandidate?> lookup = lookups[i];
+            if (lookup.IsCompletedSuccessfully)
+            {
+                if (lookup.Result is LyricsCandidate candidate)
+                {
+                    candidates.Add(candidate);
+                }
+
+                continue;
+            }
+
+            Exception failure = lookup.Exception?.GetBaseException() ?? new TaskCanceledException(lookup);
+            firstFailure ??= failure;
+            _logger.LogWarning(
+                failure,
+                "NetEase lyric lookup failed for song {SongId} while listing candidates for track {TrackId}",
+                matches[i].Id,
+                track.Id);
+        }
+
+        // With nothing found, an empty list would claim NetEase has no
+        // candidates when it could not answer, so the failure is surfaced.
+        if (firstFailure is not null && candidates.Count == 0)
+        {
+            ExceptionDispatchInfo.Throw(firstFailure);
+        }
+
+        return candidates;
     }
 
     private async Task<LyricsCandidate?> GetCandidateAsync(NeteaseSongDto song, CancellationToken ct)

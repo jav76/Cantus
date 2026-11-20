@@ -514,4 +514,60 @@ public class NeteaseLyricsProviderTests
 
         await act.Should().ThrowAsync<HttpRequestException>();
     }
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task GetCandidatesAsync_OneLyricLookupFails_KeepsTheSongsThatSucceeded(HttpStatusCode failure)
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(CANDIDATE_SEARCH_JSON);
+                }
+
+                if (req.RequestUri!.Query.Contains("id=333"))
+                {
+                    return failure == HttpStatusCode.OK
+                        ? Json("""{ "code": -460 }""")
+                        : new HttpResponseMessage(failure);
+                }
+
+                return CandidateLyricResponse(req.RequestUri!.Query);
+            }
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        candidates.Select(c => c.ProviderCandidateId).Should().Equal(
+            new[] { "111", "555" },
+            "one failed lookup must not hide the candidates that were found");
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_LookupsFailAndNoneFindLyrics_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(CANDIDATE_SEARCH_JSON);
+                }
+
+                return req.RequestUri!.Query.Contains("id=444")
+                    ? Json("""{ "uncollected": true, "code": 200 }""")
+                    : new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            }
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        await act.Should().ThrowAsync<HttpRequestException>(
+            "an empty list would read as \"NetEase has no candidates\" when it could not answer");
+    }
 }
