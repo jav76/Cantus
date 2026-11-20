@@ -32,6 +32,22 @@ public sealed class WasmInteropTests
     }
 
     [Fact]
+    public void GetLocationSearch_OutsideWasm_ReturnsEmptyString()
+    {
+        string search = WasmInterop.GetLocationSearch();
+
+        search.Should().Be(string.Empty);
+    }
+
+    [Fact]
+    public void RemoveQueryParameter_OutsideWasm_DoesNotThrow()
+    {
+        Action act = () => WasmInterop.RemoveQueryParameter("pair");
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void CleanAuthQuery_OutsideWasm_DoesNotThrow()
     {
         Action act = () => WasmInterop.CleanAuthQuery();
