@@ -10,6 +10,8 @@ public sealed class SessionTokenResolver : ISessionTokenResolver
     private const string SESSION_ID_QUERY_PARAM = "session_id";
     private const string AUTHORIZATION_HEADER = "Authorization";
     private const string BEARER_PREFIX = "Bearer ";
+    private const string DISPLAY_TOKEN_COOKIE_NAME = "cantus_display_token";
+    private const string DISPLAY_TOKEN_QUERY_PARAM = "display_token";
 
     public string? ResolveSessionToken(HttpContext? httpContext)
     {
@@ -66,6 +68,28 @@ public sealed class SessionTokenResolver : ISessionTokenResolver
             {
                 return headerVal;
             }
+        }
+
+        return null;
+    }
+
+    public string? ResolveDisplayToken(HttpContext? httpContext)
+    {
+        if (httpContext is null)
+        {
+            return null;
+        }
+
+        if (httpContext.Request.Cookies.TryGetValue(DISPLAY_TOKEN_COOKIE_NAME, out string? cookieToken) &&
+            !string.IsNullOrWhiteSpace(cookieToken))
+        {
+            return cookieToken.Trim();
+        }
+
+        if (httpContext.Request.Query.TryGetValue(DISPLAY_TOKEN_QUERY_PARAM, out Microsoft.Extensions.Primitives.StringValues queryToken) &&
+            !string.IsNullOrWhiteSpace(queryToken))
+        {
+            return queryToken.ToString().Trim();
         }
 
         return null;

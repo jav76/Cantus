@@ -114,6 +114,7 @@ builder.Services.Configure<PlaybackPollerOptions>(
 builder.Services.AddSingleton<IPlaybackSessionRegistry, PlaybackSessionRegistry>();
 builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
+builder.Services.AddScoped<ICredentialResolver, CredentialResolver>();
 
 // 7. Reverse Proxy & Forwarded Headers
 // Forwarded headers are only honoured from proxies the operator trusts.
