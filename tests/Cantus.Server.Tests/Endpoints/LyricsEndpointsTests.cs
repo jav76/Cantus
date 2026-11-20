@@ -74,6 +74,56 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
+    public async Task GetCachedLyrics_WithCandidateOverride_ReturnsTheOverride()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        SyncedLyrics chosen = new()
+        {
+            TrackId = "track-override",
+            Title = "Song Title",
+            Artist = "Artist Name",
+            Lines = [new LyricLine(TimeSpan.FromSeconds(10), "Chosen line")]
+        };
+
+        _mockCacheRepo
+            .Setup(c => c.GetLyricsOverrideAsync("track-override", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LyricsOverride.ForCandidate("LRCLIB", "501", chosen));
+        _mockCacheRepo
+            .Setup(c => c.GetCachedLyricsAsync("track-override", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncedLyrics
+            {
+                TrackId = "track-override",
+                Title = "Song Title",
+                Artist = "Artist Name",
+                Lines = [new LyricLine(TimeSpan.FromSeconds(10), "Automatic line")]
+            });
+
+        HttpResponseMessage response = await client.GetAsync("/api/lyrics/track-override");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        LyricsDto? dto = await response.Content.ReadFromJsonAsync<LyricsDto>();
+        dto!.Lines[0].Text.Should().Be("Chosen line");
+    }
+
+    [Fact]
+    public async Task GetCachedLyrics_WithNoLyricsOverride_Returns404()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        _mockCacheRepo
+            .Setup(c => c.GetLyricsOverrideAsync("track-silenced", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LyricsOverride.ForNoLyrics("track-silenced"));
+        _mockCacheRepo
+            .Setup(c => c.GetCachedLyricsAsync("track-silenced", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncedLyrics { TrackId = "track-silenced", Title = "T", Artist = "A" });
+
+        HttpResponseMessage response = await client.GetAsync("/api/lyrics/track-silenced");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task SetTrackOffset_WhenAuthenticated_SavesOffsetAndReturnsOk()
     {
         HttpClient client = _factory.CreateClient();
