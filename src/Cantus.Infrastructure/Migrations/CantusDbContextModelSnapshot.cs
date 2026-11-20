@@ -200,6 +200,9 @@ namespace Cantus.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("WordTimedLinesJson")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("TrackId");
 
                     b.ToTable("LyricsOverrides");

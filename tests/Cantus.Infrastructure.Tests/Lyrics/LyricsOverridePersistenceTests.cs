@@ -172,4 +172,79 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
 
         (await repository.GetLyricsOverrideAsync(TRACK_ID)).Should().BeNull();
     }
+
+    [Fact]
+    public async Task WordTimedCandidateOverride_KeepsItsSyllablesAcrossARestart()
+    {
+        SyncedLyrics wordTimed = new()
+        {
+            TrackId = TRACK_ID,
+            Title = "Miss America",
+            Artist = "Brandon Flowers",
+            IsSynced = true,
+            Lines =
+            [
+                new LyricLine(
+                    TimeSpan.FromMilliseconds(27360),
+                    "zulu alpha",
+                    [
+                        new LyricSyllable(TimeSpan.FromMilliseconds(27360), TimeSpan.FromMilliseconds(245), "zulu "),
+                        new LyricSyllable(TimeSpan.FromMilliseconds(27605), TimeSpan.FromMilliseconds(90), "alpha")
+                    ]),
+                new LyricLine(
+                    TimeSpan.FromMilliseconds(40000),
+                    "甲乙",
+                    [
+                        new LyricSyllable(TimeSpan.FromMilliseconds(40000), TimeSpan.FromMilliseconds(890), "甲"),
+                        new LyricSyllable(TimeSpan.FromMilliseconds(40890), TimeSpan.FromMilliseconds(380), "乙")
+                    ])
+            ]
+        };
+
+        using (CantusDbContext context = CreateContext())
+        {
+            await new SqliteLyricsCacheRepository(context, TimeProvider.System)
+                .SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("NetEase", "111", wordTimed));
+        }
+
+        using CantusDbContext restarted = CreateContext();
+        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted, TimeProvider.System)
+            .GetLyricsOverrideAsync(TRACK_ID);
+
+        SyncedLyrics lyrics = stored!.Lyrics!;
+        lyrics.HasWordTiming.Should().BeTrue();
+        lyrics.Lines.Select(l => l.Text).Should().Equal("zulu alpha", "甲乙");
+        lyrics.Lines[0].Syllables.Should().Equal(wordTimed.Lines[0].Syllables);
+        lyrics.Lines[1].Syllables.Should().Equal(wordTimed.Lines[1].Syllables);
+    }
+
+    [Fact]
+    public async Task LineLevelOverride_ReplacingAWordTimedOne_DropsTheSyllables()
+    {
+        SyncedLyrics wordTimed = new()
+        {
+            TrackId = TRACK_ID,
+            Title = "Miss America",
+            Artist = "Brandon Flowers",
+            IsSynced = true,
+            Lines =
+            [
+                new LyricLine(
+                    TimeSpan.FromSeconds(1),
+                    "word",
+                    [new LyricSyllable(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(300), "word")])
+            ]
+        };
+
+        using CantusDbContext context = CreateContext();
+        SqliteLyricsCacheRepository repository = new(context, TimeProvider.System);
+        await repository.SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("NetEase", "111", wordTimed));
+        await repository.SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("LRCLIB", "501", ChosenLyrics()));
+
+        LyricsOverride? stored = await repository.GetLyricsOverrideAsync(TRACK_ID);
+
+        stored!.Lyrics!.HasWordTiming.Should().BeFalse();
+        stored.Lyrics.Lines.Select(l => l.Text)
+            .Should().Equal("I'm writing you this letter", "If you ain't figured out");
+    }
 }

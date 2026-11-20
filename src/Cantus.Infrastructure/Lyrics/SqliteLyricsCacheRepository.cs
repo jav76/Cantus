@@ -119,17 +119,13 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         IReadOnlyList<LyricLine>? wordTimedLines = DeserializeWordTimedLines(entity.WordTimedLinesJson);
         if (wordTimedLines is not null)
         {
-            return new SyncedLyrics
-            {
-                TrackId = entity.TrackId,
-                Title = entity.TrackName,
-                Artist = entity.ArtistName,
-                Album = entity.AlbumName,
-                Lines = wordTimedLines,
-                IsSynced = wordTimedLines.Count > 0,
-                IsInstrumental = false,
-                PlainLyrics = entity.PlainLyrics ?? string.Join("\n", wordTimedLines.Select(l => l.Text))
-            };
+            return WordTimedLyrics(
+                entity.TrackId,
+                entity.TrackName,
+                entity.ArtistName,
+                entity.AlbumName,
+                entity.PlainLyrics,
+                wordTimedLines);
         }
 
         SyncedLyrics parsed = LrcParser.Parse(
@@ -276,8 +272,10 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
 
         string trackName = entity.TrackName ?? string.Empty;
         string artistName = entity.ArtistName ?? string.Empty;
-        SyncedLyrics lyrics = entity.IsInstrumental
-            ? new SyncedLyrics
+        SyncedLyrics lyrics;
+        if (entity.IsInstrumental)
+        {
+            lyrics = new SyncedLyrics
             {
                 TrackId = entity.TrackId,
                 Title = trackName,
@@ -287,14 +285,28 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
                 IsSynced = false,
                 IsInstrumental = true,
                 PlainLyrics = null
-            }
-            : LrcParser.Parse(
+            };
+        }
+        else if (DeserializeWordTimedLines(entity.WordTimedLinesJson) is { } wordTimedLines)
+        {
+            lyrics = WordTimedLyrics(
+                entity.TrackId,
+                trackName,
+                artistName,
+                entity.AlbumName,
+                entity.PlainLyrics,
+                wordTimedLines);
+        }
+        else
+        {
+            lyrics = LrcParser.Parse(
                 entity.RawSyncedLrc,
                 entity.TrackId,
                 trackName,
                 artistName,
                 entity.AlbumName,
                 entity.PlainLyrics);
+        }
 
         return new LyricsOverride(
             entity.TrackId,
@@ -332,6 +344,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         entity.AlbumName = lyrics?.Album;
         entity.PlainLyrics = lyrics?.PlainLyrics;
         entity.RawSyncedLrc = lyrics is null ? null : GenerateRawLrc(lyrics);
+        entity.WordTimedLinesJson = lyrics is { HasWordTiming: true } ? SerializeWordTimedLines(lyrics.Lines) : null;
         entity.IsSynced = lyrics?.IsSynced ?? false;
         entity.IsInstrumental = lyrics?.IsInstrumental ?? false;
         entity.UpdatedAtUtc = _timeProvider.GetUtcNow();
@@ -399,6 +412,24 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    private static SyncedLyrics WordTimedLyrics(
+        string trackId,
+        string title,
+        string artist,
+        string? album,
+        string? plainLyrics,
+        IReadOnlyList<LyricLine> lines) => new()
+    {
+        TrackId = trackId,
+        Title = title,
+        Artist = artist,
+        Album = album,
+        Lines = lines,
+        IsSynced = lines.Count > 0,
+        IsInstrumental = false,
+        PlainLyrics = plainLyrics ?? string.Join("\n", lines.Select(l => l.Text))
+    };
 
     private static string SerializeWordTimedLines(IReadOnlyList<LyricLine> lines)
     {

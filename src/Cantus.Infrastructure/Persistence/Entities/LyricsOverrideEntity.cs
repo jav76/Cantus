@@ -13,6 +13,7 @@ public sealed class LyricsOverrideEntity
     public string? AlbumName { get; set; }
     public string? PlainLyrics { get; set; }
     public string? RawSyncedLrc { get; set; }
+    public string? WordTimedLinesJson { get; set; }
     public bool IsSynced { get; set; }
     public bool IsInstrumental { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
