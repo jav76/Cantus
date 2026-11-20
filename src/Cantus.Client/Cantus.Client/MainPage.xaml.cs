@@ -18,6 +18,8 @@ public sealed partial class MainPage : Page
 
     public ResponsiveLayoutManager Layout => ViewModel.Layout;
 
+    public DisplayPairingViewModel Pairing => ViewModel.Pairing;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
@@ -116,6 +118,10 @@ public sealed partial class MainPage : Page
         {
             ViewModel.Layout.IsKioskMode = false;
             e.Handled = true;
+        }
+        else if (!ViewModel.Pairing.CanControlPlayback)
+        {
+            // A Display offers no latency controls, so their shortcuts are off too.
         }
         else if ((int)e.Key == 219) // [ (OEM4): reduce compensation, lyrics render earlier
         {

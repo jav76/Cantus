@@ -63,6 +63,19 @@ public sealed partial class AdaptiveTrackCard : UserControl
         private set => SetValue(SessionProperty, value);
     }
 
+    public static readonly DependencyProperty PairingProperty =
+        DependencyProperty.Register(
+            nameof(Pairing),
+            typeof(DisplayPairingViewModel),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public DisplayPairingViewModel? Pairing
+    {
+        get => (DisplayPairingViewModel?)GetValue(PairingProperty);
+        private set => SetValue(PairingProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -97,6 +110,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
         card.Transport = viewModel?.Transport;
         card.Timing = viewModel?.Timing;
         card.Session = viewModel?.Session;
+        card.Pairing = viewModel?.Pairing;
         card.Theme = viewModel?.Theme;
         card.Layout = viewModel?.Layout;
     }
@@ -242,6 +256,14 @@ public sealed partial class AdaptiveTrackCard : UserControl
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error connecting to Spotify");
+        }
+    }
+
+    private async void OnPairAsDisplayClicked(object sender, RoutedEventArgs e)
+    {
+        if (Pairing is not null)
+        {
+            await Pairing.StartPairingAsync();
         }
     }
 

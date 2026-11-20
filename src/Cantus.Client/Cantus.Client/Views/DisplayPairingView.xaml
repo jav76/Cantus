@@ -1,0 +1,119 @@
+<UserControl x:Class="Cantus.Client.Views.DisplayPairingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="{x:Bind GetPagePadding(Layout.CurrentBreakpoint), Mode=OneWay}">
+            <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                    BorderThickness="1"
+                    CornerRadius="24"
+                    Padding="{x:Bind GetCardPadding(Layout.CurrentBreakpoint), Mode=OneWay}"
+                    MaxWidth="1200"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="20" HorizontalAlignment="Stretch">
+
+                    <!-- Title -->
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <TextBlock Text="Pair this screen as a display"
+                                   FontSize="{x:Bind GetTitleFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                   FontWeight="Bold"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <TextBlock Text="On a phone or computer signed in to Cantus, scan the QR code, or open the server address and enter the code."
+                                   FontSize="15"
+                                   MaxWidth="640"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!-- Revoke, rejection and request failure notices -->
+                    <Border Visibility="{x:Bind Pairing.StatusMessageVisibility, Mode=OneWay}"
+                            Background="{x:Bind Theme.GlowBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="16,10"
+                            HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind Pairing.StatusMessage, Mode=OneWay}"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"
+                                       Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- QR code and short code -->
+                    <StackPanel Visibility="{x:Bind Pairing.CodeVisibility, Mode=OneWay}"
+                                Orientation="{x:Bind GetCodeOrientation(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                Spacing="40"
+                                HorizontalAlignment="Center">
+                        <Viewbox StretchDirection="DownOnly"
+                                 MaxWidth="{x:Bind GetQrMaxSize(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                 VerticalAlignment="Center">
+                            <Border Background="White" CornerRadius="12" Padding="4">
+                                <Canvas x:Name="QrCanvas" />
+                            </Border>
+                        </Viewbox>
+
+                        <StackPanel Spacing="12" VerticalAlignment="Center">
+                            <TextBlock Text="CODE"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                            <Viewbox StretchDirection="DownOnly" MaxWidth="640">
+                                <TextBlock Text="{x:Bind Pairing.CodeText, Mode=OneWay}"
+                                           FontSize="104"
+                                           FontWeight="Bold"
+                                           FontFamily="Consolas"
+                                           CharacterSpacing="80"
+                                           Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                            </Viewbox>
+                            <TextBlock Text="{x:Bind Pairing.ServerBaseUrl, Mode=OneWay}"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True"
+                                       Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind Pairing.ExpiresInText, Mode=OneWay}"
+                                       FontSize="14"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Waiting for the connection or a code -->
+                    <StackPanel Visibility="{x:Bind Pairing.ProgressVisibility, Mode=OneWay}"
+                                Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Center">
+                        <ProgressRing IsActive="True" Width="24" Height="24" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind Pairing.PairingProgressText, Mode=OneWay}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"
+                                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <Button Click="OnCancelClicked"
+                            HorizontalAlignment="Center"
+                            Background="#1AFFFFFF"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="8"
+                            Padding="16,8">
+                        <TextBlock Text="Cancel" FontSize="13" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
