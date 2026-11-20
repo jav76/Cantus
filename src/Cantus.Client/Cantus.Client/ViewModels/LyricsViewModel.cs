@@ -22,18 +22,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
     private readonly ILyricsPreferences _preferences;
     private readonly PlaybackTransport _transport;
+    private readonly PlaybackTiming _timing;
 
     private LyricsPayload? _lastLyrics;
-    private int _userOffsetMs;
     private int _activeLineIndex = -1;
     private long _interpolatedProgressMs;
     private long _lastTickTimestampMs;
-
-    // Compensates for the delay between a position estimate and the audio
-    // actually reaching the listener's ears (Bluetooth speakers, TV audio
-    // chains). Persisted per device; [ and ] adjust it in 50ms steps.
-    private const int LATENCY_STEP_MS = 50;
-    private int _latencyCompensationMs;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -55,7 +49,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private double _progressFraction;
     private string _progressText = "00:00";
     private string _totalDurationText = "00:00";
-    private string _offsetText = "+0.0s";
     private bool _hasLyrics;
     private bool _isInstrumental;
     private bool _isInstrumentalBreak;
@@ -304,7 +297,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         // A tap is an explicit "take me there": it ends any manual-scroll pause.
         IsUserScrollingPaused = false;
-        await _transport.SeekToLineAsync(LyricLines[lineIndex].TimestampMs, _userOffsetMs);
+        await _transport.SeekToLineAsync(LyricLines[lineIndex].TimestampMs, _timing.TrackOffsetMs);
     }
 
     private void OnTransportSeekApplied(long localNow)
@@ -335,7 +328,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     }
 
     private long ComputeTargetProgressMs(PlaybackStatePayload state, long localNow)
-        => Math.Max(0, OptimisticSeekAnchor.ProjectProgressMs(state, localNow) - _latencyCompensationMs);
+        => _timing.ComputeClockTargetMs(OptimisticSeekAnchor.ProjectProgressMs(state, localNow));
 
     private long GetServerNowMs() => _transport.GetServerNowMs();
 
@@ -363,11 +356,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_totalDurationText != value) { _totalDurationText = value; OnPropertyChanged(); } }
     }
 
-    public string OffsetText
-    {
-        get => _offsetText;
-        set { if (_offsetText != value) { _offsetText = value; OnPropertyChanged(); } }
-    }
+    public PlaybackTiming Timing => _timing;
+
+    public string OffsetText => _timing.OffsetText;
 
     public bool HasLyrics
     {
@@ -554,31 +545,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public int LatencyCompensationMs
     {
-        get => _latencyCompensationMs;
-        internal set
-        {
-            int clamped = LyricsPreferences.ClampLatency(value);
-            if (_latencyCompensationMs != clamped)
-            {
-                _latencyCompensationMs = clamped;
-                _preferences.LatencyCompensationMs = clamped;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CalibrationText));
-            }
-        }
+        get => _timing.LatencyCompensationMs;
+        internal set => _timing.LatencyCompensationMs = value;
     }
 
-    public string CalibrationText => $"{_latencyCompensationMs} ms";
+    public string CalibrationText => _timing.CalibrationText;
 
-    /// <summary>
-    /// Adjusts the device latency compensation. Positive deltas render lyrics
-    /// later; negative deltas render them earlier (the fix when lyrics trail
-    /// the audio). Bound to the [ and ] keys and the settings steppers.
-    /// </summary>
-    public void AdjustLatencyCompensation(int deltaMs)
-    {
-        LatencyCompensationMs = _latencyCompensationMs + deltaMs;
-    }
+    /// <inheritdoc cref="PlaybackTiming.AdjustLatencyCompensation"/>
+    public void AdjustLatencyCompensation(int deltaMs) => _timing.AdjustLatencyCompensation(deltaMs);
 
     internal long InterpolatedProgressMs => _interpolatedProgressMs;
 
@@ -672,7 +646,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _themeManager = themeManager ?? ThemeManager.Instance;
         _layoutManager = layoutManager ?? ResponsiveLayoutManager.Instance;
         _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
-        _latencyCompensationMs = _preferences.LatencyCompensationMs;
         _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
 
@@ -693,16 +666,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         // Built after the palette subscription above so its brush notifications
         // keep following the root's theme notifications.
         _transport = new PlaybackTransport(client, _themeManager);
-        _transport.PropertyChanged += OnTransportPropertyChanged;
+        _transport.PropertyChanged += OnForwardedPropertyChanged;
         _transport.SeekApplied += OnTransportSeekApplied;
         _transport.SeekReverted += OnTransportSeekReverted;
+
+        _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
+        _timing.PropertyChanged += OnForwardedPropertyChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
         _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
         _client.PlaybackStateReceived += state => RunOnUIThread(() => OnPlaybackStateReceived(state));
         _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
-        _client.TrackOffsetReceived += offset => RunOnUIThread(() => OnTrackOffsetReceived(offset));
+        _client.TrackOffsetReceived += offset => RunOnUIThread(() => _timing.ApplyTrackOffset(offset));
         _client.SessionsReceived += sessions => RunOnUIThread(() => OnSessionsReceived(sessions));
         _client.AuthSessionReceived += session => RunOnUIThread(() => OnAuthSessionReceived(session));
         _client.SessionRevoked += userId => RunOnUIThread(() => OnSessionRevoked(userId));
@@ -762,13 +738,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         await _client.StartAsync();
     }
 
-    public async Task SetSyncOffsetAsync(int offsetMs)
-    {
-        if (_transport.PlaybackState?.CurrentTrack?.Id is string trackId)
-        {
-            await _client.SetTrackOffsetAsync(trackId, offsetMs);
-        }
-    }
+    public Task SetSyncOffsetAsync(int offsetMs) => _timing.SetSyncOffsetAsync(offsetMs);
 
     public async Task SwitchUserSubscriptionAsync(string? userId)
     {
@@ -911,9 +881,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Theme));
     }
 
-    // Pass-through members share the transport's property names, so its
-    // notifications are re-raised as-is for views bound to this view model.
-    private void OnTransportPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    // Pass-through members share the transport's and timing's property names,
+    // so their notifications are re-raised as-is for views bound to this view model.
+    private void OnForwardedPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(e.PropertyName);
     }
@@ -1092,18 +1062,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         // index - so without this event the stage keeps the previous track's
         // scroll offset (often the bottom) until the first line activates.
         LyricsReloaded?.Invoke();
-    }
-
-    private void OnTrackOffsetReceived(TrackOffsetPayload? offset)
-    {
-        if (offset is null) return;
-
-        if (_transport.PlaybackState?.CurrentTrack?.Id == offset.TrackId)
-        {
-            _userOffsetMs = offset.OffsetMs;
-            double seconds = _userOffsetMs / 1000.0;
-            OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
-        }
     }
 
     private void OnSessionsReceived(IReadOnlyList<AuthorizedSessionPayload>? sessions)
@@ -1287,7 +1245,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
 
         long currentWithOffset = _transport.HoldAtSeekFloor(
-            Math.Clamp(_interpolatedProgressMs + _userOffsetMs, 0, durationMs));
+            _timing.ComputeRenderPositionMs(_interpolatedProgressMs, durationMs));
 
         ProgressFraction = (double)currentWithOffset / durationMs;
         ProgressText = FormatTime(currentWithOffset);
@@ -1390,22 +1348,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task NudgeOffsetAsync(int deltaMs)
-    {
-        if (_transport.PlaybackState?.CurrentTrack is null) return;
-        _userOffsetMs = Math.Clamp(_userOffsetMs + deltaMs, -30000, 30000);
-        double seconds = _userOffsetMs / 1000.0;
-        OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
-        await _client.SetTrackOffsetAsync(_transport.PlaybackState.CurrentTrack.Id, _userOffsetMs);
-    }
+    public Task NudgeOffsetAsync(int deltaMs) => _timing.NudgeOffsetAsync(deltaMs);
 
-    public async Task ResetOffsetAsync()
-    {
-        if (_transport.PlaybackState?.CurrentTrack is null) return;
-        _userOffsetMs = 0;
-        OffsetText = "+0.0s";
-        await _client.SetTrackOffsetAsync(_transport.PlaybackState.CurrentTrack.Id, 0);
-    }
+    public Task ResetOffsetAsync() => _timing.ResetOffsetAsync();
 
     public async Task SubscribeToUserAsync(string? userId)
     {

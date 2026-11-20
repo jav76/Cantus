@@ -24,12 +24,15 @@ flowchart TD
         Prefs[LyricsPreferences]
         Transport[PlaybackTransport]
         Anchor[OptimisticSeekAnchor]
+        Timing[PlaybackTiming]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
         LVM --> Prefs
         LVM --> Transport
+        LVM --> Timing
         Transport --> Anchor
+        Timing --> Prefs
     end
 
     subgraph XAML Views
@@ -65,6 +68,7 @@ flowchart TD
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
 - Transport controls (play/pause, skip, shuffle, repeat, volume, seek) are thin pass-throughs to `PlaybackTransport`, kept so existing `{x:Bind}` paths stay one level deep. The transport's property notifications are re-raised under the same names.
+- Track offset and latency members (`OffsetText`, `NudgeOffsetAsync`, `ResetOffsetAsync`, `SetSyncOffsetAsync`, `LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`) are pass-throughs to `PlaybackTiming` in the same way. Each tick asks `PlaybackTiming` for the clock target and the render position.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -89,7 +93,7 @@ flowchart TD
 - `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
-- `LyricsViewModel` reads and writes its per-device preferences (auto-scroll, karaoke mode, device latency compensation) only through an injected `ILyricsPreferences`. It reads them once at construction and writes on every change.
+- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
 - `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
@@ -99,6 +103,13 @@ flowchart TD
 - Owns the effective playback state. `ApplyServerState` takes each poll, reconciles it with any unconfirmed seek, and returns the state the display clock follows.
 - Line seeks (`SeekToLineAsync`) target the line timestamp minus the per-track offset, without latency compensation (a seek flushes in-flight audio, so adding it would clip the line). The jump is optimistic and raises `SeekApplied` before Spotify answers. `HoldAtSeekFloor` keeps the tapped line active until the latency-compensated estimate catches up. Polls still reporting the pre-seek position are ignored until one confirms the seek (or 4 seconds pass). A rejected seek restores the last poll, raises `SeekReverted`, and reports through the transport status line.
 - The seek anchor itself (pending seek, display floor, seek generation, poll reconciliation) lives in an internal `OptimisticSeekAnchor` owned by the transport. Callers go through `PlaybackTransport` members; `LyricsViewModel` only shares its static `ProjectProgressMs` position estimate.
+
+### 9. `PlaybackTiming`
+- Implements the render-position formula from [Timing & Calibration](../user-guide/timing-and-calibration.md): `playback position - device latency compensation + per-track offset`.
+- `ComputeClockTargetMs` subtracts the latency compensation (never below `0`) from the projected Spotify position. The display clock interpolates toward this target, so a latency change slews in smoothly. `ComputeRenderPositionMs` adds the per-track offset to the interpolated position and clamps it to the track.
+- Owns device latency compensation (`LatencyCompensationMs`, `CalibrationText`, `AdjustLatencyCompensation`): clamped to `0-1000ms` and persisted through `ILyricsPreferences`. `LATENCY_STEP_MS` is the `50ms` step.
+- Owns the per-track offset (`TrackOffsetMs`, `OffsetText`). `NudgeOffsetAsync` and `ResetOffsetAsync` update it and save it for the current track; nudges clamp to `-30s..+30s`. `SetSyncOffsetAsync` only saves. `ApplyTrackOffset` takes the server's saved offset and ignores offsets for any track but the current one.
+- Reads the current track ID through a delegate, so it has no dependency on `PlaybackTransport`.
 
 ---
 
