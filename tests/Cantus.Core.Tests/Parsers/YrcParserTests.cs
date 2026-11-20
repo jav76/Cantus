@@ -162,10 +162,13 @@ public class YrcParserTests
     }
 
     [Theory]
-    [InlineData("[1000,500](1000,abc,0)alpha (1200,100,0)bravo", "alpha bravo")]
+    [InlineData("[1000,500](1000,abc,0)alpha (1200,100,0)bravo", "(1000,abc,0)alpha bravo")]
     [InlineData("[1000,500](1000,200)alpha (1200,100,0)bravo", "alpha bravo")]
     [InlineData("[1000,500](1000,200,0,9)alpha", "alpha")]
     [InlineData("[1000,500](1000,200,0alpha", "(1000,200,0alpha")]
+    [InlineData("[1000,500](1000,200,0alpha (1200,100,0)bravo", "(1000,200,0alpha bravo")]
+    [InlineData("[1000,500(1000,200,0)alpha [x]", "[1000,500alpha [x]")]
+    [InlineData("[1000,500 (1000,200,0)alpha [x]", "[1000,500 alpha [x]")]
     [InlineData("[1000,500]plain words", "plain words")]
     [InlineData("[1000,500]lead (1000,200,0)alpha", "lead alpha")]
     [InlineData("[1000,500](1200,200,0)alpha (1000,100,0)bravo", "alpha bravo")]
@@ -179,6 +182,22 @@ public class YrcParserTests
         line.Timestamp.Should().Be(TimeSpan.FromMilliseconds(1000));
         line.Text.Should().Be(expectedText);
         line.Syllables.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("(1, 2, 3, 4)")]
+    [InlineData("(1,2,3,4)")]
+    [InlineData("(2,000 miles)")]
+    [InlineData("(1,2)")]
+    public void ParseLines_WithParenthesisedNumbersInTokenText_KeepsSyllablesAndText(string sungText)
+    {
+        string raw = $"[1000,500](1000,200,0)count (1200,100,0){sungText}";
+
+        IReadOnlyList<LyricLine> lines = YrcParser.ParseLines(raw);
+
+        LyricLine line = lines.Should().ContainSingle().Subject;
+        line.Text.Should().Be($"count {sungText}");
+        line.Syllables!.Select(s => s.Text).Should().Equal("count ", sungText);
     }
 
     [Fact]
@@ -239,7 +258,7 @@ public class YrcParserTests
         lines.Should().HaveCount(3);
         lines[0].Syllables.Should().ContainSingle();
         lines[1].Syllables.Should().BeNull();
-        lines[1].Text.Should().Be("bravo");
+        lines[1].Text.Should().Be("(2000,x,0)bravo");
         lines[2].Syllables.Should().ContainSingle().Which.Text.Should().Be("charlie");
     }
 

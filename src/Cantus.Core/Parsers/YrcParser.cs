@@ -75,7 +75,8 @@ public static class YrcParser
     /// <summary>
     /// Returns the line start from a <c>[start,duration]</c> header, or null when the header is
     /// missing or unreadable. A bracketed but unreadable header is still skipped so it does not
-    /// leak into the line text.
+    /// leak into the line text, but only when its <c>]</c> comes before any whitespace or bracket,
+    /// so a header missing its <c>]</c> never swallows lyric text up to a later one.
     /// </summary>
     private static TimeSpan? ReadHeader(ReadOnlySpan<char> line, out int bodyStart)
     {
@@ -85,7 +86,7 @@ public static class YrcParser
             return null;
         }
 
-        int close = line.IndexOf(HEADER_CLOSE);
+        int close = FindHeaderClose(line);
         if (close < 0)
         {
             return null;
@@ -143,12 +144,7 @@ public static class YrcParser
         duration = TimeSpan.Zero;
         headerLength = 0;
 
-        if (!IsTokenStart(span, 0))
-        {
-            return false;
-        }
-
-        int close = span.IndexOf(TOKEN_CLOSE);
+        int close = FindTokenClose(span);
         if (close < 0)
         {
             return false;
@@ -190,31 +186,69 @@ public static class YrcParser
         return true;
     }
 
-    /// <summary>
-    /// A token starts at an opening parenthesis followed by digits and a comma. Token text has no
-    /// ASCII parentheses in practice, so this is how the end of one token's text is found.
-    /// </summary>
-    private static bool IsTokenStart(ReadOnlySpan<char> span, int index)
+    private static int FindHeaderClose(ReadOnlySpan<char> line)
     {
-        if (index >= span.Length || span[index] != TOKEN_OPEN)
+        for (int i = 1; i < line.Length; i++)
         {
-            return false;
+            char current = line[i];
+            if (current == HEADER_CLOSE)
+            {
+                return i;
+            }
+
+            if (char.IsWhiteSpace(current) || current == HEADER_OPEN || current == TOKEN_OPEN)
+            {
+                return -1;
+            }
         }
 
-        int cursor = index + 1;
-        while (cursor < span.Length && char.IsAsciiDigit(span[cursor]))
-        {
-            cursor++;
-        }
-
-        return cursor > index + 1 && cursor < span.Length && span[cursor] == FIELD_SEPARATOR;
+        return -1;
     }
 
+    /// <summary>
+    /// Returns the index of the <c>)</c> closing a token-shaped fragment at the start of the span:
+    /// an opening parenthesis, a digit, then only digits and commas with at least one comma.
+    /// Returns -1 at the first other character, which keeps the scan short and leaves
+    /// parenthesised lyric text such as <c>(2,000 miles)</c> alone.
+    /// </summary>
+    private static int FindTokenClose(ReadOnlySpan<char> span)
+    {
+        if (span.Length < 2 || span[0] != TOKEN_OPEN || !char.IsAsciiDigit(span[1]))
+        {
+            return -1;
+        }
+
+        bool sawSeparator = false;
+        for (int i = 2; i < span.Length; i++)
+        {
+            char current = span[i];
+            if (current == TOKEN_CLOSE)
+            {
+                return sawSeparator ? i : -1;
+            }
+
+            if (current == FIELD_SEPARATOR)
+            {
+                sawSeparator = true;
+            }
+            else if (!char.IsAsciiDigit(current))
+            {
+                return -1;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// A token's text ends where the next readable token header begins, so parenthesised text that
+    /// is not a full <c>(start,duration,flag)</c> header stays part of the text.
+    /// </summary>
     private static int FindNextTokenStart(ReadOnlySpan<char> span, int from)
     {
         for (int i = from; i < span.Length; i++)
         {
-            if (IsTokenStart(span, i))
+            if (span[i] == TOKEN_OPEN && TryReadToken(span[i..], out _, out _, out _))
             {
                 return i;
             }
@@ -224,8 +258,8 @@ public static class YrcParser
     }
 
     /// <summary>
-    /// Builds the fallback text of a malformed line by removing anything shaped like a token
-    /// header, and reports the start of the first token that does parse.
+    /// Builds the fallback text of a malformed line by removing token-shaped fragments (digits and
+    /// commas in parentheses), and reports the start of the first token that does parse.
     /// </summary>
     private static string StripTokenHeaders(ReadOnlySpan<char> body, out TimeSpan? firstTokenStart)
     {
@@ -235,20 +269,17 @@ public static class YrcParser
 
         while (index < body.Length)
         {
-            if (IsTokenStart(body, index))
+            int close = FindTokenClose(body[index..]);
+            if (close >= 0)
             {
-                int close = body[index..].IndexOf(TOKEN_CLOSE);
-                if (close >= 0)
+                if (firstTokenStart is null &&
+                    TryReadToken(body[index..], out TimeSpan start, out _, out _))
                 {
-                    if (firstTokenStart is null &&
-                        TryReadToken(body[index..], out TimeSpan start, out _, out _))
-                    {
-                        firstTokenStart = start;
-                    }
-
-                    index += close + 1;
-                    continue;
+                    firstTokenStart = start;
                 }
+
+                index += close + 1;
+                continue;
             }
 
             builder.Append(body[index]);

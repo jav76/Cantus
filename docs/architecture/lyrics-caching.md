@@ -91,4 +91,5 @@ Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates sta
 
 - Each token becomes a `LyricSyllable` with its real start and duration. Token text is kept as sent, so a word's trailing space stays on it and split syllables of one word stay joined.
 - The line text is the joined token text, trimmed. Credit lines are returned as ordinary lines; stripping them is up to the caller.
-- A line with an unreadable token falls back to line-level timing (no syllables) and keeps its text. A line with no readable timing at all takes the previous line's timestamp. The parser never throws and never drops a non-blank line.
+- A token's text runs until the next full `(start,duration,flag)` header, so parenthesised lyric text such as `(1, 2, 3, 4)` or `(2,000 miles)` stays in the syllable.
+- A line with an unreadable token falls back to line-level timing (no syllables) and keeps its text. Only fragments made of digits and commas in parentheses are stripped from that text, so a broken header never removes lyric words. A line with no readable timing at all takes the previous line's timestamp. The parser never throws and never drops a non-blank line.
