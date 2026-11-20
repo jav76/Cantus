@@ -1,0 +1,30 @@
+{
+  "sgc": false,
+  "sfy": false,
+  "qfy": false,
+  "transUser": {
+    "id": 1001,
+    "status": 99,
+    "demand": 1,
+    "userid": 1002,
+    "nickname": "placeholder",
+    "uptime": 1575004875585
+  },
+  "lrc": {
+    "version": 9,
+    "lyric": "[00:00.000] 制作人 : alpha bravo/charlie delta/echo foxtrot/golf hotel\n[00:01.000] 作词 : india juliet/kilo lima/mike november/oscar \"papa quebec\" romeo/sierra \"tango\" uniform\n[00:02.000] 作曲 : victor whiskey/xray yankee/zulu alpha2/bravo2 \"charlie2 delta2\" echo2/foxtrot2 \"golf2\" hotel2\n[00:13.564]india2\n[00:14.231]\n[00:27.244]juliet2 kilo2 lima2 mike2\n[00:30.028]november2 oscar2 papa2 quebec2 romeo2 sierra2 tango2 uniform2\n[00:32.772]victor2 whiskey2 xray2 yankee2 zulu2 alpha3 bravo3 charlie3, delta3\n[00:38.075]echo3 foxtrot3 golf3 hotel3\n[00:41.063]india3 juliet3 kilo3 lima3 mike3 november3 oscar3 papa3\n"
+  },
+  "tlyric": {
+    "version": 33,
+    "lyric": "[00:00.000]\n[00:01.000]\n[00:13.564]\n[00:14.231]\n[00:27.244]甲乙丙丁戊己庚\n[00:30.028]辛壬癸甲乙丙丁戊己庚"
+  },
+  "yrc": {
+    "version": 7,
+    "lyric": "[0,1000](0,1000,0) 制作人 : quebec3 romeo3/sierra3 tango3/uniform3 victor3/whiskey3 xray3\n[1000,1000](1000,1000,0) 作词 : yankee3 zulu3/alpha4 bravo4/charlie4 delta4/echo4 \"foxtrot4 golf4\" hotel4/india4 \"juliet4\" kilo4\n[2000,1000](2000,1000,0) 作曲 : lima4 mike4/november4 oscar4/papa4 quebec4/romeo4 \"sierra4 tango4\" uniform4/victor4 \"whiskey4\" xray4\n\n[23550,120](23550,120,0)yankee4\n[27360,1290](27360,240,0)zulu4 (27600,90,0)alpha5 (27690,360,0)bravo5 (28050,600,0)charlie5\n[30150,2610](30150,240,0)delta5 (30390,210,0)echo5 (30600,120,0)foxtrot5 (30720,240,0)golf5 (30960,210,0)hotel5 (31170,240,0)india5 (31410,420,0)juliet5 (31830,930,0)kilo5\n[32820,4800](32820,540,0)lima5 (33360,120,0)mike5 (33480,180,0)november5 (33660,240,0)oscar5 (33900,330,0)papa5 (34230,390,0)quebec5(34620,120,0)romeo5 (34740,900,0)sierra5(35640,30,0), (35670,1950,0)tango5\n[38430,2130](38430,240,0)uniform5(38670,300,0)victor5 (38970,180,0)whiskey5 (39150,1410,0)xray5\n[172170,12150](172170,720,0)yankee5(172890,30,0), (172920,690,0)zulu5(173610,10590,0), (184200,120,0)alpha6\n[184350,5790](184350,240,0)bravo6 (184590,630,0)charlie6(185220,90,0), (185310,2280,0)delta6(187590,30,0), (187620,450,0)echo6 (188070,540,0)foxtrot6 (188610,360,0)golf6 (188970,150,0)hotel6 (189120,1020,0)india6\n"
+  },
+  "ytlrc": {
+    "version": 7,
+    "lyric": "[00:27.360]辛壬癸甲乙丙丁\n[00:30.150]戊己庚辛壬癸甲乙丙丁\n[00:44.190]戊己庚辛壬 癸甲乙丙丁戊己庚"
+  },
+  "code": 200
+}
