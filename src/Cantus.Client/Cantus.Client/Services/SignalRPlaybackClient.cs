@@ -281,19 +281,36 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
     public string? DisplayToken { get; set; }
 
-    // A Session wins over a Display token, matching the server's credential order.
-    private string? ConnectionCredential => !string.IsNullOrWhiteSpace(SessionToken)
-        ? SessionToken
-        : DisplayToken;
+    /// <summary>Where the desktop heads persist the Session token. Null uses the per-user app data folder.</summary>
+    internal string? SessionFilePath { get; }
 
-    private bool HoldsCredential => !string.IsNullOrWhiteSpace(ConnectionCredential);
+    /// <summary>The token the next hub connection presents through the access token factory.</summary>
+    internal string? ConnectionCredential => SelectConnectionCredential(SessionToken, DisplayToken);
+
+    private bool HoldsCredential => ConnectionCredential is not null;
+
+    /// <summary>
+    /// A Session wins over a Display token, matching the server's credential order. Null means
+    /// the connection is anonymous and registers for the sign-in handoff instead.
+    /// </summary>
+    internal static string? SelectConnectionCredential(string? sessionToken, string? displayToken)
+    {
+        if (!string.IsNullOrWhiteSpace(sessionToken))
+        {
+            return sessionToken;
+        }
+
+        return string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+    }
 
     public SignalRPlaybackClient(
         string? serverUrl = null,
         string? sessionToken = null,
-        TimeSpan? reconnectInterval = null)
+        TimeSpan? reconnectInterval = null,
+        string? sessionFilePath = null)
     {
         _configuredServerUrl = serverUrl;
+        SessionFilePath = sessionFilePath;
         SessionToken = sessionToken ?? LoadPersistedSessionToken();
 
         // Web session handoff: a ?auth=<session-id> query parameter (the same value the
@@ -314,11 +331,16 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         }
     }
 
-    private static string GetSessionFilePath()
+    private string GetSessionFilePath()
     {
 #if __WASM__
         return string.Empty;
 #else
+        if (!string.IsNullOrWhiteSpace(SessionFilePath))
+        {
+            return SessionFilePath;
+        }
+
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string cantusDir = System.IO.Path.Combine(appData, "Cantus");
         System.IO.Directory.CreateDirectory(cantusDir);
@@ -326,7 +348,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static string? LoadPersistedSessionToken()
+    private string? LoadPersistedSessionToken()
     {
 #if __WASM__
         return null;
@@ -347,7 +369,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void SavePersistedSessionToken(string token)
+    private void SavePersistedSessionToken(string token)
     {
 #if !__WASM__
         try
@@ -361,7 +383,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void ClearPersistedSessionToken()
+    private void ClearPersistedSessionToken()
     {
 #if !__WASM__
         try
@@ -834,6 +856,15 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public async Task ReconnectWithDisplayTokenAsync(string? displayToken)
     {
         DisplayToken = string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+
+        // Pairing is offered only after the server returned no Sessions, so a Session token
+        // still held here is stale. Kept, it would win the credential order and hide the
+        // Display token from the server on every connection.
+        if (DisplayToken is not null && !string.IsNullOrWhiteSpace(SessionToken))
+        {
+            ClearPersistedSessionToken();
+            SessionToken = null;
+        }
 
         await _connectionLock.WaitAsync();
         try

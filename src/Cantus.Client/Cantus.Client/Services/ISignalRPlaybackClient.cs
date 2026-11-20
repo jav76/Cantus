@@ -48,6 +48,9 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     Task LogoutAsync();
     Task ReconnectWithTokenAsync(string? sessionToken);
 
-    /// <summary>Replaces the Display token (null drops it) and opens a new hub connection with it.</summary>
+    /// <summary>
+    /// Replaces the Display token (null drops it) and opens a new hub connection with it.
+    /// A non-null token also discards any held Session token, which the server has already rejected.
+    /// </summary>
     Task ReconnectWithDisplayTokenAsync([Redact] string? displayToken);
 }
