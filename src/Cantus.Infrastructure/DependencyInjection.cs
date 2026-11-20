@@ -109,6 +109,7 @@ public static class DependencyInjection
                 sp.GetRequiredService<SpotifyAuthService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyAuthServiceDecorator>>()));
 
+        services.AddSingleton<SpotifyRateLimitGate>();
         services.AddScoped<SpotifyPlayerClient>();
         services.AddScoped<ISpotifyPlayerClient>(sp =>
             new TraceLoggingSpotifyPlayerClientDecorator(

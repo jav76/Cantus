@@ -1,5 +1,6 @@
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Spotify;
 using Cantus.Server.BackgroundServices;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using SpotifyAPI.Web;
 using Xunit;
@@ -461,6 +463,53 @@ public sealed class ActiveUsersPlaybackMonitorTests
         _mockSpotifyClient.Verify(
             s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task WhenAnotherCallerReportsTheRateLimitGate_PausesPollingWithoutCallingSpotify()
+    {
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "user-1" });
+
+        UserSession session = new()
+        {
+            Id = "user-1",
+            SpotifyUserId = "sp-1",
+            DisplayName = "Alice",
+            AccessToken = "tok-1",
+            RefreshToken = "ref-1"
+        };
+
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+
+        FakeTimeProvider timeProvider = new(DateTimeOffset.UtcNow);
+        SpotifyRateLimitGate gate = new(timeProvider);
+        gate.Report(TimeSpan.FromSeconds(120));
+
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions()),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance,
+            gate);
+
+        TaskCompletionSource rateLimitedDiagnostics = CreateSignal();
+        _mockUser1Group
+            .Setup(c => c.ReceiveDiagnostics(It.Is<DiagnosticsDto>(d =>
+                d.PollerStatus.StartsWith("Rate Limited"))))
+            .Callback(() => rateLimitedDiagnostics.TrySetResult())
+            .Returns(Task.CompletedTask);
+
+        await RunUntilAsync(monitor, "the rate-limited diagnostics broadcast", rateLimitedDiagnostics.Task);
+
+        monitor.IsRateLimited.Should().BeTrue();
+        monitor.RateLimitUntilUtc.Should().Be(gate.LimitedUntilUtc);
+        _mockSpotifyClient.Verify(
+            s => s.GetCurrentPlaybackAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]

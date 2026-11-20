@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
@@ -21,6 +22,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly IHubContext<PlaybackHub, IPlaybackClient> _hubContext;
     private readonly PlaybackPollerOptions _options;
     private readonly ILogger<ActiveUsersPlaybackMonitor> _logger;
+    private readonly SpotifyRateLimitGate _rateLimitGate;
     private readonly object _wakeLock = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _nextPollUtc = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _pausedSinceUtc = new();
@@ -28,23 +30,24 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly ConcurrentDictionary<string, string?> _lastTrackIdByUser = new();
 
     private CancellationTokenSource _wakeCts = new();
-    private DateTimeOffset _rateLimitUntilUtc = DateTimeOffset.MinValue;
 
-    public DateTimeOffset RateLimitUntilUtc => _rateLimitUntilUtc;
-    public bool IsRateLimited => DateTimeOffset.UtcNow < _rateLimitUntilUtc;
+    public DateTimeOffset RateLimitUntilUtc => _rateLimitGate.LimitedUntilUtc;
+    public bool IsRateLimited => _rateLimitGate.IsLimited;
 
     public ActiveUsersPlaybackMonitor(
         IServiceScopeFactory scopeFactory,
         IPlaybackSessionRegistry registry,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         IOptions<PlaybackPollerOptions> options,
-        ILogger<ActiveUsersPlaybackMonitor> logger)
+        ILogger<ActiveUsersPlaybackMonitor> logger,
+        SpotifyRateLimitGate? rateLimitGate = null)
     {
         _scopeFactory = scopeFactory;
         _registry = registry;
         _hubContext = hubContext;
         _options = options.Value;
         _logger = logger;
+        _rateLimitGate = rateLimitGate ?? new(TimeProvider.System);
 
         _registry.OnClientsConnected += (_, _) => TriggerImmediatePoll();
         _registry.OnSessionsChanged += (_, _) => TriggerImmediatePoll();
@@ -171,10 +174,10 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        if (now < _rateLimitUntilUtc)
+        TimeSpan rateLimitRemaining = _rateLimitGate.Remaining;
+        if (rateLimitRemaining > TimeSpan.Zero)
         {
-            TimeSpan remaining = _rateLimitUntilUtc - now;
-            string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(remaining)})";
+            string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(rateLimitRemaining)})";
 
             foreach (string userId in activeUserIds)
             {
@@ -189,14 +192,14 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = 1,
                     PollerStatus = rateLimitStatus,
-                    ActivePollIntervalMs = (int)Math.Min(remaining.TotalMilliseconds, 10000),
+                    ActivePollIntervalMs = (int)Math.Min(rateLimitRemaining.TotalMilliseconds, 10000),
                     ActiveUserId = session.Id,
                     ActiveUserName = session.DisplayName,
                     ServerTimeUtc = DateTimeOffset.UtcNow
                 });
             }
 
-            return (int)Math.Clamp(remaining.TotalMilliseconds, 1000, 10000);
+            return (int)Math.Clamp(rateLimitRemaining.TotalMilliseconds, 1000, 10000);
         }
 
         foreach (string userId in activeUserIds)
@@ -227,14 +230,11 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 }
                 catch (APITooManyRequestsException tooManyEx)
                 {
-                    TimeSpan retryAfter = tooManyEx.RetryAfter > TimeSpan.Zero
-                        ? tooManyEx.RetryAfter
-                        : TimeSpan.FromSeconds(60);
-                    _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
+                    TimeSpan retryAfter = _rateLimitGate.Report(tooManyEx.RetryAfter);
                     _logger.LogWarning(
                         "Spotify API rate limit hit for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
                         session.Id,
-                        _rateLimitUntilUtc,
+                        _rateLimitGate.LimitedUntilUtc,
                         retryAfter);
 
                     string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
@@ -265,14 +265,11 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     }
                     catch (APITooManyRequestsException refreshTooManyEx)
                     {
-                        TimeSpan retryAfter = refreshTooManyEx.RetryAfter > TimeSpan.Zero
-                            ? refreshTooManyEx.RetryAfter
-                            : TimeSpan.FromSeconds(60);
-                        _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
+                        TimeSpan retryAfter = _rateLimitGate.Report(refreshTooManyEx.RetryAfter);
                         _logger.LogWarning(
                             "Spotify API rate limit hit during token refresh for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
                             session.Id,
-                            _rateLimitUntilUtc,
+                            _rateLimitGate.LimitedUntilUtc,
                             retryAfter);
 
                         string rateLimitStatus = $"Rate Limited ({FormatTimeSpan(retryAfter)})";
