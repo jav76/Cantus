@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -94,6 +95,51 @@ public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
         }
     }
 
+    public virtual async Task<IReadOnlyList<LyricsCandidate>> GetCandidatesAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+
+        List<LrclibResponseDto>? results = await SearchAsync(track, cancellationToken);
+        if (results is null)
+        {
+            return [];
+        }
+
+        return results
+            .Where(r => r.Instrumental
+                || !string.IsNullOrWhiteSpace(r.SyncedLyrics)
+                || !string.IsNullOrWhiteSpace(r.PlainLyrics))
+            .Select(ToCandidate)
+            .ToList();
+    }
+
+    private LyricsCandidate ToCandidate(LrclibResponseDto dto)
+    {
+        IReadOnlyList<string> preview = [];
+        bool isSynced = false;
+        if (!dto.Instrumental)
+        {
+            IReadOnlyList<LyricLine> syncedLines = LrcParser.ParseLines(dto.SyncedLyrics);
+            isSynced = syncedLines.Count > 0;
+            preview = isSynced
+                ? LyricsPreview.FromLines(syncedLines)
+                : LyricsPreview.FromPlain(dto.PlainLyrics);
+        }
+
+        return new LyricsCandidate(
+            ProviderName,
+            dto.Id.ToString(CultureInfo.InvariantCulture),
+            dto.TrackName ?? string.Empty,
+            dto.ArtistName ?? string.Empty,
+            dto.AlbumName,
+            dto.Duration is > 0 ? TimeSpan.FromSeconds(dto.Duration.Value) : TimeSpan.Zero,
+            isSynced,
+            dto.Instrumental,
+            preview);
+    }
+
     private async Task<LrclibResponseDto?> TryGetExactLyricsAsync(TrackInfo track, CancellationToken ct)
     {
         int durationSec = (int)Math.Round(track.Duration.TotalSeconds);
@@ -122,7 +168,7 @@ public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
         return await response.Content.ReadFromJsonAsync<LrclibResponseDto>(JsonOptions, cancellationToken: ct);
     }
 
-    private async Task<LrclibResponseDto?> TrySearchLyricsAsync(TrackInfo track, CancellationToken ct)
+    private async Task<List<LrclibResponseDto>?> SearchAsync(TrackInfo track, CancellationToken ct)
     {
         string query = $"{track.Title} {track.Artist}";
         string url = $"/api/search?q={Uri.EscapeDataString(query)}";
@@ -134,9 +180,14 @@ public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
         // miss and negative-caches it.
         response.EnsureSuccessStatusCode();
 
-        List<LrclibResponseDto>? results = await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(
+        return await response.Content.ReadFromJsonAsync<List<LrclibResponseDto>>(
             JsonOptions,
             cancellationToken: ct);
+    }
+
+    private async Task<LrclibResponseDto?> TrySearchLyricsAsync(TrackInfo track, CancellationToken ct)
+    {
+        List<LrclibResponseDto>? results = await SearchAsync(track, ct);
 
         if (results is null || results.Count == 0)
         {

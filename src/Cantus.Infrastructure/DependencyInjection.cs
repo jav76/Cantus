@@ -94,6 +94,7 @@ public static class DependencyInjection
             return providers;
         });
 
+        services.AddScoped<LyricsCandidateService>();
         services.AddScoped<CachedLyricsService>();
         services.AddScoped<ILyricsProvider>(sp =>
             new TraceLoggingLyricsProviderDecorator(
