@@ -35,6 +35,28 @@ public class NeteaseLyricsProviderTests
         return new NeteaseLyricsProvider(httpClient, options, NullLogger<NeteaseLyricsProvider>.Instance);
     }
 
+    private static string LoadFixture(string fileName)
+    {
+        return File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "Netease", fileName));
+    }
+
+    private static MockHttpMessageHandler LyricHandler(string lyricJson, List<string>? lyricRequests = null)
+    {
+        return new MockHttpMessageHandler
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(SEARCH_JSON);
+                }
+
+                lyricRequests?.Add(req.RequestUri!.PathAndQuery);
+                return Json(lyricJson);
+            }
+        };
+    }
+
     private static HttpResponseMessage Json(string json) => new(HttpStatusCode.OK)
     {
         Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -654,5 +676,100 @@ public class NeteaseLyricsProviderTests
         Func<Task> act = () => CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "111");
 
         await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_RequestsWordTimedLyricsInTheSameCall()
+    {
+        List<string> lyricRequests = new();
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("line-only.json"), lyricRequests);
+
+        await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        lyricRequests.Should().ContainSingle()
+            .Which.Should().Be("/api/song/lyric?id=111&lv=1&yv=1&tv=-1");
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WithYrc_ReturnsWordTimedLinesWithoutCredits()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("word-timed-latin.json"));
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        SyncedLyrics lyrics = result.Lyrics!;
+        lyrics.IsSynced.Should().BeTrue();
+        lyrics.HasWordTiming.Should().BeTrue();
+        lyrics.Lines.Should().HaveCount(7, "the three yrc credit lines are stripped");
+        lyrics.Lines[0].Timestamp.Should().Be(TimeSpan.FromMilliseconds(23550));
+        lyrics.Lines[0].Text.Should().Be("yankee4");
+
+        LyricLine line = lyrics.Lines[1];
+        line.Timestamp.Should().Be(TimeSpan.FromMilliseconds(27360));
+        line.Text.Should().Be("zulu4 alpha5 bravo5 charlie5");
+        line.Syllables.Should().Equal(
+            new LyricSyllable(TimeSpan.FromMilliseconds(27360), TimeSpan.FromMilliseconds(240), "zulu4 "),
+            new LyricSyllable(TimeSpan.FromMilliseconds(27600), TimeSpan.FromMilliseconds(90), "alpha5 "),
+            new LyricSyllable(TimeSpan.FromMilliseconds(27690), TimeSpan.FromMilliseconds(360), "bravo5 "),
+            new LyricSyllable(TimeSpan.FromMilliseconds(28050), TimeSpan.FromMilliseconds(600), "charlie5"));
+        lyrics.PlainLyrics.Should().StartWith("yankee4\nzulu4 alpha5 bravo5 charlie5\n");
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WithCjkYrc_ReturnsOneSyllablePerCharacter()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("word-timed-cjk.json"));
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        SyncedLyrics lyrics = result.Lyrics!;
+        lyrics.Lines.Should().HaveCount(4);
+        lyrics.Lines[0].Timestamp.Should().Be(TimeSpan.FromMilliseconds(930));
+        lyrics.Lines[0].Text.Should().Be("癸甲乙丙丁戊己庚辛壬癸");
+        lyrics.Lines[0].Syllables.Should().HaveCount(11);
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WithCreditTimedPerCharacter_StripsItFromTheJoinedText()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("word-timed-stretched-credit.json"));
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        SyncedLyrics lyrics = result.Lyrics!;
+        lyrics.Lines.Should().HaveCount(3);
+        lyrics.Lines[0].Timestamp.Should().Be(TimeSpan.FromMilliseconds(52730));
+        lyrics.Lines[0].Text.Should().Be("quebec2 romeo2 sierra2 tango2 uniform2");
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WithoutYrc_ReturnsLineLevelLyrics()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("line-only.json"));
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        SyncedLyrics lyrics = result.Lyrics!;
+        lyrics.HasWordTiming.Should().BeFalse();
+        lyrics.Lines.Should().HaveCount(5);
+        lyrics.Lines[0].Timestamp.Should().Be(TimeSpan.FromMilliseconds(9480));
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WhenYrcHoldsOnlyCredits_FallsBackToLrc()
+    {
+        MockHttpMessageHandler handler = LyricHandler("""
+            {
+                "lrc": { "lyric": "[00:00.000] 作词 : Name\n[00:08.156]First line\n[00:12.105]Second line\n" },
+                "yrc": { "lyric": "[0,1000](0,1000,0) 作词 : Name\n[1000,1000](1000,1000,0) 作曲 : Name\n" },
+                "code": 200
+            }
+            """);
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        SyncedLyrics lyrics = result.Lyrics!;
+        lyrics.HasWordTiming.Should().BeFalse();
+        lyrics.Lines.Select(l => l.Text).Should().Equal("First line", "Second line");
     }
 }
