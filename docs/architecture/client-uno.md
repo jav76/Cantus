@@ -21,9 +21,11 @@ flowchart TD
         LLVM[LyricLineViewModel Collection]
         Theme[ThemeManager]
         Layout[ResponsiveLayoutManager]
+        Prefs[LyricsPreferences]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
+        LVM --> Prefs
     end
 
     subgraph XAML Views
@@ -80,6 +82,11 @@ flowchart TD
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
 - `ThemeManager` extracts dynamic palettes from album artwork bytes and provides WCAG-compliant high-contrast theme brushes.
 - `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints.
+
+### 7. `LyricsPreferences` & `ISettingsStore`
+- `LyricsViewModel` reads and writes its per-device preferences (auto-scroll, karaoke mode, device latency compensation) only through an injected `ILyricsPreferences`. It reads them once at construction and writes on every change.
+- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
 ---
 
