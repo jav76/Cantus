@@ -117,6 +117,62 @@ public sealed class LyricsViewModelLyricsPickerTests
     }
 
     [Fact]
+    public async Task AChoiceAnsweringAfterTheNextTracksLyrics_KeepsTheNextTracksLyrics()
+    {
+        // Arrange
+        LyricsViewModel root = CreateRoot();
+        SignInAsOwner();
+        PlayTrack(TRACK_ID);
+        _client.RaiseLyricsReceived(Lyrics(TRACK_ID, "Wrong first line"));
+        ReturnOneCandidate();
+        TaskCompletionSource<LyricsOverrideResult> answer = new();
+        _service
+            .Setup(s => s.ApplyOverrideAsync(
+                TRACK_ID,
+                It.IsAny<LyricsOverrideRequestPayload>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(answer.Task);
+        await root.LyricsPicker.OpenAsync();
+        Task choice = root.LyricsPicker.UseCandidateAsync(root.LyricsPicker.Candidates[0]);
+
+        // Act
+        _client.RaiseLyricsReceived(Lyrics("track-456", "Next track's first line"));
+        answer.SetResult(new LyricsOverrideResult(
+            LyricsCorrectionStatus.Succeeded,
+            Lyrics(TRACK_ID, "I'm writing you this letter")));
+        await choice;
+        PlayTrack("track-456");
+
+        // Assert
+        root.LyricLines.Select(l => l.Text).Should().Equal("Next track's first line");
+    }
+
+    [Fact]
+    public async Task AChoiceAnsweringAfterTheTrackChanged_IsNotShown()
+    {
+        // Arrange
+        LyricsViewModel root = CreateRoot();
+        SignInAsOwner();
+        PlayTrack(TRACK_ID);
+        ReturnOneCandidate();
+        _service
+            .Setup(s => s.ApplyOverrideAsync(
+                TRACK_ID,
+                It.IsAny<LyricsOverrideRequestPayload>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LyricsOverrideResult(
+                LyricsCorrectionStatus.Succeeded,
+                Lyrics("track-456", "Lyrics for another track")));
+        await root.LyricsPicker.OpenAsync();
+
+        // Act
+        await root.LyricsPicker.UseCandidateAsync(root.LyricsPicker.Candidates[0]);
+
+        // Assert
+        root.LyricLines.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task MarkingNoLyrics_EmptiesTheLyricsStage()
     {
         // Arrange

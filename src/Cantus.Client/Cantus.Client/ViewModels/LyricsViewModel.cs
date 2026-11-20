@@ -529,7 +529,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             lyricsCorrection ?? new LyricsCorrectionService(client),
             _session,
             () => _transport.PlaybackState?.CurrentTrack);
-        _lyricsPicker.LyricsChanged += OnLyricsReceived;
+        _lyricsPicker.LyricsChanged += OnPickerLyricsChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
@@ -845,6 +845,24 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         int visibleChars = (text ?? string.Empty).Trim().Length;
         return Math.Max(visibleChars * SUNG_MS_PER_CHAR, MIN_ESTIMATED_WORD_MS);
+    }
+
+    /// <summary>
+    /// The picker's answer comes over HTTP while track changes arrive over
+    /// SignalR, so the next track's lyrics can land first. Only apply the
+    /// answer while it still belongs to the track on screen.
+    /// </summary>
+    private void OnPickerLyricsChanged(LyricsPayload lyrics)
+    {
+        string? playingTrackId = _transport.PlaybackState?.CurrentTrack?.Id;
+        bool isForAnotherTrack = (_lastLyrics is not null && _lastLyrics.TrackId != lyrics.TrackId)
+            || (playingTrackId is not null && playingTrackId != lyrics.TrackId);
+        if (isForAnotherTrack)
+        {
+            return;
+        }
+
+        OnLyricsReceived(lyrics);
     }
 
     private void OnLyricsReceived(LyricsPayload? lyrics)
