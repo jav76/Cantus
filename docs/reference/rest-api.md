@@ -186,7 +186,7 @@ Approves a code and names the new Display. Requires the caller's [session creden
 - **Response `400 Bad Request`**: the name is empty or too long. The code stays valid.
 - **Response `401 Unauthorized`**: no Session credential. The code stays valid.
 - **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). The code stays valid.
-- **Response `404 Not Found`**: the code is unknown, already used, expired, or its connection has disconnected.
+- **Response `404 Not Found`**: the code is unknown, already used, expired, or its connection has disconnected. If the connection drops while the approval is running, the new Display is removed and the code is used up, so the screen must request a new code.
 - **Response `429 Too Many Requests`**: rate limit reached.
 
 ---

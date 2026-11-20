@@ -36,7 +36,8 @@ public sealed class DisplayTestHost : IAsyncDisposable
 
     public DisplayTestHost(
         WebApplicationFactory<Program> factory,
-        Action<DisplayPairingOptions>? configurePairing = null)
+        Action<DisplayPairingOptions>? configurePairing = null,
+        Action<IServiceCollection>? configureServices = null)
     {
         Factory = factory.WithWebHostBuilder(builder =>
         {
@@ -58,6 +59,8 @@ public sealed class DisplayTestHost : IAsyncDisposable
                 {
                     services.Configure(configurePairing);
                 }
+
+                configureServices?.Invoke(services);
             });
         });
     }

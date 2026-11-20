@@ -46,7 +46,7 @@ An unauthenticated connection becomes a Display through the [pairing endpoints](
 3. Once an owner approves the code, the server sends `ReceiveDisplayPaired` to this connection.
 4. Store the token, then reconnect with it. The current connection stays unauthenticated.
 
-Disconnecting before approval cancels the pending code. Request a new code after reconnecting.
+Disconnecting before approval cancels the pending code, and disconnecting during approval removes the Display it would have created. Request a new code after reconnecting.
 
 ---
 

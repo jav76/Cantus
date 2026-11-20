@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Persistence.Entities;
 using Cantus.Server.Hubs;
@@ -9,6 +10,7 @@ using Cantus.Server.Tests.TestSupport;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Cantus.Server.Tests.Endpoints;
@@ -23,10 +25,12 @@ public sealed class DisplayPairingEndpointTests : IClassFixture<WebApplicationFa
     private const int CODE_LIFETIME_SECONDS = 60;
     private const int RATE_LIMIT_PERMITS = 3;
 
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly DisplayTestHost _host;
 
     public DisplayPairingEndpointTests(WebApplicationFactory<Program> factory)
     {
+        _factory = factory;
         _host = new DisplayTestHost(factory, options =>
         {
             options.CodeLifetimeSeconds = CODE_LIFETIME_SECONDS;
@@ -340,6 +344,35 @@ public sealed class DisplayPairingEndpointTests : IClassFixture<WebApplicationFa
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task Approve_WhenWaitingConnectionDropsDuringApproval_RevokesDisplayAndReturnsNotFound()
+    {
+        DisplayServiceHook hook = new();
+        await using DisplayTestHost host = new(
+            _factory,
+            configureServices: services => services.AddScoped<IDisplayService>(
+                _ => new HookedDisplayService(hook.Store!.CreateDisplayService(), hook)));
+        hook.Store = host.Store;
+        UserSessionEntity owner = await host.Store.SeedSessionAsync("Owner");
+        HubConnection waiting = await host.ConnectAsync();
+        string connectionId = waiting.ConnectionId!;
+        DisplayPairingDto pairing = await host.RequestPairingAsync(waiting);
+        hook.BeforeCreate = async () =>
+        {
+            await waiting.StopAsync();
+            await host.WaitForServerDisconnectAsync(connectionId);
+        };
+
+        HttpResponseMessage response = await host.ApproveAsync(
+            pairing.Code,
+            DISPLAY_NAME,
+            DisplayTestHost.SESSION_COOKIE,
+            owner.Id);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await host.Store.CreateDisplayService().ListAsync(owner.Id)).Should().BeEmpty();
+    }
+
     private async Task AssertCodeStillApprovableAsync(string code, string ownerSessionId)
     {
         HttpResponseMessage approved = await _host.ApproveAsync(
@@ -348,5 +381,50 @@ public sealed class DisplayPairingEndpointTests : IClassFixture<WebApplicationFa
             DisplayTestHost.SESSION_COOKIE,
             ownerSessionId);
         approved.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+
+    private sealed class DisplayServiceHook
+    {
+        public InMemorySessionStore? Store { get; set; }
+
+        public Func<Task>? BeforeCreate { get; set; }
+    }
+
+    /// <summary>Runs a test hook before creating a Display, so a test can act mid-approval.</summary>
+    private sealed class HookedDisplayService(IDisplayService inner, DisplayServiceHook hook) : IDisplayService
+    {
+        public async Task<CreatedDisplay> CreateAsync(
+            string ownerSessionId,
+            string name,
+            CancellationToken cancellationToken = default)
+        {
+            if (hook.BeforeCreate is not null)
+            {
+                await hook.BeforeCreate();
+            }
+
+            return await inner.CreateAsync(ownerSessionId, name, cancellationToken);
+        }
+
+        public Task<DisplayInfo?> ValidateAsync(string token, CancellationToken cancellationToken = default) =>
+            inner.ValidateAsync(token, cancellationToken);
+
+        public Task<IReadOnlyList<DisplayInfo>> ListAsync(
+            string ownerSessionId,
+            CancellationToken cancellationToken = default) =>
+            inner.ListAsync(ownerSessionId, cancellationToken);
+
+        public Task<bool> RenameAsync(
+            string ownerSessionId,
+            string displayId,
+            string name,
+            CancellationToken cancellationToken = default) =>
+            inner.RenameAsync(ownerSessionId, displayId, name, cancellationToken);
+
+        public Task<bool> RevokeAsync(
+            string ownerSessionId,
+            string displayId,
+            CancellationToken cancellationToken = default) =>
+            inner.RevokeAsync(ownerSessionId, displayId, cancellationToken);
     }
 }

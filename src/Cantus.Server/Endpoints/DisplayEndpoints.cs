@@ -81,6 +81,8 @@ public static class DisplayEndpoints
         [FromBody] DisplayPairingApprovalDto request,
         IDisplayPairingService pairings,
         IDisplayService displayService,
+        IPlaybackSessionRegistry registry,
+        IDisplayConnectionTracker displayConnections,
         ICredentialResolver credentialResolver,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
@@ -103,7 +105,7 @@ public static class DisplayEndpoints
         }
 
         PendingDisplayPairing? pairing = string.IsNullOrWhiteSpace(request.Code) ? null : pairings.Claim(request.Code);
-        if (pairing is null)
+        if (pairing is null || !registry.IsConnected(pairing.ConnectionId))
         {
             return Results.NotFound(new { Message = "Pairing code not found, already used, or expired." });
         }
@@ -118,7 +120,24 @@ public static class DisplayEndpoints
             Token = created.Token
         });
 
-        loggerFactory.CreateLogger(LOGGER_CATEGORY).LogInformation(
+        // A send to a closed connection is dropped silently and only the token's hash is stored,
+        // so a Display whose screen left mid-approval could never be used. Remove it instead.
+        ILogger logger = loggerFactory.CreateLogger(LOGGER_CATEGORY);
+        if (!registry.IsConnected(pairing.ConnectionId))
+        {
+            await displayService.RevokeAsync(owner.Id, created.Display.Id, CancellationToken.None);
+            await displayConnections.DisconnectAsync(created.Display.Id);
+            logger.LogWarning(
+                "Removed Display {DisplayId}: connection {ConnectionId} closed before its token was delivered",
+                created.Display.Id,
+                pairing.ConnectionId);
+            return Results.NotFound(new
+            {
+                Message = "The waiting screen disconnected before pairing finished. Request a new code."
+            });
+        }
+
+        logger.LogInformation(
             "Display {DisplayId} paired to connection {ConnectionId}",
             created.Display.Id,
             pairing.ConnectionId);
