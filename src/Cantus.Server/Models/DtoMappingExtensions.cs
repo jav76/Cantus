@@ -81,7 +81,17 @@ public static class DtoMappingExtensions
         List<LyricLineDto> lines = lyrics.Lines.Select(l => new LyricLineDto
         {
             TimestampMs = (long)l.Timestamp.TotalMilliseconds,
-            Text = l.Text
+            Text = l.Text,
+            Syllables = l.Syllables is { Count: > 0 }
+                ? l.Syllables
+                    .Select(s => new LyricSyllableDto
+                    {
+                        TimestampMs = (long)s.Timestamp.TotalMilliseconds,
+                        DurationMs = (long)s.Duration.TotalMilliseconds,
+                        Text = s.Text
+                    })
+                    .ToList()
+                : null
         }).ToList();
 
         return new LyricsDto
