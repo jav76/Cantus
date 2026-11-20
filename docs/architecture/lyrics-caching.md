@@ -18,7 +18,7 @@ flowchart TD
     QueryLocal -->|Found, Word-Timed or Instrumental| ReturnLyrics[Return Parsed Lyric Lines]
     QueryLocal -->|Found, No Word Timing| UpgradeDue{Upgrade Attempt Due?}
     UpgradeDue -->|No| ReturnLyrics
-    UpgradeDue -->|Yes: Record Attempt| Upgrade[Query Provider Chain]
+    UpgradeDue -->|Yes: Record Attempt| Upgrade[Query Word-Timing Providers]
     Upgrade -->|Word-Timed Result| SavePositive
     Upgrade -->|Anything Else| ReturnLyrics
 
@@ -59,11 +59,12 @@ The same ranking applies on a cache miss and on an owner `refetch`. A line-level
 
 A cached entry without word timing (synced or plain, not instrumental) can be upgraded on a later play without clearing the cache:
 
+- Only providers that can return word timing (NetEase) are queried; LRCLIB is never re-fetched for an upgrade. With `Netease:Enabled=false` no provider qualifies, so no attempt is recorded and a cache hit stays read-only, exactly as before word timing existed.
 - An attempt is due when fewer than `LyricsCache:WordTimingUpgradeMaxAttempts` (default `3`) attempts were made and `LyricsCache:WordTimingUpgradeIntervalDays` (default `7`) have passed since the entry was saved or last checked.
-- The attempt is recorded (`WordTimingUpgradeAttempts`, `WordTimingCheckedAtUtc`) **before** the chain is queried, so a failing or slow provider never causes a refetch on every play.
+- The attempt is recorded (`WordTimingUpgradeAttempts`, `WordTimingCheckedAtUtc`) **before** the providers are queried, so a failing or slow provider never causes a refetch on every play. The write only succeeds if the attempt count is unchanged since it was read, so when two sessions play the same track at once only one of them runs the upgrade. If the write fails, the cached lyrics are returned and no upgrade runs.
 - Only a word-timed result replaces the entry. A line-level result, a miss or a provider failure keeps the cached entry and never writes a negative entry.
-- Saving fresh lyrics resets the budget. Entries cached before this feature start with no attempts, so their first attempt is due on the next play.
-- An attempt runs inline with the cache hit, so that play waits for the provider chain once. Set `WordTimingUpgradeMaxAttempts` to `0` to turn upgrades off.
+- Saving fresh lyrics resets the budget. Entries cached before this feature start with no attempts. Their first attempt is due once `WordTimingUpgradeIntervalDays` have passed since they were fetched.
+- An attempt runs inline with the cache hit, so that play waits for the word-timing providers once. Set `WordTimingUpgradeMaxAttempts` to `0` to turn upgrades off.
 
 ---
 
