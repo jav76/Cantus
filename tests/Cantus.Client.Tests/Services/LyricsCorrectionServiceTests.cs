@@ -166,7 +166,7 @@ public sealed class LyricsCorrectionServiceTests
     [InlineData(HttpStatusCode.Forbidden, LyricsCorrectionStatus.NotAllowed)]
     [InlineData(HttpStatusCode.NotFound, LyricsCorrectionStatus.NotFound)]
     [InlineData(HttpStatusCode.BadGateway, LyricsCorrectionStatus.ProviderUnavailable)]
-    [InlineData(HttpStatusCode.BadRequest, LyricsCorrectionStatus.Failed)]
+    [InlineData(HttpStatusCode.BadRequest, LyricsCorrectionStatus.Rejected)]
     [InlineData(HttpStatusCode.InternalServerError, LyricsCorrectionStatus.Failed)]
     public async Task GetCandidatesAsync_MapsErrorStatuses(HttpStatusCode code, LyricsCorrectionStatus expected)
     {
@@ -269,7 +269,7 @@ public sealed class LyricsCorrectionServiceTests
     [InlineData(HttpStatusCode.Forbidden, LyricsCorrectionStatus.NotAllowed)]
     [InlineData(HttpStatusCode.NotFound, LyricsCorrectionStatus.NotFound)]
     [InlineData(HttpStatusCode.BadGateway, LyricsCorrectionStatus.ProviderUnavailable)]
-    [InlineData(HttpStatusCode.BadRequest, LyricsCorrectionStatus.Failed)]
+    [InlineData(HttpStatusCode.BadRequest, LyricsCorrectionStatus.Rejected)]
     public async Task ApplyOverrideAsync_MapsErrorStatuses(HttpStatusCode code, LyricsCorrectionStatus expected)
     {
         // Arrange

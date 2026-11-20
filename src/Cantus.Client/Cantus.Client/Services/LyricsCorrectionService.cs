@@ -121,6 +121,7 @@ public sealed class LyricsCorrectionService : ILyricsCorrectionService
 
     private static LyricsCorrectionStatus MapFailure(HttpStatusCode statusCode) => statusCode switch
     {
+        HttpStatusCode.BadRequest => LyricsCorrectionStatus.Rejected,
         HttpStatusCode.Unauthorized => LyricsCorrectionStatus.SignedOut,
         HttpStatusCode.Forbidden => LyricsCorrectionStatus.NotAllowed,
         HttpStatusCode.NotFound => LyricsCorrectionStatus.NotFound,

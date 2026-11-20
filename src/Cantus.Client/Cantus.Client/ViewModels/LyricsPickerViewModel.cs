@@ -26,6 +26,8 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     private const string CHOICE_GONE_TEXT = "Those lyrics could not be loaded. The track may have changed.";
     private const string PROVIDER_UNAVAILABLE_TEXT =
         "The lyrics provider could not be reached. Your lyrics are unchanged.";
+    private const string CHOICE_REJECTED_TEXT = "Those lyrics can no longer be used. Pick another.";
+    private const string REQUEST_REJECTED_TEXT = "The Cantus server turned down this request.";
     private const string SIGNED_OUT_TEXT = "Sign in again to change lyrics.";
     private const string NOT_ALLOWED_TEXT = "Only the account owner can change lyrics.";
     private const string NO_LYRICS_OVERRIDE_TEXT = "You marked this track as having no lyrics.";
@@ -340,6 +342,7 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     private static string DescribeChoiceFailure(LyricsCorrectionStatus status) => status switch
     {
         LyricsCorrectionStatus.NotFound => CHOICE_GONE_TEXT,
+        LyricsCorrectionStatus.Rejected => CHOICE_REJECTED_TEXT,
         _ => DescribeCommonFailure(status)
     };
 
@@ -348,6 +351,7 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
         LyricsCorrectionStatus.SignedOut => SIGNED_OUT_TEXT,
         LyricsCorrectionStatus.NotAllowed => NOT_ALLOWED_TEXT,
         LyricsCorrectionStatus.ProviderUnavailable => PROVIDER_UNAVAILABLE_TEXT,
+        LyricsCorrectionStatus.Rejected => REQUEST_REJECTED_TEXT,
         _ => SERVER_UNREACHABLE_TEXT
     };
 

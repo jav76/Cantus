@@ -226,7 +226,7 @@ flowchart TD
 - `OpenAsync` loads `GET /api/lyrics/{trackId}/candidates` into `Candidates` (`LyricsCandidateItem`: provider, title, artist, duration, synced, plain or instrumental, preview, and whether it is the active override). `IsLoading`, `StatusText` (empty list, load errors) and `UnavailableText` (providers that could not be reached) describe the list. `ActiveOverrideText` and `ClearOverrideVisibility` come from the response's `activeOverride`.
 - Choices: `UseCandidateAsync`, `RefetchAsync`, `MarkNoLyricsAsync`, and `ClearOverrideAsync` post to `POST /api/lyrics/{trackId}/override`. `CanChoose` blocks a second choice while one is in flight. A successful choice closes the picker and raises `LyricsChanged` with the lyrics now in effect; the server also broadcasts them through `ReceiveLyrics`. A failed choice keeps the picker open and explains why in `StatusText`.
 - `NotifyTrackChanged` (called by the root on each poll) closes the picker when the track changes, and answers that arrive after the picker closed or the track changed are dropped.
-- `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
+- `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `400`, `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
 - `LyricsPickerDialog` is the `ContentDialog` the track card (desktop and tablet) and the mobile settings tab open. It hides itself when the picker closes.
 
 ---

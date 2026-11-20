@@ -21,7 +21,13 @@ public enum LyricsCorrectionStatus
     ProviderUnavailable = 4,
 
     /// <summary>The server could not be reached or answered with anything else.</summary>
-    Failed = 5
+    Failed = 5,
+
+    /// <summary>
+    /// The server turned the request down (400), for example because the
+    /// chosen candidate's provider is no longer enabled.
+    /// </summary>
+    Rejected = 6
 }
 
 public sealed record LyricsCandidatesResult(LyricsCorrectionStatus Status, LyricsCandidatesPayload? Candidates);
