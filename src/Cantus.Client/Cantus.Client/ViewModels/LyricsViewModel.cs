@@ -21,8 +21,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly ResponsiveLayoutManager _layoutManager;
     private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
     private readonly ILyricsPreferences _preferences;
+    private readonly PlaybackTransport _transport;
 
-    private PlaybackStatePayload? _lastPlaybackState;
     private LyricsPayload? _lastLyrics;
     private int _userOffsetMs;
     private int _activeLineIndex = -1;
@@ -34,19 +34,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     // chains). Persisted per device; [ and ] adjust it in 50ms steps.
     private const int LATENCY_STEP_MS = 50;
     private int _latencyCompensationMs;
-
-    // Tap-to-seek is applied optimistically: the stage jumps to the tapped line
-    // at once, and polls that still report the pre-seek position (Spotify's API
-    // is eventually consistent) are ignored until one agrees with the seek or
-    // the confirmation window lapses. The window covers the hub's two
-    // follow-up polls plus one regular poll.
-    private const long SEEK_CONFIRM_TOLERANCE_MS = 1000;
-    private const long SEEK_CONFIRM_TIMEOUT_MS = 4000;
-    private PlaybackStatePayload? _lastServerPlaybackState;
-    private string? _pendingSeekTrackId;
-    private long _pendingSeekIssuedAtMs;
-    private long? _seekDisplayFloorMs;
-    private int _seekGeneration;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -63,19 +50,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private string _currentArtist = "Play music on Spotify to begin";
     private string _currentAlbum = string.Empty;
     private string? _albumArtUrl;
-    private bool _isPlaying;
     private string _deviceName = "Spotify";
-    private int? _volumePercent;
-
-    private const int TRANSPORT_STATUS_DURATION_MS = 8000;
-    private readonly DispatcherTimer _transportStatusTimer;
-    private string _transportStatusText = string.Empty;
-
-    private const int VOLUME_DEBOUNCE_MS = 300;
-    private readonly DispatcherTimer _volumeDebounceTimer;
-    private int _pendingVolumePercent;
-    private bool _isShuffled;
-    private string _repeatMode = "off";
 
     private double _progressFraction;
     private string _progressText = "00:00";
@@ -255,224 +230,64 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_albumArtUrl != value) { _albumArtUrl = value; OnPropertyChanged(); } }
     }
 
+    public PlaybackTransport Transport => _transport;
+
     public bool IsPlaying
     {
-        get => _isPlaying;
-        set
-        {
-            if (_isPlaying != value)
-            {
-                _isPlaying = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(PlayPauseGlyph));
-            }
-        }
+        get => _transport.IsPlaying;
+        set => _transport.IsPlaying = value;
     }
 
-    public string PlayPauseGlyph => IsPlaying ? "\u23F8" : "\u25B6";
+    public string PlayPauseGlyph => _transport.PlayPauseGlyph;
 
-    public string TransportStatusText => _transportStatusText;
+    public string TransportStatusText => _transport.TransportStatusText;
 
-    public Visibility TransportStatusVisibility =>
-        string.IsNullOrEmpty(_transportStatusText) ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility TransportStatusVisibility => _transport.TransportStatusVisibility;
 
-    /// <summary>
-    /// Sends pause when playing and resume when paused. On success the playing
-    /// flag flips optimistically; the command also triggers server polls, so
-    /// the authoritative state arrives within a second.
-    /// </summary>
-    public async Task TogglePlayPauseAsync()
-    {
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
+    public Task TogglePlayPauseAsync() => _transport.TogglePlayPauseAsync();
 
-        string command = IsPlaying ? "pause" : "resume";
-        PlayerCommandResult result = await _client.SendPlayerCommandAsync(command);
-        if (result == PlayerCommandResult.Success)
-        {
-            IsPlaying = !IsPlaying;
-        }
+    public Task SkipToNextAsync() => _transport.SkipToNextAsync();
 
-        ReportTransportResult(result);
-    }
+    public Task SkipToPreviousAsync() => _transport.SkipToPreviousAsync();
 
-    public async Task SkipToNextAsync()
-    {
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
-
-        ReportTransportResult(await _client.SendPlayerCommandAsync("next"));
-    }
-
-    public async Task SkipToPreviousAsync()
-    {
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
-
-        ReportTransportResult(await _client.SendPlayerCommandAsync("previous"));
-    }
-
-    /// <summary>
-    /// Surfaces why a transport command was rejected. The 403 case matters
-    /// most: accounts linked before the user-modify-playback-state scope was
-    /// added fail silently until they are re-linked, and nothing else tells the
-    /// user that.
-    /// </summary>
-    internal void ReportTransportResult(PlayerCommandResult result)
-    {
-        string message = result switch
-        {
-            PlayerCommandResult.MissingPermissions =>
-                "Spotify rejected the command. Log out and reconnect your account to grant playback control (Premium required).",
-            PlayerCommandResult.NoActiveDevice =>
-                "No active Spotify device. Start playback in any Spotify app first.",
-            PlayerCommandResult.Failed => "Couldn't reach Spotify. Try again.",
-            _ => string.Empty
-        };
-
-        if (_transportStatusText != message)
-        {
-            _transportStatusText = message;
-            OnPropertyChanged(nameof(TransportStatusText));
-            OnPropertyChanged(nameof(TransportStatusVisibility));
-        }
-
-        _transportStatusTimer.Stop();
-        if (message.Length > 0)
-        {
-            _transportStatusTimer.Start();
-        }
-    }
-
-    private void HideTransportStatus()
-    {
-        _transportStatusTimer.Stop();
-        if (_transportStatusText.Length > 0)
-        {
-            _transportStatusText = string.Empty;
-            OnPropertyChanged(nameof(TransportStatusText));
-            OnPropertyChanged(nameof(TransportStatusVisibility));
-        }
-    }
+    internal void ReportTransportResult(PlayerCommandResult result) => _transport.ReportTransportResult(result);
 
     public bool IsShuffled
     {
-        get => _isShuffled;
-        set
-        {
-            if (_isShuffled != value)
-            {
-                _isShuffled = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(ShuffleButtonForeground));
-            }
-        }
+        get => _transport.IsShuffled;
+        set => _transport.IsShuffled = value;
     }
 
     /// <summary>Spotify repeat state: "off", "track", or "context".</summary>
     public string RepeatMode
     {
-        get => _repeatMode;
-        set
-        {
-            if (_repeatMode != value)
-            {
-                _repeatMode = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(RepeatGlyph));
-                OnPropertyChanged(nameof(RepeatButtonForeground));
-            }
-        }
+        get => _transport.RepeatMode;
+        set => _transport.RepeatMode = value;
     }
 
-    public string RepeatGlyph => _repeatMode == "track" ? "\uE8ED" : "\uE8EE";
+    public string RepeatGlyph => _transport.RepeatGlyph;
 
-    public Microsoft.UI.Xaml.Media.SolidColorBrush ShuffleButtonForeground =>
-        _isShuffled ? _themeManager.PrimaryAccentBrush : _themeManager.TextMutedBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush ShuffleButtonForeground => _transport.ShuffleButtonForeground;
 
-    public Microsoft.UI.Xaml.Media.SolidColorBrush RepeatButtonForeground =>
-        _repeatMode != "off" ? _themeManager.PrimaryAccentBrush : _themeManager.TextMutedBrush;
+    public Microsoft.UI.Xaml.Media.SolidColorBrush RepeatButtonForeground => _transport.RepeatButtonForeground;
 
-    public double VolumeSliderValue => _volumePercent ?? 0;
+    public double VolumeSliderValue => _transport.VolumeSliderValue;
 
-    public string VolumeText => _volumePercent is int v ? $"{v}%" : "—";
+    public string VolumeText => _transport.VolumeText;
 
-    public async Task ToggleShuffleAsync()
+    public int? VolumePercent
     {
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
-
-        bool target = !IsShuffled;
-        PlayerCommandResult result = await _client.SetShuffleAsync(target);
-        if (result == PlayerCommandResult.Success)
-        {
-            IsShuffled = target;
-        }
-
-        ReportTransportResult(result);
+        get => _transport.VolumePercent;
+        set => _transport.VolumePercent = value;
     }
 
-    /// <summary>Cycles repeat the way Spotify's own client does: off, then all ("context"), then one ("track").</summary>
-    public async Task CycleRepeatAsync()
-    {
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
+    public Task ToggleShuffleAsync() => _transport.ToggleShuffleAsync();
 
-        string next = RepeatMode switch
-        {
-            "off" => "context",
-            "context" => "track",
-            _ => "off"
-        };
+    public Task CycleRepeatAsync() => _transport.CycleRepeatAsync();
 
-        PlayerCommandResult result = await _client.SetRepeatAsync(next);
-        if (result == PlayerCommandResult.Success)
-        {
-            RepeatMode = next;
-        }
+    public Task SeekToFractionAsync(double fraction) => _transport.SeekToFractionAsync(fraction);
 
-        ReportTransportResult(result);
-    }
-
-    public async Task SeekToFractionAsync(double fraction)
-    {
-        TrackInfoPayload? track = _lastPlaybackState?.CurrentTrack;
-        if (track is null || track.DurationMs <= 0)
-        {
-            return;
-        }
-
-        ClearSeekAnchor();
-        double clamped = Math.Clamp(fraction, 0.0, 1.0);
-        long positionMs = (long)(clamped * track.DurationMs);
-        ReportTransportResult(await _client.SeekPlaybackAsync(positionMs));
-    }
-
-    /// <summary>
-    /// Raw track position at which a synced line is sung: its timestamp with
-    /// the per-track offset undone (the display runs at position + offset).
-    /// Latency compensation is deliberately NOT added. It models audio still in
-    /// flight during continuous playback, but a seek flushes that pipeline, so
-    /// the first audible sample is the seek target itself; adding the latency
-    /// would clip the start of the line (200ms by default, up to a second).
-    /// The cost - the steady-state formula placing the display just before the
-    /// line for that long - is covered by the display floor instead.
-    /// </summary>
-    internal static long ComputeLineSeekTargetMs(long lineTimestampMs, int userOffsetMs, long durationMs)
-    {
-        long targetMs = lineTimestampMs - userOffsetMs;
-        return durationMs > 0 ? Math.Clamp(targetMs, 0, durationMs) : Math.Max(0, targetMs);
-    }
+    public void RequestVolumeChange(int volumePercent) => _transport.RequestVolumeChange(volumePercent);
 
     /// <summary>
     /// Seeks playback to the moment a synced line is sung. The tapped line
@@ -482,31 +297,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task SeekToLineAsync(int lineIndex)
     {
-        PlaybackStatePayload? state = _lastPlaybackState;
-        if (!CanSeekToLines || state?.CurrentTrack is null || lineIndex < 0 || lineIndex >= LyricLines.Count)
+        if (!CanSeekToLines || lineIndex < 0 || lineIndex >= LyricLines.Count)
         {
             return;
         }
 
-        TrackInfoPayload track = state.CurrentTrack;
-        long lineTimestampMs = LyricLines[lineIndex].TimestampMs;
-        long targetMs = ComputeLineSeekTargetMs(lineTimestampMs, _userOffsetMs, track.DurationMs);
-        long localNow = GetServerNowMs();
-
-        _lastPlaybackState = CopyWithProgress(
-            state,
-            targetMs,
-            IsPlaying,
-            DateTimeOffset.FromUnixTimeMilliseconds(localNow));
-        _pendingSeekTrackId = track.Id;
-        _pendingSeekIssuedAtMs = localNow;
-        _seekDisplayFloorMs = lineTimestampMs;
-        _interpolatedProgressMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
-        _lastTickTimestampMs = localNow;
-
         // A tap is an explicit "take me there": it ends any manual-scroll pause.
         IsUserScrollingPaused = false;
+        await _transport.SeekToLineAsync(LyricLines[lineIndex].TimestampMs, _userOffsetMs);
+    }
 
+    private void OnTransportSeekApplied(long localNow)
+    {
+        ResyncInterpolation(localNow);
         int previousIndex = ActiveLineIndex;
         AdvancePlayback();
         if (ActiveLineIndex == previousIndex && ActiveLineIndex >= 0)
@@ -514,159 +317,32 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             // Tapping the active line restarts it; the stage still re-centers.
             ActiveLineChanged?.Invoke(ActiveLineIndex);
         }
-
-        int generation = ++_seekGeneration;
-        PlayerCommandResult result = await _client.SeekPlaybackAsync(targetMs);
-        if (result != PlayerCommandResult.Success && generation == _seekGeneration)
-        {
-            RevertOptimisticSeek();
-        }
-
-        ReportTransportResult(result);
     }
 
-    private void RevertOptimisticSeek()
+    private void OnTransportSeekReverted(long localNow)
     {
-        ClearSeekAnchor();
-        PlaybackStatePayload? serverState = _lastServerPlaybackState;
-        if (serverState?.CurrentTrack is null)
-        {
-            return;
-        }
-
-        long localNow = GetServerNowMs();
-        _lastPlaybackState = serverState;
-        _interpolatedProgressMs = ComputeTargetProgressMs(serverState, localNow);
-        _lastTickTimestampMs = localNow;
+        ResyncInterpolation(localNow);
         AdvancePlayback();
     }
 
-    private void ClearSeekAnchor()
+    private void ResyncInterpolation(long localNow)
     {
-        _pendingSeekTrackId = null;
-        _seekDisplayFloorMs = null;
-    }
-
-    /// <summary>
-    /// Merges an incoming poll with an optimistic seek. While the seek is
-    /// unconfirmed, a poll whose position disagrees with it is stale: its
-    /// timeline is replaced by the optimistic one and everything else (device,
-    /// volume, shuffle) is kept. Once confirmed, a disagreeing poll means
-    /// playback moved elsewhere, so the display floor is dropped.
-    /// </summary>
-    private PlaybackStatePayload ReconcileWithOptimisticSeek(PlaybackStatePayload incoming, long localNow)
-    {
-        PlaybackStatePayload? expected = _lastPlaybackState;
-        if (expected?.CurrentTrack is null || incoming.CurrentTrack?.Id != expected.CurrentTrack.Id)
+        if (_transport.PlaybackState is PlaybackStatePayload state)
         {
-            ClearSeekAnchor();
-            return incoming;
+            _interpolatedProgressMs = ComputeTargetProgressMs(state, localNow);
+            _lastTickTimestampMs = localNow;
         }
-
-        long disagreementMs = Math.Abs(ProjectProgressMs(incoming, localNow) - ProjectProgressMs(expected, localNow));
-        bool agrees = disagreementMs <= SEEK_CONFIRM_TOLERANCE_MS;
-
-        if (_pendingSeekTrackId is not null)
-        {
-            if (agrees)
-            {
-                _pendingSeekTrackId = null;
-                return incoming;
-            }
-
-            if (localNow - _pendingSeekIssuedAtMs < SEEK_CONFIRM_TIMEOUT_MS)
-            {
-                return CopyWithProgress(incoming, expected.ProgressMs, expected.IsPlaying, expected.TimestampUtc);
-            }
-
-            ClearSeekAnchor();
-            return incoming;
-        }
-
-        if (!agrees)
-        {
-            ClearSeekAnchor();
-        }
-
-        return incoming;
-    }
-
-    private static PlaybackStatePayload CopyWithProgress(
-        PlaybackStatePayload source,
-        long progressMs,
-        bool isPlaying,
-        DateTimeOffset timestampUtc)
-    {
-        return new PlaybackStatePayload
-        {
-            CurrentTrack = source.CurrentTrack,
-            ProgressMs = progressMs,
-            IsPlaying = isPlaying,
-            TimestampUtc = timestampUtc,
-            DeviceName = source.DeviceName,
-            VolumePercent = source.VolumePercent,
-            IsShuffled = source.IsShuffled,
-            RepeatMode = source.RepeatMode,
-            ActiveUserId = source.ActiveUserId,
-            ActiveUserDisplayName = source.ActiveUserDisplayName,
-        };
-    }
-
-    /// <summary>Spotify's position for a state, extrapolated to now when playing.</summary>
-    private static long ProjectProgressMs(PlaybackStatePayload state, long localNow)
-    {
-        if (!state.IsPlaying)
-        {
-            return state.ProgressMs;
-        }
-
-        long elapsed = Math.Max(0, localNow - state.TimestampUtc.ToUnixTimeMilliseconds());
-        return state.ProgressMs + elapsed;
     }
 
     private long ComputeTargetProgressMs(PlaybackStatePayload state, long localNow)
-        => Math.Max(0, ProjectProgressMs(state, localNow) - _latencyCompensationMs);
+        => Math.Max(0, OptimisticSeekAnchor.ProjectProgressMs(state, localNow) - _latencyCompensationMs);
 
-    private long GetServerNowMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + _client.ClockOffsetMs;
-
-    /// <summary>
-    /// Called for every slider tick while the user drags, so the actual
-    /// Spotify call is debounced: only the value the slider rests on is sent.
-    /// </summary>
-    public void RequestVolumeChange(int volumePercent)
-    {
-        _pendingVolumePercent = Math.Clamp(volumePercent, 0, 100);
-        _volumeDebounceTimer.Stop();
-        _volumeDebounceTimer.Start();
-    }
-
-    private async void OnVolumeDebounceTick(object? sender, object e)
-    {
-        _volumeDebounceTimer.Stop();
-        if (_lastPlaybackState?.CurrentTrack is null)
-        {
-            return;
-        }
-
-        PlayerCommandResult result = await _client.SetPlayerVolumeAsync(_pendingVolumePercent);
-        if (result == PlayerCommandResult.Success)
-        {
-            VolumePercent = _pendingVolumePercent;
-        }
-
-        ReportTransportResult(result);
-    }
+    private long GetServerNowMs() => _transport.GetServerNowMs();
 
     public string DeviceName
     {
         get => _deviceName;
         set { if (_deviceName != value) { _deviceName = value; OnPropertyChanged(); } }
-    }
-
-    public int? VolumePercent
-    {
-        get => _volumePercent;
-        set { if (_volumePercent != value) { _volumePercent = value; OnPropertyChanged(); OnPropertyChanged(nameof(VolumeSliderValue)); OnPropertyChanged(nameof(VolumeText)); } }
     }
 
     public double ProgressFraction
@@ -720,16 +396,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// with a track to seek within. Read by the stage's hover/press handlers.
     /// </summary>
     public bool CanSeekToLines =>
-        _lastPlaybackState?.CurrentTrack is not null && HasSyncedLyrics && !IsStaticLyricsMode;
+        _transport.PlaybackState?.CurrentTrack is not null && HasSyncedLyrics && !IsStaticLyricsMode;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
     // don't exist for it.
     public string EmptyStateTitle =>
-        _lastPlaybackState?.CurrentTrack is not null ? "No Lyrics Found" : "Waiting for Lyrics...";
+        _transport.PlaybackState?.CurrentTrack is not null ? "No Lyrics Found" : "Waiting for Lyrics...";
 
     public string EmptyStateSubtitle =>
-        _lastPlaybackState?.CurrentTrack is not null
+        _transport.PlaybackState?.CurrentTrack is not null
             ? "Lyrics for this track aren't available yet."
             : "Connect Spotify and play music to see lyrics.";
 
@@ -1014,6 +690,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _themeManager.PaletteChanged += OnPaletteChanged;
         _themeManager.PropertyChanged += OnThemeManagerPropertyChanged;
 
+        // Built after the palette subscription above so its brush notifications
+        // keep following the root's theme notifications.
+        _transport = new PlaybackTransport(client, _themeManager);
+        _transport.PropertyChanged += OnTransportPropertyChanged;
+        _transport.SeekApplied += OnTransportSeekApplied;
+        _transport.SeekReverted += OnTransportSeekReverted;
+
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
         _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
@@ -1031,18 +714,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         };
         _ticker.Tick += OnTick;
         _ticker.Start();
-
-        _transportStatusTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(TRANSPORT_STATUS_DURATION_MS)
-        };
-        _transportStatusTimer.Tick += (s, e) => HideTransportStatus();
-
-        _volumeDebounceTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(VOLUME_DEBOUNCE_MS)
-        };
-        _volumeDebounceTimer.Tick += OnVolumeDebounceTick;
 
         _themeToastTimer = new DispatcherTimer
         {
@@ -1093,7 +764,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public async Task SetSyncOffsetAsync(int offsetMs)
     {
-        if (_lastPlaybackState?.CurrentTrack?.Id is string trackId)
+        if (_transport.PlaybackState?.CurrentTrack?.Id is string trackId)
         {
             await _client.SetTrackOffsetAsync(trackId, offsetMs);
         }
@@ -1238,8 +909,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ActivePrimaryAccentColor));
         OnPropertyChanged(nameof(ActiveBackgroundColor));
         OnPropertyChanged(nameof(Theme));
-        OnPropertyChanged(nameof(ShuffleButtonForeground));
-        OnPropertyChanged(nameof(RepeatButtonForeground));
+    }
+
+    // Pass-through members share the transport's property names, so its
+    // notifications are re-raised as-is for views bound to this view model.
+    private void OnTransportPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(e.PropertyName);
     }
 
     public void RefreshLyricLineSizes()
@@ -1259,13 +935,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (state is null) return;
 
         long localNow = GetServerNowMs();
-        _lastServerPlaybackState = state;
-        if (_pendingSeekTrackId is not null || _seekDisplayFloorMs is not null)
-        {
-            state = ReconcileWithOptimisticSeek(state, localNow);
-        }
-
-        _lastPlaybackState = state;
+        state = _transport.ApplyServerState(state, localNow);
         RttMs = _client.RttMs;
         ClockSkewMs = _client.ClockOffsetMs;
         TransportType = _client.TransportType;
@@ -1276,11 +946,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             CurrentArtist = "Play music on Spotify to begin";
             CurrentAlbum = string.Empty;
             AlbumArtUrl = null;
-            IsPlaying = false;
             DeviceName = "No Device";
-            VolumePercent = null;
-            IsShuffled = false;
-            RepeatMode = "off";
             _themeManager.UpdateTrackMetadata(null, null, null);
             NotifyEmptyStateText();
             return;
@@ -1291,11 +957,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         CurrentArtist = track.Artist;
         CurrentAlbum = track.Album ?? string.Empty;
         AlbumArtUrl = track.AlbumArtUrl;
-        IsPlaying = state.IsPlaying;
         DeviceName = state.DeviceName ?? "Spotify";
-        VolumePercent = state.VolumePercent;
-        IsShuffled = state.IsShuffled;
-        RepeatMode = state.RepeatMode;
         NotifyEmptyStateText();
         if (!string.IsNullOrEmpty(state.ActiveUserDisplayName))
         {
@@ -1311,7 +973,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         long targetMs = ComputeTargetProgressMs(state, localNow);
         long drift = Math.Abs(_interpolatedProgressMs - targetMs);
-        if (drift > 1500 || !_isPlaying)
+        if (drift > 1500 || !_transport.IsPlaying)
         {
             _interpolatedProgressMs = targetMs;
             _lastTickTimestampMs = localNow;
@@ -1413,7 +1075,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         ActiveLineIndex = -1;
         IsUserScrollingPaused = false;
-        ClearSeekAnchor();
+        _transport.ClearSeekAnchor();
 
         OnPropertyChanged(nameof(StaticLyricsText));
         OnPropertyChanged(nameof(SyncedLyricsVisibility));
@@ -1436,7 +1098,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         if (offset is null) return;
 
-        if (_lastPlaybackState?.CurrentTrack?.Id == offset.TrackId)
+        if (_transport.PlaybackState?.CurrentTrack?.Id == offset.TrackId)
         {
             _userOffsetMs = offset.OffsetMs;
             double seconds = _userOffsetMs / 1000.0;
@@ -1581,7 +1243,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// </summary>
     internal void AdvancePlayback()
     {
-        if (_lastPlaybackState?.CurrentTrack is null)
+        PlaybackStatePayload? state = _transport.PlaybackState;
+        if (state?.CurrentTrack is null)
         {
             ProgressFraction = 0;
             ProgressText = "00:00";
@@ -1590,18 +1253,18 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             return;
         }
 
-        TrackInfoPayload track = _lastPlaybackState.CurrentTrack;
+        TrackInfoPayload track = state.CurrentTrack;
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
         long localNow = GetServerNowMs();
 
-        if (_lastPlaybackState.IsPlaying)
+        if (state.IsPlaying)
         {
             long dt = _lastTickTimestampMs > 0 ? Math.Clamp(localNow - _lastTickTimestampMs, 1, 100) : 16;
             _lastTickTimestampMs = localNow;
 
-            long targetMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
+            long targetMs = ComputeTargetProgressMs(state, localNow);
 
             // Monotonic Phase-Locked Loop (PLL) tracking
             long error = targetMs - _interpolatedProgressMs;
@@ -1619,27 +1282,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         }
         else
         {
-            _interpolatedProgressMs = ComputeTargetProgressMs(_lastPlaybackState, localNow);
+            _interpolatedProgressMs = ComputeTargetProgressMs(state, localNow);
             _lastTickTimestampMs = localNow;
         }
 
-        long currentWithOffset = Math.Clamp(_interpolatedProgressMs + _userOffsetMs, 0, durationMs);
-
-        // After a line seek the latency-compensated position sits just before
-        // the tapped line until the new audio has had time to arrive (and
-        // indefinitely while paused); hold the display on the line until the
-        // estimate catches up, so the previous line never flashes back.
-        if (_seekDisplayFloorMs is long floorMs)
-        {
-            if (currentWithOffset >= floorMs)
-            {
-                _seekDisplayFloorMs = null;
-            }
-            else
-            {
-                currentWithOffset = floorMs;
-            }
-        }
+        long currentWithOffset = _transport.HoldAtSeekFloor(
+            Math.Clamp(_interpolatedProgressMs + _userOffsetMs, 0, durationMs));
 
         ProgressFraction = (double)currentWithOffset / durationMs;
         ProgressText = FormatTime(currentWithOffset);
@@ -1744,19 +1392,19 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public async Task NudgeOffsetAsync(int deltaMs)
     {
-        if (_lastPlaybackState?.CurrentTrack is null) return;
+        if (_transport.PlaybackState?.CurrentTrack is null) return;
         _userOffsetMs = Math.Clamp(_userOffsetMs + deltaMs, -30000, 30000);
         double seconds = _userOffsetMs / 1000.0;
         OffsetText = $"{(_userOffsetMs >= 0 ? "+" : "")}{seconds:0.0}s";
-        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, _userOffsetMs);
+        await _client.SetTrackOffsetAsync(_transport.PlaybackState.CurrentTrack.Id, _userOffsetMs);
     }
 
     public async Task ResetOffsetAsync()
     {
-        if (_lastPlaybackState?.CurrentTrack is null) return;
+        if (_transport.PlaybackState?.CurrentTrack is null) return;
         _userOffsetMs = 0;
         OffsetText = "+0.0s";
-        await _client.SetTrackOffsetAsync(_lastPlaybackState.CurrentTrack.Id, 0);
+        await _client.SetTrackOffsetAsync(_transport.PlaybackState.CurrentTrack.Id, 0);
     }
 
     public async Task SubscribeToUserAsync(string? userId)
@@ -1776,9 +1424,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         CurrentAlbum = string.Empty;
         AlbumArtUrl = null;
         IsPlaying = false;
-        _lastPlaybackState = null;
-        _lastServerPlaybackState = null;
-        ClearSeekAnchor();
+        _transport.Reset();
         _lastLyrics = null;
         LyricLines.Clear();
         HasLyrics = false;

@@ -22,10 +22,14 @@ flowchart TD
         Theme[ThemeManager]
         Layout[ResponsiveLayoutManager]
         Prefs[LyricsPreferences]
+        Transport[PlaybackTransport]
+        Anchor[OptimisticSeekAnchor]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
         LVM --> Prefs
+        LVM --> Transport
+        Transport --> Anchor
     end
 
     subgraph XAML Views
@@ -59,7 +63,8 @@ flowchart TD
 - Provides flattened 1-level direct visual properties (`BackgroundBrush`, `SurfaceCardBrush`, `NoSessionsVisibility`, `HasSessionsVisibility`, `CurrentBreakpoint`) ensuring thread-safe, compile-time verified XAML `{x:Bind}` execution across all platforms.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
-- Seeks playback to a tapped synced line (`SeekToLineAsync`). The target is the line timestamp minus the per-track offset, without latency compensation (a seek flushes in-flight audio, so adding it would clip the line). The jump is optimistic: a display floor keeps the tapped line active until the latency-compensated estimate catches up, and polls still reporting the pre-seek position are ignored until one confirms the seek (or 4 seconds pass). A rejected seek reverts and reports through the transport status line.
+- Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
+- Transport controls (play/pause, skip, shuffle, repeat, volume, seek) are thin pass-throughs to `PlaybackTransport`, kept so existing `{x:Bind}` paths stay one level deep. The transport's property notifications are re-raised under the same names.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -87,6 +92,13 @@ flowchart TD
 - `LyricsViewModel` reads and writes its per-device preferences (auto-scroll, karaoke mode, device latency compensation) only through an injected `ILyricsPreferences`. It reads them once at construction and writes on every change.
 - `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
+
+### 8. `PlaybackTransport`
+- Owns transport state and commands: `IsPlaying`, `IsShuffled`, `RepeatMode`, `VolumePercent`, their glyphs and brushes, and the transport status line (rejected commands show a message for 8 seconds).
+- Debounces volume changes: slider ticks only record the value, and the one the slider rests on for `300ms` is sent.
+- Owns the effective playback state. `ApplyServerState` takes each poll, reconciles it with any unconfirmed seek, and returns the state the display clock follows.
+- Line seeks (`SeekToLineAsync`) target the line timestamp minus the per-track offset, without latency compensation (a seek flushes in-flight audio, so adding it would clip the line). The jump is optimistic and raises `SeekApplied` before Spotify answers. `HoldAtSeekFloor` keeps the tapped line active until the latency-compensated estimate catches up. Polls still reporting the pre-seek position are ignored until one confirms the seek (or 4 seconds pass). A rejected seek restores the last poll, raises `SeekReverted`, and reports through the transport status line.
+- The seek anchor itself (pending seek, display floor, seek generation, poll reconciliation) lives in an internal `OptimisticSeekAnchor` owned by the transport. Callers go through `PlaybackTransport` members; `LyricsViewModel` only shares its static `ProjectProgressMs` position estimate.
 
 ---
 
