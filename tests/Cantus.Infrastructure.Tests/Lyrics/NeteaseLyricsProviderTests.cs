@@ -354,4 +354,220 @@ public class NeteaseLyricsProviderTests
         result.Lyrics.Should().BeNull();
         result.IsDefinitive.Should().BeTrue("this provider is synced-only by design");
     }
+
+    private const string CANDIDATE_SEARCH_JSON = """
+        {
+            "result": {
+                "songs": [
+                    { "id": 111, "name": "Miss America", "duration": 295011,
+                      "artists": [ { "name": "Brandon Flowers" } ],
+                      "album": { "name": "The Desired Effect" } },
+                    { "id": 222, "name": "Miss America", "duration": 244000,
+                      "artists": [ { "name": "Carolina Liar" } ] },
+                    { "id": 333, "name": "Miss America (Live)", "duration": 310000,
+                      "artists": [ { "name": "Brandon Flowers" }, { "name": "Guest" } ] },
+                    { "id": 444, "name": "Miss America (Demo)", "duration": 295000,
+                      "artists": [ { "name": "Brandon Flowers" } ] },
+                    { "id": 555, "name": "Miss America (Instrumental)", "duration": 295000,
+                      "artists": [ { "name": "Brandon Flowers" } ] }
+                ]
+            },
+            "code": 200
+        }
+        """;
+
+    private static HttpResponseMessage CandidateLyricResponse(string query)
+    {
+        if (query.Contains("id=111"))
+        {
+            return Json("""
+                {
+                    "lrc": { "lyric": "[00:00.000] 作词 : Brandon Flowers\n[00:08.156]I'm writing you this letter\n[00:12.105]If you ain't figured out\n[00:16.000]Third line\n" },
+                    "code": 200
+                }
+                """);
+        }
+
+        if (query.Contains("id=333"))
+        {
+            return Json("""{ "lrc": { "lyric": "[00:05.000]Live first\n[00:09.000]Live second\n" }, "code": 200 }""");
+        }
+
+        if (query.Contains("id=444"))
+        {
+            return Json("""{ "uncollected": true, "code": 200 }""");
+        }
+
+        if (query.Contains("id=555"))
+        {
+            return Json("""{ "nolyric": true, "code": 200 }""");
+        }
+
+        return new HttpResponseMessage(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_ReturnsSyncedAndInstrumentalCandidatesForMatchingArtists()
+    {
+        List<string> lyricRequests = new();
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(CANDIDATE_SEARCH_JSON);
+                }
+
+                lock (lyricRequests)
+                {
+                    lyricRequests.Add(req.RequestUri!.Query);
+                }
+
+                return CandidateLyricResponse(req.RequestUri!.Query);
+            }
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        candidates.Select(c => c.ProviderCandidateId).Should().Equal(
+            new[] { "111", "333", "555" },
+            "other artists are filtered out and songs without lyrics are skipped, in search order");
+        lyricRequests.Should().NotContain(q => q.Contains("id=222"), "a different artist is never looked up");
+        candidates.Should().OnlyContain(c => c.Provider == "NetEase");
+
+        LyricsCandidate best = candidates[0];
+        best.Title.Should().Be("Miss America");
+        best.Artist.Should().Be("Brandon Flowers");
+        best.Album.Should().Be("The Desired Effect");
+        best.Duration.Should().Be(TimeSpan.FromMilliseconds(295011));
+        best.IsSynced.Should().BeTrue();
+        best.IsInstrumental.Should().BeFalse();
+        best.Preview.Should().Equal(
+            new[] { "I'm writing you this letter", "If you ain't figured out" },
+            "credit lines are stripped before the preview is taken");
+
+        LyricsCandidate live = candidates[1];
+        live.Artist.Should().Be("Brandon Flowers, Guest");
+        live.Duration.Should().Be(TimeSpan.FromSeconds(310), "duration does not filter candidates");
+        live.Preview.Should().Equal("Live first", "Live second");
+
+        LyricsCandidate instrumental = candidates[2];
+        instrumental.IsInstrumental.Should().BeTrue();
+        instrumental.IsSynced.Should().BeFalse();
+        instrumental.Preview.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_LooksUpAtMostFiveSongs()
+    {
+        string songs = string.Join(
+            ',',
+            Enumerable.Range(1, 8).Select(i =>
+                $$"""{ "id": {{i}}, "name": "Miss America", "duration": 295000, "artists": [ { "name": "Brandon Flowers" } ] }"""));
+        int lyricRequestCount = 0;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json($$"""{ "result": { "songs": [ {{songs}} ] }, "code": 200 }""");
+                }
+
+                Interlocked.Increment(ref lyricRequestCount);
+                return Json("""{ "lrc": { "lyric": "[00:01.000]Line\n" }, "code": 200 }""");
+            }
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        candidates.Should().HaveCount(5);
+        lyricRequestCount.Should().Be(5, "each candidate costs one request to an unofficial API");
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_SearchPayloadError_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => Json("""{ "code": -460, "message": "Cheating" }""")
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        await act.Should().ThrowAsync<HttpRequestException>(
+            "an anti-scraping challenge must not read as \"NetEase has no candidates\"");
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_LyricPayloadError_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req => req.RequestUri!.PathAndQuery.StartsWith("/api/search/get")
+                ? Json(CANDIDATE_SEARCH_JSON)
+                : Json("""{ "code": -460 }""")
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task GetCandidatesAsync_OneLyricLookupFails_KeepsTheSongsThatSucceeded(HttpStatusCode failure)
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(CANDIDATE_SEARCH_JSON);
+                }
+
+                if (req.RequestUri!.Query.Contains("id=333"))
+                {
+                    return failure == HttpStatusCode.OK
+                        ? Json("""{ "code": -460 }""")
+                        : new HttpResponseMessage(failure);
+                }
+
+                return CandidateLyricResponse(req.RequestUri!.Query);
+            }
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        candidates.Select(c => c.ProviderCandidateId).Should().Equal(
+            new[] { "111", "555" },
+            "one failed lookup must not hide the candidates that were found");
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_LookupsFailAndNoneFindLyrics_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (req.RequestUri!.PathAndQuery.StartsWith("/api/search/get"))
+                {
+                    return Json(CANDIDATE_SEARCH_JSON);
+                }
+
+                return req.RequestUri!.Query.Contains("id=444")
+                    ? Json("""{ "uncollected": true, "code": 200 }""")
+                    : new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            }
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        await act.Should().ThrowAsync<HttpRequestException>(
+            "an empty list would read as \"NetEase has no candidates\" when it could not answer");
+    }
 }

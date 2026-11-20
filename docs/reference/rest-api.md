@@ -16,7 +16,7 @@ A Display (a paired screen) holds a view-only Display token instead of a Session
 
 The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
 
-A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
+A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `GET /api/lyrics/{trackId}/candidates`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
 
 ---
 
@@ -221,6 +221,47 @@ Its token stops working at once. Each of its live hub connections receives [`Rec
 - **Response `204 No Content`**
 - **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
 - **Response `404 Not Found`**: the caller has no Display with that id.
+
+---
+
+### `GET /api/lyrics/{trackId}/candidates`
+Lists the lyrics every enabled provider has for the owner's current track, so a wrong automatic match can be replaced.
+
+- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Path Parameters**:
+  - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session, since providers search by its title, artist and duration.
+- **Behavior**:
+  1. Queries LRCLIB and, when `Netease:Enabled` is `true`, NetEase in parallel. Nothing is cached or changed.
+  2. LRCLIB returns every search result that has synced lyrics, plain lyrics, or an instrumental flag.
+  3. NetEase returns synced lyrics or an instrumental marker (`isSynced: false`, `isInstrumental: true`), from the first 5 search results by a matching artist. Duration does not filter candidates.
+  4. A provider that fails (network error, timeout, 5xx, NetEase payload error code) is listed in `unavailableProviders` and the rest of the list is still returned. If only some NetEase lyric lookups fail, the songs that succeeded are still returned; NetEase is listed as unavailable only when its search fails or failed lookups leave it with no candidates.
+- **Response `200 OK`**:
+```json
+{
+  "trackId": "4cOdK2wGLETKBW3PvgPWqT",
+  "candidates": [
+    {
+      "provider": "LRCLIB",
+      "providerCandidateId": "3396226",
+      "title": "Never Gonna Give You Up",
+      "artist": "Rick Astley",
+      "album": "Whenever You Need Somebody",
+      "durationMs": 213000,
+      "isSynced": true,
+      "isInstrumental": false,
+      "preview": [
+        "We're no strangers to love",
+        "You know the rules and so do I"
+      ]
+    }
+  ],
+  "unavailableProviders": ["NetEase"]
+}
+```
+- `preview` holds the first non-blank lyric lines, 2 at most. It is empty for an instrumental candidate.
+- **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
+- **Response `403 Forbidden`**: the caller holds a Display token. No provider is queried.
+- **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or nothing is playing.
 
 ---
 

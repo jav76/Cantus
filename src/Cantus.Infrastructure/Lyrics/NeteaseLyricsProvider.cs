@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Net.Http.Json;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -34,6 +36,10 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
     private const int MIN_ARTIST_SUBSTRING_MATCH_LENGTH = 3;
 
     private const int CREDIT_LINE_REGEX_TIMEOUT_MS = 200;
+
+    // Each candidate costs one extra request to an unofficial, rate-limited
+    // API, so a candidate listing confirms only the first few search hits.
+    private const int MAX_CANDIDATE_LYRIC_LOOKUPS = 5;
 
     private static readonly char[] ArtistDelimiters = [',', '/', '&', ';'];
 
@@ -120,6 +126,135 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
                 track.Title);
             return LyricsFetchResult.Unavailable();
         }
+    }
+
+    /// <summary>
+    /// Search results by a matching artist, each confirmed with a lyric
+    /// lookup. Duration does not filter here (the owner is correcting a match,
+    /// so a live or alternate cut is a valid pick). Like
+    /// <see cref="FetchLyricsAsync"/>, only synced lyrics or an instrumental
+    /// marker are offered. A failed lookup drops only that song; the call
+    /// throws when the search fails or failures leave no candidates.
+    /// </summary>
+    public virtual async Task<IReadOnlyList<LyricsCandidate>> GetCandidatesAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+
+        NeteaseSearchResponseDto? search = await SearchAsync(track, cancellationToken);
+        if (search is null || search.Code != NETEASE_SUCCESS_CODE)
+        {
+            throw new HttpRequestException($"NetEase search returned payload code {search?.Code}.");
+        }
+
+        if (search.Result?.Songs is not { Count: > 0 } songs)
+        {
+            return [];
+        }
+
+        List<NeteaseSongDto> matches = songs
+            .Where(s => ArtistsMatch(s, track))
+            .Take(MAX_CANDIDATE_LYRIC_LOOKUPS)
+            .ToList();
+
+        Task<LyricsCandidate?>[] lookups = matches
+            .Select(s => GetCandidateAsync(s, cancellationToken))
+            .ToArray();
+
+        try
+        {
+            await Task.WhenAll(lookups);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Each lookup's outcome is inspected below, so one failed song
+            // does not hide the songs whose lyrics were found.
+        }
+
+        List<LyricsCandidate> candidates = new();
+        Exception? firstFailure = null;
+        for (int i = 0; i < lookups.Length; i++)
+        {
+            Task<LyricsCandidate?> lookup = lookups[i];
+            if (lookup.IsCompletedSuccessfully)
+            {
+                if (lookup.Result is LyricsCandidate candidate)
+                {
+                    candidates.Add(candidate);
+                }
+
+                continue;
+            }
+
+            Exception failure = lookup.Exception?.GetBaseException() ?? new TaskCanceledException(lookup);
+            firstFailure ??= failure;
+            _logger.LogWarning(
+                failure,
+                "NetEase lyric lookup failed for song {SongId} while listing candidates for track {TrackId}",
+                matches[i].Id,
+                track.Id);
+        }
+
+        // With nothing found, an empty list would claim NetEase has no
+        // candidates when it could not answer, so the failure is surfaced.
+        if (firstFailure is not null && candidates.Count == 0)
+        {
+            ExceptionDispatchInfo.Throw(firstFailure);
+        }
+
+        return candidates;
+    }
+
+    private async Task<LyricsCandidate?> GetCandidateAsync(NeteaseSongDto song, CancellationToken ct)
+    {
+        NeteaseLyricResponseDto? lyric = await GetLyricAsync(song.Id, ct);
+        if (lyric is null || lyric.Code != NETEASE_SUCCESS_CODE)
+        {
+            throw new HttpRequestException($"NetEase lyric lookup returned payload code {lyric?.Code}.");
+        }
+
+        if (lyric.NoLyric)
+        {
+            return ToCandidate(song, isSynced: false, isInstrumental: true, preview: []);
+        }
+
+        string? lrcText = lyric.Lrc?.Lyric;
+        if (lyric.Uncollected || string.IsNullOrWhiteSpace(lrcText))
+        {
+            return null;
+        }
+
+        IReadOnlyList<LyricLine> lines = LrcParser.ParseLines(StripCreditLines(lrcText));
+        if (lines.Count == 0)
+        {
+            return null;
+        }
+
+        return ToCandidate(song, isSynced: true, isInstrumental: false, LyricsPreview.FromLines(lines));
+    }
+
+    private LyricsCandidate ToCandidate(
+        NeteaseSongDto song,
+        bool isSynced,
+        bool isInstrumental,
+        IReadOnlyList<string> preview)
+    {
+        IEnumerable<string> artistNames = (song.Artists ?? [])
+            .Select(a => a.Name)
+            .OfType<string>()
+            .Where(n => !string.IsNullOrWhiteSpace(n));
+
+        return new LyricsCandidate(
+            ProviderName,
+            song.Id.ToString(CultureInfo.InvariantCulture),
+            song.Name ?? string.Empty,
+            string.Join(", ", artistNames),
+            song.Album?.Name,
+            TimeSpan.FromMilliseconds(song.Duration),
+            isSynced,
+            isInstrumental,
+            preview);
     }
 
     private void LogPayloadError(string endpoint, int? code, TrackInfo track)
@@ -308,6 +443,15 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
         [JsonPropertyName("artists")]
         public List<NeteaseArtistDto>? Artists { get; set; }
+
+        [JsonPropertyName("album")]
+        public NeteaseAlbumDto? Album { get; set; }
+    }
+
+    internal sealed class NeteaseAlbumDto
+    {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
     }
 
     internal sealed class NeteaseArtistDto

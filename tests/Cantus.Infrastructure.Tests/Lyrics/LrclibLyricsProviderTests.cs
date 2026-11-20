@@ -254,4 +254,138 @@ public class LrclibLyricsProviderTests
         result.Lyrics.Should().BeNull();
         result.IsDefinitive.Should().BeFalse("the search fallback could not be consulted");
     }
+
+    private const string CANDIDATE_SEARCH_JSON = """
+        [
+            {
+                "id": 501,
+                "trackName": "Miss America",
+                "artistName": "Brandon Flowers",
+                "albumName": "The Desired Effect",
+                "duration": 295,
+                "instrumental": false,
+                "plainLyrics": "I'm writing you this letter\nIf you ain't figured out\nThird line",
+                "syncedLyrics": "[00:00.00]\n[00:08.15]I'm writing you this letter\n[00:12.10]If you ain't figured out\n[00:16.00]Third line"
+            },
+            {
+                "id": 502,
+                "trackName": "Miss America (Live)",
+                "artistName": "Brandon Flowers",
+                "albumName": null,
+                "duration": 301.5,
+                "instrumental": false,
+                "plainLyrics": "\nPlain first\nPlain second\nPlain third",
+                "syncedLyrics": null
+            },
+            {
+                "id": 503,
+                "trackName": "Miss America (Instrumental)",
+                "artistName": "Brandon Flowers",
+                "duration": 295,
+                "instrumental": true,
+                "plainLyrics": null,
+                "syncedLyrics": null
+            },
+            {
+                "id": 504,
+                "trackName": "Miss America (Empty)",
+                "artistName": "Brandon Flowers",
+                "duration": 295,
+                "instrumental": false,
+                "plainLyrics": null,
+                "syncedLyrics": null
+            }
+        ]
+        """;
+
+    private static readonly TrackInfo CandidateTrack = new()
+    {
+        Id = "spotify_miss_america",
+        Title = "Miss America",
+        Artist = "Brandon Flowers",
+        Duration = TimeSpan.FromSeconds(295)
+    };
+
+    private static LrclibLyricsProvider CreateProvider(MockHttpMessageHandler handler)
+    {
+        HttpClient httpClient = new(handler) { BaseAddress = new Uri("https://lrclib.net") };
+        IOptions<LrclibOptions> options = Options.Create(new LrclibOptions());
+        return new LrclibLyricsProvider(httpClient, options, NullLogger<LrclibLyricsProvider>.Instance);
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_ReturnsEverySearchResultThatHasLyrics()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req => req.RequestUri!.PathAndQuery.StartsWith("/api/search")
+                ? new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(CANDIDATE_SEARCH_JSON, Encoding.UTF8, "application/json")
+                }
+                : new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(CandidateTrack);
+
+        candidates.Select(c => c.ProviderCandidateId).Should().Equal(
+            new[] { "501", "502", "503" },
+            "a result with neither synced nor plain lyrics and no instrumental flag offers nothing to pick");
+        candidates.Should().OnlyContain(c => c.Provider == "LRCLIB");
+
+        LyricsCandidate synced = candidates[0];
+        synced.Title.Should().Be("Miss America");
+        synced.Artist.Should().Be("Brandon Flowers");
+        synced.Album.Should().Be("The Desired Effect");
+        synced.Duration.Should().Be(TimeSpan.FromSeconds(295));
+        synced.IsSynced.Should().BeTrue();
+        synced.IsInstrumental.Should().BeFalse();
+        synced.Preview.Should().Equal("I'm writing you this letter", "If you ain't figured out");
+
+        LyricsCandidate plain = candidates[1];
+        plain.IsSynced.Should().BeFalse();
+        plain.Duration.Should().Be(TimeSpan.FromSeconds(301.5));
+        plain.Preview.Should().Equal("Plain first", "Plain second");
+
+        LyricsCandidate instrumental = candidates[2];
+        instrumental.IsInstrumental.Should().BeTrue();
+        instrumental.IsSynced.Should().BeFalse();
+        instrumental.Preview.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_SearchesByTitleAndArtist()
+    {
+        string? requestedUrl = null;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                requestedUrl = req.RequestUri!.PathAndQuery;
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("[]", Encoding.UTF8, "application/json")
+                };
+            }
+        };
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(CandidateTrack);
+
+        candidates.Should().BeEmpty();
+        requestedUrl.Should().Be("/api/search?q=Miss%20America%20Brandon%20Flowers");
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_WhenSearchFails_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidatesAsync(CandidateTrack);
+
+        await act.Should().ThrowAsync<HttpRequestException>(
+            "a failed search must not read as \"LRCLIB has no candidates\"");
+    }
 }
