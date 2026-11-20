@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "repo": "jav76/Cantus",
+  "project": {
+    "owner": "jav76",
+    "number": 5,
+    "id": "PVT_kwHOBC_e9M4BsgGG",
+    "title": "Cantus",
+    "url": "https://github.com/users/jav76/projects/5"
+  },
+  "status_field": "Status",
+  "states": {
+    "backlog": "Backlog",
+    "ready": "Ready",
+    "in_progress": "In Progress",
+    "in_review": "In review",
+    "done": "Done"
+  },
+  "priority_field": "Priority",
+  "size_field": "Size",
+  "fields": {
+    "Title": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-cE",
+      "type": "TITLE"
+    },
+    "Assignees": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-cM",
+      "type": "ASSIGNEES"
+    },
+    "Status": {
+      "id": "PVTSSF_lAHOBC_e9M4BsgGGzhqt-cY",
+      "type": "SINGLE_SELECT",
+      "options": [
+        {
+          "name": "Backlog",
+          "id": "c30b94db"
+        },
+        {
+          "name": "Ready",
+          "id": "a291d6cf"
+        },
+        {
+          "name": "In Progress",
+          "id": "3aa5fc37"
+        },
+        {
+          "name": "In review",
+          "id": "0e4c0998"
+        },
+        {
+          "name": "Done",
+          "id": "2edc02c6"
+        }
+      ]
+    },
+    "Labels": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-ck",
+      "type": "LABELS"
+    },
+    "Linked pull requests": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-cw",
+      "type": "LINKED_PULL_REQUESTS"
+    },
+    "Milestone": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-c8",
+      "type": "MILESTONE"
+    },
+    "Repository": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-dI",
+      "type": "REPOSITORY"
+    },
+    "Reviewers": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-dg",
+      "type": "REVIEWERS"
+    },
+    "Parent issue": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-ds",
+      "type": "PARENT_ISSUE"
+    },
+    "Sub-issues progress": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-d4",
+      "type": "SUB_ISSUES_PROGRESS"
+    },
+    "Created": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-eA",
+      "type": "CREATED"
+    },
+    "Updated": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-eM",
+      "type": "UPDATED"
+    },
+    "Closed": {
+      "id": "PVTF_lAHOBC_e9M4BsgGGzhqt-eY",
+      "type": "CLOSED"
+    },
+    "Priority": {
+      "id": "PVTSSF_lAHOBC_e9M4BsgGGzhqt-pI",
+      "type": "SINGLE_SELECT",
+      "options": [
+        {
+          "name": "P0",
+          "id": "7f8dbb13"
+        },
+        {
+          "name": "P1",
+          "id": "50fa9164"
+        },
+        {
+          "name": "P2",
+          "id": "6a2f731c"
+        }
+      ]
+    },
+    "Size": {
+      "id": "PVTSSF_lAHOBC_e9M4BsgGGzhqt-p0",
+      "type": "SINGLE_SELECT",
+      "options": [
+        {
+          "name": "XS",
+          "id": "5512a705"
+        },
+        {
+          "name": "S",
+          "id": "95d6f0a4"
+        },
+        {
+          "name": "M",
+          "id": "ce331e8f"
+        },
+        {
+          "name": "L",
+          "id": "abb7ef88"
+        }
+      ]
+    }
+  }
+}
