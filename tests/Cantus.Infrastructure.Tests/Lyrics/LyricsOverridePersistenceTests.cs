@@ -61,12 +61,12 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
     {
         using (CantusDbContext context = CreateContext())
         {
-            SqliteLyricsCacheRepository repository = new(context);
+            SqliteLyricsCacheRepository repository = new(context, TimeProvider.System);
             await repository.SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("LRCLIB", "501", ChosenLyrics()));
         }
 
         using CantusDbContext restarted = CreateContext();
-        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted).GetLyricsOverrideAsync(TRACK_ID);
+        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted, TimeProvider.System).GetLyricsOverrideAsync(TRACK_ID);
 
         stored.Should().NotBeNull();
         stored!.Kind.Should().Be(LyricsOverrideKind.Candidate);
@@ -95,12 +95,12 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
 
         using (CantusDbContext context = CreateContext())
         {
-            await new SqliteLyricsCacheRepository(context)
+            await new SqliteLyricsCacheRepository(context, TimeProvider.System)
                 .SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("LRCLIB", "502", plain));
         }
 
         using CantusDbContext restarted = CreateContext();
-        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted).GetLyricsOverrideAsync(TRACK_ID);
+        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted, TimeProvider.System).GetLyricsOverrideAsync(TRACK_ID);
 
         stored!.Lyrics!.IsSynced.Should().BeFalse();
         stored.Lyrics.Lines.Should().BeEmpty();
@@ -112,12 +112,12 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
     {
         using (CantusDbContext context = CreateContext())
         {
-            await new SqliteLyricsCacheRepository(context)
+            await new SqliteLyricsCacheRepository(context, TimeProvider.System)
                 .SaveLyricsOverrideAsync(LyricsOverride.ForNoLyrics(TRACK_ID));
         }
 
         using CantusDbContext restarted = CreateContext();
-        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted).GetLyricsOverrideAsync(TRACK_ID);
+        LyricsOverride? stored = await new SqliteLyricsCacheRepository(restarted, TimeProvider.System).GetLyricsOverrideAsync(TRACK_ID);
 
         stored.Should().NotBeNull();
         stored!.Kind.Should().Be(LyricsOverrideKind.NoLyrics);
@@ -129,7 +129,7 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
     public async Task Override_IsNotUndoneByCacheExpiryOrNegativeCaching()
     {
         using CantusDbContext context = CreateContext();
-        SqliteLyricsCacheRepository repository = new(context);
+        SqliteLyricsCacheRepository repository = new(context, TimeProvider.System);
         await repository.SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("NetEase", "111", ChosenLyrics()));
 
         await repository.SaveLyricsAsync(ChosenLyrics(), timeToLive: TimeSpan.FromSeconds(-10));
@@ -150,7 +150,7 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
     public async Task SaveLyricsOverride_ReplacesThePreviousOverride()
     {
         using CantusDbContext context = CreateContext();
-        SqliteLyricsCacheRepository repository = new(context);
+        SqliteLyricsCacheRepository repository = new(context, TimeProvider.System);
         await repository.SaveLyricsOverrideAsync(LyricsOverride.ForCandidate("LRCLIB", "501", ChosenLyrics()));
 
         await repository.SaveLyricsOverrideAsync(LyricsOverride.ForNoLyrics(TRACK_ID));
@@ -165,7 +165,7 @@ public sealed class LyricsOverridePersistenceTests : IDisposable
     public async Task RemoveLyricsOverride_ReturnsTheTrackToAutomaticMatching()
     {
         using CantusDbContext context = CreateContext();
-        SqliteLyricsCacheRepository repository = new(context);
+        SqliteLyricsCacheRepository repository = new(context, TimeProvider.System);
         await repository.SaveLyricsOverrideAsync(LyricsOverride.ForNoLyrics(TRACK_ID));
 
         await repository.RemoveLyricsOverrideAsync(TRACK_ID);

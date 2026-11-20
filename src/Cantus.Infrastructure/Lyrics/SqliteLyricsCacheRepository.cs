@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Core.Interfaces;
@@ -13,11 +14,42 @@ namespace Cantus.Infrastructure.Lyrics;
 
 public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
 {
-    private readonly CantusDbContext _dbContext;
+    private static readonly JsonSerializerOptions WordTimedJsonOptions = new(JsonSerializerDefaults.Web);
 
-    public SqliteLyricsCacheRepository(CantusDbContext dbContext)
+    private readonly CantusDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
+
+    public SqliteLyricsCacheRepository(CantusDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
+    }
+
+    public async Task<bool> TryStartWordTimingUpgradeAsync(
+        string trackId,
+        int maxAttempts,
+        TimeSpan retryInterval,
+        CancellationToken cancellationToken = default)
+    {
+        CachedLyricsEntity? entity = await _dbContext.CachedLyrics
+            .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
+
+        if (entity is null || entity.IsNotFound || entity.WordTimingUpgradeAttempts >= maxAttempts)
+        {
+            return false;
+        }
+
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        DateTimeOffset lastChecked = entity.WordTimingCheckedAtUtc ?? entity.FetchedAtUtc;
+        if (now - lastChecked < retryInterval)
+        {
+            return false;
+        }
+
+        entity.WordTimingUpgradeAttempts++;
+        entity.WordTimingCheckedAtUtc = now;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<SyncedLyrics?> GetCachedLyricsAsync(
@@ -33,7 +65,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             return null;
         }
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         if (entity.ExpiresAtUtc.HasValue && entity.ExpiresAtUtc.Value <= now)
         {
             return null;
@@ -59,6 +91,22 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
             };
         }
 
+        IReadOnlyList<LyricLine>? wordTimedLines = DeserializeWordTimedLines(entity.WordTimedLinesJson);
+        if (wordTimedLines is not null)
+        {
+            return new SyncedLyrics
+            {
+                TrackId = entity.TrackId,
+                Title = entity.TrackName,
+                Artist = entity.ArtistName,
+                Album = entity.AlbumName,
+                Lines = wordTimedLines,
+                IsSynced = wordTimedLines.Count > 0,
+                IsInstrumental = false,
+                PlainLyrics = entity.PlainLyrics ?? string.Join("\n", wordTimedLines.Select(l => l.Text))
+            };
+        }
+
         SyncedLyrics parsed = LrcParser.Parse(
             entity.RawSyncedLrc,
             entity.TrackId,
@@ -74,7 +122,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         string trackId,
         CancellationToken cancellationToken = default)
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         CachedLyricsEntity? entry = await _dbContext.CachedLyrics
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.TrackId == trackId, cancellationToken);
@@ -99,7 +147,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
     {
         ArgumentNullException.ThrowIfNull(lyrics);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         CachedLyricsEntity entity = await GetOrCreateLyricsEntityAsync(
             lyrics.TrackId,
             lyrics.Title,
@@ -111,6 +159,9 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         entity.AlbumName = lyrics.Album;
         entity.PlainLyrics = lyrics.PlainLyrics;
         entity.RawSyncedLrc = GenerateRawLrc(lyrics);
+        entity.WordTimedLinesJson = lyrics.HasWordTiming ? SerializeWordTimedLines(lyrics.Lines) : null;
+        entity.WordTimingUpgradeAttempts = 0;
+        entity.WordTimingCheckedAtUtc = null;
         entity.IsSynced = lyrics.IsSynced;
         entity.IsInstrumental = lyrics.IsInstrumental;
         entity.IsNotFound = false;
@@ -130,7 +181,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         TimeSpan timeToLive,
         CancellationToken cancellationToken = default)
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         CachedLyricsEntity entity = await GetOrCreateLyricsEntityAsync(
             trackId,
             trackName,
@@ -146,6 +197,9 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         entity.IsInstrumental = false;
         entity.PlainLyrics = null;
         entity.RawSyncedLrc = null;
+        entity.WordTimedLinesJson = null;
+        entity.WordTimingUpgradeAttempts = 0;
+        entity.WordTimingCheckedAtUtc = null;
         entity.FetchedAtUtc = now;
         entity.LastAccessedAtUtc = now;
         entity.ExpiresAtUtc = now.Add(timeToLive);
@@ -255,7 +309,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         entity.RawSyncedLrc = lyrics is null ? null : GenerateRawLrc(lyrics);
         entity.IsSynced = lyrics?.IsSynced ?? false;
         entity.IsInstrumental = lyrics?.IsInstrumental ?? false;
-        entity.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        entity.UpdatedAtUtc = _timeProvider.GetUtcNow();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -301,7 +355,7 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         TrackOffsetEntity? entity = await _dbContext.TrackOffsets
             .FirstOrDefaultAsync(t => t.TrackId == trackId, cancellationToken);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         if (entity is not null)
         {
             entity.OffsetMs = offsetMs;
@@ -320,6 +374,60 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    private static string SerializeWordTimedLines(IReadOnlyList<LyricLine> lines)
+    {
+        List<StoredLine> stored = lines
+            .Select(line => new StoredLine(
+                (long)line.Timestamp.TotalMilliseconds,
+                line.Text,
+                line.Syllables?
+                    .Select(s => new StoredSyllable(
+                        (long)s.Timestamp.TotalMilliseconds,
+                        (long)s.Duration.TotalMilliseconds,
+                        s.Text))
+                    .ToList()))
+            .ToList();
+
+        return JsonSerializer.Serialize(stored, WordTimedJsonOptions);
+    }
+
+    /// <summary>Returns null when there is no stored JSON or it cannot be read, so the caller falls back to LRC.</summary>
+    private static IReadOnlyList<LyricLine>? DeserializeWordTimedLines(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        List<StoredLine>? stored;
+        try
+        {
+            stored = JsonSerializer.Deserialize<List<StoredLine>>(json, WordTimedJsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        return stored?
+            .Select(line => new LyricLine(
+                TimeSpan.FromMilliseconds(line.TimestampMs),
+                line.Text ?? string.Empty,
+                line.Syllables is { Count: > 0 }
+                    ? line.Syllables
+                        .Select(s => new LyricSyllable(
+                            TimeSpan.FromMilliseconds(s.TimestampMs),
+                            TimeSpan.FromMilliseconds(s.DurationMs),
+                            s.Text ?? string.Empty))
+                        .ToList()
+                    : null))
+            .ToList();
+    }
+
+    private sealed record StoredLine(long TimestampMs, string? Text, List<StoredSyllable>? Syllables);
+
+    private sealed record StoredSyllable(long TimestampMs, long DurationMs, string? Text);
 
     private static string? GenerateRawLrc(SyncedLyrics lyrics)
     {

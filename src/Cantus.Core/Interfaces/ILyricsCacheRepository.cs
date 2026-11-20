@@ -31,6 +31,18 @@ public interface ILyricsCacheRepository
 
     Task RemoveLyricsOverrideAsync(string trackId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Records an attempt to upgrade a cached entry to word-level timing when the retry policy allows
+    /// one now: the entry exists and is not a negative entry, fewer than <paramref name="maxAttempts"/>
+    /// upgrade attempts were made since it was last saved, and <paramref name="retryInterval"/> has
+    /// passed since it was saved or last checked. Returns false (and records nothing) otherwise.
+    /// </summary>
+    Task<bool> TryStartWordTimingUpgradeAsync(
+        string trackId,
+        int maxAttempts,
+        TimeSpan retryInterval,
+        CancellationToken cancellationToken = default);
+
     Task<int> GetTrackOffsetAsync(string trackId, CancellationToken cancellationToken = default);
 
     Task SetTrackOffsetAsync(string trackId, int offsetMs, CancellationToken cancellationToken = default);
