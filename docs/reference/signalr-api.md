@@ -12,6 +12,8 @@ WSS /hubs/playback
 
 Clients negotiate connection parameters over HTTP and upgrade to WebSockets.
 
+On connect, the hub reads the connection's Session credential from the same sources as the REST API and matches it against the exact Session id only. A connection whose credential does not match a Session id stays unauthenticated and joins no user group. See [Session credential](rest-api.md#session-credential).
+
 ---
 
 ## Client-to-Server Methods (Invocations)
@@ -19,8 +21,8 @@ Clients negotiate connection parameters over HTTP and upgrade to WebSockets.
 Clients invoke these methods on the hub:
 
 ### `SubscribeToUser(userId)`
-Subscribes the connection to updates for a specific Spotify user ID.
-- **Parameters**: `userId` (`string?`) — Spotify User Account identifier.
+Subscribes the connection to updates for the caller's own Session.
+- **Parameters**: `userId` (`string?`): the caller's Session id. Ignored unless the connection's credential resolves to that same Session id.
 - **Behavior**: Associates the connection with `user_{userId}` group in `SessionRegistry`. Upon subscription, the caller immediately receives initial snapshots of `ReceivePlaybackState`, `ReceiveLyrics`, `ReceiveTrackOffset`, and `ReceiveDiagnostics`.
 
 ### `RegisterClientLogin(clientId)`

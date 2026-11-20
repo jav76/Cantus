@@ -172,7 +172,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Lines = [new LyricLine(TimeSpan.FromSeconds(5), "Is this the real life?")]
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
 
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
@@ -235,9 +235,9 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Progress = TimeSpan.FromSeconds(20)
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session1);
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-2", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-2", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session2);
 
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
@@ -316,7 +316,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Progress = TimeSpan.FromSeconds(5)
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(playback);
@@ -361,7 +361,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             RefreshToken = "ref-1"
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
 
         Mock<SpotifyAPI.Web.Http.IResponse> mockResponse = new();
@@ -431,7 +431,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             TimestampUtc = DateTimeOffset.UtcNow
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(playback);
@@ -504,7 +504,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             TimestampUtc = DateTimeOffset.UtcNow
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
         _mockSpotifyClient.Setup(s => s.GetCurrentPlaybackAsync("tok-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(playback);
@@ -566,7 +566,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             RefreshToken = "ref-1"
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
 
         Mock<SpotifyAPI.Web.Http.IResponse> mockResponse = new();
@@ -605,7 +605,7 @@ public sealed class ActiveUsersPlaybackMonitorTests
             RefreshToken = "ref-1"
         };
 
-        _mockAuthService.Setup(a => a.GetSessionAsync("user-1", It.IsAny<CancellationToken>()))
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
 
         TaskCompletionSource pollAttempted = CreateSignal();

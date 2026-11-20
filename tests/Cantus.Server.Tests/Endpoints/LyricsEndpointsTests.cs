@@ -14,8 +14,11 @@ namespace Cantus.Server.Tests.Endpoints;
 
 public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private const string SESSION_ID = "sess-1";
+
     private readonly WebApplicationFactory<Program> _factory;
     private readonly Mock<ILyricsCacheRepository> _mockCacheRepo = new();
+    private readonly Mock<ISpotifyAuthService> _mockAuthService = new();
 
     public LyricsEndpointsTests(WebApplicationFactory<Program> factory)
     {
@@ -24,6 +27,7 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
             builder.ConfigureTestServices(services =>
             {
                 services.AddScoped(_ => _mockCacheRepo.Object);
+                services.AddScoped(_ => _mockAuthService.Object);
             });
         });
     }
@@ -74,6 +78,17 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
     {
         HttpClient client = _factory.CreateClient();
 
+        _mockAuthService
+            .Setup(a => a.GetSessionByIdAsync(SESSION_ID, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserSession
+            {
+                Id = SESSION_ID,
+                SpotifyUserId = "spotify-1",
+                DisplayName = "Owner",
+                AccessToken = "access",
+                RefreshToken = "refresh",
+            });
+
         TrackOffsetDto request = new()
         {
             TrackId = "track-123",
@@ -84,7 +99,7 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
         {
             Content = JsonContent.Create(request)
         };
-        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
+        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", SESSION_ID);
 
         HttpResponseMessage response = await client.SendAsync(message);
 
@@ -110,5 +125,33 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
             c => c.SetTrackOffsetAsync("track-anon", It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
-}
 
+    [Fact]
+    public async Task SetTrackOffset_WithUnknownCredential_ReturnsUnauthorizedAndDoesNotWrite()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        _mockAuthService
+            .Setup(a => a.GetSessionByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserSession?)null);
+
+        TrackOffsetDto request = new()
+        {
+            TrackId = "track-unknown",
+            OffsetMs = 500
+        };
+
+        HttpRequestMessage message = new(HttpMethod.Post, "/api/lyrics/offset")
+        {
+            Content = JsonContent.Create(request)
+        };
+        message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "not-a-session");
+
+        HttpResponseMessage response = await client.SendAsync(message);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        _mockCacheRepo.Verify(
+            c => c.SetTrackOffsetAsync("track-unknown", It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+}

@@ -209,7 +209,7 @@ public static class AuthEndpoints
             return Results.Ok(Array.Empty<AuthorizedSessionDto>());
         }
 
-        UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
+        UserSession? session = await authService.GetSessionByIdAsync(sessionId, cancellationToken);
         if (session is null)
         {
             return Results.Ok(Array.Empty<AuthorizedSessionDto>());
@@ -232,7 +232,7 @@ public static class AuthEndpoints
             return Results.Unauthorized();
         }
 
-        UserSession? session = await authService.GetSessionAsync(sessionId, cancellationToken);
+        UserSession? session = await authService.GetSessionByIdAsync(sessionId, cancellationToken);
         if (session is null)
         {
             return Results.Unauthorized();

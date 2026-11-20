@@ -178,7 +178,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
             foreach (string userId in activeUserIds)
             {
-                UserSession? session = await authService.GetSessionAsync(userId, cancellationToken);
+                UserSession? session = await authService.GetSessionForUserAsync(userId, cancellationToken);
                 if (session is null)
                 {
                     continue;
@@ -210,7 +210,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
             try
             {
-                UserSession? session = await authService.GetSessionAsync(userId, cancellationToken);
+                UserSession? session = await authService.GetSessionForUserAsync(userId, cancellationToken);
                 if (session is null)
                 {
                     continue;

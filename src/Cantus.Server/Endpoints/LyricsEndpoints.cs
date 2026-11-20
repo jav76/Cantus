@@ -49,6 +49,7 @@ public static class LyricsEndpoints
         ILyricsCacheRepository cacheRepository,
         IPlaybackSessionRegistry registry,
         ISessionTokenResolver sessionResolver,
+        ISpotifyAuthService authService,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -57,11 +58,19 @@ public static class LyricsEndpoints
         // owning session, so it requires an authenticated caller. The previous
         // fallback accepted anonymous writes and broadcast them to every
         // connected client.
-        string? sessionId = sessionResolver.ResolveSessionId(context);
-        if (string.IsNullOrEmpty(sessionId))
+        string? credential = sessionResolver.ResolveSessionId(context);
+        if (string.IsNullOrEmpty(credential))
         {
             return Results.Unauthorized();
         }
+
+        UserSession? session = await authService.GetSessionByIdAsync(credential, cancellationToken);
+        if (session is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        string sessionId = session.Id;
 
         if (string.IsNullOrWhiteSpace(request.TrackId))
         {

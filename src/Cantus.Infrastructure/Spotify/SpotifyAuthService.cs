@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Persistence;
@@ -12,6 +13,8 @@ namespace Cantus.Infrastructure.Spotify;
 
 public sealed class SpotifyAuthService : ISpotifyAuthService
 {
+    private const int TOKEN_REFRESH_WINDOW_MINUTES = 2;
+
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, UserSession> _sessionCache = new();
     private readonly CantusDbContext _dbContext;
     private readonly ITokenEncryptionService _encryptionService;
@@ -168,29 +171,60 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return session;
     }
 
-    public async Task<UserSession?> GetSessionAsync(
+    public Task<UserSession?> GetSessionByIdAsync(
+        string sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        // The cache is also keyed by Spotify user id, so a hit only counts when the
+        // cached session's own id matches.
+        return GetSessionCoreAsync(
+            sessionId,
+            cached => string.Equals(cached.Id, sessionId, StringComparison.Ordinal),
+            u => u.Id == sessionId,
+            cancellationToken);
+    }
+
+    public Task<UserSession?> GetSessionForUserAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
-        if (_sessionCache.TryGetValue(userId, out UserSession? cached) && cached is not null)
+        return GetSessionCoreAsync(
+            userId,
+            _ => true,
+            u => u.Id == userId || u.SpotifyUserId == userId,
+            cancellationToken);
+    }
+
+    private async Task<UserSession?> GetSessionCoreAsync(
+        string key,
+        Func<UserSession, bool> cacheEntryMatches,
+        Expression<Func<UserSessionEntity, bool>> entityMatches,
+        CancellationToken cancellationToken)
+    {
+        DateTimeOffset refreshThreshold = DateTimeOffset.UtcNow.AddMinutes(TOKEN_REFRESH_WINDOW_MINUTES);
+        UserSession? cached = _sessionCache.TryGetValue(key, out UserSession? entry) && cacheEntryMatches(entry)
+            ? entry
+            : null;
+
+        if (cached is not null && cached.ExpiresAtUtc > refreshThreshold)
         {
-            if (cached.ExpiresAtUtc > DateTimeOffset.UtcNow.AddMinutes(2))
-            {
-                return cached;
-            }
+            return cached;
         }
 
         UserSessionEntity? sessionEntity = await _dbContext.UserSessions
-            .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(entityMatches, cancellationToken);
 
         if (sessionEntity is null)
         {
-            _sessionCache.TryRemove(userId, out _);
+            if (cached is not null)
+            {
+                _sessionCache.TryRemove(key, out _);
+            }
+
             return null;
         }
 
-        // If expired or about to expire in under 2 minutes, refresh it automatically
-        if (sessionEntity.ExpiresAtUtc <= DateTimeOffset.UtcNow.AddMinutes(2))
+        if (sessionEntity.ExpiresAtUtc <= refreshThreshold)
         {
             try
             {
@@ -249,15 +283,20 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     }
 
     public async Task<bool> RevokeSessionAsync(
-        string userId,
+        string sessionId,
         CancellationToken cancellationToken = default)
     {
         UserSessionEntity? entity = await _dbContext.UserSessions
-            .FirstOrDefaultAsync(u => u.Id == userId || u.SpotifyUserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Id == sessionId, cancellationToken);
 
         if (entity is null)
         {
-            _sessionCache.TryRemove(userId, out _);
+            if (_sessionCache.TryGetValue(sessionId, out UserSession? cached)
+                && string.Equals(cached.Id, sessionId, StringComparison.Ordinal))
+            {
+                _sessionCache.TryRemove(sessionId, out _);
+            }
+
             return false;
         }
 
