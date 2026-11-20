@@ -143,7 +143,7 @@ public sealed class LyricsViewModelSeekToLineTests
 
         // Assert - back on the real line, with the shared status-line message
         vm.ActiveLineIndex.Should().Be(0);
-        vm.TransportStatusText.Should().Be("No active Spotify device. Start playback in any Spotify app first.");
+        vm.Transport.TransportStatusText.Should().Be("No active Spotify device. Start playback in any Spotify app first.");
 
         // Act & Assert - no lingering stale-poll guard
         RaisePlayback(client, progressMs: 15000, isPlaying: true);
@@ -313,7 +313,7 @@ public sealed class LyricsViewModelSeekToLineTests
         Mock<ISignalRPlaybackClient> client = new();
         client.Setup(c => c.SeekPlaybackAsync(It.IsAny<long>())).ReturnsAsync(PlayerCommandResult.Success);
         LyricsViewModel vm = new(client.Object, new ThemeManager(), new ResponsiveLayoutManager());
-        vm.LatencyCompensationMs = latencyMs;
+        vm.Timing.LatencyCompensationMs = latencyMs;
         return (client, vm);
     }
 

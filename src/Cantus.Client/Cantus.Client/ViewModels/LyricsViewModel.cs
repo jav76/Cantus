@@ -63,7 +63,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isKaraokeModeEnabled;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
-    public ObservableCollection<AuthorizedSessionPayload> Sessions => _session.Sessions;
+    public PlaybackTransport Transport => _transport;
+    public PlaybackTiming Timing => _timing;
+    public SessionViewModel Session => _session;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
     public string ServerBaseUrl => _client.ServerBaseUrl;
@@ -148,30 +150,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_pollerStatus != value) { _pollerStatus = value; OnPropertyChanged(); } }
     }
 
-    public SessionViewModel Session => _session;
-
-    public string ActiveUserName
-    {
-        get => _session.ActiveUserName;
-        set => _session.ActiveUserName = value;
-    }
-
-    public string? ActiveUserId
-    {
-        get => _session.ActiveUserId;
-        set => _session.ActiveUserId = value;
-    }
-
     public int ConnectedClients
     {
         get => _connectedClients;
         set { if (_connectedClients != value) { _connectedClients = value; OnPropertyChanged(); } }
-    }
-
-    public int AuthorizedSessionsCount
-    {
-        get => _session.AuthorizedSessionsCount;
-        set => _session.AuthorizedSessionsCount = value;
     }
 
     public int ActivePollIntervalMs
@@ -209,65 +191,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         get => _albumArtUrl;
         set { if (_albumArtUrl != value) { _albumArtUrl = value; OnPropertyChanged(); } }
     }
-
-    public PlaybackTransport Transport => _transport;
-
-    public bool IsPlaying
-    {
-        get => _transport.IsPlaying;
-        set => _transport.IsPlaying = value;
-    }
-
-    public string PlayPauseGlyph => _transport.PlayPauseGlyph;
-
-    public string TransportStatusText => _transport.TransportStatusText;
-
-    public Visibility TransportStatusVisibility => _transport.TransportStatusVisibility;
-
-    public Task TogglePlayPauseAsync() => _transport.TogglePlayPauseAsync();
-
-    public Task SkipToNextAsync() => _transport.SkipToNextAsync();
-
-    public Task SkipToPreviousAsync() => _transport.SkipToPreviousAsync();
-
-    internal void ReportTransportResult(PlayerCommandResult result) => _transport.ReportTransportResult(result);
-
-    public bool IsShuffled
-    {
-        get => _transport.IsShuffled;
-        set => _transport.IsShuffled = value;
-    }
-
-    /// <summary>Spotify repeat state: "off", "track", or "context".</summary>
-    public string RepeatMode
-    {
-        get => _transport.RepeatMode;
-        set => _transport.RepeatMode = value;
-    }
-
-    public string RepeatGlyph => _transport.RepeatGlyph;
-
-    public Microsoft.UI.Xaml.Media.SolidColorBrush ShuffleButtonForeground => _transport.ShuffleButtonForeground;
-
-    public Microsoft.UI.Xaml.Media.SolidColorBrush RepeatButtonForeground => _transport.RepeatButtonForeground;
-
-    public double VolumeSliderValue => _transport.VolumeSliderValue;
-
-    public string VolumeText => _transport.VolumeText;
-
-    public int? VolumePercent
-    {
-        get => _transport.VolumePercent;
-        set => _transport.VolumePercent = value;
-    }
-
-    public Task ToggleShuffleAsync() => _transport.ToggleShuffleAsync();
-
-    public Task CycleRepeatAsync() => _transport.CycleRepeatAsync();
-
-    public Task SeekToFractionAsync(double fraction) => _transport.SeekToFractionAsync(fraction);
-
-    public void RequestVolumeChange(int volumePercent) => _transport.RequestVolumeChange(volumePercent);
 
     /// <summary>
     /// Seeks playback to the moment a synced line is sung. The tapped line
@@ -317,8 +240,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private long ComputeTargetProgressMs(PlaybackStatePayload state, long localNow)
         => _timing.ComputeClockTargetMs(OptimisticSeekAnchor.ProjectProgressMs(state, localNow));
 
-    private long GetServerNowMs() => _transport.GetServerNowMs();
-
     public string DeviceName
     {
         get => _deviceName;
@@ -342,10 +263,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         get => _totalDurationText;
         set { if (_totalDurationText != value) { _totalDurationText = value; OnPropertyChanged(); } }
     }
-
-    public PlaybackTiming Timing => _timing;
-
-    public string OffsetText => _timing.OffsetText;
 
     public bool HasLyrics
     {
@@ -421,18 +338,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Visibility InstrumentalBreakVisibility =>
         IsInstrumentalBreak && HasSyncedLyrics && !IsStaticLyricsMode ? Visibility.Visible : Visibility.Collapsed;
-
-    public bool IsAuthorized => _session.IsAuthorized;
-
-    public AuthorizedSessionPayload? CurrentUserSession => _session.CurrentUserSession;
-
-    public string ConnectButtonText => _session.ConnectButtonText;
-
-    public string ConnectButtonGlyph => _session.ConnectButtonGlyph;
-
-    public Visibility NoSessionsVisibility => _session.NoSessionsVisibility;
-
-    public Visibility HasSessionsVisibility => _session.HasSessionsVisibility;
 
     public bool IsKioskMode
     {
@@ -521,17 +426,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             }
         }
     }
-
-    public int LatencyCompensationMs
-    {
-        get => _timing.LatencyCompensationMs;
-        internal set => _timing.LatencyCompensationMs = value;
-    }
-
-    public string CalibrationText => _timing.CalibrationText;
-
-    /// <inheritdoc cref="PlaybackTiming.AdjustLatencyCompensation"/>
-    public void AdjustLatencyCompensation(int deltaMs) => _timing.AdjustLatencyCompensation(deltaMs);
 
     internal long InterpolatedProgressMs => _interpolatedProgressMs;
 
@@ -642,18 +536,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _themeManager.PaletteChanged += OnPaletteChanged;
         _themeManager.PropertyChanged += OnThemeManagerPropertyChanged;
 
-        // Built after the palette subscription above so its brush notifications
-        // keep following the root's theme notifications.
         _transport = new PlaybackTransport(client, _themeManager);
-        _transport.PropertyChanged += OnForwardedPropertyChanged;
         _transport.SeekApplied += OnTransportSeekApplied;
         _transport.SeekReverted += OnTransportSeekReverted;
 
         _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
-        _timing.PropertyChanged += OnForwardedPropertyChanged;
 
         _session = new SessionViewModel(client);
-        _session.PropertyChanged += OnForwardedPropertyChanged;
         _session.SessionEnded += () => ClearPlayback(resetTransport: false);
         _session.LoggedOut += () => ClearPlayback(resetTransport: true);
 
@@ -721,10 +610,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         await _client.StartAsync();
     }
-
-    public Task SetSyncOffsetAsync(int offsetMs) => _timing.SetSyncOffsetAsync(offsetMs);
-
-    public Task SwitchUserSubscriptionAsync(string? userId) => _session.SubscribeToUserAsync(userId);
 
     public async Task ReportVisibilityAsync(bool isVisible)
     {
@@ -862,13 +747,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Theme));
     }
 
-    // Pass-through members share the transport's, timing's and session's property
-    // names, so their notifications are re-raised as-is for views bound to this view model.
-    private void OnForwardedPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        OnPropertyChanged(e.PropertyName);
-    }
-
     public void RefreshLyricLineSizes()
     {
         double active = _layoutManager.ActiveLyricsFontSize;
@@ -885,7 +763,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         if (state is null) return;
 
-        long localNow = GetServerNowMs();
+        long localNow = _transport.GetServerNowMs();
         state = _transport.ApplyServerState(state, localNow);
         RttMs = _client.RttMs;
         ClockSkewMs = _client.ClockOffsetMs;
@@ -1048,7 +926,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         CurrentArtist = "Play music on Spotify to begin";
         CurrentAlbum = string.Empty;
         AlbumArtUrl = null;
-        IsPlaying = false;
+        _transport.IsPlaying = false;
         if (resetTransport)
         {
             _transport.Reset();
@@ -1104,7 +982,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         long durationMs = track.DurationMs;
         if (durationMs <= 0) durationMs = 1;
 
-        long localNow = GetServerNowMs();
+        long localNow = _transport.GetServerNowMs();
 
         if (state.IsPlaying)
         {
@@ -1236,14 +1114,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             LyricLines[i].IsPast = (i < activeIdx);
         }
     }
-
-    public Task NudgeOffsetAsync(int deltaMs) => _timing.NudgeOffsetAsync(deltaMs);
-
-    public Task ResetOffsetAsync() => _timing.ResetOffsetAsync();
-
-    public Task SubscribeToUserAsync(string? userId) => _session.SubscribeToUserAsync(userId);
-
-    public Task LogoutAsync() => _session.LogoutAsync();
 
     private static string FormatTime(long ms)
     {

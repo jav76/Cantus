@@ -31,8 +31,8 @@ public sealed class LyricsViewModelPreferencesTests
         // Assert
         vm.IsAutoScrollEnabled.Should().BeFalse();
         vm.IsKaraokeModeEnabled.Should().BeFalse();
-        vm.LatencyCompensationMs.Should().Be(STORED_LATENCY_MS);
-        vm.CalibrationText.Should().Be("400 ms");
+        vm.Timing.LatencyCompensationMs.Should().Be(STORED_LATENCY_MS);
+        vm.Timing.CalibrationText.Should().Be("400 ms");
     }
 
     [Fact]
@@ -45,8 +45,8 @@ public sealed class LyricsViewModelPreferencesTests
         // Act
         vm.ToggleAutoScroll();
         vm.ToggleKaraokeMode();
-        vm.LatencyCompensationMs = UPDATED_LATENCY_MS;
-        vm.AdjustLatencyCompensation(LATENCY_STEP_MS);
+        vm.Timing.LatencyCompensationMs = UPDATED_LATENCY_MS;
+        vm.Timing.AdjustLatencyCompensation(LATENCY_STEP_MS);
 
         // Assert
         preferences.IsAutoScrollEnabled.Should().BeFalse();
@@ -62,10 +62,10 @@ public sealed class LyricsViewModelPreferencesTests
         LyricsViewModel vm = CreateViewModel(preferences);
 
         // Act
-        vm.AdjustLatencyCompensation(OVERSHOOT_LATENCY_MS);
+        vm.Timing.AdjustLatencyCompensation(OVERSHOOT_LATENCY_MS);
 
         // Assert
-        vm.LatencyCompensationMs.Should().Be(MAX_LATENCY_MS);
+        vm.Timing.LatencyCompensationMs.Should().Be(MAX_LATENCY_MS);
         preferences.LatencyCompensationMs.Should().Be(MAX_LATENCY_MS);
     }
 

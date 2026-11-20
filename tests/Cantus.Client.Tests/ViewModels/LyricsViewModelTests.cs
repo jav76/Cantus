@@ -196,13 +196,13 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.OffsetText.Should().Be("+0.0s");
+        vm.Timing.OffsetText.Should().Be("+0.0s");
 
         // Act - without playing track, nudge is safe no-op
-        await vm.NudgeOffsetAsync(500);
+        await vm.Timing.NudgeOffsetAsync(500);
 
         // Assert
-        vm.OffsetText.Should().Be("+0.0s");
+        vm.Timing.OffsetText.Should().Be("+0.0s");
     }
 
     [Fact]
@@ -213,10 +213,10 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client);
 
         // Act
-        await vm.ResetOffsetAsync();
+        await vm.Timing.ResetOffsetAsync();
 
         // Assert
-        vm.OffsetText.Should().Be("+0.0s");
+        vm.Timing.OffsetText.Should().Be("+0.0s");
     }
 
     [Fact]
@@ -225,32 +225,32 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new("http://127.0.0.1:59999/hubs/playback");
         LyricsViewModel vm = new(client);
-        vm.Sessions.Add(new AuthorizedSessionPayload
+        vm.Session.Sessions.Add(new AuthorizedSessionPayload
         {
             Id = "user-1",
             DisplayName = "Test User"
         });
-        vm.AuthorizedSessionsCount = 1;
-        vm.ActiveUserId = "user-1";
-        vm.ActiveUserName = "Test User";
+        vm.Session.AuthorizedSessionsCount = 1;
+        vm.Session.ActiveUserId = "user-1";
+        vm.Session.ActiveUserName = "Test User";
         vm.CurrentTitle = "Playing Song";
-        vm.IsPlaying = true;
+        vm.Transport.IsPlaying = true;
 
-        vm.CurrentUserSession.Should().NotBeNull();
-        vm.IsAuthorized.Should().BeTrue();
+        vm.Session.CurrentUserSession.Should().NotBeNull();
+        vm.Session.IsAuthorized.Should().BeTrue();
 
         // Act
-        await vm.LogoutAsync();
+        await vm.Session.LogoutAsync();
 
         // Assert
-        vm.Sessions.Should().BeEmpty();
-        vm.CurrentUserSession.Should().BeNull();
-        vm.AuthorizedSessionsCount.Should().Be(0);
-        vm.ActiveUserId.Should().BeNull();
-        vm.ActiveUserName.Should().Be("None");
-        vm.IsAuthorized.Should().BeFalse();
+        vm.Session.Sessions.Should().BeEmpty();
+        vm.Session.CurrentUserSession.Should().BeNull();
+        vm.Session.AuthorizedSessionsCount.Should().Be(0);
+        vm.Session.ActiveUserId.Should().BeNull();
+        vm.Session.ActiveUserName.Should().Be("None");
+        vm.Session.IsAuthorized.Should().BeFalse();
         vm.CurrentTitle.Should().Be("No Track Playing");
-        vm.IsPlaying.Should().BeFalse();
+        vm.Transport.IsPlaying.Should().BeFalse();
         vm.HasLyrics.Should().BeFalse();
         vm.IsStaticLyricsMode.Should().BeFalse();
         vm.LyricLines.Should().BeEmpty();
@@ -280,7 +280,7 @@ public sealed class LyricsViewModelTests
         vm.EmptyStateSubtitle.Should().Be("Lyrics for this track aren't available yet.");
 
         // Act - logout clears the playback state again
-        await vm.LogoutAsync();
+        await vm.Session.LogoutAsync();
 
         // Assert
         vm.EmptyStateTitle.Should().Be("Waiting for Lyrics...");
@@ -332,17 +332,17 @@ public sealed class LyricsViewModelTests
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
         List<string> changed = new();
-        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName ?? string.Empty);
+        vm.Transport.PropertyChanged += (_, e) => changed.Add(e.PropertyName ?? string.Empty);
 
         // Assert - paused shows the play glyph
-        vm.PlayPauseGlyph.Should().Be("\u25B6");
+        vm.Transport.PlayPauseGlyph.Should().Be("\u25B6");
 
         // Act
-        vm.IsPlaying = true;
+        vm.Transport.IsPlaying = true;
 
         // Assert - playing shows the pause glyph, and the glyph notified
-        vm.PlayPauseGlyph.Should().Be("\u23F8");
-        changed.Should().Contain(nameof(LyricsViewModel.PlayPauseGlyph));
+        vm.Transport.PlayPauseGlyph.Should().Be("\u23F8");
+        changed.Should().Contain(nameof(PlaybackTransport.PlayPauseGlyph));
     }
 
     [Fact]
@@ -351,13 +351,13 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.IsPlaying = true;
+        vm.Transport.IsPlaying = true;
 
         // Act
-        await vm.TogglePlayPauseAsync();
+        await vm.Transport.TogglePlayPauseAsync();
 
         // Assert - no track loaded, so no command and no state flip
-        vm.IsPlaying.Should().BeTrue();
+        vm.Transport.IsPlaying.Should().BeTrue();
     }
 
     [Fact]
@@ -372,15 +372,15 @@ public sealed class LyricsViewModelTests
             IsPlaying = true,
             TimestampUtc = DateTimeOffset.UtcNow
         });
-        vm.IsPlaying.Should().BeTrue();
+        vm.Transport.IsPlaying.Should().BeTrue();
 
         // Act
-        await vm.TogglePlayPauseAsync();
+        await vm.Transport.TogglePlayPauseAsync();
 
         // Assert - the optimistic flip only happens on success, and the failure is surfaced
-        vm.IsPlaying.Should().BeTrue();
-        vm.TransportStatusText.Should().NotBeEmpty();
-        vm.TransportStatusVisibility.Should().Be(Visibility.Visible);
+        vm.Transport.IsPlaying.Should().BeTrue();
+        vm.Transport.TransportStatusText.Should().NotBeEmpty();
+        vm.Transport.TransportStatusVisibility.Should().Be(Visibility.Visible);
     }
 
     [Fact]
@@ -391,21 +391,21 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client);
 
         // Assert - nothing shown by default
-        vm.TransportStatusVisibility.Should().Be(Visibility.Collapsed);
+        vm.Transport.TransportStatusVisibility.Should().Be(Visibility.Collapsed);
 
         // Missing scope / non-Premium points at re-linking the account
-        vm.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.MissingPermissions);
-        vm.TransportStatusText.Should().Contain("reconnect");
-        vm.TransportStatusVisibility.Should().Be(Visibility.Visible);
+        vm.Transport.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.MissingPermissions);
+        vm.Transport.TransportStatusText.Should().Contain("reconnect");
+        vm.Transport.TransportStatusVisibility.Should().Be(Visibility.Visible);
 
         // No active device points at starting playback
-        vm.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.NoActiveDevice);
-        vm.TransportStatusText.Should().Contain("device");
+        vm.Transport.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.NoActiveDevice);
+        vm.Transport.TransportStatusText.Should().Contain("device");
 
         // Success clears any prior message
-        vm.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.Success);
-        vm.TransportStatusText.Should().BeEmpty();
-        vm.TransportStatusVisibility.Should().Be(Visibility.Collapsed);
+        vm.Transport.ReportTransportResult(Cantus.Core.Models.PlayerCommandResult.Success);
+        vm.Transport.TransportStatusText.Should().BeEmpty();
+        vm.Transport.TransportStatusVisibility.Should().Be(Visibility.Collapsed);
     }
 
     [Fact]
@@ -416,8 +416,8 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client);
 
         // Act & Assert - no track: early return; with track but disconnected: graceful false
-        await vm.SkipToNextAsync();
-        await vm.SkipToPreviousAsync();
+        await vm.Transport.SkipToNextAsync();
+        await vm.Transport.SkipToPreviousAsync();
 
         client.RaisePlaybackStateReceived(new PlaybackStatePayload
         {
@@ -426,8 +426,8 @@ public sealed class LyricsViewModelTests
             TimestampUtc = DateTimeOffset.UtcNow
         });
 
-        await vm.SkipToNextAsync();
-        await vm.SkipToPreviousAsync();
+        await vm.Transport.SkipToNextAsync();
+        await vm.Transport.SkipToPreviousAsync();
     }
 
     [Fact]
@@ -436,8 +436,8 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.IsShuffled.Should().BeFalse();
-        vm.RepeatMode.Should().Be("off");
+        vm.Transport.IsShuffled.Should().BeFalse();
+        vm.Transport.RepeatMode.Should().Be("off");
 
         // Act
         client.RaisePlaybackStateReceived(new PlaybackStatePayload
@@ -450,8 +450,8 @@ public sealed class LyricsViewModelTests
         });
 
         // Assert
-        vm.IsShuffled.Should().BeTrue();
-        vm.RepeatMode.Should().Be("context");
+        vm.Transport.IsShuffled.Should().BeTrue();
+        vm.Transport.RepeatMode.Should().Be("context");
     }
 
     [Fact]
@@ -462,21 +462,21 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client);
 
         // Off: repeat-all glyph, muted brushes
-        vm.RepeatGlyph.Should().Be("\uE8EE");
-        vm.RepeatButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
-        vm.ShuffleButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
+        vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
+        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
+        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.TextMutedBrush);
 
         // Context: still the repeat-all glyph, accent brush
-        vm.RepeatMode = "context";
-        vm.RepeatGlyph.Should().Be("\uE8EE");
-        vm.RepeatButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
+        vm.Transport.RepeatMode = "context";
+        vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
+        vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
 
         // Track: repeat-one glyph
-        vm.RepeatMode = "track";
-        vm.RepeatGlyph.Should().Be("\uE8ED");
+        vm.Transport.RepeatMode = "track";
+        vm.Transport.RepeatGlyph.Should().Be("\uE8ED");
 
-        vm.IsShuffled = true;
-        vm.ShuffleButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
+        vm.Transport.IsShuffled = true;
+        vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.PrimaryAccentBrush);
     }
 
     [Fact]
@@ -493,14 +493,14 @@ public sealed class LyricsViewModelTests
         });
 
         // Act
-        await vm.ToggleShuffleAsync();
-        await vm.CycleRepeatAsync();
-        await vm.SeekToFractionAsync(0.5);
+        await vm.Transport.ToggleShuffleAsync();
+        await vm.Transport.CycleRepeatAsync();
+        await vm.Transport.SeekToFractionAsync(0.5);
 
         // Assert - no optimistic flips without success
-        vm.IsShuffled.Should().BeFalse();
-        vm.RepeatMode.Should().Be("off");
-        vm.TransportStatusText.Should().NotBeEmpty();
+        vm.Transport.IsShuffled.Should().BeFalse();
+        vm.Transport.RepeatMode.Should().Be("off");
+        vm.Transport.TransportStatusText.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -509,13 +509,13 @@ public sealed class LyricsViewModelTests
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
 
-        vm.VolumeText.Should().Be("—", "no playback state yet");
-        vm.VolumePercent = 65;
-        vm.VolumeText.Should().Be("65%");
-        vm.VolumeSliderValue.Should().Be(65);
+        vm.Transport.VolumeText.Should().Be("—", "no playback state yet");
+        vm.Transport.VolumePercent = 65;
+        vm.Transport.VolumeText.Should().Be("65%");
+        vm.Transport.VolumeSliderValue.Should().Be(65);
 
         // The debounce entry point clamps and never throws headless.
-        vm.RequestVolumeChange(150);
+        vm.Transport.RequestVolumeChange(150);
     }
 
     [Fact]
@@ -601,24 +601,24 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.Sessions.Add(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
-        vm.AuthorizedSessionsCount = 1;
-        vm.ActiveUserId = "user-1";
-        vm.ActiveUserName = "Alice";
+        vm.Session.Sessions.Add(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+        vm.Session.AuthorizedSessionsCount = 1;
+        vm.Session.ActiveUserId = "user-1";
+        vm.Session.ActiveUserName = "Alice";
         vm.CurrentTitle = "Some Song";
-        vm.IsPlaying = true;
+        vm.Transport.IsPlaying = true;
 
         // Act
         client.RaiseSessionsReceived(new List<AuthorizedSessionPayload>());
 
         // Assert
-        vm.Sessions.Should().BeEmpty();
-        vm.AuthorizedSessionsCount.Should().Be(0);
-        vm.ActiveUserId.Should().BeNull();
-        vm.ActiveUserName.Should().Be("None");
-        vm.IsAuthorized.Should().BeFalse();
+        vm.Session.Sessions.Should().BeEmpty();
+        vm.Session.AuthorizedSessionsCount.Should().Be(0);
+        vm.Session.ActiveUserId.Should().BeNull();
+        vm.Session.ActiveUserName.Should().Be("None");
+        vm.Session.IsAuthorized.Should().BeFalse();
         vm.CurrentTitle.Should().Be("No Track Playing");
-        vm.IsPlaying.Should().BeFalse();
+        vm.Transport.IsPlaying.Should().BeFalse();
     }
 
     [Fact]
@@ -639,11 +639,11 @@ public sealed class LyricsViewModelTests
         client.RaiseAuthSessionReceived(payload);
 
         // Assert
-        vm.Sessions.Should().HaveCount(1);
-        vm.AuthorizedSessionsCount.Should().Be(1);
-        vm.ActiveUserId.Should().Be("user-new");
-        vm.ActiveUserName.Should().Be("Bob");
-        vm.IsAuthorized.Should().BeTrue();
+        vm.Session.Sessions.Should().HaveCount(1);
+        vm.Session.AuthorizedSessionsCount.Should().Be(1);
+        vm.Session.ActiveUserId.Should().Be("user-new");
+        vm.Session.ActiveUserName.Should().Be("Bob");
+        vm.Session.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
@@ -652,45 +652,44 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.Sessions.Add(new AuthorizedSessionPayload { Id = "user-revoked", DisplayName = "Charlie" });
-        vm.AuthorizedSessionsCount = 1;
-        vm.ActiveUserId = "user-revoked";
-        vm.ActiveUserName = "Charlie";
+        vm.Session.Sessions.Add(new AuthorizedSessionPayload { Id = "user-revoked", DisplayName = "Charlie" });
+        vm.Session.AuthorizedSessionsCount = 1;
+        vm.Session.ActiveUserId = "user-revoked";
+        vm.Session.ActiveUserName = "Charlie";
 
         // Act
         client.RaiseSessionRevoked("user-revoked");
 
         // Assert
-        vm.Sessions.Should().BeEmpty();
-        vm.AuthorizedSessionsCount.Should().Be(0);
-        vm.ActiveUserId.Should().BeNull();
-        vm.ActiveUserName.Should().Be("None");
-        vm.IsAuthorized.Should().BeFalse();
+        vm.Session.Sessions.Should().BeEmpty();
+        vm.Session.AuthorizedSessionsCount.Should().Be(0);
+        vm.Session.ActiveUserId.Should().BeNull();
+        vm.Session.ActiveUserName.Should().Be("None");
+        vm.Session.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public void SessionPassThroughs_ReRaiseSessionNotificationsOnTheRoot()
+    public void AuthSessionReceived_NotifiesThroughTheComposedSession()
     {
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
         List<string?> raised = new();
-        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+        vm.Session.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
 
         // Act
         client.RaiseAuthSessionReceived(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
 
         // Assert
-        vm.Sessions.Should().BeSameAs(vm.Session.Sessions);
-        vm.ConnectButtonText.Should().Be("Connected: Alice");
+        vm.Session.ConnectButtonText.Should().Be("Connected: Alice");
         raised.Should().Contain(new[]
         {
-            nameof(LyricsViewModel.ActiveUserName),
-            nameof(LyricsViewModel.AuthorizedSessionsCount),
-            nameof(LyricsViewModel.CurrentUserSession),
-            nameof(LyricsViewModel.HasSessionsVisibility),
-            nameof(LyricsViewModel.IsAuthorized),
-            nameof(LyricsViewModel.ConnectButtonText),
+            nameof(SessionViewModel.ActiveUserName),
+            nameof(SessionViewModel.AuthorizedSessionsCount),
+            nameof(SessionViewModel.CurrentUserSession),
+            nameof(SessionViewModel.HasSessionsVisibility),
+            nameof(SessionViewModel.IsAuthorized),
+            nameof(SessionViewModel.ConnectButtonText),
         });
     }
 
@@ -717,7 +716,7 @@ public sealed class LyricsViewModelTests
         vm.EmptyStateTitle.Should().Be("No Lyrics Found");
 
         // Act - logout drops the poll too
-        await vm.LogoutAsync();
+        await vm.Session.LogoutAsync();
 
         // Assert
         vm.EmptyStateTitle.Should().Be("Waiting for Lyrics...");
@@ -849,7 +848,7 @@ public sealed class LyricsViewModelTests
         // Arrange - paused position math has no wall-clock term, so it is exact
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.LatencyCompensationMs = 200;
+        vm.Timing.LatencyCompensationMs = 200;
 
         // Act
         client.RaisePlaybackStateReceived(new PlaybackStatePayload
@@ -870,7 +869,7 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.LatencyCompensationMs = 0;
+        vm.Timing.LatencyCompensationMs = 0;
 
         // Act
         client.RaisePlaybackStateReceived(new PlaybackStatePayload
@@ -891,19 +890,19 @@ public sealed class LyricsViewModelTests
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
-        vm.LatencyCompensationMs = 200;
+        vm.Timing.LatencyCompensationMs = 200;
 
         // Act & Assert - steps, clamping at both bounds, and the display text
-        vm.AdjustLatencyCompensation(-50);
-        vm.LatencyCompensationMs.Should().Be(150);
-        vm.CalibrationText.Should().Be("150 ms");
+        vm.Timing.AdjustLatencyCompensation(-50);
+        vm.Timing.LatencyCompensationMs.Should().Be(150);
+        vm.Timing.CalibrationText.Should().Be("150 ms");
 
-        vm.AdjustLatencyCompensation(-5000);
-        vm.LatencyCompensationMs.Should().Be(0);
+        vm.Timing.AdjustLatencyCompensation(-5000);
+        vm.Timing.LatencyCompensationMs.Should().Be(0);
 
-        vm.AdjustLatencyCompensation(5000);
-        vm.LatencyCompensationMs.Should().Be(1000);
-        vm.CalibrationText.Should().Be("1000 ms");
+        vm.Timing.AdjustLatencyCompensation(5000);
+        vm.Timing.LatencyCompensationMs.Should().Be(1000);
+        vm.Timing.CalibrationText.Should().Be("1000 ms");
     }
 
     [Fact]
@@ -921,11 +920,11 @@ public sealed class LyricsViewModelTests
 
         SignalRPlaybackClient clientA = new();
         LyricsViewModel vmA = new(clientA);
-        vmA.LatencyCompensationMs = 0;
+        vmA.Timing.LatencyCompensationMs = 0;
 
         SignalRPlaybackClient clientB = new();
         LyricsViewModel vmB = new(clientB);
-        vmB.LatencyCompensationMs = 200;
+        vmB.Timing.LatencyCompensationMs = 200;
 
         // Act
         clientA.RaisePlaybackStateReceived(state);
@@ -1111,14 +1110,14 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client, themeManager, new ResponsiveLayoutManager());
 
         List<string> notified = new();
-        vm.PropertyChanged += (s, e) => notified.Add(e.PropertyName ?? string.Empty);
+        vm.Transport.PropertyChanged += (s, e) => notified.Add(e.PropertyName ?? string.Empty);
 
         // Act
         themeManager.SetThemeMode(ThemeMode.EmeraldSynth);
 
         // Assert
-        notified.Should().Contain(nameof(LyricsViewModel.ShuffleButtonForeground));
-        notified.Should().Contain(nameof(LyricsViewModel.RepeatButtonForeground));
+        notified.Should().Contain(nameof(PlaybackTransport.ShuffleButtonForeground));
+        notified.Should().Contain(nameof(PlaybackTransport.RepeatButtonForeground));
     }
 }
 
