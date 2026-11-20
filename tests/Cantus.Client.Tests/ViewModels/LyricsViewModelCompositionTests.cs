@@ -27,6 +27,7 @@ public sealed class LyricsViewModelCompositionTests
         vm.Theme.Should().NotBeNull();
         vm.Layout.Should().NotBeNull();
         vm.Pairing.Should().NotBeNull();
+        vm.Session.Displays.Should().NotBeNull();
     }
 
     [Theory]
@@ -34,6 +35,7 @@ public sealed class LyricsViewModelCompositionTests
     [InlineData(typeof(PlaybackTiming))]
     [InlineData(typeof(SessionViewModel))]
     [InlineData(typeof(DisplayPairingViewModel))]
+    [InlineData(typeof(DisplaysViewModel))]
     [InlineData(typeof(ThemeManager))]
     [InlineData(typeof(ResponsiveLayoutManager))]
     public void Root_DoesNotForwardMembersOfAComposedType(Type extracted)

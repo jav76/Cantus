@@ -16,7 +16,7 @@ namespace Cantus.Client.ViewModels;
 /// reports, the active user, the connect button, subscribing to a user's
 /// playback, and logout. Raises <see cref="SessionEnded"/> and
 /// <see cref="LoggedOut"/> so the owner of the playback state can clear it.
-/// Display management attaches here.
+/// The owner's Displays live in <see cref="Displays"/>, which follows the sign-in state.
 /// </summary>
 public sealed class SessionViewModel : INotifyPropertyChanged
 {
@@ -31,9 +31,16 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     private string? _activeUserId;
     private int _authorizedSessionsCount;
 
-    public SessionViewModel(ISignalRPlaybackClient client)
+    public SessionViewModel(
+        ISignalRPlaybackClient client,
+        IDisplayManagementApi? displaysApi = null,
+        TimeProvider? timeProvider = null)
     {
         _client = client;
+        Displays = new DisplaysViewModel(
+            displaysApi ?? new DisplayManagementApi(client),
+            timeProvider,
+            () => _client.ClockOffsetMs);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -45,6 +52,9 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     public event Action? LoggedOut;
 
     public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
+
+    /// <summary>The signed-in owner's Displays and the prompt that approves a new one.</summary>
+    public DisplaysViewModel Displays { get; }
 
     public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
 
@@ -150,6 +160,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         }
 
         NotifySessionList();
+        BeginDisplayManagement();
     }
 
     /// <summary>Takes the Session created by a completed sign-in and subscribes to its playback.</summary>
@@ -167,6 +178,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         ActiveUserId = session.Id;
         _ = _client.SubscribeToUserAsync(session.Id);
         NotifySessionList();
+        BeginDisplayManagement();
     }
 
     /// <summary>Signs the owner out when the revoked user is the active one, or when no user is named.</summary>
@@ -228,6 +240,13 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         AuthorizedSessionsCount = 0;
         ActiveUserName = NO_ACTIVE_USER_NAME;
         ActiveUserId = null;
+        Displays.SetSignedIn(false);
+    }
+
+    private void BeginDisplayManagement()
+    {
+        Displays.SetSignedIn(true);
+        _ = Displays.RefreshAsync();
     }
 
     private void NotifySessionList()
