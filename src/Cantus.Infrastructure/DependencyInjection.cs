@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using Cantus.Core.Interfaces;
 using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Lyrics;
+using Cantus.Infrastructure.Lyrics.Lookup;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Security;
 using Cantus.Infrastructure.Spotify;
@@ -36,6 +38,16 @@ public static class DependencyInjection
             configuration.GetSection(NeteaseOptions.SECTION_NAME));
         services.Configure<LyricsCacheOptions>(
             configuration.GetSection(LyricsCacheOptions.SECTION_NAME));
+        services.AddOptions<SongLookupOptions>()
+            .Bind(configuration.GetSection(SongLookupOptions.SECTION_NAME))
+            .Validate(
+                options => Validator.TryValidateObject(
+                    options,
+                    new ValidationContext(options),
+                    validationResults: null,
+                    validateAllProperties: true),
+                $"{SongLookupOptions.SECTION_NAME} values are outside their allowed ranges.")
+            .ValidateOnStart();
 
         // 2. Persistence (SQLite EF Core)
         string connectionString = configuration.GetConnectionString("CantusDatabase")
@@ -58,13 +70,21 @@ public static class DependencyInjection
                 sp.GetRequiredService<SqliteLyricsCacheRepository>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCacheRepositoryDecorator>>()));
 
+        // The gate state is shared; each pipeline gets a new handler from the
+        // factory, because a reused handler already has an InnerHandler when
+        // IHttpClientFactory rebuilds the pipeline.
+        services.AddSingleton<ProviderRateGate>();
+
         services.AddHttpClient<LrclibLyricsProvider>((sp, client) =>
         {
             LrclibOptions options = sp.GetRequiredService<IOptions<LrclibOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            LrclibLyricsProvider.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()));
 
         services.AddHttpClient<NeteaseLyricsProvider>((sp, client) =>
         {
@@ -74,7 +94,10 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", options.BaseUrl);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            NeteaseLyricsProvider.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()));
 
         // Ordered lyrics fallback chain: LRCLIB first, then any enabled
         // fallback providers. CachedLyricsService walks this list in order.

@@ -73,7 +73,9 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
         }
     }
 
-    public string ProviderName => "NetEase";
+    public const string PROVIDER_NAME = "NetEase";
+
+    public string ProviderName => PROVIDER_NAME;
 
     public virtual async Task<LyricsFetchResult> FetchLyricsAsync(
         TrackInfo track,
@@ -114,6 +116,14 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
                 track.Id,
                 track.Artist,
                 track.Title);
+            return LyricsFetchResult.Unavailable();
+        }
+        catch (ProviderRateLimitedException ex)
+        {
+            _logger.LogDebug(
+                "Skipped NetEase lyrics for track {TrackId}: requests are paused for {RetryAfterSeconds} s",
+                track.Id,
+                ex.RetryAfter.TotalSeconds);
             return LyricsFetchResult.Unavailable();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
