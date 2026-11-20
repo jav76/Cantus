@@ -17,7 +17,12 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
-        ViewModel = new LyricsViewModel(client, ThemeManager.Instance, ResponsiveLayoutManager.Instance);
+        LyricsPreferences preferences = new(new LocalSettingsStore());
+        ViewModel = new LyricsViewModel(
+            client,
+            ThemeManager.Instance,
+            ResponsiveLayoutManager.Instance,
+            preferences);
         this.InitializeComponent();
 
         this.Loaded += async (s, e) =>
