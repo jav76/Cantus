@@ -32,6 +32,7 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
     private const int VOLUME_PERCENT = 50;
     private const long SEEK_POSITION_MS = 1000;
     private const string CLIENT_LOGIN_ID = "client-1";
+    private const int REFRESH_BURST_SIZE = 10;
 
     private readonly InMemorySessionStore _store = new();
     private readonly PlaybackSessionRegistry _registry = new();
@@ -210,6 +211,42 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
 
         _registry.GetConnectionSubscription(CONNECTION_ID).Should().Be(owner.Id);
         _mockGroups.Verify(g => g.AddToGroupAsync(CONNECTION_ID, $"user_{other.Id}", default), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(CredentialKind.Session, REFRESH_BURST_SIZE)]
+    [InlineData(CredentialKind.Display, 1)]
+    public async Task RefreshPlayback_InABurst_ForcesOnePollForDisplayOnly(CredentialKind kind, int expectedPolls)
+    {
+        PlaybackHub hub = await ConnectAsync(kind);
+        int forcedPolls = 0;
+        _registry.OnUserActivityRequested += (_, _) => forcedPolls++;
+
+        for (int i = 0; i < REFRESH_BURST_SIZE; i++)
+        {
+            await hub.RefreshPlayback();
+        }
+
+        forcedPolls.Should().Be(expectedPolls);
+    }
+
+    [Theory]
+    [InlineData(CredentialKind.Session, REFRESH_BURST_SIZE)]
+    [InlineData(CredentialKind.Display, 1)]
+    public async Task ReportClientVisibility_InABurst_ForcesOnePollForDisplayOnly(
+        CredentialKind kind,
+        int expectedPolls)
+    {
+        PlaybackHub hub = await ConnectAsync(kind);
+        int forcedPolls = 0;
+        _registry.OnUserActivityRequested += (_, _) => forcedPolls++;
+
+        for (int i = 0; i < REFRESH_BURST_SIZE; i++)
+        {
+            await hub.ReportClientVisibility(true);
+        }
+
+        forcedPolls.Should().Be(expectedPolls);
     }
 
     private async Task<PlaybackHub> ConnectAsync(CredentialKind kind)

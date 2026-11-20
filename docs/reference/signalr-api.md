@@ -25,7 +25,8 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 | Group joined on connect | `user_{sessionId}` | `display_{ownerSessionId}` |
 | Initial snapshot (playback, lyrics, offset, diagnostics) | Yes | Yes |
 | `ReceiveSessions` / `ReceiveAuthSession` / `ReceiveSessionRevoked` | Yes | Never |
-| `SyncClock`, `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes |
+| `SyncClock` | Yes | Yes |
+| `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes, forced polls throttled to one per owner every 5 seconds |
 | `SubscribeToUser` | Yes | No-op (bound to its owner) |
 | `SendPlayerCommand`, `SetPlayerVolume`, `SeekPlayback`, `SetShuffle`, `SetRepeat` | Yes | Rejected: returns `3` (`Failed`) |
 | `SetTrackOffset`, `RegisterClientLogin` | Yes | Rejected: ignored |
@@ -63,11 +64,12 @@ Stores a manual latency calibration offset for a specific track.
 ### `ReportClientVisibility(isVisible)`
 Notifies the server whether the client window or browser tab is actively visible or hidden.
 - **Parameters**: `isVisible` (`bool`) — `true` if active in viewport; `false` if minimized, hidden, or tabbed away.
-- **Behavior**: Updates visibility state in `PlaybackSessionRegistry`. If `isVisible` is `true`, immediately requests user activity to wake up the polling engine without waiting for the scheduled background interval.
+- **Behavior**: Updates visibility state in `PlaybackSessionRegistry`. If `isVisible` is `true`, immediately requests user activity to wake up the polling engine without waiting for the scheduled background interval. On a Display connection the wake-up is throttled like `RefreshPlayback`.
 
 ### `RefreshPlayback()`
 Requests an immediate on-demand Spotify playback refresh for the caller's subscribed user.
 - **Behavior**: Invokes `IPlaybackSessionRegistry.RequestUserActivity`, cancelling the background poller's wait delay to query Spotify within milliseconds. Ideal for tab refocus or after manual playback operations.
+- **Display connections**: Invokes `IPlaybackSessionRegistry.RequestDisplayActivity` instead, which forwards at most one refresh per owner every 5 seconds. Extra calls inside that window are dropped; the regular adaptive poll still runs.
 
 ---
 

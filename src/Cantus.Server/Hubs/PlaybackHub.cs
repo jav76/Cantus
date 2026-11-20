@@ -262,11 +262,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         _registry.SetConnectionVisibility(Context.ConnectionId, isVisible);
         if (isVisible)
         {
-            string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
-            if (!string.IsNullOrEmpty(userId))
-            {
-                _registry.RequestUserActivity(userId);
-            }
+            RequestCallerActivity();
         }
 
         return Task.CompletedTask;
@@ -274,12 +270,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
 
     public Task RefreshPlayback()
     {
-        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
-        if (!string.IsNullOrEmpty(userId))
-        {
-            _registry.RequestUserActivity(userId);
-        }
-
+        RequestCallerActivity();
         return Task.CompletedTask;
     }
 
@@ -366,6 +357,28 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
 
         return (int)result;
+    }
+
+    /// <summary>
+    /// Asks for an immediate poll of the caller's owner. A Display's requests are throttled per
+    /// owner, so a view-only screen cannot drive the owner's Spotify quota.
+    /// </summary>
+    private void RequestCallerActivity()
+    {
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        if (GetCredentialKind() is CredentialKind.Display)
+        {
+            _registry.RequestDisplayActivity(userId);
+        }
+        else
+        {
+            _registry.RequestUserActivity(userId);
+        }
     }
 
     private CredentialKind? GetCredentialKind()

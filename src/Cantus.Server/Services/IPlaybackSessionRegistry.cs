@@ -22,6 +22,13 @@ public interface IPlaybackSessionRegistry
 
     void RequestUserActivity(string userId);
 
+    /// <summary>
+    /// Like <see cref="RequestUserActivity"/>, but forwards at most one request per owner within
+    /// a minimum interval. Displays are view-only screens on shared hardware, so they must not
+    /// be able to drive the owner's Spotify quota with a burst of refreshes.
+    /// </summary>
+    void RequestDisplayActivity(string userId);
+
     void RegisterConnection(string connectionId, string? userId = null);
     void UnregisterConnection(string connectionId);
     void SetConnectionSubscription(string connectionId, string? targetUserId);
