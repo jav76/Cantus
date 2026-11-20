@@ -19,22 +19,6 @@ public sealed class PlaybackTransportTests
     private const long PAST_CONFIRM_TIMEOUT_MS = 5000;
 
     [Theory]
-    [InlineData(30000, 0, DURATION_MS, 30000)]
-    [InlineData(30000, 1500, DURATION_MS, 28500)]
-    [InlineData(30000, -2000, DURATION_MS, 32000)]
-    [InlineData(1000, 1500, DURATION_MS, 0)]
-    [InlineData(239500, -2000, DURATION_MS, DURATION_MS)]
-    [InlineData(30000, -2000, 0, 32000)]
-    public void ComputeLineSeekTargetMs_UndoesUserOffsetAndClampsToTrack(
-        long lineTimestampMs,
-        int userOffsetMs,
-        long durationMs,
-        long expectedMs)
-    {
-        PlaybackTransport.ComputeLineSeekTargetMs(lineTimestampMs, userOffsetMs, durationMs).Should().Be(expectedMs);
-    }
-
-    [Theory]
     [InlineData(0)]
     [InlineData(1500)]
     [InlineData(-2000)]

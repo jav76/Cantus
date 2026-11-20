@@ -11,18 +11,12 @@ namespace Cantus.Client.ViewModels;
 
 /// <summary>
 /// Spotify transport controls (play/pause, skip, shuffle, repeat, volume, seek)
-/// and the optimistic seek anchor. Owns the effective playback state: the last
-/// server poll, reconciled with any seek Spotify has not confirmed yet.
+/// and the transport status line. Owns the effective playback state: the last
+/// server poll, reconciled through an <see cref="OptimisticSeekAnchor"/> with
+/// any seek Spotify has not confirmed yet.
 /// </summary>
 public sealed class PlaybackTransport : INotifyPropertyChanged
 {
-    // Tap-to-seek is applied optimistically: the stage jumps to the tapped line
-    // at once, and polls that still report the pre-seek position (Spotify's API
-    // is eventually consistent) are ignored until one agrees with the seek or
-    // the confirmation window lapses. The window covers the hub's two
-    // follow-up polls plus one regular poll.
-    private const long SEEK_CONFIRM_TOLERANCE_MS = 1000;
-    private const long SEEK_CONFIRM_TIMEOUT_MS = 4000;
     private const int TRANSPORT_STATUS_DURATION_MS = 8000;
     private const int VOLUME_DEBOUNCE_MS = 300;
     private const string REPEAT_OFF = "off";
@@ -33,12 +27,7 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     private readonly ThemeManager _themeManager;
     private readonly DispatcherTimer _transportStatusTimer;
     private readonly DispatcherTimer _volumeDebounceTimer;
-
-    private PlaybackStatePayload? _lastServerPlaybackState;
-    private string? _pendingSeekTrackId;
-    private long _pendingSeekIssuedAtMs;
-    private long? _seekDisplayFloorMs;
-    private int _seekGeneration;
+    private readonly OptimisticSeekAnchor _seekAnchor = new();
 
     private bool _isPlaying;
     private bool _isShuffled;
@@ -167,12 +156,7 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     /// </summary>
     public PlaybackStatePayload ApplyServerState(PlaybackStatePayload state, long localNow)
     {
-        _lastServerPlaybackState = state;
-        if (_pendingSeekTrackId is not null || _seekDisplayFloorMs is not null)
-        {
-            state = ReconcileWithOptimisticSeek(state, localNow);
-        }
-
+        state = _seekAnchor.Reconcile(state, PlaybackState, localNow);
         PlaybackState = state;
 
         if (state.CurrentTrack is null)
@@ -197,38 +181,13 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     public void Reset()
     {
         PlaybackState = null;
-        _lastServerPlaybackState = null;
-        ClearSeekAnchor();
+        _seekAnchor.Reset();
     }
 
-    public void ClearSeekAnchor()
-    {
-        _pendingSeekTrackId = null;
-        _seekDisplayFloorMs = null;
-    }
+    public void ClearSeekAnchor() => _seekAnchor.Clear();
 
-    /// <summary>
-    /// After a line seek the latency-compensated position sits just before
-    /// the tapped line until the new audio has had time to arrive (and
-    /// indefinitely while paused). Holds the display position on the line
-    /// until the estimate catches up, so the previous line never flashes back.
-    /// </summary>
-    public long HoldAtSeekFloor(long displayPositionMs)
-    {
-        if (_seekDisplayFloorMs is long floorMs)
-        {
-            if (displayPositionMs >= floorMs)
-            {
-                _seekDisplayFloorMs = null;
-            }
-            else
-            {
-                return floorMs;
-            }
-        }
-
-        return displayPositionMs;
-    }
+    /// <inheritdoc cref="OptimisticSeekAnchor.HoldAtFloor"/>
+    public long HoldAtSeekFloor(long displayPositionMs) => _seekAnchor.HoldAtFloor(displayPositionMs);
 
     /// <summary>
     /// Sends pause when playing and resume when paused. On success the playing
@@ -328,22 +287,6 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Raw track position at which a synced line is sung: its timestamp with
-    /// the per-track offset undone (the display runs at position + offset).
-    /// Latency compensation is deliberately NOT added. It models audio still in
-    /// flight during continuous playback, but a seek flushes that pipeline, so
-    /// the first audible sample is the seek target itself; adding the latency
-    /// would clip the start of the line (200ms by default, up to a second).
-    /// The cost - the steady-state formula placing the display just before the
-    /// line for that long - is covered by the display floor instead.
-    /// </summary>
-    internal static long ComputeLineSeekTargetMs(long lineTimestampMs, int userOffsetMs, long durationMs)
-    {
-        long targetMs = lineTimestampMs - userOffsetMs;
-        return durationMs > 0 ? Math.Clamp(targetMs, 0, durationMs) : Math.Max(0, targetMs);
-    }
-
-    /// <summary>
     /// Seeks playback to the moment a synced line is sung. The timeline jumps
     /// to the line and <see cref="SeekApplied"/> fires before Spotify answers;
     /// a rejected seek restores the last poll and fires <see cref="SeekReverted"/>.
@@ -357,22 +300,15 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
         }
 
         TrackInfoPayload track = state.CurrentTrack;
-        long targetMs = ComputeLineSeekTargetMs(lineTimestampMs, userOffsetMs, track.DurationMs);
+        long targetMs = OptimisticSeekAnchor.ComputeLineSeekTargetMs(lineTimestampMs, userOffsetMs, track.DurationMs);
         long localNow = GetServerNowMs();
 
-        PlaybackState = CopyWithProgress(
-            state,
-            targetMs,
-            IsPlaying,
-            DateTimeOffset.FromUnixTimeMilliseconds(localNow));
-        _pendingSeekTrackId = track.Id;
-        _pendingSeekIssuedAtMs = localNow;
-        _seekDisplayFloorMs = lineTimestampMs;
+        PlaybackState = _seekAnchor.Begin(state, targetMs, IsPlaying, localNow, lineTimestampMs);
         SeekApplied?.Invoke(localNow);
 
-        int generation = ++_seekGeneration;
+        int generation = _seekAnchor.NextGeneration();
         PlayerCommandResult result = await _client.SeekPlaybackAsync(targetMs);
-        if (result != PlayerCommandResult.Success && generation == _seekGeneration)
+        if (result != PlayerCommandResult.Success && _seekAnchor.IsCurrentGeneration(generation))
         {
             RevertOptimisticSeek();
         }
@@ -440,18 +376,6 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Spotify's position for a state, extrapolated to now when playing.</summary>
-    internal static long ProjectProgressMs(PlaybackStatePayload state, long localNow)
-    {
-        if (!state.IsPlaying)
-        {
-            return state.ProgressMs;
-        }
-
-        long elapsed = Math.Max(0, localNow - state.TimestampUtc.ToUnixTimeMilliseconds());
-        return state.ProgressMs + elapsed;
-    }
-
     private void HideTransportStatus()
     {
         _transportStatusTimer.Stop();
@@ -476,80 +400,14 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
 
     private void RevertOptimisticSeek()
     {
-        ClearSeekAnchor();
-        PlaybackStatePayload? serverState = _lastServerPlaybackState;
-        if (serverState?.CurrentTrack is null)
+        PlaybackStatePayload? serverState = _seekAnchor.Revert();
+        if (serverState is null)
         {
             return;
         }
 
         PlaybackState = serverState;
         SeekReverted?.Invoke(GetServerNowMs());
-    }
-
-    /// <summary>
-    /// Merges an incoming poll with an optimistic seek. While the seek is
-    /// unconfirmed, a poll whose position disagrees with it is stale: its
-    /// timeline is replaced by the optimistic one and everything else (device,
-    /// volume, shuffle) is kept. Once confirmed, a disagreeing poll means
-    /// playback moved elsewhere, so the display floor is dropped.
-    /// </summary>
-    private PlaybackStatePayload ReconcileWithOptimisticSeek(PlaybackStatePayload incoming, long localNow)
-    {
-        PlaybackStatePayload? expected = PlaybackState;
-        if (expected?.CurrentTrack is null || incoming.CurrentTrack?.Id != expected.CurrentTrack.Id)
-        {
-            ClearSeekAnchor();
-            return incoming;
-        }
-
-        long disagreementMs = Math.Abs(ProjectProgressMs(incoming, localNow) - ProjectProgressMs(expected, localNow));
-        bool agrees = disagreementMs <= SEEK_CONFIRM_TOLERANCE_MS;
-
-        if (_pendingSeekTrackId is not null)
-        {
-            if (agrees)
-            {
-                _pendingSeekTrackId = null;
-                return incoming;
-            }
-
-            if (localNow - _pendingSeekIssuedAtMs < SEEK_CONFIRM_TIMEOUT_MS)
-            {
-                return CopyWithProgress(incoming, expected.ProgressMs, expected.IsPlaying, expected.TimestampUtc);
-            }
-
-            ClearSeekAnchor();
-            return incoming;
-        }
-
-        if (!agrees)
-        {
-            ClearSeekAnchor();
-        }
-
-        return incoming;
-    }
-
-    private static PlaybackStatePayload CopyWithProgress(
-        PlaybackStatePayload source,
-        long progressMs,
-        bool isPlaying,
-        DateTimeOffset timestampUtc)
-    {
-        return new PlaybackStatePayload
-        {
-            CurrentTrack = source.CurrentTrack,
-            ProgressMs = progressMs,
-            IsPlaying = isPlaying,
-            TimestampUtc = timestampUtc,
-            DeviceName = source.DeviceName,
-            VolumePercent = source.VolumePercent,
-            IsShuffled = source.IsShuffled,
-            RepeatMode = source.RepeatMode,
-            ActiveUserId = source.ActiveUserId,
-            ActiveUserDisplayName = source.ActiveUserDisplayName,
-        };
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

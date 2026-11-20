@@ -335,7 +335,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     }
 
     private long ComputeTargetProgressMs(PlaybackStatePayload state, long localNow)
-        => Math.Max(0, PlaybackTransport.ProjectProgressMs(state, localNow) - _latencyCompensationMs);
+        => Math.Max(0, OptimisticSeekAnchor.ProjectProgressMs(state, localNow) - _latencyCompensationMs);
 
     private long GetServerNowMs() => _transport.GetServerNowMs();
 
