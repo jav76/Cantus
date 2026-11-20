@@ -143,6 +143,8 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
             _store.CreateAuthService(),
             Mock.Of<ISpotifyPlayerClient>(),
             _store.CreateCredentialResolver(),
+            Mock.Of<IDisplayPairingService>(),
+            Mock.Of<IDisplayConnectionTracker>(t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>())),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

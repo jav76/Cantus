@@ -12,12 +12,15 @@ namespace Cantus.Server.Hubs;
 public sealed class PlaybackHub : Hub<IPlaybackClient>
 {
     private const string CREDENTIAL_KIND_ITEM = "cantus.credential_kind";
+    private const string DISPLAY_ID_ITEM = "cantus.display_id";
 
     private readonly IPlaybackSessionRegistry _registry;
     private readonly ILyricsCacheRepository _lyricsCache;
     private readonly ISpotifyAuthService _authService;
     private readonly ISpotifyPlayerClient _playerClient;
     private readonly ICredentialResolver _credentialResolver;
+    private readonly IDisplayPairingService _pairings;
+    private readonly IDisplayConnectionTracker _displayConnections;
     private readonly ILogger<PlaybackHub> _logger;
 
     public PlaybackHub(
@@ -26,6 +29,8 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         ISpotifyAuthService authService,
         ISpotifyPlayerClient playerClient,
         ICredentialResolver credentialResolver,
+        IDisplayPairingService pairings,
+        IDisplayConnectionTracker displayConnections,
         ILogger<PlaybackHub> logger)
     {
         _registry = registry;
@@ -33,6 +38,8 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         _authService = authService;
         _playerClient = playerClient;
         _credentialResolver = credentialResolver;
+        _pairings = pairings;
+        _displayConnections = displayConnections;
         _logger = logger;
     }
 
@@ -58,6 +65,20 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         if (caller is not null && !string.IsNullOrEmpty(userId))
         {
             Context.Items[CREDENTIAL_KIND_ITEM] = caller.Kind;
+            if (caller.Display is not null)
+            {
+                Context.Items[DISPLAY_ID_ITEM] = caller.Display.Id;
+                if (!_displayConnections.Add(caller.Display.Id, Context))
+                {
+                    _logger.LogWarning(
+                        "Closing connection {ConnectionId} of just-revoked Display {DisplayId}",
+                        Context.ConnectionId,
+                        caller.Display.Id);
+                    Context.Abort();
+                    return;
+                }
+            }
+
             string group = caller.IsSession ? PlaybackGroups.Owner(userId) : PlaybackGroups.Displays(userId);
             await Groups.AddToGroupAsync(Context.ConnectionId, group);
         }
@@ -129,6 +150,12 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
     {
         string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
         _registry.UnregisterConnection(Context.ConnectionId);
+        _pairings.Cancel(Context.ConnectionId);
+
+        if (Context.Items.TryGetValue(DISPLAY_ID_ITEM, out object? item) && item is string displayId)
+        {
+            _displayConnections.Remove(displayId, Context.ConnectionId);
+        }
 
         if (!string.IsNullOrEmpty(userId))
         {

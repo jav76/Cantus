@@ -115,6 +115,7 @@ builder.Services.AddSingleton<IPlaybackSessionRegistry, PlaybackSessionRegistry>
 builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 builder.Services.AddScoped<ICredentialResolver, CredentialResolver>();
+builder.Services.AddDisplayPairing(builder.Configuration);
 
 // 7. Reverse Proxy & Forwarded Headers
 // Forwarded headers are only honoured from proxies the operator trusts.
@@ -231,6 +232,7 @@ if (app.Environment.IsDevelopment())
 
 // 14. Static Files & Routing
 app.UseCors();
+app.UseRateLimiter();
 app.UseDefaultFiles();
 
 FileExtensionContentTypeProvider contentTypeProvider = new();

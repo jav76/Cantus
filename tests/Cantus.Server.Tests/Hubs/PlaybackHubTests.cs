@@ -46,6 +46,8 @@ public sealed class PlaybackHubTests
                 _mockSessionResolver.Object,
                 _mockAuthService.Object,
                 Mock.Of<IDisplayService>()),
+            Mock.Of<IDisplayPairingService>(),
+            Mock.Of<IDisplayConnectionTracker>(t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>())),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

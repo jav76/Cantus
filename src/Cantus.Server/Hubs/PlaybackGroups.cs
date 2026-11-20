@@ -60,5 +60,12 @@ public static class PlaybackGroups
         public Task ReceiveAuthSession(AuthorizedSessionDto session) => _owners.ReceiveAuthSession(session);
 
         public Task ReceiveSessionRevoked(string userId) => _owners.ReceiveSessionRevoked(userId);
+
+        public Task ReceiveDisplayPaired(DisplayPairedDto pairing) => NotForViewers();
+
+        public Task ReceiveDisplayRevoked(string displayId) => NotForViewers();
+
+        private static Task NotForViewers() =>
+            Task.FromException(new NotSupportedException("Display pairing events target single connections."));
     }
 }
