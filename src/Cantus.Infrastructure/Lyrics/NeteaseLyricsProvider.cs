@@ -88,6 +88,8 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
     public string ProviderName => "NetEase";
 
+    public bool SupportsWordTiming => true;
+
     public virtual async Task<LyricsFetchResult> FetchLyricsAsync(
         TrackInfo track,
         CancellationToken cancellationToken = default)

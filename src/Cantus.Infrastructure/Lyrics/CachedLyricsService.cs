@@ -9,6 +9,7 @@ public sealed class CachedLyricsService : ILyricsProvider
 {
     private readonly ILyricsCacheRepository _cacheRepository;
     private readonly IReadOnlyList<ILyricsFetchProvider> _providers;
+    private readonly IReadOnlyList<ILyricsFetchProvider> _wordTimingProviders;
     private readonly LyricsCacheOptions _options;
     private readonly ILogger<CachedLyricsService> _logger;
 
@@ -20,6 +21,9 @@ public sealed class CachedLyricsService : ILyricsProvider
     {
         _cacheRepository = cacheRepository;
         _providers = providers;
+        _wordTimingProviders = providers
+            .Where(p => p.SupportsWordTiming)
+            .ToList();
         _options = options.Value;
         _logger = logger;
     }
@@ -90,7 +94,10 @@ public sealed class CachedLyricsService : ILyricsProvider
     {
         ArgumentNullException.ThrowIfNull(track);
 
-        (SyncedLyrics? found, bool allProvidersDefinitive) = await QueryProvidersAsync(track, cancellationToken);
+        (SyncedLyrics? found, bool allProvidersDefinitive) = await QueryProvidersAsync(
+            _providers,
+            track,
+            cancellationToken);
         if (found is not null)
         {
             await _cacheRepository.SaveLyricsAsync(found, cancellationToken: cancellationToken);
@@ -126,7 +133,7 @@ public sealed class CachedLyricsService : ILyricsProvider
     }
 
     /// <summary>
-    /// Re-queries the chain for a cached entry that has no word timing, at most
+    /// Re-queries the providers that can return word timing for a cached entry that has none, at most
     /// <see cref="LyricsCacheOptions.WordTimingUpgradeMaxAttempts"/> times and no more often than
     /// <see cref="LyricsCacheOptions.WordTimingUpgradeIntervalDays"/>. The attempt is recorded before
     /// the fetch, so a failing provider cannot cause a refetch on every play. Returns the word-timed
@@ -137,22 +144,42 @@ public sealed class CachedLyricsService : ILyricsProvider
         SyncedLyrics cached,
         CancellationToken cancellationToken)
     {
-        if (cached.IsInstrumental || cached.HasWordTiming || _options.WordTimingUpgradeMaxAttempts <= 0)
+        if (cached.IsInstrumental
+            || cached.HasWordTiming
+            || _options.WordTimingUpgradeMaxAttempts <= 0
+            || _wordTimingProviders.Count == 0)
         {
             return null;
         }
 
-        bool started = await _cacheRepository.TryStartWordTimingUpgradeAsync(
-            track.Id,
-            _options.WordTimingUpgradeMaxAttempts,
-            TimeSpan.FromDays(_options.WordTimingUpgradeIntervalDays),
-            cancellationToken);
+        bool started;
+        try
+        {
+            started = await _cacheRepository.TryStartWordTimingUpgradeAsync(
+                track.Id,
+                _options.WordTimingUpgradeMaxAttempts,
+                TimeSpan.FromDays(_options.WordTimingUpgradeIntervalDays),
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Could not record a word timing upgrade attempt for track {TrackId}; serving the cached lyrics.",
+                track.Id);
+            return null;
+        }
+
         if (!started)
         {
             return null;
         }
 
-        (SyncedLyrics? found, _) = await QueryProvidersAsync(track, cancellationToken);
+        (SyncedLyrics? found, _) = await QueryProvidersAsync(_wordTimingProviders, track, cancellationToken);
         if (found is null || !found.HasWordTiming)
         {
             _logger.LogDebug(
@@ -177,13 +204,14 @@ public sealed class CachedLyricsService : ILyricsProvider
     /// word timing; the walk stops at the first word-timed or instrumental result.
     /// </summary>
     private async Task<(SyncedLyrics? Found, bool AllProvidersDefinitive)> QueryProvidersAsync(
+        IReadOnlyList<ILyricsFetchProvider> providers,
         TrackInfo track,
         CancellationToken cancellationToken)
     {
         SyncedLyrics? found = null;
         bool allProvidersDefinitive = true;
 
-        foreach (ILyricsFetchProvider provider in _providers)
+        foreach (ILyricsFetchProvider provider in providers)
         {
             LyricsFetchResult fetchResult;
             try

@@ -23,6 +23,7 @@ public class CachedLyricsServiceTests
         _primaryProvider.ProviderName.Returns("Primary");
         _fallbackProvider = Substitute.For<ILyricsFetchProvider>();
         _fallbackProvider.ProviderName.Returns("Fallback");
+        _fallbackProvider.SupportsWordTiming.Returns(true);
 
         IOptions<LyricsCacheOptions> options = Options.Create(new LyricsCacheOptions
         {
@@ -315,6 +316,53 @@ public class CachedLyricsServiceTests
 
         result.Should().BeSameAs(wordTimed);
         await _mockRepo.Received(1).SaveLyricsAsync(wordTimed, cancellationToken: Arg.Any<CancellationToken>());
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WhenNoProviderSupportsWordTiming_DoesNotAttemptUpgrade()
+    {
+        CachedLyricsService service = new(
+            _mockRepo,
+            new[] { _primaryProvider },
+            Options.Create(new LyricsCacheOptions { WordTimingUpgradeMaxAttempts = 3 }),
+            NullLogger<CachedLyricsService>.Instance);
+        TrackInfo track = new() { Id = "t17", Title = "Song", Artist = "Artist" };
+        SyncedLyrics cached = LineLevel("t17");
+
+        _mockRepo.GetCachedLyricsAsync("t17").Returns(cached);
+        _mockRepo.TryStartWordTimingUpgradeAsync(
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Any<TimeSpan>(),
+                Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        SyncedLyrics? result = await service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(cached);
+        await _mockRepo.DidNotReceive().TryStartWordTimingUpgradeAsync(
+            Arg.Any<string>(),
+            Arg.Any<int>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WhenUpgradeBookkeepingThrows_ReturnsCachedLyrics()
+    {
+        TrackInfo track = new() { Id = "t18", Title = "Song", Artist = "Artist" };
+        SyncedLyrics cached = LineLevel("t18");
+
+        _mockRepo.GetCachedLyricsAsync("t18").Returns(cached);
+        _mockRepo.TryStartWordTimingUpgradeAsync("t18", 3, TimeSpan.FromDays(14), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<bool>(new InvalidOperationException("database is locked")));
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(cached);
+        await _fallbackProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
