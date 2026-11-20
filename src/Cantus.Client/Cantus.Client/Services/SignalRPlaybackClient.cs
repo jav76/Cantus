@@ -74,6 +74,22 @@ public sealed class LyricLinePayload
 
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
+
+    /// <summary>Real per-word timing, or null when the line only has line-level timing.</summary>
+    [JsonPropertyName("syllables")]
+    public List<LyricSyllablePayload>? Syllables { get; set; }
+}
+
+public sealed class LyricSyllablePayload
+{
+    [JsonPropertyName("timestampMs")]
+    public long TimestampMs { get; set; }
+
+    [JsonPropertyName("durationMs")]
+    public long DurationMs { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
 }
 
 public sealed class LyricsPayload
@@ -205,6 +221,7 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(TrackInfoPayload))]
 [JsonSerializable(typeof(PlaybackStatePayload))]
 [JsonSerializable(typeof(LyricLinePayload))]
+[JsonSerializable(typeof(LyricSyllablePayload))]
 [JsonSerializable(typeof(LyricsPayload))]
 [JsonSerializable(typeof(TrackOffsetPayload))]
 [JsonSerializable(typeof(DiagnosticsPayload))]
