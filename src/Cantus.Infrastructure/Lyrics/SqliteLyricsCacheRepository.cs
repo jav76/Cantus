@@ -177,6 +177,101 @@ public sealed class SqliteLyricsCacheRepository : ILyricsCacheRepository
         return entity;
     }
 
+    public async Task<LyricsOverride?> GetLyricsOverrideAsync(
+        string trackId,
+        CancellationToken cancellationToken = default)
+    {
+        LyricsOverrideEntity? entity = await _dbContext.LyricsOverrides
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.TrackId == trackId, cancellationToken);
+
+        if (entity is null)
+        {
+            return null;
+        }
+
+        if (entity.Kind == LyricsOverrideKind.NoLyrics)
+        {
+            return LyricsOverride.ForNoLyrics(entity.TrackId);
+        }
+
+        string trackName = entity.TrackName ?? string.Empty;
+        string artistName = entity.ArtistName ?? string.Empty;
+        SyncedLyrics lyrics = entity.IsInstrumental
+            ? new SyncedLyrics
+            {
+                TrackId = entity.TrackId,
+                Title = trackName,
+                Artist = artistName,
+                Album = entity.AlbumName,
+                Lines = [],
+                IsSynced = false,
+                IsInstrumental = true,
+                PlainLyrics = null
+            }
+            : LrcParser.Parse(
+                entity.RawSyncedLrc,
+                entity.TrackId,
+                trackName,
+                artistName,
+                entity.AlbumName,
+                entity.PlainLyrics);
+
+        return new LyricsOverride(
+            entity.TrackId,
+            entity.Kind,
+            entity.Provider,
+            entity.ProviderCandidateId,
+            lyrics);
+    }
+
+    public async Task SaveLyricsOverrideAsync(
+        LyricsOverride lyricsOverride,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(lyricsOverride);
+
+        LyricsOverrideEntity? entity = await _dbContext.LyricsOverrides
+            .FirstOrDefaultAsync(o => o.TrackId == lyricsOverride.TrackId, cancellationToken);
+
+        if (entity is null)
+        {
+            entity = new LyricsOverrideEntity
+            {
+                TrackId = lyricsOverride.TrackId,
+                Kind = lyricsOverride.Kind
+            };
+            await _dbContext.LyricsOverrides.AddAsync(entity, cancellationToken);
+        }
+
+        SyncedLyrics? lyrics = lyricsOverride.Lyrics;
+        entity.Kind = lyricsOverride.Kind;
+        entity.Provider = lyricsOverride.Provider;
+        entity.ProviderCandidateId = lyricsOverride.ProviderCandidateId;
+        entity.TrackName = lyrics?.Title;
+        entity.ArtistName = lyrics?.Artist;
+        entity.AlbumName = lyrics?.Album;
+        entity.PlainLyrics = lyrics?.PlainLyrics;
+        entity.RawSyncedLrc = lyrics is null ? null : GenerateRawLrc(lyrics);
+        entity.IsSynced = lyrics?.IsSynced ?? false;
+        entity.IsInstrumental = lyrics?.IsInstrumental ?? false;
+        entity.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemoveLyricsOverrideAsync(string trackId, CancellationToken cancellationToken = default)
+    {
+        LyricsOverrideEntity? entity = await _dbContext.LyricsOverrides
+            .FirstOrDefaultAsync(o => o.TrackId == trackId, cancellationToken);
+
+        if (entity is not null)
+        {
+            _dbContext.LyricsOverrides.Remove(entity);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     public async Task<int> GetTrackOffsetAsync(
         string trackId,
         CancellationToken cancellationToken = default)

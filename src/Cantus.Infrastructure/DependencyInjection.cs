@@ -100,6 +100,7 @@ public static class DependencyInjection
             new TraceLoggingLyricsProviderDecorator(
                 sp.GetRequiredService<CachedLyricsService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsProviderDecorator>>()));
+        services.AddScoped<LyricsOverrideService>();
 
         // 6. Spotify Services
         services.AddScoped<SpotifyAuthService>();

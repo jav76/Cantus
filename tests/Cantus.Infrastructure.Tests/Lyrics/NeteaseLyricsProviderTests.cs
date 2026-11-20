@@ -570,4 +570,89 @@ public class NeteaseLyricsProviderTests
         await act.Should().ThrowAsync<HttpRequestException>(
             "an empty list would read as \"NetEase has no candidates\" when it could not answer");
     }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_LoadsTheSongLyricAndLabelsItWithTheTrack()
+    {
+        string? requestedUrl = null;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                requestedUrl = req.RequestUri!.PathAndQuery;
+                return Json("""
+                    {
+                        "lrc": { "lyric": "[00:00.00]作词 : Brandon Flowers\n[00:01.00]I'm writing you this letter" },
+                        "code": 200
+                    }
+                    """);
+            }
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "111");
+
+        requestedUrl.Should().StartWith("/api/song/lyric?id=111&");
+        lyrics.Should().NotBeNull();
+        lyrics!.TrackId.Should().Be(MatchingTrack.Id);
+        lyrics.Lines.Select(l => l.Text).Should().Equal("I'm writing you this letter");
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_InstrumentalSong_ReturnsInstrumentalLyrics()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => Json("""{ "nolyric": true, "code": 200 }""")
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "333");
+
+        lyrics.Should().NotBeNull();
+        lyrics!.IsInstrumental.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_UncollectedSong_ReturnsNull()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => Json("""{ "uncollected": true, "code": 200 }""")
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "444");
+
+        lyrics.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_NonNumericId_ReturnsNullWithoutARequest()
+    {
+        bool requested = false;
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ =>
+            {
+                requested = true;
+                return Json("""{ "uncollected": true, "code": 200 }""");
+            }
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "abc");
+
+        lyrics.Should().BeNull();
+        requested.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_PayloadError_Throws()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => Json("""{ "code": -460, "message": "Cheating" }""")
+        };
+
+        Func<Task> act = () => CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "111");
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+    }
 }

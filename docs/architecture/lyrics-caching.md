@@ -10,7 +10,10 @@ When a track starts playing, Cantus traverses a multi-tiered caching pipeline, t
 
 ```mermaid
 flowchart TD
-    Start[Track Changed / New Track ID] --> QueryLocal{1. Query SQLite Cache}
+    Start[Track Changed / New Track ID] --> QueryOverride{0. Owner Override?}
+    QueryOverride -->|Candidate| ReturnLyrics
+    QueryOverride -->|No Lyrics| ReturnNone[Empty Lyrics View]
+    QueryOverride -->|None| QueryLocal{1. Query SQLite Cache}
     QueryLocal -->|Found Positive LRC| ReturnLyrics[Return Parsed Lyric Lines]
     QueryLocal -->|Found Negative Cache| ReturnInstrumental[Flag as Instrumental / No Lyrics]
     
@@ -48,7 +51,15 @@ Every provider classifies its result as *found*, *authoritative miss*, or *trans
 - **Problem**: Many classical, jazz, EDM, and post-rock tracks have no lyrics. Without caching this absence, the server would query LRCLIB on every track transition.
 - **Solution**: Cantus records a **Negative Cache** entry with a configurable 30-day TTL (configured via `LyricsCache:NegativeCacheDays` in `appsettings.json`; the setting is provider-agnostic and applies to the whole fallback chain). When the track plays again, Cantus immediately recognizes it as instrumental without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found" — transient provider failures are never cached.
 
-### 3. LRCLIB Integration & Fuzzy Matching
+### 3. Owner Overrides
+- **Problem**: An automatic match can be wrong, and a track cached as "not found" stays that way for the whole negative-cache TTL.
+- **Solution**: The owner can correct a track through `POST /api/lyrics/{trackId}/override` (see the [REST API reference](../reference/rest-api.md)): use a specific provider candidate, mark the track as having no lyrics, re-fetch, or clear the override.
+- **Storage**: Overrides live in their own `LyricsOverrides` table, keyed by Spotify track ID and applied server-wide like track offsets. They have no TTL, and cache writes (`SaveLyricsAsync`, `MarkNotFoundAsync`) and cache expiry never touch them. `CachedLyricsService` checks the override before the negative and positive caches, so an override wins over both.
+- **Candidate lyrics**: A chosen candidate is loaded by its provider id (`ILyricsFetchProvider.GetCandidateLyricsAsync`: LRCLIB `/api/get/{id}`, NetEase `/api/song/lyric?id=`) and stored with the track's own ID and metadata.
+- **Returning to automatic matching**: `clear` removes the override and serves the cached automatic match if there is one. `refetch` queries the provider chain again without reading the caches (`CachedLyricsService.RefreshFromProvidersAsync`). Only a definitive answer replaces the cached match (including a "not found" entry) and removes the override. If a provider is unreachable, the override and cache are left as they were and the endpoint returns `502`.
+- **Live update**: After each change, every Session currently on the track, and its Displays, gets the new lyrics through `ReceiveLyrics`, and its in-memory playback snapshot is updated so the poller and newly connecting clients see them too. The snapshot update only applies to snapshots still on that track, and the poller keeps the snapshot's current lyrics when the track has not changed, so a poll that overlaps an override does not revert it.
+
+### 4. LRCLIB Integration & Fuzzy Matching
 - **Primary Query**: Exact search by Track Name, Artist Name, Album Name, and Duration.
 - **Fuzzy Fallback**: If exact matching fails (common for remastered titles, "feat." artist tags, or deluxe editions), Cantus strips noise keywords (e.g. `(Remastered 2021)`, `[Deluxe Edition]`) and queries LRCLIB's fuzzy search endpoint.
 

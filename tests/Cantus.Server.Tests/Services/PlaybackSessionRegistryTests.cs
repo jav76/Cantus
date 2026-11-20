@@ -236,4 +236,97 @@ public sealed class PlaybackSessionRegistryTests
 
         signaledCount.Should().Be(3);
     }
+
+    private static PlaybackState PlayingTrack(string trackId) => new()
+    {
+        CurrentTrack = new TrackInfo { Id = trackId, Title = "Song " + trackId, Artist = "Artist" },
+        IsPlaying = true
+    };
+
+    private static SyncedLyrics LyricsFor(string trackId, string text) => new()
+    {
+        TrackId = trackId,
+        Title = "Song " + trackId,
+        Artist = "Artist",
+        Lines = [new LyricLine(TimeSpan.Zero, text)]
+    };
+
+    [Fact]
+    public void UpdateUserPlayback_KeepsTheLyricsAndOffsetThatAreInTheSnapshotWhenItWrites()
+    {
+        PlaybackSessionRegistry registry = new();
+        registry.UpdateUserState("user-1", "Alice", PlayingTrack("track-1"), LyricsFor("track-1", "Old"), 250);
+        SyncedLyrics replaced = LyricsFor("track-1", "New");
+        registry.ReplaceLyricsForTrack("track-1", replaced);
+        PlaybackState later = PlayingTrack("track-1");
+
+        registry.UpdateUserPlayback("user-1", "Alice", later);
+
+        UserPlaybackSnapshot snapshot = registry.GetUserState("user-1")!;
+        snapshot.PlaybackState.Should().BeSameAs(later);
+        snapshot.Lyrics.Should().BeSameAs(replaced);
+        snapshot.TrackOffsetMs.Should().Be(250);
+    }
+
+    [Fact]
+    public void UpdateUserPlayback_ForAUserWithNoSnapshot_StoresThePlaybackWithoutLyrics()
+    {
+        PlaybackSessionRegistry registry = new();
+
+        registry.UpdateUserPlayback("user-1", "Alice", PlayingTrack("track-1"));
+
+        UserPlaybackSnapshot snapshot = registry.GetUserState("user-1")!;
+        snapshot.PlaybackState!.CurrentTrack!.Id.Should().Be("track-1");
+        snapshot.Lyrics.Should().BeNull();
+        snapshot.TrackOffsetMs.Should().Be(0);
+    }
+
+    [Fact]
+    public void ReplaceLyricsForTrack_UpdatesOnlySnapshotsOnThatTrackAndKeepsTheirPlayback()
+    {
+        PlaybackSessionRegistry registry = new();
+        PlaybackState firstPlayback = PlayingTrack("track-1");
+        SyncedLyrics otherLyrics = LyricsFor("track-2", "Other");
+        registry.UpdateUserState("user-1", "Alice", firstPlayback, LyricsFor("track-1", "Old"), 100);
+        registry.UpdateUserState("user-2", "Bob", PlayingTrack("track-1"), null, 0);
+        registry.UpdateUserState("user-3", "Carol", PlayingTrack("track-2"), otherLyrics, 0);
+        SyncedLyrics replaced = LyricsFor("track-1", "New");
+
+        IReadOnlyList<string> updated = registry.ReplaceLyricsForTrack("track-1", replaced);
+
+        updated.Should().BeEquivalentTo(new[] { "user-1", "user-2" });
+        UserPlaybackSnapshot first = registry.GetUserState("user-1")!;
+        first.Lyrics.Should().BeSameAs(replaced);
+        first.PlaybackState.Should().BeSameAs(firstPlayback);
+        first.TrackOffsetMs.Should().Be(100);
+        registry.GetUserState("user-2")!.Lyrics.Should().BeSameAs(replaced);
+        registry.GetUserState("user-3")!.Lyrics.Should().BeSameAs(otherLyrics);
+    }
+
+    [Fact]
+    public void ReplaceLyricsForTrack_WithNoLyrics_ClearsTheLyricsOnThatTrack()
+    {
+        PlaybackSessionRegistry registry = new();
+        registry.UpdateUserState("user-1", "Alice", PlayingTrack("track-1"), LyricsFor("track-1", "Old"), 0);
+
+        registry.ReplaceLyricsForTrack("track-1", null);
+
+        registry.GetUserState("user-1")!.Lyrics.Should().BeNull();
+    }
+
+    [Fact]
+    public void ReplaceLyricsForTrack_AfterTheUserMovedToAnotherTrack_LeavesTheNewTrackAlone()
+    {
+        PlaybackSessionRegistry registry = new();
+        registry.UpdateUserState("user-1", "Alice", PlayingTrack("track-1"), LyricsFor("track-1", "Old"), 0);
+        SyncedLyrics nextLyrics = LyricsFor("track-2", "Next");
+        registry.UpdateUserState("user-1", "Alice", PlayingTrack("track-2"), nextLyrics, 0);
+
+        IReadOnlyList<string> updated = registry.ReplaceLyricsForTrack("track-1", LyricsFor("track-1", "New"));
+
+        updated.Should().BeEmpty();
+        UserPlaybackSnapshot snapshot = registry.GetUserState("user-1")!;
+        snapshot.PlaybackState!.CurrentTrack!.Id.Should().Be("track-2");
+        snapshot.Lyrics.Should().BeSameAs(nextLyrics);
+    }
 }

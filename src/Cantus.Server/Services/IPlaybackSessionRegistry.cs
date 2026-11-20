@@ -45,6 +45,22 @@ public interface IPlaybackSessionRegistry
         SyncedLyrics? lyrics,
         int offsetMs);
 
+    /// <summary>
+    /// Stores <paramref name="playbackState"/> while keeping the lyrics and
+    /// offset the snapshot holds at the moment of the write, so a change made
+    /// out of band (a lyrics override, a new offset) during a slow Spotify
+    /// call is not overwritten with the values read before it.
+    /// </summary>
+    void UpdateUserPlayback(string userId, string displayName, PlaybackState? playbackState);
+
+    /// <summary>
+    /// Replaces the lyrics of every snapshot whose current track is
+    /// <paramref name="trackId"/>, leaving its playback state and offset as
+    /// they are. A snapshot that has moved on to another track is skipped.
+    /// </summary>
+    /// <returns>The ids of the users whose snapshot was updated.</returns>
+    IReadOnlyList<string> ReplaceLyricsForTrack(string trackId, SyncedLyrics? lyrics);
+
     UserPlaybackSnapshot? GetUserState(string userId);
     UserPlaybackSnapshot? GetActivePlaybackSnapshot();
     IReadOnlyList<UserPlaybackSnapshot> GetAllSnapshots();

@@ -196,4 +196,48 @@ public class CachedLyricsServiceTests
 
         result.Should().BeSameAs(fromFallback);
     }
+
+    [Fact]
+    public async Task GetLyricsAsync_WithCandidateOverride_ReturnsItOverNegativeCacheAndProviders()
+    {
+        TrackInfo track = new() { Id = "t8", Title = "Song", Artist = "Artist" };
+        SyncedLyrics chosen = new()
+        {
+            TrackId = "t8",
+            Title = "Song",
+            Artist = "Artist",
+            Lines = [new(TimeSpan.Zero, "Chosen")]
+        };
+
+        _mockRepo.GetLyricsOverrideAsync("t8").Returns(LyricsOverride.ForCandidate("Primary", "42", chosen));
+        _mockRepo.IsMarkedNotFoundAsync("t8").Returns(true);
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(chosen);
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WithNoLyricsOverride_ReturnsNullWithoutCachingOrCallingProviders()
+    {
+        TrackInfo track = new() { Id = "t9", Title = "Song", Artist = "Artist" };
+        SyncedLyrics cached = new() { TrackId = "t9", Title = "Song", Artist = "Artist", Lines = [] };
+
+        _mockRepo.GetLyricsOverrideAsync("t9").Returns(LyricsOverride.ForNoLyrics("t9"));
+        _mockRepo.GetCachedLyricsAsync("t9").Returns(cached);
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeNull();
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+        await _mockRepo.DidNotReceive().MarkNotFoundAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<int>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+    }
 }

@@ -362,13 +362,23 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             }
                         }
 
-                        // Update in-memory registry
-                        _registry.UpdateUserState(
-                            session.Id,
-                            session.DisplayName,
-                            currentPlayback,
-                            lyrics,
-                            trackOffset);
+                        // Update in-memory registry. On the same track the
+                        // snapshot's lyrics and offset are kept as they are at
+                        // write time, so an override applied during the
+                        // Spotify call above is not reverted.
+                        if (trackChanged)
+                        {
+                            _registry.UpdateUserState(
+                                session.Id,
+                                session.DisplayName,
+                                currentPlayback,
+                                lyrics,
+                                trackOffset);
+                        }
+                        else
+                        {
+                            _registry.UpdateUserPlayback(session.Id, session.DisplayName, currentPlayback);
+                        }
 
                         // Broadcast exclusively to this user's SignalR group
                         if (trackChanged)
@@ -442,12 +452,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             userIntervalMs = _options.PausedPollIntervalMs;
                         }
 
-                        _registry.UpdateUserState(
-                            session.Id,
-                            session.DisplayName,
-                            currentPlayback,
-                            previousSnapshot?.Lyrics,
-                            previousSnapshot?.TrackOffsetMs ?? 0);
+                        _registry.UpdateUserPlayback(session.Id, session.DisplayName, currentPlayback);
 
                         await _hubContext.Clients.Viewers(session.Id).ReceivePlaybackState(
                             currentPlayback.ToDto(session.Id, session.DisplayName));

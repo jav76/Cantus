@@ -28,6 +28,19 @@ public sealed class CachedLyricsService : ILyricsProvider
     {
         ArgumentNullException.ThrowIfNull(track);
 
+        // 0. The owner's override wins over every cache entry and provider
+        LyricsOverride? lyricsOverride = await _cacheRepository.GetLyricsOverrideAsync(track.Id, cancellationToken);
+        if (lyricsOverride is not null)
+        {
+            _logger.LogDebug(
+                "Lyrics override {Kind} applies to track {TrackId} ({Artist} - {Title})",
+                lyricsOverride.Kind,
+                track.Id,
+                track.Artist,
+                track.Title);
+            return lyricsOverride.Lyrics;
+        }
+
         // 1. Check negative cache
         if (await _cacheRepository.IsMarkedNotFoundAsync(track.Id, cancellationToken))
         {
@@ -58,6 +71,23 @@ public sealed class CachedLyricsService : ILyricsProvider
             track.Artist,
             track.Title,
             _providers.Count);
+
+        LyricsFetchResult result = await RefreshFromProvidersAsync(track, cancellationToken);
+        return result.Lyrics;
+    }
+
+    /// <summary>
+    /// Queries the provider chain without consulting the override or the
+    /// caches, and stores a definitive answer in the cache: the lyrics, or a
+    /// "not found" mark when every provider answered without a match. When a
+    /// provider was unreachable and none found lyrics, the cache is left as it
+    /// was and the result is not definitive.
+    /// </summary>
+    public async Task<LyricsFetchResult> RefreshFromProvidersAsync(
+        TrackInfo track,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(track);
 
         bool allProvidersDefinitive = true;
 
@@ -94,7 +124,7 @@ public sealed class CachedLyricsService : ILyricsProvider
                     track.Title,
                     provider.ProviderName);
                 await _cacheRepository.SaveLyricsAsync(fetchResult.Lyrics, cancellationToken: cancellationToken);
-                return fetchResult.Lyrics;
+                return LyricsFetchResult.Found(fetchResult.Lyrics);
             }
 
             if (!fetchResult.IsDefinitive)
@@ -114,7 +144,7 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return null;
+            return LyricsFetchResult.Unavailable();
         }
 
         // 4. Mark not found with TTL
@@ -128,6 +158,6 @@ public sealed class CachedLyricsService : ILyricsProvider
             ttl,
             cancellationToken);
 
-        return null;
+        return LyricsFetchResult.NotFound();
     }
 }

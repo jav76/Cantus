@@ -97,6 +97,25 @@ public static class DtoMappingExtensions
         };
     }
 
+    /// <summary>
+    /// The lyrics to send for a track, or an empty payload when it has none so
+    /// clients clear the previous track's lines.
+    /// </summary>
+    public static LyricsDto ToLyricsDto(this TrackInfo track, SyncedLyrics? lyrics)
+    {
+        return lyrics?.ToDto() ?? new LyricsDto
+        {
+            TrackId = track.Id,
+            Title = track.Title,
+            Artist = track.Artist,
+            Album = track.Album,
+            Lines = [],
+            IsSynced = false,
+            IsInstrumental = false,
+            PlainLyrics = null
+        };
+    }
+
     public static AuthorizedSessionDto ToDto(this UserSession session, bool isCurrentlyPlaying = false)
     {
         return new AuthorizedSessionDto

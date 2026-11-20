@@ -115,6 +115,43 @@ public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
             .ToList();
     }
 
+    public virtual async Task<SyncedLyrics?> GetCandidateLyricsAsync(
+        TrackInfo track,
+        string providerCandidateId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+
+        if (!long.TryParse(providerCandidateId, NumberStyles.None, CultureInfo.InvariantCulture, out long recordId))
+        {
+            return null;
+        }
+
+        using HttpResponseMessage response = await _httpClient.GetAsync(
+            $"/api/get/{recordId.ToString(CultureInfo.InvariantCulture)}",
+            cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        LrclibResponseDto? dto = await response.Content.ReadFromJsonAsync<LrclibResponseDto>(
+            JsonOptions,
+            cancellationToken: cancellationToken);
+
+        if (dto is null)
+        {
+            return null;
+        }
+
+        bool hasLyrics = dto.Instrumental
+            || !string.IsNullOrWhiteSpace(dto.SyncedLyrics)
+            || !string.IsNullOrWhiteSpace(dto.PlainLyrics);
+        return hasLyrics ? MapToDomain(dto, track) : null;
+    }
+
     private LyricsCandidate ToCandidate(LrclibResponseDto dto)
     {
         IReadOnlyList<string> preview = [];
