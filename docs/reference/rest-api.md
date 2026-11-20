@@ -244,7 +244,7 @@ Lists the lyrics every enabled provider has for the owner's current track, so a 
 - **Behavior**:
   1. Queries LRCLIB and, when `Netease:Enabled` is `true`, NetEase in parallel. Nothing is cached or changed.
   2. LRCLIB returns every search result that has synced lyrics, plain lyrics, or an instrumental flag.
-  3. NetEase returns synced lyrics or an instrumental marker (`isSynced: false`, `isInstrumental: true`), from the first 5 search results by a matching artist. Duration does not filter candidates.
+  3. NetEase returns synced lyrics or an instrumental marker (`isSynced: false`, `isInstrumental: true`, for songs NetEase flags `nolyric` or `pureMusic`), from the first 5 search results by a matching artist. Duration does not filter candidates.
   4. A provider that fails (network error, timeout, 5xx, NetEase payload error code) is listed in `unavailableProviders` and the rest of the list is still returned. If only some NetEase lyric lookups fail, the songs that succeeded are still returned; NetEase is listed as unavailable only when its search fails or failed lookups leave it with no candidates.
 - **Response `200 OK`**:
 ```json
