@@ -669,6 +669,61 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
+    public void SessionPassThroughs_ReRaiseSessionNotificationsOnTheRoot()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        List<string?> raised = new();
+        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        // Act
+        client.RaiseAuthSessionReceived(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+
+        // Assert
+        vm.Sessions.Should().BeSameAs(vm.Session.Sessions);
+        vm.ConnectButtonText.Should().Be("Connected: Alice");
+        raised.Should().Contain(new[]
+        {
+            nameof(LyricsViewModel.ActiveUserName),
+            nameof(LyricsViewModel.AuthorizedSessionsCount),
+            nameof(LyricsViewModel.CurrentUserSession),
+            nameof(LyricsViewModel.HasSessionsVisibility),
+            nameof(LyricsViewModel.IsAuthorized),
+            nameof(LyricsViewModel.ConnectButtonText),
+        });
+    }
+
+    [Fact]
+    public async Task SessionEnd_KeepsThePlaybackStateWhileLogoutClearsIt()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        client.RaiseAuthSessionReceived(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+        client.RaisePlaybackStateReceived(new PlaybackStatePayload
+        {
+            CurrentTrack = new TrackInfoPayload { Id = "t-1", Title = "Song", Artist = "Artist" },
+            IsPlaying = true,
+            ActiveUserId = "user-1",
+            TimestampUtc = DateTimeOffset.UtcNow
+        });
+
+        // Act - a revoke clears the track card but not the transport's last poll
+        client.RaiseSessionRevoked("user-1");
+
+        // Assert
+        vm.CurrentTitle.Should().Be("No Track Playing");
+        vm.EmptyStateTitle.Should().Be("No Lyrics Found");
+
+        // Act - logout drops the poll too
+        await vm.LogoutAsync();
+
+        // Assert
+        vm.EmptyStateTitle.Should().Be("Waiting for Lyrics...");
+    }
+
+    [Fact]
     public void IsAutoScrollEnabled_DefaultsToTrue_AndTogglesState()
     {
         // Arrange

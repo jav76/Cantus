@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -23,6 +22,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly ILyricsPreferences _preferences;
     private readonly PlaybackTransport _transport;
     private readonly PlaybackTiming _timing;
+    private readonly SessionViewModel _session;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
@@ -33,10 +33,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private long _rttMs;
     private long _clockSkewMs;
     private string _pollerStatus = "Idle";
-    private string _activeUserName = "None";
-    private string? _activeUserId;
     private int _connectedClients = 1;
-    private int _authorizedSessionsCount;
     private int _activePollIntervalMs = 1500;
     private string _transportType = "WebSockets";
 
@@ -66,7 +63,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isKaraokeModeEnabled;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
-    public ObservableCollection<AuthorizedSessionPayload> Sessions { get; } = new();
+    public ObservableCollection<AuthorizedSessionPayload> Sessions => _session.Sessions;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
     public string ServerBaseUrl => _client.ServerBaseUrl;
@@ -151,16 +148,18 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         set { if (_pollerStatus != value) { _pollerStatus = value; OnPropertyChanged(); } }
     }
 
+    public SessionViewModel Session => _session;
+
     public string ActiveUserName
     {
-        get => _activeUserName;
-        set { if (_activeUserName != value) { _activeUserName = value; OnPropertyChanged(); } }
+        get => _session.ActiveUserName;
+        set => _session.ActiveUserName = value;
     }
 
     public string? ActiveUserId
     {
-        get => _activeUserId;
-        set { if (_activeUserId != value) { _activeUserId = value; OnPropertyChanged(); } }
+        get => _session.ActiveUserId;
+        set => _session.ActiveUserId = value;
     }
 
     public int ConnectedClients
@@ -171,20 +170,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public int AuthorizedSessionsCount
     {
-        get => _authorizedSessionsCount;
-        set
-        {
-            if (_authorizedSessionsCount != value)
-            {
-                _authorizedSessionsCount = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(NoSessionsVisibility));
-                OnPropertyChanged(nameof(HasSessionsVisibility));
-                OnPropertyChanged(nameof(IsAuthorized));
-                OnPropertyChanged(nameof(ConnectButtonText));
-                OnPropertyChanged(nameof(ConnectButtonGlyph));
-            }
-        }
+        get => _session.AuthorizedSessionsCount;
+        set => _session.AuthorizedSessionsCount = value;
     }
 
     public int ActivePollIntervalMs
@@ -435,25 +422,17 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public Visibility InstrumentalBreakVisibility =>
         IsInstrumentalBreak && HasSyncedLyrics && !IsStaticLyricsMode ? Visibility.Visible : Visibility.Collapsed;
 
-    public bool IsAuthorized =>
-        AuthorizedSessionsCount > 0 ||
-        (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName));
+    public bool IsAuthorized => _session.IsAuthorized;
 
-    public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
+    public AuthorizedSessionPayload? CurrentUserSession => _session.CurrentUserSession;
 
-    public string ConnectButtonText => IsAuthorized
-        ? (ActiveUserName != "None" && !string.IsNullOrEmpty(ActiveUserName)
-            ? $"Connected: {ActiveUserName}"
-            : "Connected")
-        : "Connect Spotify";
+    public string ConnectButtonText => _session.ConnectButtonText;
 
-    public string ConnectButtonGlyph => IsAuthorized ? "\uE73E" : "\uE8D6";
+    public string ConnectButtonGlyph => _session.ConnectButtonGlyph;
 
-    public Visibility NoSessionsVisibility =>
-        AuthorizedSessionsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility NoSessionsVisibility => _session.NoSessionsVisibility;
 
-    public Visibility HasSessionsVisibility =>
-        AuthorizedSessionsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility HasSessionsVisibility => _session.HasSessionsVisibility;
 
     public bool IsKioskMode
     {
@@ -673,15 +652,20 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
         _timing.PropertyChanged += OnForwardedPropertyChanged;
 
+        _session = new SessionViewModel(client);
+        _session.PropertyChanged += OnForwardedPropertyChanged;
+        _session.SessionEnded += () => ClearPlayback(resetTransport: false);
+        _session.LoggedOut += () => ClearPlayback(resetTransport: true);
+
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
         _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
         _client.PlaybackStateReceived += state => RunOnUIThread(() => OnPlaybackStateReceived(state));
         _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
         _client.TrackOffsetReceived += offset => RunOnUIThread(() => _timing.ApplyTrackOffset(offset));
-        _client.SessionsReceived += sessions => RunOnUIThread(() => OnSessionsReceived(sessions));
-        _client.AuthSessionReceived += session => RunOnUIThread(() => OnAuthSessionReceived(session));
-        _client.SessionRevoked += userId => RunOnUIThread(() => OnSessionRevoked(userId));
+        _client.SessionsReceived += sessions => RunOnUIThread(() => _session.ApplySessions(sessions));
+        _client.AuthSessionReceived += session => RunOnUIThread(() => _session.ApplyAuthSession(session));
+        _client.SessionRevoked += userId => RunOnUIThread(() => _session.ApplySessionRevoked(userId));
         _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
 
         _ticker = new DispatcherTimer
@@ -740,10 +724,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Task SetSyncOffsetAsync(int offsetMs) => _timing.SetSyncOffsetAsync(offsetMs);
 
-    public async Task SwitchUserSubscriptionAsync(string? userId)
-    {
-        await _client.SubscribeToUserAsync(userId);
-    }
+    public Task SwitchUserSubscriptionAsync(string? userId) => _session.SubscribeToUserAsync(userId);
 
     public async Task ReportVisibilityAsync(bool isVisible)
     {
@@ -881,8 +862,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Theme));
     }
 
-    // Pass-through members share the transport's and timing's property names,
-    // so their notifications are re-raised as-is for views bound to this view model.
+    // Pass-through members share the transport's, timing's and session's property
+    // names, so their notifications are re-raised as-is for views bound to this view model.
     private void OnForwardedPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(e.PropertyName);
@@ -929,15 +910,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         AlbumArtUrl = track.AlbumArtUrl;
         DeviceName = state.DeviceName ?? "Spotify";
         NotifyEmptyStateText();
-        if (!string.IsNullOrEmpty(state.ActiveUserDisplayName))
-        {
-            ActiveUserName = state.ActiveUserDisplayName;
-        }
-        ActiveUserId = state.ActiveUserId;
-
-        OnPropertyChanged(nameof(IsAuthorized));
-        OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
+        _session.ApplyActiveUser(state.ActiveUserDisplayName, state.ActiveUserId);
 
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
@@ -1064,108 +1037,35 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         LyricsReloaded?.Invoke();
     }
 
-    private void OnSessionsReceived(IReadOnlyList<AuthorizedSessionPayload>? sessions)
+    /// <summary>
+    /// Clears the track, lyrics, and theme once the Session ends. Logout also
+    /// drops the transport's playback state, so the empty stage asks the user
+    /// to connect again.
+    /// </summary>
+    private void ClearPlayback(bool resetTransport)
     {
-        Sessions.Clear();
-        if (sessions is null || sessions.Count == 0)
+        CurrentTitle = "No Track Playing";
+        CurrentArtist = "Play music on Spotify to begin";
+        CurrentAlbum = string.Empty;
+        AlbumArtUrl = null;
+        IsPlaying = false;
+        if (resetTransport)
         {
-            AuthorizedSessionsCount = 0;
-            ActiveUserName = "None";
-            ActiveUserId = null;
-            CurrentTitle = "No Track Playing";
-            CurrentArtist = "Play music on Spotify to begin";
-            CurrentAlbum = string.Empty;
-            AlbumArtUrl = null;
-            IsPlaying = false;
-            _lastLyrics = null;
-            LyricLines.Clear();
-            HasLyrics = false;
-            IsStaticLyricsMode = false;
-            ActiveLineIndex = -1;
-            _themeManager.UpdateTrackMetadata(null, null, null);
-            OnPropertyChanged(nameof(CurrentUserSession));
-            OnPropertyChanged(nameof(NoSessionsVisibility));
-            OnPropertyChanged(nameof(HasSessionsVisibility));
-            OnPropertyChanged(nameof(IsAuthorized));
-            OnPropertyChanged(nameof(ConnectButtonText));
-            OnPropertyChanged(nameof(ConnectButtonGlyph));
-            OnPropertyChanged(nameof(HasSyncedLyrics));
-            OnPropertyChanged(nameof(HasPlainLyrics));
-            OnPropertyChanged(nameof(ModeToggleVisibility));
-            return;
+            _transport.Reset();
         }
-
-        foreach (AuthorizedSessionPayload s in sessions)
+        _lastLyrics = null;
+        LyricLines.Clear();
+        HasLyrics = false;
+        IsStaticLyricsMode = false;
+        ActiveLineIndex = -1;
+        _themeManager.UpdateTrackMetadata(null, null, null);
+        if (resetTransport)
         {
-            if (s is not null)
-            {
-                Sessions.Add(s);
-            }
+            NotifyEmptyStateText();
         }
-        AuthorizedSessionsCount = sessions.Count;
-
-        AuthorizedSessionPayload? current = sessions.FirstOrDefault(s => s is not null);
-        if (current is not null)
-        {
-            ActiveUserName = current.DisplayName;
-            ActiveUserId = current.Id;
-            _ = _client.SubscribeToUserAsync(current.Id);
-        }
-
-        OnPropertyChanged(nameof(CurrentUserSession));
-        OnPropertyChanged(nameof(NoSessionsVisibility));
-        OnPropertyChanged(nameof(HasSessionsVisibility));
-        OnPropertyChanged(nameof(IsAuthorized));
-        OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
-    }
-
-    private void OnAuthSessionReceived(AuthorizedSessionPayload? session)
-    {
-        if (session is null) return;
-        Sessions.Clear();
-        Sessions.Add(session);
-        AuthorizedSessionsCount = 1;
-        ActiveUserName = session.DisplayName;
-        ActiveUserId = session.Id;
-        _ = _client.SubscribeToUserAsync(session.Id);
-        OnPropertyChanged(nameof(CurrentUserSession));
-        OnPropertyChanged(nameof(NoSessionsVisibility));
-        OnPropertyChanged(nameof(HasSessionsVisibility));
-        OnPropertyChanged(nameof(IsAuthorized));
-        OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
-    }
-
-    private void OnSessionRevoked(string? userId)
-    {
-        if (string.IsNullOrEmpty(userId) || ActiveUserId == userId)
-        {
-            Sessions.Clear();
-            AuthorizedSessionsCount = 0;
-            ActiveUserName = "None";
-            ActiveUserId = null;
-            CurrentTitle = "No Track Playing";
-            CurrentArtist = "Play music on Spotify to begin";
-            CurrentAlbum = string.Empty;
-            AlbumArtUrl = null;
-            IsPlaying = false;
-            _lastLyrics = null;
-            LyricLines.Clear();
-            HasLyrics = false;
-            IsStaticLyricsMode = false;
-            ActiveLineIndex = -1;
-            _themeManager.UpdateTrackMetadata(null, null, null);
-            OnPropertyChanged(nameof(CurrentUserSession));
-            OnPropertyChanged(nameof(NoSessionsVisibility));
-            OnPropertyChanged(nameof(HasSessionsVisibility));
-            OnPropertyChanged(nameof(IsAuthorized));
-            OnPropertyChanged(nameof(ConnectButtonText));
-            OnPropertyChanged(nameof(ConnectButtonGlyph));
-            OnPropertyChanged(nameof(HasSyncedLyrics));
-            OnPropertyChanged(nameof(HasPlainLyrics));
-            OnPropertyChanged(nameof(ModeToggleVisibility));
-        }
+        OnPropertyChanged(nameof(HasSyncedLyrics));
+        OnPropertyChanged(nameof(HasPlainLyrics));
+        OnPropertyChanged(nameof(ModeToggleVisibility));
     }
 
     private void OnDiagnosticsReceived(DiagnosticsPayload? diag)
@@ -1174,19 +1074,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         PollerStatus = diag.PollerStatus ?? "Idle";
         ConnectedClients = diag.ConnectedClients;
-        AuthorizedSessionsCount = diag.AuthorizedSessions;
         ActivePollIntervalMs = diag.ActivePollIntervalMs;
-        if (!string.IsNullOrEmpty(diag.ActiveUserName))
-        {
-            ActiveUserName = diag.ActiveUserName;
-        }
-        ActiveUserId = diag.ActiveUserId;
-
-        OnPropertyChanged(nameof(NoSessionsVisibility));
-        OnPropertyChanged(nameof(HasSessionsVisibility));
-        OnPropertyChanged(nameof(IsAuthorized));
-        OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
+        _session.ApplyDiagnostics(diag);
     }
 
     private void OnTick(object? sender, object e)
@@ -1352,41 +1241,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Task ResetOffsetAsync() => _timing.ResetOffsetAsync();
 
-    public async Task SubscribeToUserAsync(string? userId)
-    {
-        await _client.SubscribeToUserAsync(userId);
-    }
+    public Task SubscribeToUserAsync(string? userId) => _session.SubscribeToUserAsync(userId);
 
-    public async Task LogoutAsync()
-    {
-        await _client.LogoutAsync();
-        Sessions.Clear();
-        AuthorizedSessionsCount = 0;
-        ActiveUserId = null;
-        ActiveUserName = "None";
-        CurrentTitle = "No Track Playing";
-        CurrentArtist = "Play music on Spotify to begin";
-        CurrentAlbum = string.Empty;
-        AlbumArtUrl = null;
-        IsPlaying = false;
-        _transport.Reset();
-        _lastLyrics = null;
-        LyricLines.Clear();
-        HasLyrics = false;
-        IsStaticLyricsMode = false;
-        ActiveLineIndex = -1;
-        _themeManager.UpdateTrackMetadata(null, null, null);
-        NotifyEmptyStateText();
-        OnPropertyChanged(nameof(CurrentUserSession));
-        OnPropertyChanged(nameof(IsAuthorized));
-        OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
-        OnPropertyChanged(nameof(NoSessionsVisibility));
-        OnPropertyChanged(nameof(HasSessionsVisibility));
-        OnPropertyChanged(nameof(HasSyncedLyrics));
-        OnPropertyChanged(nameof(HasPlainLyrics));
-        OnPropertyChanged(nameof(ModeToggleVisibility));
-    }
+    public Task LogoutAsync() => _session.LogoutAsync();
 
     private static string FormatTime(long ms)
     {
