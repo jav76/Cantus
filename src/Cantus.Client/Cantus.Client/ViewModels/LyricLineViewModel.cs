@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Cantus.Client.Models;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -27,6 +29,9 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     private double _opacity = 0.75;
     private bool _isKaraokeEnabled = true;
     private readonly ScaleTransform? _lineProgressTransform;
+    private readonly string _text = string.Empty;
+    private readonly IReadOnlyList<SyllableTiming>? _syllables;
+    private SyllableFillTimeline? _syllableFill;
 
     public LyricLineViewModel()
     {
@@ -42,7 +47,15 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     }
 
     public long TimestampMs { get; init; }
-    public string Text { get; init; } = string.Empty;
+    public string Text
+    {
+        get => _text;
+        init
+        {
+            _text = value;
+            _syllableFill = SyllableFillTimeline.Create(_syllables, value);
+        }
+    }
 
     /// <summary>
     /// The line's real duration (gap to the next line's timestamp), or null for
@@ -50,6 +63,23 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     /// underline stays hidden.
     /// </summary>
     public long? DurationMs { get; init; }
+
+    /// <summary>
+    /// Real per-syllable timing, or null when the line only has line-level timing. When it holds
+    /// visible text the fill follows it instead of <see cref="DurationMs"/>.
+    /// </summary>
+    public IReadOnlyList<SyllableTiming>? Syllables
+    {
+        get => _syllables;
+        init
+        {
+            _syllables = value;
+            _syllableFill = SyllableFillTimeline.Create(value, _text);
+        }
+    }
+
+    /// <summary>True when the fill is driven by real syllable timing.</summary>
+    public bool HasWordTiming => _syllableFill is not null;
 
     public SolidColorBrush LineBrush => IsActive ? ActiveBrush : (IsPast ? PastBrush : InactiveBrush);
     public SolidColorBrush LineProgressBrush => ProgressBrush;
@@ -69,7 +99,9 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     public ScaleTransform? LineProgressTransform => _lineProgressTransform;
 
     public Visibility LineProgressVisibility =>
-        IsActive && DurationMs.HasValue && _isKaraokeEnabled ? Visibility.Visible : Visibility.Collapsed;
+        IsActive && (HasWordTiming || DurationMs.HasValue) && _isKaraokeEnabled
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     /// <summary>
     /// Pushed down from the view model's persisted karaoke-mode toggle so the
@@ -163,19 +195,32 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Advances the progress underline to the elapsed fraction of this line's
-    /// duration. Only the line's start and end times are real data (LRCLIB
-    /// lyrics are line-level), so the underline claims elapsed time - never a
-    /// specific word.
+    /// Advances the progress underline. With syllable timing it reaches the
+    /// sung word, holding still through gaps between syllables. Without it
+    /// only the line's start and end times are real data, so the underline
+    /// claims elapsed time over the line's duration - never a specific word.
     /// </summary>
     public void UpdateLineProgress(long positionMs)
     {
-        if (!IsActive || !DurationMs.HasValue || DurationMs.Value <= 0)
+        if (!IsActive)
         {
             return;
         }
 
-        double fraction = Math.Clamp((positionMs - TimestampMs) / (double)DurationMs.Value, 0.0, 1.0);
+        double fraction;
+        if (_syllableFill is not null)
+        {
+            fraction = _syllableFill.ComputeFraction(positionMs);
+        }
+        else if (DurationMs is > 0)
+        {
+            fraction = Math.Clamp((positionMs - TimestampMs) / (double)DurationMs.Value, 0.0, 1.0);
+        }
+        else
+        {
+            return;
+        }
+
         if (Math.Abs(fraction - LineProgressFraction) < PROGRESS_RENDER_EPSILON && fraction is not (0.0 or 1.0))
         {
             return;

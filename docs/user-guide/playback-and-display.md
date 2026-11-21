@@ -52,6 +52,11 @@ When manual scrolling pauses the display:
 - If no scrolling interaction occurs for **3 seconds**, Cantus automatically resumes auto-scrolling with a smooth transition back to the currently active line.
 - You can also tap the floating **Resume** button at any time to re-center immediately.
 
+### 4. Karaoke Underline
+With the **Karaoke** toggle on, an underline fills beneath the active line:
+- **Word-timed lyrics**: the underline follows each word as it is sung, pauses during rests inside the line, and moves slowly through held notes.
+- **Line-timed lyrics**: the underline fills evenly over the line's duration. It does not track individual words.
+
 ---
 
 ## Display Environments

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -763,6 +764,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private const long SUNG_MS_PER_CHAR = 90;
     private const long SUNG_BASE_MS = 600;
     private const long MIN_ESTIMATED_SUNG_MS = 1500;
+    private const long MIN_ESTIMATED_WORD_MS = 400;
 
     /// <summary>
     /// How long the active line's underline takes to fill. For continuous
@@ -784,6 +786,54 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         long estimate = SUNG_BASE_MS + (displayText.Length * SUNG_MS_PER_CHAR);
         return Math.Clamp(estimate, MIN_ESTIMATED_SUNG_MS, gapMs);
+    }
+
+    /// <summary>
+    /// Copies a line's syllables off the wire. Enhanced LRC word tags carry
+    /// only start times, so a syllable without a duration is sung until the
+    /// next syllable starts, and the last one until the line's fill end (the
+    /// same capped estimate a line without syllables fills over). When that
+    /// end is missing (the final line) or not after the last syllable's start,
+    /// the last syllable gets a text-length estimate instead of snapping full.
+    /// </summary>
+    private static IReadOnlyList<SyllableTiming>? MapSyllables(
+        List<LyricSyllablePayload>? syllables,
+        long? lineFillEndMs)
+    {
+        if (syllables is null || syllables.Count == 0)
+        {
+            return null;
+        }
+
+        List<LyricSyllablePayload> present = syllables
+            .Where(s => s is not null)
+            .ToList();
+        List<SyllableTiming> result = new(present.Count);
+        for (int i = 0; i < present.Count; i++)
+        {
+            LyricSyllablePayload syllable = present[i];
+            long durationMs = syllable.DurationMs;
+            if (durationMs <= 0)
+            {
+                bool isLast = i + 1 == present.Count;
+                long? untilMs = isLast ? lineFillEndMs : present[i + 1].TimestampMs;
+                durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
+                if (isLast && durationMs == 0)
+                {
+                    durationMs = EstimateWordSungMs(syllable.Text);
+                }
+            }
+
+            result.Add(new SyllableTiming(syllable.TimestampMs, durationMs, syllable.Text ?? string.Empty));
+        }
+
+        return result.Count > 0 ? result : null;
+    }
+
+    private static long EstimateWordSungMs(string? text)
+    {
+        int visibleChars = (text ?? string.Empty).Trim().Length;
+        return Math.Max(visibleChars * SUNG_MS_PER_CHAR, MIN_ESTIMATED_WORD_MS);
     }
 
     private void OnLyricsReceived(LyricsPayload? lyrics)
@@ -836,11 +886,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                     ? ComputeLineFillDurationMs(displayText, nextLineTimestampMs.Value - line.TimestampMs)
                     : null;
 
+                long? lineFillEndMs = lineDurationMs.HasValue ? line.TimestampMs + lineDurationMs.Value : null;
+
                 LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
                     Text = displayText,
-                    DurationMs = lineDurationMs
+                    DurationMs = lineDurationMs,
+                    Syllables = MapSyllables(line.Syllables, lineFillEndMs)
                 };
 
                 lineVm.RefreshFontSizes(active, inactive, past);

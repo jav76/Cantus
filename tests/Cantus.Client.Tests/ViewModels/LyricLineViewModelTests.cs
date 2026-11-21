@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using FluentAssertions;
 using Microsoft.UI.Xaml;
+using Moq;
 using Xunit;
 
 namespace Cantus.Client.Tests.ViewModels;
@@ -252,5 +254,314 @@ public sealed class LyricLineViewModelTests
         // A "♪" line IS the interlude: filling over the whole gap genuinely
         // tracks progress through it.
         LyricsViewModel.ComputeLineFillDurationMs("♪", 20000).Should().Be(20000);
+    }
+
+    [Fact]
+    public void UpdateLineProgress_WithSyllables_FollowsRealWordTiming()
+    {
+        // Arrange - the line's gap to the next line (6s) is longer than its singing
+        LyricLineViewModel line = new()
+        {
+            TimestampMs = 10000,
+            Text = "hold on",
+            DurationMs = 6000,
+            Syllables = new List<SyllableTiming>
+            {
+                new(10000, 500, "hold "),
+                new(12000, 1000, "on"),
+            },
+        };
+        line.IsActive = true;
+
+        // Act & Assert - fills "hold", rests through the gap, then fills "on"
+        line.UpdateLineProgress(10250);
+        line.LineProgressFraction.Should().BeApproximately(2.0 / 7, 0.001);
+
+        line.UpdateLineProgress(11000);
+        line.LineProgressFraction.Should().BeApproximately(4.0 / 7, 0.001);
+
+        line.UpdateLineProgress(11900);
+        line.LineProgressFraction.Should().BeApproximately(4.0 / 7, 0.001);
+
+        line.UpdateLineProgress(12500);
+        line.LineProgressFraction.Should().BeApproximately(6.0 / 7, 0.001);
+
+        line.UpdateLineProgress(13000);
+        line.LineProgressFraction.Should().Be(1.0);
+    }
+
+    [Fact]
+    public void UpdateLineProgress_TrimmedSyllables_TrackTheDisplayedText()
+    {
+        // Arrange - enhanced LRC: trimmed words, spaces only in the displayed text (18 characters)
+        LyricLineViewModel line = new()
+        {
+            TimestampMs = 1000,
+            Text = "We're no strangers",
+            DurationMs = 3000,
+            Syllables = new List<SyllableTiming>
+            {
+                new(1000, 300, "We're"),
+                new(1400, 300, "no"),
+                new(1700, 900, "strangers"),
+            },
+        };
+        line.IsActive = true;
+
+        // Act
+        line.UpdateLineProgress(1399);
+
+        // Assert - "We're" is done: 5 of the 18 displayed characters
+        line.LineProgressFraction.Should().BeApproximately(5.0 / 18, 0.001);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UpdateLineProgress_WithoutUsableSyllables_KeepsElapsedTimeFill(bool hasEmptySyllableList)
+    {
+        // Arrange
+        LyricLineViewModel line = new()
+        {
+            TimestampMs = 10000,
+            Text = "sing along",
+            DurationMs = 4000,
+            Syllables = hasEmptySyllableList ? new List<SyllableTiming>() : null,
+        };
+        line.IsActive = true;
+
+        // Act
+        line.UpdateLineProgress(11000);
+
+        // Assert
+        line.HasWordTiming.Should().BeFalse();
+        line.LineProgressFraction.Should().BeApproximately(0.25, 0.001);
+    }
+
+    [Fact]
+    public void LineProgressVisibility_FinalLineWithSyllables_ShowsTheFill()
+    {
+        // Arrange - the last line has no next line, but its syllables give a real end
+        LyricLineViewModel line = new()
+        {
+            TimestampMs = 10000,
+            Text = "the end",
+            DurationMs = null,
+            Syllables = new List<SyllableTiming> { new(10000, 400, "the "), new(10400, 600, "end") },
+        };
+
+        // Act
+        line.IsActive = true;
+        line.UpdateLineProgress(11000);
+
+        // Assert
+        line.HasWordTiming.Should().BeTrue();
+        line.LineProgressVisibility.Should().Be(Visibility.Visible);
+        line.LineProgressFraction.Should().Be(1.0);
+    }
+
+    [Fact]
+    public void OnLyricsReceived_CarriesSyllablesIntoLineViewModels()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 1000,
+                    Text = "We're no",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 1000, DurationMs = 420, Text = "We're " },
+                        new() { TimestampMs = 1420, DurationMs = 310, Text = "no" },
+                    },
+                },
+                new() { TimestampMs = 5000, Text = "plain line" },
+            },
+        });
+
+        // Assert
+        vm.LyricLines[0].HasWordTiming.Should().BeTrue();
+        vm.LyricLines[0].Syllables.Should().Equal(
+            new SyllableTiming(1000, 420, "We're "),
+            new SyllableTiming(1420, 310, "no"));
+        vm.LyricLines[1].HasWordTiming.Should().BeFalse();
+        vm.LyricLines[1].Syllables.Should().BeNull();
+        vm.LyricLines[1].DurationMs.Should().BeNull();
+    }
+
+    [Fact]
+    public void OnLyricsReceived_ZeroDurationSyllables_RunUntilTheNextSyllableOrTheLineFillEnd()
+    {
+        // Arrange - enhanced LRC word tags carry starts only, so the last word has no duration
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 1000,
+                    Text = "one two",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 1000, DurationMs = 0, Text = "one " },
+                        new() { TimestampMs = 1800, DurationMs = 0, Text = "two" },
+                    },
+                },
+                new() { TimestampMs = 4000, Text = "next" },
+            },
+        });
+
+        // Assert - "one" runs to "two", and "two" runs to the line's fill end
+        vm.LyricLines[0].Syllables.Should().Equal(
+            new SyllableTiming(1000, 800, "one "),
+            new SyllableTiming(1800, 2200, "two"));
+    }
+
+    [Fact]
+    public void OnLyricsReceived_FinalLineLastUntimedWord_GetsAnEstimatedDuration()
+    {
+        // Arrange - [03:10.00]<03:10.00>the <03:10.40>end: the final line has no fill end
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 190000,
+                    Text = "the end",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 190000, DurationMs = 0, Text = "the" },
+                        new() { TimestampMs = 190400, DurationMs = 0, Text = "end" },
+                    },
+                },
+            },
+        });
+        LyricLineViewModel line = vm.LyricLines[0];
+        line.IsActive = true;
+
+        // Assert - "end" fills over a short estimate instead of snapping full at its start
+        line.Syllables![1].DurationMs.Should().BePositive();
+        line.UpdateLineProgress(190400);
+        line.LineProgressFraction.Should().BeApproximately(4.0 / 7, 0.001);
+        line.UpdateLineProgress(190400 + (line.Syllables[1].DurationMs / 2));
+        line.LineProgressFraction.Should().BeApproximately(5.5 / 7, 0.001);
+    }
+
+    [Fact]
+    public void OnLyricsReceived_LastUntimedWordAfterACappedFillEnd_GetsAnEstimatedDuration()
+    {
+        // Arrange - a 20s gap caps the fill at 1.5s, but the last word only starts 2s in
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 1000,
+                    Text = "slow down",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 1000, DurationMs = 0, Text = "slow" },
+                        new() { TimestampMs = 3000, DurationMs = 0, Text = "down" },
+                    },
+                },
+                new() { TimestampMs = 21000, Text = "next" },
+            },
+        });
+
+        // Assert
+        vm.LyricLines[0].Syllables![0].DurationMs.Should().Be(2000);
+        vm.LyricLines[0].Syllables![1].DurationMs.Should().BePositive();
+    }
+
+    [Fact]
+    public void AdvancePlayback_SyllableLineUsesRealTiming_PlainLineUsesElapsedTime()
+    {
+        // Arrange - paused with no latency, so the render position is the poll position
+        Mock<ISignalRPlaybackClient> client = new();
+        LyricsViewModel vm = new(client.Object, new ThemeManager(), new ResponsiveLayoutManager());
+        vm.Timing.LatencyCompensationMs = 0;
+        vm.IsKaraokeModeEnabled = true;
+        client.Raise(c => c.LyricsReceived += null, new LyricsPayload
+        {
+            TrackId = "t1",
+            Title = "Song",
+            Artist = "Artist",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload>
+            {
+                new()
+                {
+                    TimestampMs = 10000,
+                    Text = "hold on",
+                    Syllables = new List<LyricSyllablePayload>
+                    {
+                        new() { TimestampMs = 10000, DurationMs = 500, Text = "hold " },
+                        new() { TimestampMs = 12000, DurationMs = 1000, Text = "on" },
+                    },
+                },
+                new() { TimestampMs = 14000, Text = "plain line" },
+                new() { TimestampMs = 18000, Text = "last" },
+            },
+        });
+
+        // Act & Assert - resting between "hold" and "on", not interpolating through the gap
+        RaisePausedAt(client, 11500);
+        vm.AdvancePlayback();
+        vm.ActiveLineIndex.Should().Be(0);
+        vm.LyricLines[0].LineProgressFraction.Should().BeApproximately(4.0 / 7, 0.001);
+
+        // Act & Assert - the plain line keeps the elapsed-time fill
+        RaisePausedAt(client, 15000);
+        vm.AdvancePlayback();
+        vm.ActiveLineIndex.Should().Be(1);
+        vm.LyricLines[1].LineProgressFraction.Should().BeApproximately(0.25, 0.001);
+    }
+
+    private static void RaisePausedAt(Mock<ISignalRPlaybackClient> client, long progressMs)
+    {
+        client.Raise(c => c.PlaybackStateReceived += null, new PlaybackStatePayload
+        {
+            CurrentTrack = new TrackInfoPayload { Id = "t1", Title = "Song", Artist = "Artist", DurationMs = 240000 },
+            ProgressMs = progressMs,
+            IsPlaying = false,
+            TimestampUtc = DateTimeOffset.UtcNow,
+        });
     }
 }
