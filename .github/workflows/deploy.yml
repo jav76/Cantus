@@ -20,11 +20,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Runs on the self-hosted `cantus` runner, which has the host Docker socket and
-  # the stack's compose directory mounted at the same path as on the host.
+  # Runs on the self-hosted `cantus-deploy` runner, which has the host Docker
+  # socket and the stack's compose directory mounted at the same path as on the
+  # host. This is the only job that targets it; build, test and packaging run on
+  # GitHub-hosted runners.
   deploy:
     name: Deploy Release Image
-    runs-on: [self-hosted, cantus]
+    runs-on: [self-hosted, cantus-deploy]
     env:
       COMPOSE_DIR: /opt/Docker/Development/Cantus
 
