@@ -27,6 +27,9 @@ jobs:
   deploy:
     name: Deploy Release Image
     runs-on: [self-hosted, cantus-deploy]
+    # The environment's deployment rule only admits `v*` tags, so a dispatch or
+    # call from a branch is rejected before the job reaches the runner.
+    environment: production
     env:
       COMPOSE_DIR: /opt/Docker/Development/Cantus
 
