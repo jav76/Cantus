@@ -44,6 +44,8 @@ Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info*
 | **OLED Monochrome** | True-black background with white accents. | OLED displays, burn-in avoidance. |
 | **Solarized Dark** | Classic Solarized base tones with blue accents. | Long reading sessions. |
 
+Every theme is dark, and the whole interface follows it: text boxes, menus, dropdowns, checkboxes, progress rings and dialogs (Find a song, Wrong lyrics?, Diagnostics) all switch colours with the theme, without a restart. Labels on accent-coloured buttons turn dark when the accent is light (for example the white accent of OLED Monochrome), so they stay readable.
+
 ---
 
 ## Lyric Animation States

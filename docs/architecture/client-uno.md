@@ -137,7 +137,7 @@ flowchart TD
 - Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, `Session`, and `Theme` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
@@ -153,11 +153,11 @@ flowchart TD
 | `DisplayPairingView` | Yes | | | | Yes | | | Yes | Yes |
 | `DisplaysCard` | Yes | | | | | Yes | | Yes | |
 | `DisplayPromptView` | Yes | | | | | Yes | | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | | |
-| `LyricsPickerDialog` | | | | | | | Yes | | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | Yes | |
+| `LyricsPickerDialog` | | | | | | | Yes | Yes | |
 | `SongLookupDialog` | | | | | | | | Yes | |
 
-`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property. `SongLookupDialog` takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
+`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property, with `Theme` set to `ThemeManager.Instance`. `SongLookupDialog` takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -182,7 +182,13 @@ flowchart TD
 - `LyricsViewModel` maps syllables off the wire. A syllable without a duration (enhanced LRC word tags carry only starts) runs until the next syllable starts, and the last one until the line's fill end. When there is no fill end (the final line) or it is not after the last syllable's start, the last syllable gets a short text-length estimate so it still fills instead of snapping full.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
-- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor`, `ActiveOnPrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- Brushes keep their identity: a palette change only sets `.Color` on each `SolidColorBrush`, so anything holding a brush follows the theme live.
+- `OnPrimaryAccentBrush` is the text and icon colour for accent backgrounds: near-black when the accent's relative luminance is above 0.5 (OLED Monochrome's white accent, bright Dynamic accents), white otherwise. `MenuSurfaceBrush` is the opaque card colour used for menus and dropdowns.
+- **App resources.** `App.xaml` sets `RequestedTheme="Dark"` (every palette is dark) and declares placeholder `Cantus*Brush` resources (`CantusTextPrimaryBrush`, `CantusTextSecondaryBrush`, `CantusTextMutedBrush`, `CantusBackgroundBrush`, `CantusSurfaceCardBrush`, `CantusMenuSurfaceBrush`, `CantusCardBorderBrush`, `CantusPrimaryAccentBrush`, `CantusOnPrimaryAccentBrush`). `App.OnLaunched` calls `ThemeManager.ApplyToResources` before `MainPage` exists, which replaces them with the live brushes.
+  - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
+  - Button keys are not mapped: most buttons set their own translucent `Background` and `Foreground`.
+  - Inside a `DataTemplate`, where `x:Bind Theme` is out of reach, use `{StaticResource CantusTextPrimaryBrush}` and the other `Cantus*` keys. They resolve to the live brushes, so they follow theme changes too.
 - `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
@@ -246,7 +252,7 @@ flowchart TD
 - `SongLookupClient` posts to `/api/lookup/search` and `/api/lookup/play` with payloads registered in `CantusJsonContext`. It reads `ServerBaseUrl` and the Session token per request, sends `Authorization: Bearer` only when a token exists, and otherwise relies on the same-origin `cantus_session_id` cookie (WASM after a reload).
 - `SongLookupViewModel` runs a two-phase search: `scope: "local"` first, so library guesses show at once; when the server answers `onlineRecommended`, a second call with `scope: "auto"` runs while those guesses stay visible. "Not it? Search online" sends `scope: "online"`. A generation counter and a `CancellationTokenSource` drop stale responses; closing the dialog cancels the search in flight. There is no search-as-you-type.
 - States (`SongLookupState`): `Idle`, `SearchingLibrary`, `SearchingOnline`, `Results`, `Empty`, `Error`, `RateLimited`. A `403` shows "needs a signed-in account"; an inbound `429` shows "try again in a minute".
-- `SongGuessViewModel` holds one guess: title, artist, matched lines, the match text ("86% match, in your library", "found online (NetEase)"), and its own Play and Queue status.
+- `SongGuessViewModel` holds one guess: title, artist and album (`ArtistAlbumText`, "Artist / Album" or just the artist), matched lines, the match text ("86% match, in your library", "found online (NetEase)"), and its own Play and Queue status.
 - `SongLookupDialog` is a `ContentDialog` opened from the header (a Find Song button on Large and Medium layouts, an overflow menu item on Small), visible only while both `Session.OwnerActionsVisibility` and `Pairing.OwnerControlsVisibility` are visible (`GetSongLookupVisibility`), so a client paired as a Display after a sign-in never shows it. It has no `DefaultButton`: Enter in the fragment box (`MaxLength` 200) is handled in `KeyDown` and searches instead of closing the dialog. `MainPage` skips its keyboard shortcuts while a text box has focus, so typing `K`, `T` or `M` does not trigger the kiosk, theme or mobile tab shortcuts.
 
 ---
