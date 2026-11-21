@@ -14,6 +14,8 @@ flowchart TD
         SignalR[SignalRPlaybackClient]
         Context[CantusJsonContext Source Generator]
         SignalR -.-> Context
+        LookupClient[SongLookupClient REST]
+        LookupClient -.-> Context
     end
 
     subgraph MVVM ViewModels
@@ -26,6 +28,8 @@ flowchart TD
         Anchor[OptimisticSeekAnchor]
         Timing[PlaybackTiming]
         Session[SessionViewModel]
+        Lookup[SongLookupViewModel]
+        Guess[SongGuessViewModel Collection]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
@@ -33,6 +37,8 @@ flowchart TD
         LVM --> Transport
         LVM --> Timing
         LVM --> Session
+        LVM --> Lookup
+        Lookup --> Guess
         Transport --> Anchor
         Timing --> Prefs
     end
@@ -45,12 +51,14 @@ flowchart TD
         MobileSettings[MobileSettingsView.xaml]
         MiniBar[MiniPlaybackBar.xaml]
         Hud[DiagnosticsHudDialog.xaml]
+        Find[SongLookupDialog.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
         MainView --> MobileSettings
         MainView --> MiniBar
         Header --> Hud
+        Header --> Find
     end
 
     SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
@@ -64,6 +72,9 @@ flowchart TD
     Session -->|sign-in state| Header
     Session --> TrackCard
     Session --> MobileSettings
+    Session -->|owner actions| Header
+    LookupClient -->|search / play| Lookup
+    Lookup -->|state, guesses| Find
 ```
 
 ---
@@ -78,7 +89,7 @@ flowchart TD
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
 - Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
@@ -88,7 +99,7 @@ flowchart TD
 - Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties. `SongLookupDialog` also takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
@@ -102,6 +113,7 @@ flowchart TD
 | `MobileTabBar` | Yes | | | | Yes | Yes |
 | `MiniPlaybackBar` | Yes | Yes | | | Yes | |
 | `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | |
+| `SongLookupDialog` | | | | | Yes | |
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -149,7 +161,15 @@ flowchart TD
 - `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
 - `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
+- `OwnerActionsVisibility` shows owner-only actions such as Find Song. It is keyed on `CurrentUserSession`, not `IsAuthorized`, because a paired Display is authorized but never receives the Session list.
 - Display management attaches here.
+
+### 11. `SongLookupViewModel`, `SongGuessViewModel` & `SongLookupDialog`
+- `SongLookupClient` posts to `/api/lookup/search` and `/api/lookup/play` with payloads registered in `CantusJsonContext`. It reads `ServerBaseUrl` and the Session token per request, sends `Authorization: Bearer` only when a token exists, and otherwise relies on the same-origin `cantus_session_id` cookie (WASM after a reload).
+- `SongLookupViewModel` runs a two-phase search: `scope: "local"` first, so library guesses show at once; when the server answers `onlineRecommended`, a second call with `scope: "auto"` runs while those guesses stay visible. "Not it? Search online" sends `scope: "online"`. A generation counter and a `CancellationTokenSource` drop stale responses; closing the dialog cancels the search in flight. There is no search-as-you-type.
+- States (`SongLookupState`): `Idle`, `SearchingLibrary`, `SearchingOnline`, `Results`, `Empty`, `Error`, `RateLimited`. A `403` shows "needs a signed-in account"; an inbound `429` shows "try again in a minute".
+- `SongGuessViewModel` holds one guess: title, artist, matched lines, the match text ("86% match, in your library", "found online (NetEase)"), and its own Play and Queue status.
+- `SongLookupDialog` is a `ContentDialog` opened from the header (a Find Song button on Large and Medium layouts, an overflow menu item on Small), visible only through `Session.OwnerActionsVisibility`. It has no `DefaultButton`: Enter in the fragment box (`MaxLength` 200) is handled in `KeyDown` and searches instead of closing the dialog. `MainPage` skips its keyboard shortcuts while a text box has focus, so typing `K`, `T` or `M` does not trigger the kiosk, theme or mobile tab shortcuts.
 
 ---
 
