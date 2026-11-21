@@ -97,6 +97,22 @@ View live structured logs:
 docker compose logs -f --tail=100 cantus
 ```
 
+### Session ids in logs from older releases
+
+A Session id is the value of the `cantus_session_id` cookie, so anyone who reads it can act as that owner. The server now logs a Session only as `{SessionRef}`, a 12-character hash that cannot be turned back into the id, and logs the Spotify user id where a message is about the Spotify account. Display tokens are never logged.
+
+Logs written by earlier releases may hold full Session ids, under `{UserId}` or `User:`. That includes rows in the `LogEntries` table (written with `--log-configuration debug` or `trace`) and the rolling `cantus-*.log` files. To clear them after upgrading:
+
+```bash
+docker compose stop cantus
+# The volume is usually <project>_cantus-data; check with `docker volume ls`.
+docker run --rm -v cantus_cantus-data:/data alpine \
+  sh -c "apk add -q sqlite && sqlite3 /data/cantus.db 'DELETE FROM LogEntries; VACUUM;'"
+docker compose up -d --force-recreate cantus
+```
+
+Recreating the container also removes the rolling log files, which live in its temp directory (`/tmp/cantus/logs`). Copies already shipped to an external log store have to be removed there. If old logs may have leaked, have the owner sign out: that deletes the Session, so its id stops working, and signing in again creates a new one. Signing out also removes the owner's Displays, which then need pairing again.
+
 ---
 
 ## 7. Paired Displays
