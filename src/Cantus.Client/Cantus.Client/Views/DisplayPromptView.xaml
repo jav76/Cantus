@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Approve, rename or remove a Display. Covers the page so it works the same on every layout. -->
-    <Grid Background="#B3000000">
+    <Grid Background="#B3000000" KeyDown="OnPromptKeyDown">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
                     BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
@@ -33,11 +33,24 @@
                                TextWrapping="Wrap"
                                Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
 
-                    <TextBlock Text="{x:Bind SignInHint}"
-                               Visibility="{x:Bind Displays.SignInHintVisibility, Mode=OneWay}"
-                               FontSize="12"
-                               TextWrapping="Wrap"
-                               Foreground="#F59E0B" />
+                    <StackPanel Spacing="8" Visibility="{x:Bind Displays.SignInHintVisibility, Mode=OneWay}">
+                        <TextBlock Text="{x:Bind SignInHint}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="#F59E0B" />
+                        <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
+                        <Button Click="OnConnectSpotifyClicked"
+                                Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                Foreground="White"
+                                CornerRadius="8"
+                                Padding="12,6"
+                                FontWeight="SemiBold">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8D6;" FontSize="12" />
+                                <TextBlock Text="Connect Spotify" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
                     <StackPanel Spacing="6" Visibility="{x:Bind Displays.CodeFieldVisibility, Mode=OneWay}">
                         <TextBlock Text="CODE"
@@ -47,7 +60,6 @@
                         <TextBox x:Name="CodeBox"
                                  Text="{x:Bind Displays.PromptCode, Mode=OneWay}"
                                  TextChanged="OnCodeChanged"
-                                 KeyDown="OnFieldKeyDown"
                                  PlaceholderText="K7QH-2MZP"
                                  FontSize="18"
                                  IsSpellCheckEnabled="False" />
@@ -61,7 +73,6 @@
                         <TextBox x:Name="NameBox"
                                  Text="{x:Bind Displays.PromptName, Mode=OneWay}"
                                  TextChanged="OnNameChanged"
-                                 KeyDown="OnFieldKeyDown"
                                  PlaceholderText="Living room TV"
                                  MaxLength="{x:Bind MaxNameLength}"
                                  FontSize="14" />
@@ -86,7 +97,8 @@
                                       Width="20"
                                       Height="20"
                                       Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                        <Button Grid.Column="2"
+                        <Button x:Name="CancelButton"
+                                Grid.Column="2"
                                 Click="OnCancelClicked"
                                 Content="Cancel"
                                 Background="#1AFFFFFF"

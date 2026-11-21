@@ -1,6 +1,8 @@
+using System;
 using System.ComponentModel;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -11,6 +13,8 @@ namespace Cantus.Client.Views;
 /// <summary>The page-level prompt that approves a Display's code, renames a Display or removes one.</summary>
 public sealed partial class DisplayPromptView : UserControl
 {
+    private static readonly ILogger<DisplayPromptView> _logger = ClientLoggingManager.CreateLogger<DisplayPromptView>();
+
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.Register(
             nameof(ViewModel),
@@ -49,6 +53,8 @@ public sealed partial class DisplayPromptView : UserControl
         get => (ThemeManager?)GetValue(ThemeProperty);
         private set => SetValue(ThemeProperty, value);
     }
+
+    private const string DEFAULT_SERVER_URL = "http://127.0.0.1:5000";
 
     public string SignInHint => DisplaysViewModel.SIGN_IN_HINT;
 
@@ -101,6 +107,9 @@ public sealed partial class DisplayPromptView : UserControl
                 NameBox.Focus(FocusState.Programmatic);
                 NameBox.SelectAll();
                 break;
+            case DisplayPromptMode.Revoke:
+                CancelButton.Focus(FocusState.Programmatic);
+                break;
         }
     }
 
@@ -120,9 +129,11 @@ public sealed partial class DisplayPromptView : UserControl
         }
     }
 
-    private async void OnFieldKeyDown(object sender, KeyRoutedEventArgs e)
+    // On the root, so Escape works wherever focus is inside the prompt, buttons included.
+    // Enter confirms only from a field, so it still activates a focused Cancel button.
+    private async void OnPromptKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Enter && Displays is not null && Displays.CanConfirm)
+        if (e.Key == VirtualKey.Enter && e.OriginalSource is TextBox && Displays is not null && Displays.CanConfirm)
         {
             e.Handled = true;
             await Displays.ConfirmPromptAsync();
@@ -131,6 +142,30 @@ public sealed partial class DisplayPromptView : UserControl
         {
             e.Handled = true;
             Displays?.CancelPrompt();
+        }
+    }
+
+    private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Displays?.KeepCodeThroughSignIn();
+            string loginPath = ViewModel?.Session.SpotifyLoginPath ?? SessionViewModel.SPOTIFY_LOGIN_PATH;
+#if __WASM__
+            string origin = WasmInterop.GetCurrentOrigin();
+            string loginUrl = !string.IsNullOrWhiteSpace(origin)
+                ? $"{origin}{loginPath}"
+                : loginPath;
+            WasmInterop.NavigateTo(loginUrl);
+#else
+            string baseUrl = ViewModel?.Session.ServerBaseUrl ?? DEFAULT_SERVER_URL;
+            Uri uri = new($"{baseUrl}{loginPath}");
+            await Windows.System.Launcher.LaunchUriAsync(uri);
+#endif
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error connecting to Spotify from the Display approval prompt");
         }
     }
 

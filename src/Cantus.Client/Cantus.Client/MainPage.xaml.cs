@@ -120,8 +120,19 @@ public sealed partial class MainPage : Page
 
     private void OnPageKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        // Letters typed into a field (the Display prompt's code and name) are not shortcuts.
-        if (e.OriginalSource is TextBox || Displays.IsPromptOpen)
+        // While the Display prompt is open, Escape closes it even when focus is outside it.
+        if (Displays.IsPromptOpen)
+        {
+            if (e.Key == VirtualKey.Escape)
+            {
+                Displays.CancelPrompt();
+                e.Handled = true;
+            }
+            return;
+        }
+
+        // Letters typed into a field are not shortcuts.
+        if (e.OriginalSource is TextBox)
         {
             return;
         }
