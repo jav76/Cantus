@@ -86,6 +86,24 @@ public sealed class ProviderRateGate
     }
 
     /// <summary>
+    /// How many lookup requests would be admitted right now: zero during a
+    /// cooldown, otherwise the permits left in the rolling minute. Spends nothing.
+    /// </summary>
+    public int GetAvailableLookupPermits(string providerName)
+    {
+        ProviderPolicy policy = GetPolicy(providerName);
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+
+        lock (_lock)
+        {
+            ProviderState state = GetState(providerName);
+            return GetBlockedFor(state, policy, isLookup: true, now) > TimeSpan.Zero
+                ? 0
+                : policy.LookupRequestsPerMinute - state.LookupRequests.Count;
+        }
+    }
+
+    /// <summary>
     /// Inspects a response the provider sent and starts a cooldown when it is a
     /// throttle. A 404 or any other status never does.
     /// </summary>

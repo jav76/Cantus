@@ -36,11 +36,12 @@ public sealed class LyricsSearchIndex : IDisposable
     public const int MAX_DIRTY_BEFORE_REBUILD = 1000;
 
     /// <summary>Songs scored between two cancellation and time-budget checks.</summary>
-    private const int SCAN_CHECK_INTERVAL = 64;
+    internal const int SCAN_CHECK_INTERVAL = 64;
+
+    internal static readonly TimeSpan ScanBudget = TimeSpan.FromMilliseconds(LOCAL_SCAN_BUDGET_MS);
 
     private static readonly TimeSpan MaxAge = TimeSpan.FromHours(INDEX_MAX_AGE_HOURS);
     private static readonly TimeSpan IdleEvictAfter = TimeSpan.FromMinutes(INDEX_IDLE_EVICT_MINUTES);
-    private static readonly TimeSpan ScanBudget = TimeSpan.FromMilliseconds(LOCAL_SCAN_BUDGET_MS);
 
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<LyricsSearchIndex> _logger;

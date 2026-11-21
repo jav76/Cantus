@@ -39,6 +39,21 @@ public sealed class LyricsSearchRegistrationTests
     }
 
     [Fact]
+    public void Container_ResolvesTheLookupServiceThroughItsTraceDecorator()
+    {
+        using ServiceProvider provider = BuildValidatedProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        ISongLookupService service = scope.ServiceProvider.GetRequiredService<ISongLookupService>();
+
+        service.Should().BeOfType<TraceLoggingSongLookupServiceDecorator>();
+        provider.GetRequiredService<SongLookupBudget>()
+            .Should().BeSameAs(provider.GetRequiredService<SongLookupBudget>());
+        provider.GetRequiredService<SongLookupQueryCache>()
+            .Should().BeSameAs(provider.GetRequiredService<SongLookupQueryCache>());
+    }
+
+    [Fact]
     public void DbContext_HasTheSingletonChangeInterceptorAttached()
     {
         using ServiceProvider provider = BuildValidatedProvider();

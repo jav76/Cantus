@@ -137,6 +137,14 @@ public static class DependencyInjection
                 sp.GetRequiredService<SqliteLyricsCorpusReader>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCorpusReaderDecorator>>()));
 
+        services.AddSingleton<SongLookupQueryCache>();
+        services.AddSingleton<SongLookupBudget>();
+        services.AddScoped<SongLookupService>();
+        services.AddScoped<ISongLookupService>(sp =>
+            new TraceLoggingSongLookupServiceDecorator(
+                sp.GetRequiredService<SongLookupService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSongLookupServiceDecorator>>()));
+
         // 6. Spotify Services
         services.AddScoped<SpotifyAuthService>();
         services.AddScoped<ISpotifyAuthService>(sp =>
