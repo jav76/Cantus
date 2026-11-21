@@ -19,7 +19,7 @@ flowchart LR
 
 ## Key User Features
 
-- **Multi-Screen & Multi-Room Support**: Multiple displays can subscribe to your Spotify stream simultaneously. Have one display on your desk and another on your living room TV.
+- **Multiple Screens & Paired Displays**: Any number of screens can follow your Spotify playback at once. Sign in on your own devices, and pair shared screens such as a family TV as view-only [Displays](displays.md) that never hold your Spotify sign-in.
 - **Micro-Smooth Karaoke Scrolling**: Lyrics scroll smoothly to center the active singing line with gentle animations.
 - **Audio Delay Calibration**: Adjust per-track or global millisecond offsets when using Bluetooth or AirPlay speakers with inherent audio latency.
 - **Dynamic Artwork Palette Theming**: The background ambient lighting and accent typography dynamically adapt to match the album artwork of the currently playing track.
@@ -33,5 +33,6 @@ flowchart LR
 Explore the sections below to get the most out of your Cantus setup:
 
 1. [**Playback & Display Modes**](playback-and-display.md): Fullscreen mode, TV/kiosk setup, responsive layouts, and keyboard shortcuts.
-2. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
-3. [**Dynamic Theming & Visuals**](theming.md): Light/dark themes, album palette generation, and lyric animation states.
+2. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
+3. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
+4. [**Dynamic Theming & Visuals**](theming.md): Light/dark themes, album palette generation, and lyric animation states.

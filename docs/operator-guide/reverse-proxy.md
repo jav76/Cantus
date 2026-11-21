@@ -26,6 +26,21 @@ Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse 
 
 ---
 
+## Display Pairing Behind a Reverse Proxy
+
+[Pairing a Display](displays.md) needs no extra proxy rules. It uses the same `/api` routes and `/hubs/playback` WebSocket as the rest of the app. Three things depend on your proxy setup:
+
+- **The pairing rate limit keys on the client address.** Requesting a code and approving one are each limited per client address (`DisplayPairing__RateLimitPermitLimit`, 10 per minute by default). Cantus takes that address from `X-Forwarded-For` only when the proxy is trusted (see above). If it is not, every client appears to come from the proxy's own address and shares one limit, so screens show "Too many pairing requests" and approvals fail with `429` as soon as a few people pair at once. Trust the proxy instead of raising the limit.
+- **`TrustAllProxies` lets clients pick their own address.** If Cantus is also reachable directly, a client can send a made-up `X-Forwarded-For` and get a fresh rate limit for each value. Remove the published port when you use it.
+- **Screens behind one NAT share a limit.** Every device on one home network usually has the same public address. Raise `DisplayPairing__RateLimitPermitLimit` if many screens on one network pair at the same time.
+
+The QR code on a waiting screen encodes the address the screen loaded Cantus from. Open screens at the public address phones use (for example `https://cantus.yourdomain.com`), not an internal one such as `http://cantus:5000`.
+
+!!! warning "Credentials in access logs"
+    A browser cannot set headers on a WebSocket, so the web app's SignalR client puts the connection's credential (a Session id or a Display token) in the `access_token` query parameter of `/hubs/playback`. A proxy that logs full request URLs writes these credentials to its access log. Drop query strings from logged URLs, or keep the logs as private as the database.
+
+---
+
 ## 1. Caddy (Recommended)
 
 Caddy automatically obtains and renews Let's Encrypt certificates and passes WebSocket headers by default:

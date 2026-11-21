@@ -57,7 +57,7 @@ flowchart TB
 
 ### 2. Server Engine & Real-Time Hub (ASP.NET Core)
 - **Technology**: ASP.NET Core 10 Minimal APIs, Microsoft SignalR.
-- **Responsibilities**: Coordinates connected client display rooms, manages the background adaptive polling engine (featuring end-of-track acceleration, graduated backoff, client tab visibility throttling, and on-demand refresh), orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
+- **Responsibilities**: Tracks each owner's connected Session and Display connections, manages the background adaptive polling engine (featuring end-of-track acceleration, graduated backoff, client tab visibility throttling, and on-demand refresh), orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
 
 ### 3. Core Domain Models & Contracts
 - **Technology**: Pure .NET 10 Standard library (Zero external framework dependencies).

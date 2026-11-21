@@ -93,8 +93,8 @@ sequenceDiagram
     participant Spotify as Spotify Web API
     participant Cache as SQLite & LRCLIB
 
-    Listener->>Client: Open Room / Connect
-    Client->>Hub: JoinRoom & NTP Clock Sync
+    Listener->>Client: Open Cantus / Connect
+    Client->>Hub: SubscribeToUser & NTP Clock Sync
     Hub-->>Client: NTP Pong (Offset Estimation)
     Poller->>Spotify: Poll Current Playback State
     Spotify-->>Poller: Track ID, Progress, IsPlaying
