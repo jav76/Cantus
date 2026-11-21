@@ -6,11 +6,8 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-            BorderThickness="1"
-            CornerRadius="20"
-            Padding="{x:Bind GetStagePadding(Layout.CurrentBreakpoint), Mode=OneWay}">
+    <!-- No card: the lyrics sit on the page backdrop (the ambient scrim keeps them readable) -->
+    <Border Padding="{x:Bind GetStagePadding(Layout.CurrentBreakpoint), Mode=OneWay}">
         <Grid RowDefinitions="Auto,*">
             
             <!-- Top Action Controls -->

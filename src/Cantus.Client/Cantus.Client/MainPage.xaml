@@ -104,7 +104,7 @@
                   RowDefinitions="*,Auto">
                 
                 <!-- Center-Anchored 10-Foot Lyrics Stage: Stretch + MaxWidth keeps the
-                     stage card a constant, self-centered width instead of resizing to
+                     stage a constant, self-centered width instead of resizing to
                      the widest currently-rendered lyric line -->
                 <views:LyricsStageView x:Name="KioskLyricsStage"
                                       Grid.Row="0"

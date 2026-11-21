@@ -154,6 +154,34 @@ public sealed class LyricsViewModelTests
         changed.Should().Contain(nameof(LyricsViewModel.AutoScrollToggleIcon));
     }
 
+    [Theory]
+    [InlineData(LyricsViewModel.AMBIENT_SCRIM_OPACITY, 0.62)]
+    [InlineData(LyricsViewModel.BLURRED_AMBIENT_SCRIM_OPACITY, 0.55)]
+    public void AmbientScrim_WithoutStageCard_IsNoLighterThanOldScrimPlusCardOverWhiteCover(
+        double scrimOpacity,
+        double oldScrimOpacity)
+    {
+        // The worst case for white lyrics is a white cover: compare every channel of what
+        // shows through for every Dynamic background hue.
+        const double CHANNEL_MAX = 255.0;
+        double cardAlpha = ColorExtractionHelper.SURFACE_CARD_ALPHA / CHANNEL_MAX;
+        double newChannel = (1 - scrimOpacity) * CHANNEL_MAX;
+
+        for (int hue = 0; hue < 360; hue++)
+        {
+            Windows.UI.Color card = ColorExtractionHelper.HslToRgb(
+                hue,
+                ColorExtractionHelper.SURFACE_CARD_SATURATION,
+                ColorExtractionHelper.SURFACE_CARD_LIGHTNESS);
+
+            foreach (byte channel in new[] { card.R, card.G, card.B })
+            {
+                double oldChannel = cardAlpha * channel + (1 - cardAlpha) * (1 - oldScrimOpacity) * CHANNEL_MAX;
+                newChannel.Should().BeLessThanOrEqualTo(oldChannel, $"hue {hue}");
+            }
+        }
+    }
+
     [Fact]
     public void StaticLyricsText_WhenLinesExist_GeneratesFormattedText()
     {
