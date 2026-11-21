@@ -38,7 +38,7 @@
                     BorderThickness="1"
                     CornerRadius="16"
                     Padding="16,14"
-                    Visibility="{x:Bind LyricsPicker.ActionVisibility, Mode=OneWay}">
+                    Visibility="{x:Bind GetLyricsPickerVisibility(Pairing.OwnerControlsVisibility, LyricsPicker.ActionVisibility), Mode=OneWay}">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <TextBlock Text="LYRICS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />

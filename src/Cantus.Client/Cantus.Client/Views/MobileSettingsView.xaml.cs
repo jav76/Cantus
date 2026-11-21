@@ -209,7 +209,14 @@ public sealed partial class MobileSettingsView : UserControl
 
     /// <summary>The Displays card shows only for a signed-in owner, never on a Display.</summary>
     public Visibility GetDisplaysCardVisibility(Visibility ownerControls, Visibility displaysSection) =>
-        ownerControls == Visibility.Visible && displaysSection == Visibility.Visible
+        BothVisible(ownerControls, displaysSection);
+
+    /// <summary>The "Wrong lyrics?" card is owner-only, so it never shows on a Display.</summary>
+    public Visibility GetLyricsPickerVisibility(Visibility ownerControls, Visibility pickerAction) =>
+        BothVisible(ownerControls, pickerAction);
+
+    private static Visibility BothVisible(Visibility first, Visibility second) =>
+        first == Visibility.Visible && second == Visibility.Visible
             ? Visibility.Visible
             : Visibility.Collapsed;
 

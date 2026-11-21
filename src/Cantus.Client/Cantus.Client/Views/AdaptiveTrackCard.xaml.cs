@@ -297,6 +297,12 @@ public sealed partial class AdaptiveTrackCard : UserControl
         }
     }
 
+    /// <summary>The "Wrong lyrics?" button is owner-only, so it never shows on a Display.</summary>
+    public Visibility GetLyricsPickerVisibility(Visibility ownerControls, Visibility pickerAction) =>
+        ownerControls == Visibility.Visible && pickerAction == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
     public Visibility GetStandardCardVisibility(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;

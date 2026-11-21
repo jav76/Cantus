@@ -247,7 +247,7 @@
 
                     <!-- Wrong Lyrics Picker (owner only) -->
                     <Button Click="OnWrongLyricsClicked"
-                            Visibility="{x:Bind LyricsPicker.ActionVisibility, Mode=OneWay}"
+                            Visibility="{x:Bind GetLyricsPickerVisibility(Pairing.OwnerControlsVisibility, LyricsPicker.ActionVisibility), Mode=OneWay}"
                             HorizontalAlignment="Stretch"
                             Background="#15FFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"

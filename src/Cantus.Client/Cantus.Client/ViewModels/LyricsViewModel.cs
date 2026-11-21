@@ -528,7 +528,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _lyricsPicker = new LyricsPickerViewModel(
             lyricsCorrection ?? new LyricsCorrectionService(client),
             _session,
-            () => _transport.PlaybackState?.CurrentTrack);
+            () => _transport.PlaybackState?.CurrentTrack,
+            _pairing);
         _lyricsPicker.LyricsChanged += OnPickerLyricsChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;

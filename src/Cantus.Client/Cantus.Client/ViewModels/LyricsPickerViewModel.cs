@@ -36,6 +36,7 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     private readonly ILyricsCorrectionService _service;
     private readonly SessionViewModel _session;
     private readonly Func<TrackInfoPayload?> _currentTrack;
+    private readonly DisplayPairingViewModel? _pairing;
 
     private string? _trackId;
     private bool _isAvailable;
@@ -54,14 +55,20 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     public LyricsPickerViewModel(
         ILyricsCorrectionService service,
         SessionViewModel session,
-        Func<TrackInfoPayload?> currentTrack)
+        Func<TrackInfoPayload?> currentTrack,
+        DisplayPairingViewModel? pairing = null)
     {
         _service = service;
         _session = session;
         _currentTrack = currentTrack;
+        _pairing = pairing;
         _trackId = CurrentTrackId();
         _isAvailable = ComputeIsAvailable();
         _session.PropertyChanged += OnSessionPropertyChanged;
+        if (_pairing is not null)
+        {
+            _pairing.PropertyChanged += OnPairingPropertyChanged;
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -72,9 +79,10 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     public ObservableCollection<LyricsCandidateItem> Candidates { get; } = new();
 
     /// <summary>
-    /// Whether the owner can correct the current track's lyrics. Only a
-    /// signed-in owner gets the Session list; a Display never does, even
-    /// though it receives the owner's playback and diagnostics.
+    /// Whether the owner can correct the current track's lyrics: a Session is
+    /// signed in, a track is playing, and this client is not a paired Display.
+    /// A Display normally never gets the Session list, but one paired after a
+    /// sign-in can still hold the stale list, so the Display check is kept too.
     /// </summary>
     public bool IsAvailable => _isAvailable;
 
@@ -361,7 +369,10 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
         return string.IsNullOrEmpty(trackId) ? null : trackId;
     }
 
-    private bool ComputeIsAvailable() => _session.CurrentUserSession is not null && _trackId is not null;
+    private bool ComputeIsAvailable() =>
+        _session.CurrentUserSession is not null
+        && _trackId is not null
+        && _pairing?.IsDisplay != true;
 
     private void UpdateAvailability()
     {
@@ -384,6 +395,14 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SessionViewModel.CurrentUserSession))
+        {
+            UpdateAvailability();
+        }
+    }
+
+    private void OnPairingPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DisplayPairingViewModel.IsDisplay))
         {
             UpdateAvailability();
         }
