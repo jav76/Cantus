@@ -26,6 +26,79 @@
             <SolidColorBrush x:Key="CantusTextSecondaryBrush" Color="#CBD5E1" />
             <SolidColorBrush x:Key="CantusTextMutedBrush" Color="#64748B" />
 
+            <!-- Implicit Button style: keeps Material's minimum size and fonts, but its template keeps each button's own
+                 Background in every state (Material swaps in its own primary colour on hover, press and focus) and
+                 draws hover, press and keyboard focus from the active palette. Padding is the whole inner gap: Material's
+                 extra 8 px content margin is dropped, so narrow button rows (sync offset) keep their labels readable. -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialBaseButtonStyle}">
+                <Setter Property="Background" Value="#1AFFFFFF" />
+                <Setter Property="Foreground" Value="{ThemeResource CantusTextPrimaryBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CantusCardBorderBrush}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="{TemplateBinding CornerRadius}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="StateLayer.Opacity" Value="0.08" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="StateLayer.Opacity" Value="0.16" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.45" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="FocusStates">
+                                        <VisualState x:Name="Unfocused" />
+                                        <VisualState x:Name="Focused">
+                                            <VisualState.Setters>
+                                                <Setter Target="FocusRing.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerFocused" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <Border x:Name="StateLayer"
+                                        Background="{ThemeResource CantusTextPrimaryBrush}"
+                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                        Opacity="0" />
+                                <Border x:Name="FocusRing"
+                                        BorderBrush="{ThemeResource CantusPrimaryAccentBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                        Opacity="0" />
+                                <ContentPresenter x:Name="ContentPresenter"
+                                                  Padding="{TemplateBinding Padding}"
+                                                  Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  ContentTransitions="{TemplateBinding ContentTransitions}"
+                                                  Foreground="{TemplateBinding Foreground}"
+                                                  FontFamily="{TemplateBinding FontFamily}"
+                                                  FontSize="{TemplateBinding FontSize}"
+                                                  FontWeight="{TemplateBinding FontWeight}"
+                                                  CharacterSpacing="{TemplateBinding CharacterSpacing}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <SolidColorBrush x:Key="BrandPrimaryBrush" Color="#8B5CF6" />
             <SolidColorBrush x:Key="BrandDarkBackgroundBrush" Color="#0C0D14" />
             <SolidColorBrush x:Key="SurfaceCardBrush" Color="#CC121420" />

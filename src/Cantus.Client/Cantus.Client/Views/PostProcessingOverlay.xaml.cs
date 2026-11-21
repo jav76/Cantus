@@ -21,14 +21,14 @@ public sealed partial class PostProcessingOverlay : UserControl
 {
     private const double GRAIN_TILE_SIZE = 256;
     private const int GRAIN_FRAME_INTERVAL_MS = 42;
-    private const double GRAIN_OPACITY = 0.5;
+    private const double GRAIN_OPACITY = 0.35;
     private const string GRAIN_TILE_URI_FORMAT = "ms-appx:///Assets/PostProcessing/grain_{0}.png";
     private const int GRAIN_TILE_COUNT = 3;
 
-    private const double VIGNETTE_CLEAR_STOP = 0.55;
+    private const double VIGNETTE_CLEAR_STOP = 0.6;
     private const double VIGNETTE_MID_STOP = 0.82;
-    private const byte VIGNETTE_MID_ALPHA = 40;
-    private const byte VIGNETTE_EDGE_ALPHA = 110;
+    private const byte VIGNETTE_MID_ALPHA = 22;
+    private const byte VIGNETTE_EDGE_ALPHA = 72;
 
     private readonly Random _random = new();
     private readonly Canvas[] _grainLayers = new Canvas[GRAIN_TILE_COUNT];
