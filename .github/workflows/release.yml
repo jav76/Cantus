@@ -28,6 +28,15 @@ jobs:
       is_prerelease: ${{ steps.meta.outputs.IS_PRERELEASE }}
 
     steps:
+      - name: Restrict Manual Releases to main or a Tag
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" && "$GITHUB_REF" != refs/tags/v* ]]; then
+            echo "::error::Manual releases must be dispatched from main or a v* tag, not ${GITHUB_REF}."
+            exit 1
+          fi
+
       - name: Parse and Validate Version & Tag
         id: meta
         shell: bash
@@ -407,9 +416,12 @@ jobs:
   # ============================================================================
   # 5. Deploy to the Local Development Stack
   # ============================================================================
+  # A manual release from main still publishes, but only a tag deploys: the
+  # production environment would reject any other ref.
   deploy:
     name: Deploy to Development Stack
     needs: [prepare, publish-release]
+    if: startsWith(github.ref, 'refs/tags/v')
     uses: ./.github/workflows/deploy.yml
     with:
       tag: ${{ needs.prepare.outputs.tag }}
