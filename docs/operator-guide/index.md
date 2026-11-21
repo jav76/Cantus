@@ -32,4 +32,5 @@ flowchart TD
 1. [**Self-Hosting with Docker**](self-hosting.md): Docker Compose files, volume mounts, architecture support, and container updates.
 2. [**Spotify Developer App Setup**](spotify-setup.md): Step-by-step instructions to create your Spotify OAuth application and set Redirect URIs.
 3. [**Reverse Proxy Configuration**](reverse-proxy.md): Production HTTPS and WebSocket upgrade configurations for Caddy, Nginx, and Traefik.
-4. [**Troubleshooting & Diagnostics**](troubleshooting.md): Debugging Spotify rate limits, token encryption issues, clock skew, and log outputs.
+4. [**Displays & Display Tokens**](displays.md): What a paired screen's token can do, how long it lasts, how revocation works, and pairing behind a proxy.
+5. [**Troubleshooting & Diagnostics**](troubleshooting.md): Debugging Spotify rate limits, token encryption issues, clock skew, and log outputs.
