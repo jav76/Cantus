@@ -24,6 +24,8 @@ public partial class App : Application
     {
         base.OnLaunched(args);
 
+        ThemeManager.Instance.ApplyToResources(Resources);
+
         MainWindow ??= Microsoft.UI.Xaml.Window.Current ?? new Window();
 
         if (MainWindow.Content is not Frame rootFrame)

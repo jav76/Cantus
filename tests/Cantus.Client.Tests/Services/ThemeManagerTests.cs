@@ -469,4 +469,113 @@ public sealed class ThemeManagerTests
         notified.Should().Contain(nameof(ThemeManager.ActivePrimaryAccentColor));
         notified.Should().Contain(nameof(ThemeManager.ActiveBackgroundColor));
     }
+
+    [Fact]
+    public void OnPrimaryAccent_OledMonochromeWhiteAccent_IsNearBlack()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(ThemeMode.OLEDMonochrome);
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(tm.ActiveOnPrimaryAccentColor).Should().BeLessThan(0.05);
+        tm.ActiveOnPrimaryAccentColor.A.Should().Be(255);
+    }
+
+    [Theory]
+    [InlineData(ThemeMode.MidnightViolet)]
+    [InlineData(ThemeMode.EmeraldSynth)]
+    [InlineData(ThemeMode.CyberpunkSunset)]
+    [InlineData(ThemeMode.NordicSlate)]
+    [InlineData(ThemeMode.SolarizedDark)]
+    public void OnPrimaryAccent_ColouredAccents_StayWhite(ThemeMode mode)
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(mode);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void OnPrimaryAccent_Dynamic_FollowsTheExtractedAccent()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new();
+        ThemeManager tm = CreateThemeManager(handler);
+        tm.UpdateTrackMetadata("Song", "Artist", null);
+
+        // Act
+        tm.SetThemeMode(ThemeMode.Dynamic);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().Be(ThemeManager.GetOnAccentColor(tm.ActivePalette.PrimaryAccent));
+    }
+
+    [Fact]
+    public void GetOnAccentColor_PicksDarkForLightAccentsAndWhiteForDarkOnes()
+    {
+        // Act
+        Color onYellow = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 250, 204, 21));
+        Color onBlue = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 37, 99, 235));
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(onYellow).Should().BeLessThan(0.05);
+        onBlue.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void PaletteChange_NotifiesOnPrimaryAccentAndMenuSurfaceBrushes()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        List<string?> notified = new();
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        tm.SetThemeMode(ThemeMode.OLEDMonochrome);
+
+        // Assert
+        notified.Should().Contain(nameof(ThemeManager.OnPrimaryAccentBrush));
+        notified.Should().Contain(nameof(ThemeManager.MenuSurfaceBrush));
+        notified.Should().Contain(nameof(ThemeManager.ActiveOnPrimaryAccentColor));
+    }
+
+    [Fact]
+    public void GetMenuSurfaceColor_IsTheOpaqueCardColour()
+    {
+        // Act
+        Color surface = ThemeManager.GetMenuSurfaceColor(ColorPalette.NordicSlate);
+
+        // Assert
+        surface.Should().Be(Color.FromArgb(255, 30, 41, 59));
+    }
+
+    [Theory]
+    [InlineData("CantusTextPrimaryBrush", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("CantusOnPrimaryAccentBrush", ThemeManager.ThemeBrush.OnPrimaryAccent)]
+    [InlineData("OutlinedTextBoxForegroundFocused", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("OutlinedTextBoxPlaceholderForeground", ThemeManager.ThemeBrush.TextMuted)]
+    [InlineData("OnSurfaceBrush", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("SurfaceBrush", ThemeManager.ThemeBrush.MenuSurface)]
+    [InlineData("ComboBoxDropDownBackground", ThemeManager.ThemeBrush.MenuSurface)]
+    [InlineData("CheckBoxGlyphForegroundChecked", ThemeManager.ThemeBrush.OnPrimaryAccent)]
+    [InlineData("ProgressRingForeground", ThemeManager.ThemeBrush.PrimaryAccent)]
+    public void ResourceBrushKeys_MapControlKeysToThemeBrushes(string key, ThemeManager.ThemeBrush expected)
+    {
+        // Assert
+        ThemeManager.ResourceBrushKeys.Should().ContainKey(key).WhoseValue.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ResourceBrushKeys_LeaveButtonTemplatesAlone()
+    {
+        // Assert
+        ThemeManager.ResourceBrushKeys.Keys.Should().NotContain(key => key.Contains("Button") && !key.StartsWith("TextBoxDeleteButton"));
+    }
 }

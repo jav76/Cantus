@@ -1,7 +1,8 @@
 <Application x:Class="Cantus.Client.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:um="using:Uno.Material">
+             xmlns:um="using:Uno.Material"
+             RequestedTheme="Dark">
 
     <Application.Resources>
         <ResourceDictionary>
@@ -13,6 +14,17 @@
             <!-- Bundled because Consolas is missing on WASM and Linux. The Bold file is its own family: set no FontWeight on it, or renderers add a synthetic bold. -->
             <FontFamily x:Key="MonoFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Regular.ttf#Noto Sans Mono</FontFamily>
             <FontFamily x:Key="MonoBoldFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Bold.ttf#Noto Sans Mono</FontFamily>
+
+            <!-- Placeholders: App.OnLaunched swaps these for ThemeManager's live brushes (ThemeManager.ApplyToResources), along with the Material lightweight-styling keys. -->
+            <SolidColorBrush x:Key="CantusBackgroundBrush" Color="#0C0D14" />
+            <SolidColorBrush x:Key="CantusSurfaceCardBrush" Color="#CC121420" />
+            <SolidColorBrush x:Key="CantusMenuSurfaceBrush" Color="#121420" />
+            <SolidColorBrush x:Key="CantusCardBorderBrush" Color="#22FFFFFF" />
+            <SolidColorBrush x:Key="CantusPrimaryAccentBrush" Color="#8B5CF6" />
+            <SolidColorBrush x:Key="CantusOnPrimaryAccentBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="CantusTextPrimaryBrush" Color="#F8FAFC" />
+            <SolidColorBrush x:Key="CantusTextSecondaryBrush" Color="#CBD5E1" />
+            <SolidColorBrush x:Key="CantusTextMutedBrush" Color="#64748B" />
 
             <SolidColorBrush x:Key="BrandPrimaryBrush" Color="#8B5CF6" />
             <SolidColorBrush x:Key="BrandDarkBackgroundBrush" Color="#0C0D14" />
