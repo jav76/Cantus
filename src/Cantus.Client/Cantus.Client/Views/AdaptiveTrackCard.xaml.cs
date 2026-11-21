@@ -305,10 +305,25 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private void OnAlbumArtFrameSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double side = e.NewSize.Width;
-        if (side > 0 && (double.IsNaN(AlbumArtFrame.Height) || Math.Abs(AlbumArtFrame.Height - side) > 0.5))
+        UpdateAlbumArtHeight(e.NewSize.Width);
+    }
+
+    private void OnStandardCardScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateAlbumArtHeight(AlbumArtFrame.ActualWidth);
+    }
+
+    private void UpdateAlbumArtHeight(double width)
+    {
+        double? height = SquareArtSizing.GetNextHeight(
+            AlbumArtFrame.Height,
+            width,
+            StandardCardScroller.ComputedVerticalScrollBarVisibility == Visibility.Visible,
+            StandardCardScroller.ExtentHeight,
+            StandardCardScroller.ViewportHeight);
+        if (height is double next)
         {
-            AlbumArtFrame.Height = side;
+            AlbumArtFrame.Height = next;
         }
     }
 

@@ -107,7 +107,7 @@ public sealed partial class MobileTabBar : UserControl
         MobileViewMode active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
         if (active == currentTab)
         {
-            return new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+            return ThemeManager.Instance.OnPrimaryAccentBrush;
         }
         return ThemeManager.Instance.TextMutedBrush;
     }

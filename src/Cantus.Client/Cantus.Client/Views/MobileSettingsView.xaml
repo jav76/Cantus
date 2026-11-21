@@ -108,7 +108,6 @@
                     <ComboBox ItemsSource="{x:Bind services:ThemeManager.AvailableModeNames}"
                               SelectedIndex="{x:Bind Theme.CurrentModeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
-                              Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
                               AutomationProperties.Name="Color theme" />
                     <CheckBox Content="Post-processing effects"
                               IsChecked="{x:Bind ViewModel.IsPostProcessingEnabled, Mode=TwoWay}"

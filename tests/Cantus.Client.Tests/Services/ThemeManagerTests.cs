@@ -514,7 +514,57 @@ public sealed class ThemeManagerTests
         tm.SetThemeMode(ThemeMode.Dynamic);
 
         // Assert
-        tm.ActiveOnPrimaryAccentColor.Should().Be(ThemeManager.GetOnAccentColor(tm.ActivePalette.PrimaryAccent));
+        tm.ActiveOnPrimaryAccentColor.Should().Be(ThemeManager.GetOnAccentColor(tm.ActivePalette.PrimaryAccent, useHigherContrast: true));
+    }
+
+    [Theory]
+    [InlineData(250, 165, 80)]
+    [InlineData(209, 186, 71)]
+    [InlineData(242, 128, 13)]
+    public void GetOnAccentColor_HigherContrast_PicksDarkForMidLuminanceAccents(byte r, byte g, byte b)
+    {
+        // Act
+        Color onAccent = ThemeManager.GetOnAccentColor(Color.FromArgb(255, r, g, b), useHigherContrast: true);
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(onAccent).Should().BeLessThan(0.05);
+    }
+
+    [Fact]
+    public void GetOnAccentColor_HigherContrast_KeepsWhiteOnDarkAccents()
+    {
+        // Act
+        Color onBlue = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 37, 99, 235), useHigherContrast: true);
+
+        // Assert
+        onBlue.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void GetContrastRatio_BlackOnWhite_IsTwentyOne()
+    {
+        // Assert
+        ThemeManager.GetContrastRatio(1.0, 0.0).Should().BeApproximately(21.0, 0.001);
+        ThemeManager.GetContrastRatio(0.0, 1.0).Should().BeApproximately(21.0, 0.001);
+    }
+
+    [Theory]
+    [InlineData(ThemeMode.MidnightViolet)]
+    [InlineData(ThemeMode.EmeraldSynth)]
+    [InlineData(ThemeMode.CyberpunkSunset)]
+    [InlineData(ThemeMode.NordicSlate)]
+    [InlineData(ThemeMode.OLEDMonochrome)]
+    [InlineData(ThemeMode.SolarizedDark)]
+    public void OnPrimaryAccent_NeverMatchesTheAccent(ThemeMode mode)
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(mode);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().NotBe(tm.ActivePrimaryAccentColor);
     }
 
     [Fact]
@@ -564,6 +614,13 @@ public sealed class ThemeManagerTests
     [InlineData("OnSurfaceBrush", ThemeManager.ThemeBrush.TextPrimary)]
     [InlineData("SurfaceBrush", ThemeManager.ThemeBrush.MenuSurface)]
     [InlineData("ComboBoxDropDownBackground", ThemeManager.ThemeBrush.MenuSurface)]
+    [InlineData("ComboBoxBackground", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundPointerOver", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundPressed", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundFocused", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundFocusedPressed", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundUnfocused", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundDisabled", ThemeManager.ThemeBrush.SurfaceCard)]
     [InlineData("CheckBoxGlyphForegroundChecked", ThemeManager.ThemeBrush.OnPrimaryAccent)]
     [InlineData("ProgressRingForeground", ThemeManager.ThemeBrush.PrimaryAccent)]
     public void ResourceBrushKeys_MapControlKeysToThemeBrushes(string key, ThemeManager.ThemeBrush expected)

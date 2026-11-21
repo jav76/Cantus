@@ -19,6 +19,7 @@ public sealed class ThemeManager : INotifyPropertyChanged
     private const byte MAX_CHANNEL = 255;
     private const byte ON_ACCENT_DARK_CHANNEL = 17;
     private const double ON_ACCENT_LUMINANCE_THRESHOLD = 0.5;
+    private const double CONTRAST_LUMINANCE_OFFSET = 0.05;
     private const double LUMINANCE_RED_WEIGHT = 0.2126;
     private const double LUMINANCE_GREEN_WEIGHT = 0.7152;
     private const double LUMINANCE_BLUE_WEIGHT = 0.0722;
@@ -172,13 +173,13 @@ public sealed class ThemeManager : INotifyPropertyChanged
     public SolidColorBrush UpcomingLyricBrush => GetOrCreateBrush(ref _upcomingLyricBrush, ActivePalette.UpcomingLyricColor);
 
     /// <summary>Text and icon colour that stays readable on <see cref="PrimaryAccentBrush"/>.</summary>
-    public SolidColorBrush OnPrimaryAccentBrush => GetOrCreateBrush(ref _onPrimaryAccentBrush, GetOnAccentColor(ActivePalette.PrimaryAccent));
+    public SolidColorBrush OnPrimaryAccentBrush => GetOrCreateBrush(ref _onPrimaryAccentBrush, GetActiveOnAccentColor(ActivePalette));
 
     /// <summary>Opaque card colour for popups such as menus and dropdowns, which must not show content through.</summary>
     public SolidColorBrush MenuSurfaceBrush => GetOrCreateBrush(ref _menuSurfaceBrush, GetMenuSurfaceColor(ActivePalette));
 
     public Color ActivePrimaryAccentColor => ActivePalette.PrimaryAccent;
-    public Color ActiveOnPrimaryAccentColor => GetOnAccentColor(ActivePalette.PrimaryAccent);
+    public Color ActiveOnPrimaryAccentColor => GetActiveOnAccentColor(ActivePalette);
     public Color ActiveBackgroundColor => ActivePalette.Background;
 
     public event Action<ColorPalette>? PaletteChanged;
@@ -241,7 +242,7 @@ public sealed class ThemeManager : INotifyPropertyChanged
             if (_activeLyricBrush is not null) _activeLyricBrush.Color = palette.ActiveLyricColor;
             if (_pastLyricBrush is not null) _pastLyricBrush.Color = palette.PastLyricColor;
             if (_upcomingLyricBrush is not null) _upcomingLyricBrush.Color = palette.UpcomingLyricColor;
-            if (_onPrimaryAccentBrush is not null) _onPrimaryAccentBrush.Color = GetOnAccentColor(palette.PrimaryAccent);
+            if (_onPrimaryAccentBrush is not null) _onPrimaryAccentBrush.Color = GetActiveOnAccentColor(palette);
             if (_menuSurfaceBrush is not null) _menuSurfaceBrush.Color = GetMenuSurfaceColor(palette);
         }
         catch (NotSupportedException)
@@ -250,16 +251,33 @@ public sealed class ThemeManager : INotifyPropertyChanged
         }
     }
 
+    // Dynamic accents come from album art, so they pick the label with the higher contrast.
+    private Color GetActiveOnAccentColor(ColorPalette palette)
+        => GetOnAccentColor(palette.PrimaryAccent, _currentMode == ThemeMode.Dynamic);
+
     /// <summary>
-    /// Near-black for light accents (OLED Monochrome's white, bright dynamic
-    /// accents), white otherwise. The threshold sits above the predefined
-    /// coloured accents so they keep their white labels.
+    /// Near-black or white label colour for <paramref name="accent"/>. With
+    /// <paramref name="useHigherContrast"/> it picks whichever has the higher
+    /// WCAG contrast ratio. Otherwise only very light accents (OLED Monochrome's
+    /// white) get near-black, so the predefined coloured accents keep white labels.
     /// </summary>
-    internal static Color GetOnAccentColor(Color accent)
+    internal static Color GetOnAccentColor(Color accent, bool useHigherContrast = false)
     {
-        return GetRelativeLuminance(accent) > ON_ACCENT_LUMINANCE_THRESHOLD
-            ? Color.FromArgb(OPAQUE_ALPHA, ON_ACCENT_DARK_CHANNEL, ON_ACCENT_DARK_CHANNEL, ON_ACCENT_DARK_CHANNEL)
-            : Color.FromArgb(OPAQUE_ALPHA, MAX_CHANNEL, MAX_CHANNEL, MAX_CHANNEL);
+        Color dark = Color.FromArgb(OPAQUE_ALPHA, ON_ACCENT_DARK_CHANNEL, ON_ACCENT_DARK_CHANNEL, ON_ACCENT_DARK_CHANNEL);
+        Color white = Color.FromArgb(OPAQUE_ALPHA, MAX_CHANNEL, MAX_CHANNEL, MAX_CHANNEL);
+        double accentLuminance = GetRelativeLuminance(accent);
+
+        bool useDark = useHigherContrast
+            ? GetContrastRatio(accentLuminance, GetRelativeLuminance(dark)) > GetContrastRatio(accentLuminance, GetRelativeLuminance(white))
+            : accentLuminance > ON_ACCENT_LUMINANCE_THRESHOLD;
+        return useDark ? dark : white;
+    }
+
+    internal static double GetContrastRatio(double luminanceA, double luminanceB)
+    {
+        double lighter = Math.Max(luminanceA, luminanceB);
+        double darker = Math.Min(luminanceA, luminanceB);
+        return (lighter + CONTRAST_LUMINANCE_OFFSET) / (darker + CONTRAST_LUMINANCE_OFFSET);
     }
 
     /// <summary>WCAG relative luminance, from 0 (black) to 1 (white).</summary>
@@ -346,6 +364,13 @@ public sealed class ThemeManager : INotifyPropertyChanged
         ["TextBoxLeadingIconForeground"] = ThemeBrush.TextSecondary,
         ["TextBoxLeadingIconForegroundDisabled"] = ThemeBrush.TextMuted,
 
+        ["ComboBoxBackground"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundPointerOver"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundPressed"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundFocused"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundFocusedPressed"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundUnfocused"] = ThemeBrush.SurfaceCard,
+        ["ComboBoxBackgroundDisabled"] = ThemeBrush.SurfaceCard,
         ["ComboBoxForeground"] = ThemeBrush.TextPrimary,
         ["ComboBoxForegroundPointerOver"] = ThemeBrush.TextPrimary,
         ["ComboBoxForegroundPressed"] = ThemeBrush.TextPrimary,

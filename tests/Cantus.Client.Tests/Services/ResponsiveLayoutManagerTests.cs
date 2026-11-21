@@ -322,6 +322,7 @@ public sealed class ResponsiveLayoutManagerTests
         layout.ShowFullHeaderLabels.Should().BeFalse();
         notified.Should().Contain(nameof(ResponsiveLayoutManager.ShowFullHeaderLabels));
         notified.Should().Contain(nameof(ResponsiveLayoutManager.IsKioskBarCompact));
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.IsKioskBarStacked));
         notified.Should().Contain(nameof(ResponsiveLayoutManager.ContentPadding));
     }
 
@@ -353,6 +354,21 @@ public sealed class ResponsiveLayoutManagerTests
         layout.IsKioskMode = true;
 
         layout.IsKioskBarCompact.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(320.0, true)]
+    [InlineData(479.0, true)]
+    [InlineData(480.0, false)]
+    [InlineData(1920.0, false)]
+    public void IsKioskBarStacked_FollowsWindowWidth(double width, bool expected)
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(width, 1000);
+
+        layout.IsKioskMode = true;
+
+        layout.IsKioskBarStacked.Should().Be(expected);
     }
 
     [Fact]

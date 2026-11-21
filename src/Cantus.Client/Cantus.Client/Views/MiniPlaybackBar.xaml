@@ -9,12 +9,22 @@
             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
             BorderThickness="1"
             CornerRadius="16"
-            Padding="20,12">
+            Padding="{x:Bind GetBarPadding(Layout.IsKioskBarStacked), Mode=OneWay}">
         <!-- Track info and progress share the flexible width (2:3), so a long title is trimmed
-             instead of pushing the transport and Exit Kiosk off screen -->
-        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,2*,3*,Auto,Auto,Auto">
+             instead of pushing the transport and Exit Kiosk off screen. When stacked, the seek bar
+             moves to row 1 (from code-behind) and the title takes all the flexible width -->
+        <Grid RowDefinitions="Auto,Auto,Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition x:Name="ProgressColumn" Width="3*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <!-- Mini Album Art -->
-            <Border Grid.Column="0" CornerRadius="8" Width="44" Height="44" Background="#1E1E2D" Margin="0,0,14,0" VerticalAlignment="Center">
+            <Border Grid.Column="0" CornerRadius="8" Width="44" Height="44" Background="#1E1E2D" Margin="0,0,14,0" VerticalAlignment="Center"
+                    Visibility="{x:Bind GetWideBarVisibility(Layout.IsKioskBarStacked), Mode=OneWay}">
                 <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
             </Border>
 
@@ -25,11 +35,12 @@
             </StackPanel>
 
             <!-- Progress Bar (click to seek; hover shows a scrub thumb) -->
-            <Grid Grid.Column="2"
+            <Grid x:Name="SeekArea"
+                  Grid.Column="2"
                   Background="Transparent"
                   MinHeight="18"
                   VerticalAlignment="Center"
-                  Margin="{x:Bind GetProgressMargin(Layout.IsKioskBarCompact), Mode=OneWay}"
+                  Margin="{x:Bind GetProgressMargin(Layout.IsKioskBarCompact, Layout.IsKioskBarStacked), Mode=OneWay}"
                   IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                   PointerReleased="OnProgressBarPointerReleased"
                   PointerEntered="OnSeekBarPointerEntered"
@@ -119,7 +130,7 @@
             </Button>
 
             <!-- Transport Command Feedback -->
-            <TextBlock Grid.Row="1"
+            <TextBlock Grid.Row="2"
                        Grid.ColumnSpan="6"
                        Text="{x:Bind Transport.TransportStatusText, Mode=OneWay}"
                        Visibility="{x:Bind Transport.TransportStatusVisibility, Mode=OneWay}"

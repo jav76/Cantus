@@ -26,6 +26,7 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     public const double HEADER_ACCOUNT_NAME_MAX_WIDTH = 160.0;
     public const double NARROW_PHONE_MAX_WIDTH = 380.0;
     public const double COMPACT_KIOSK_BAR_MAX_WIDTH = 700.0;
+    public const double STACKED_KIOSK_BAR_MAX_WIDTH = 480.0;
     public const double STAGE_MODE_LABELS_MIN_WIDTH = 420.0;
     public const double DIAGNOSTICS_HUD_MIN_WIDTH = 420.0;
 
@@ -237,6 +238,9 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     /// <summary>The kiosk mini bar goes icon-only and drops the timestamp so Exit Kiosk stays on screen.</summary>
     public bool IsKioskBarCompact => WindowWidth < COMPACT_KIOSK_BAR_MAX_WIDTH;
 
+    /// <summary>On phone widths the kiosk mini bar hides the album art and moves the seek bar to its own row.</summary>
+    public bool IsKioskBarStacked => WindowWidth < STACKED_KIOSK_BAR_MAX_WIDTH;
+
     public double DiagnosticsHudMinWidth => IsSmall ? 0.0 : DIAGNOSTICS_HUD_MIN_WIDTH;
 
     public double LyricsMaxWidth => CurrentBreakpoint switch
@@ -365,6 +369,7 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         OnPropertyChanged(nameof(ShowFullHeaderLabels));
         OnPropertyChanged(nameof(IsNarrowPhone));
         OnPropertyChanged(nameof(IsKioskBarCompact));
+        OnPropertyChanged(nameof(IsKioskBarStacked));
         OnPropertyChanged(nameof(ContentPadding));
     }
 

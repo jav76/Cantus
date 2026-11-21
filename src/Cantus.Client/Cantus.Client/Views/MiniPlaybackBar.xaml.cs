@@ -65,7 +65,7 @@ public sealed partial class MiniPlaybackBar : UserControl
             nameof(Layout),
             typeof(ResponsiveLayoutManager),
             typeof(MiniPlaybackBar),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, OnLayoutChanged));
 
     public ResponsiveLayoutManager? Layout
     {
@@ -87,12 +87,69 @@ public sealed partial class MiniPlaybackBar : UserControl
     public Visibility GetWideBarVisibility(bool isCompact)
         => isCompact ? Visibility.Collapsed : Visibility.Visible;
 
-    public Thickness GetProgressMargin(bool isCompact)
-        => isCompact ? new Thickness(12, 0, 12, 0) : new Thickness(32, 0, 32, 0);
+    public Thickness GetProgressMargin(bool isCompact, bool isStacked)
+    {
+        if (isStacked)
+        {
+            return new Thickness(0, 10, 0, 0);
+        }
+        return isCompact ? new Thickness(12, 0, 12, 0) : new Thickness(32, 0, 32, 0);
+    }
+
+    public Thickness GetBarPadding(bool isStacked)
+        => isStacked ? new Thickness(12, 10, 12, 10) : new Thickness(20, 12, 20, 12);
 
     public MiniPlaybackBar()
     {
         this.InitializeComponent();
+        Loaded += (_, _) => AttachLayout(Layout);
+        Unloaded += (_, _) => DetachLayout(Layout);
+    }
+
+    private static void OnLayoutChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        MiniPlaybackBar bar = (MiniPlaybackBar)d;
+        bar.DetachLayout((ResponsiveLayoutManager?)e.OldValue);
+        if (bar.IsLoaded)
+        {
+            bar.AttachLayout((ResponsiveLayoutManager?)e.NewValue);
+        }
+    }
+
+    private void AttachLayout(ResponsiveLayoutManager? layout)
+    {
+        if (layout is null)
+        {
+            return;
+        }
+        layout.PropertyChanged -= OnLayoutPropertyChanged;
+        layout.PropertyChanged += OnLayoutPropertyChanged;
+        ApplySeekArrangement(layout.IsKioskBarStacked);
+    }
+
+    private void DetachLayout(ResponsiveLayoutManager? layout)
+    {
+        if (layout is not null)
+        {
+            layout.PropertyChanged -= OnLayoutPropertyChanged;
+        }
+    }
+
+    private void OnLayoutPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ResponsiveLayoutManager.IsKioskBarStacked) && sender is ResponsiveLayoutManager layout)
+        {
+            ApplySeekArrangement(layout.IsKioskBarStacked);
+        }
+    }
+
+    // Moves the seek bar and collapses its column together, so the title takes the freed width.
+    private void ApplySeekArrangement(bool isStacked)
+    {
+        Grid.SetRow(SeekArea, isStacked ? 1 : 0);
+        Grid.SetColumn(SeekArea, isStacked ? 0 : 2);
+        Grid.SetColumnSpan(SeekArea, isStacked ? 6 : 1);
+        ProgressColumn.Width = isStacked ? new GridLength(0) : new GridLength(3, GridUnitType.Star);
     }
 
     private const double SEEK_BAR_HEIGHT = 4.0;

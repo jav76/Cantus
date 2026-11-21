@@ -14,13 +14,15 @@
             Padding="{x:Bind GetCardPadding(Layout.CurrentBreakpoint), Mode=OneWay}">
         <Grid>
             <!-- Standard / Desktop / Tablet Card Layout -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto"
+            <ScrollViewer x:Name="StandardCardScroller"
+                          VerticalScrollBarVisibility="Auto"
+                          SizeChanged="OnStandardCardScrollerSizeChanged"
                           HorizontalScrollBarVisibility="Disabled"
                           Visibility="{x:Bind GetStandardCardVisibility(Layout.CurrentBreakpoint), Mode=OneWay}">
                 <StackPanel Spacing="{x:Bind GetCardSpacing(Layout.CurrentBreakpoint), Mode=OneWay}">
                     
                     <!-- Album Art: shrinks to the card's content width (minus any scrollbar gutter);
-                         the height is kept square from code-behind -->
+                         the height is kept square from code-behind (SquareArtSizing) -->
                     <Border x:Name="AlbumArtFrame"
                             CornerRadius="16"
                             MaxWidth="{x:Bind Layout.AlbumArtSize, Mode=OneWay}"
