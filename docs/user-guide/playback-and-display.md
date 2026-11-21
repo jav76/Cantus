@@ -57,6 +57,15 @@ With the **Karaoke** toggle on, an underline fills beneath the active line:
 - **Word-timed lyrics**: the underline follows each word as it is sung, pauses during rests inside the line, and moves slowly through held notes.
 - **Line-timed lyrics**: the underline fills evenly over the line's duration. It does not track individual words.
 
+### 5. Fixing Wrong Lyrics
+If a track shows the wrong lyrics, or none:
+- Tap **Wrong lyrics?** on the track card. On a phone it is on the **Sync & Info** tab.
+- Cantus lists the lyrics each provider has for the track, with the provider, title, artist, length, whether the lyrics are synced or plain, and their first lines. Tap one to use it.
+- **Re-fetch automatically** looks the track up again. **No lyrics** shows an empty lyrics view for the track.
+- If you already picked lyrics for the track, the picker says so and offers **Use automatic lyrics** to undo it.
+- Your choice applies to every screen showing the track, without a reload, and is kept until you change it.
+- The button appears only while you are signed in and a track is playing. A [paired Display](displays.md) never shows it.
+
 ---
 
 ## Display Environments

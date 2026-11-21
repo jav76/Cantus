@@ -16,7 +16,7 @@ Use a Display for any screen other people can reach. Sign in with Spotify only o
 | Keep your playback updating while no other device is open | List, approve, rename or remove Displays |
 | Reconnect by itself after a restart or network drop | Watch anyone else's playback |
 
-A Display hides the transport controls, seeking, sync offset steppers and account actions. In their place it shows **Paired display (view only)** with its name.
+A Display hides the transport controls, seeking, sync offset steppers, the **Wrong lyrics?** picker and account actions. In their place it shows **Paired display (view only)** with its name.
 
 ---
 

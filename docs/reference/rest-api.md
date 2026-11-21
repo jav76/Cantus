@@ -273,10 +273,16 @@ Lists the lyrics every enabled provider has for the owner's current track, so a 
       ]
     }
   ],
-  "unavailableProviders": ["NetEase"]
+  "unavailableProviders": ["NetEase"],
+  "activeOverride": {
+    "kind": "candidate",
+    "provider": "LRCLIB",
+    "candidateId": "3396226"
+  }
 }
 ```
 - `preview` holds the first non-blank lyric lines, 2 at most. It is empty for an instrumental candidate.
+- `activeOverride` is the [override](#post-apilyricstrackidoverride) in effect for the track, or `null` when it uses automatic matching. `kind` is `candidate` or `noLyrics`; `provider` and `candidateId` are `null` for `noLyrics`.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
 - **Response `403 Forbidden`**: the caller holds a Display token. No provider is queried.
 - **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or nothing is playing.

@@ -18,6 +18,8 @@ public sealed class LyricsViewModelDisplayTests
     private const string TRACK_ID = "track-1";
     private const string TOKEN = "display-token";
 
+    private readonly Mock<ILyricsCorrectionService> _lyricsCorrection = new();
+
     [Fact]
     public void PairedDisplay_CannotSeekByTappingALine()
     {
@@ -122,7 +124,65 @@ public sealed class LyricsViewModelDisplayTests
         client.Verify(c => c.ReconnectWithDisplayTokenAsync(TOKEN), Times.Once);
     }
 
-    private static (Mock<ISignalRPlaybackClient> Client, LyricsViewModel Vm, InMemorySettingsStore Store)
+    [Fact]
+    public async Task PairedDisplay_HidesTheLyricsPickerAndRefusesToOpenIt()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: true);
+        LoadLyricsAndPlayback(client);
+
+        // Act
+        await vm.LyricsPicker.OpenAsync();
+
+        // Assert
+        vm.LyricsPicker.IsAvailable.Should().BeFalse();
+        vm.LyricsPicker.ActionVisibility.Should().Be(Visibility.Collapsed);
+        vm.LyricsPicker.IsOpen.Should().BeFalse();
+        _lyricsCorrection.Verify(
+            s => s.GetCandidatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task PairingAfterSigningIn_ClosesTheLyricsPickerAndRefusesToReopenIt()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: false);
+        _lyricsCorrection
+            .Setup(s => s.GetCandidatesAsync(TRACK_ID, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LyricsCandidatesResult(
+                LyricsCorrectionStatus.Succeeded,
+                new LyricsCandidatesPayload { TrackId = TRACK_ID }));
+        client.Raise(c => c.SessionsReceived += null, (IReadOnlyList<AuthorizedSessionPayload>)new List<AuthorizedSessionPayload>
+        {
+            new() { Id = "sess-owner", DisplayName = "Owner" },
+        });
+        LoadLyricsAndPlayback(client);
+        await vm.LyricsPicker.OpenAsync();
+        vm.LyricsPicker.IsOpen.Should().BeTrue();
+
+        // Act
+        client.Raise(c => c.DisplayPaired += null, new DisplayPairedPayload
+        {
+            PairingId = "pairing-1",
+            DisplayId = "display-1",
+            Name = "TV",
+            Token = TOKEN,
+        });
+        await vm.LyricsPicker.OpenAsync();
+
+        // Assert
+        vm.Pairing.IsDisplay.Should().BeTrue();
+        vm.Session.CurrentUserSession.Should().NotBeNull("the stale Session list is what the Display check guards against");
+        vm.LyricsPicker.IsAvailable.Should().BeFalse();
+        vm.LyricsPicker.ActionVisibility.Should().Be(Visibility.Collapsed);
+        vm.LyricsPicker.IsOpen.Should().BeFalse();
+        _lyricsCorrection.Verify(
+            s => s.GetCandidatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    private (Mock<ISignalRPlaybackClient> Client, LyricsViewModel Vm, InMemorySettingsStore Store)
         CreateViewModel(bool paired)
     {
         InMemorySettingsStore store = new();
@@ -151,13 +211,20 @@ public sealed class LyricsViewModelDisplayTests
                     ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
                 }));
 
+        Mock<IDisplayManagementApi> displaysApi = new();
+        displaysApi
+            .Setup(a => a.ListAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DisplayListResult(DisplayManagementStatus.Succeeded, new List<DisplayInfoPayload>()));
+
         LyricsViewModel vm = new(
             client.Object,
             new ThemeManager(),
             new ResponsiveLayoutManager(),
             new LyricsPreferences(new InMemorySettingsStore()),
             api.Object,
-            new DisplayCredentialStore(store));
+            new DisplayCredentialStore(store),
+            displaysApi: displaysApi.Object,
+            lyricsCorrection: _lyricsCorrection.Object);
         return (client, vm, store);
     }
 

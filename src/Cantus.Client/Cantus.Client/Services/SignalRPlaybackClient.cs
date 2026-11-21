@@ -235,6 +235,8 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(List<DisplayInfoPayload>))]
 [JsonSerializable(typeof(DisplayApprovalRequestPayload))]
 [JsonSerializable(typeof(DisplayRenameRequestPayload))]
+[JsonSerializable(typeof(LyricsCandidatesPayload))]
+[JsonSerializable(typeof(LyricsOverrideRequestPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }

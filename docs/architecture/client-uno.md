@@ -15,9 +15,11 @@ flowchart TD
         Context[CantusJsonContext Source Generator]
         PairingApi[DisplayPairingApi]
         DisplaysApi[DisplayManagementApi]
+        Correction[LyricsCorrectionService]
         SignalR -.-> Context
         PairingApi -.-> Context
         DisplaysApi -.-> Context
+        Correction -.-> Context
     end
 
     subgraph MVVM ViewModels
@@ -33,6 +35,7 @@ flowchart TD
         Displays[DisplaysViewModel]
         Pairing[DisplayPairingViewModel]
         Credentials[DisplayCredentialStore]
+        Picker[LyricsPickerViewModel]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
@@ -43,6 +46,10 @@ flowchart TD
         LVM --> Pairing
         Session --> Displays
         Pairing --> Credentials
+        LVM --> Picker
+        Picker --> Session
+        Picker --> Pairing
+        Picker --> Correction
         Transport --> Anchor
         Timing --> Prefs
     end
@@ -58,6 +65,7 @@ flowchart TD
         PairingView[DisplayPairingView.xaml]
         PromptView[DisplayPromptView.xaml]
         DisplaysCard[DisplaysCard.xaml]
+        PickerDialog[LyricsPickerDialog.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
@@ -68,6 +76,8 @@ flowchart TD
         TrackCard --> DisplaysCard
         MobileSettings --> DisplaysCard
         Header --> Hud
+        TrackCard --> PickerDialog
+        MobileSettings --> PickerDialog
     end
 
     SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
@@ -88,6 +98,8 @@ flowchart TD
     DisplaysApi -->|approve, list, rename, revoke| Displays
     Displays -->|Displays list| DisplaysCard
     Displays -->|approval, rename and remove prompt| PromptView
+    Picker -->|candidates and choices| PickerDialog
+    Correction -->|REST: candidates, override| Server[(Cantus Server)]
 ```
 
 ---
@@ -102,35 +114,38 @@ flowchart TD
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
 - Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
 - Each tick asks `PlaybackTiming` for the clock target and the render position, and asks `PlaybackTransport` to hold the position at an unconfirmed seek.
-- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`, connection state, Session lists, `ReceiveDisplayPaired` and `ReceiveDisplayRevoked` to `DisplayPairingViewModel`, `ReceiveDisplaysChanged` to `Session.Displays`). When the Session ends it clears the track card, lyrics, and theme; logout and a Display losing its token also clear the transport's playback state.
+- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`, connection state, Session lists, `ReceiveDisplayPaired` and `ReceiveDisplayRevoked` to `DisplayPairingViewModel`, `ReceiveDisplaysChanged` to `Session.Displays`, track changes to `LyricsPickerViewModel`). Lyrics the picker applies go through the same path as `ReceiveLyrics`. When the Session ends it clears the track card, lyrics, and theme; logout and a Display losing its token also clear the transport's playback state.
 - `ReceiveDisplaysChanged` refreshes `Session.Displays` on the UI thread. Opening the mobile **Sync & Info** tab (`Layout.IsMobileSettingsActive` turning on) also refreshes it, because a Display's REST calls can move its last-seen time without that event.
 - Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
-| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Pairing` | `Displays` | `Theme` | `Layout` |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `MainPage` | Yes | | | | Yes | Yes | Yes | Yes |
-| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | | Yes | Yes |
-| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | | Yes | Yes |
-| `LyricsStageView` | Yes | | | | | | Yes | Yes |
-| `MobileSettingsView` | Yes | | Yes | Yes | Yes | Yes | Yes | |
-| `MobileTabBar` | Yes | | | | | | Yes | Yes |
-| `MiniPlaybackBar` | Yes | Yes | | | Yes | | Yes | |
-| `DisplayPairingView` | Yes | | | | Yes | | Yes | Yes |
-| `DisplaysCard` | Yes | | | | | Yes | Yes | |
-| `DisplayPromptView` | Yes | | | | | Yes | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | |
+| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Pairing` | `Displays` | `LyricsPicker` | `Theme` | `Layout` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `MainPage` | Yes | | | | Yes | Yes | | Yes | Yes |
+| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | | | Yes | Yes |
+| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | | Yes | Yes | Yes |
+| `LyricsStageView` | Yes | | | | | | | Yes | Yes |
+| `MobileSettingsView` | Yes | | Yes | Yes | Yes | Yes | Yes | Yes | |
+| `MobileTabBar` | Yes | | | | | | | Yes | Yes |
+| `MiniPlaybackBar` | Yes | Yes | | | Yes | | | Yes | |
+| `DisplayPairingView` | Yes | | | | Yes | | | Yes | Yes |
+| `DisplaysCard` | Yes | | | | | Yes | | Yes | |
+| `DisplayPromptView` | Yes | | | | | Yes | | Yes | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | | |
+| `LyricsPickerDialog` | | | | | | | Yes | | |
+
+`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -205,6 +220,15 @@ flowchart TD
 - The list is fetched again after every successful action and on [`ReceiveDisplaysChanged`](../reference/signalr-api.md#receivedisplayschanged), which the server sends the owner's Session connections when a Display is paired, renamed, revoked or connects, so changes made on another device show at once. A rename or remove of a Display that is already gone (`404`) drops its row. Errors stay in the open prompt (`PromptError`) with the typed values kept, so the owner can correct them and retry.
 - `OpenApprovalFromLink` reads the approval link's `pair` query parameter (`ParsePairCode`). At startup `MainPage` passes it the page's query string (`WasmInterop.GetLocationSearch`, web app only) and, when it held a code, removes `pair` from the address (`WasmInterop.RemoveQueryParameter`) so a reload does not ask again. A paired Display ignores the link. Opening the prompt while signed out shows `SIGN_IN_HINT` and a **Connect Spotify** button; approving then answers `401` with `NOT_SIGNED_IN_MESSAGE`. Because the Spotify sign-in leaves the page and returns without the link, a code opened from a link while signed out, or typed in before **Connect Spotify** (`KeepCodeThroughSignIn`), is kept in per-device settings (`PendingPairCodeStore`). Signing in reopens the prompt with it. Cancelling the prompt forgets it, and a code older than the 5-minute pairing lifetime is dropped.
 - `DisplaysCard` shows the list with **Add display**, refresh, rename and remove buttons. It sits under the Spotify account card in `AdaptiveTrackCard` (wider layouts) and in `MobileSettingsView`, only for a signed-in owner and never on a Display. `MainPage` ignores keyboard shortcuts while the prompt is open and for keys typed into a text box. <kbd>Escape</kbd> closes the prompt wherever focus is, and <kbd>Enter</kbd> in its code or name field confirms it.
+
+### 13. `LyricsPickerViewModel`
+- The "Wrong lyrics?" picker for the owner's current track. Composed by the root from `SessionViewModel`, `DisplayPairingViewModel`, the current track (read through a delegate from `PlaybackTransport`), and an `ILyricsCorrectionService`.
+- `IsAvailable` / `ActionVisibility`: shown only while the Session list has a Session, a track is playing, and this client is not a paired Display (`DisplayPairingViewModel.IsDisplay`). A Display normally never receives the Session list, but one paired after a sign-in can still hold it, so the picker checks both. Becoming a Display closes an open picker, and `OpenAsync` does nothing on a Display. The track card button and the mobile settings card also collapse with `Pairing.OwnerControlsVisibility`, like the other owner-only controls (`GetLyricsPickerVisibility`).
+- `OpenAsync` loads `GET /api/lyrics/{trackId}/candidates` into `Candidates` (`LyricsCandidateItem`: provider, title, artist, duration, synced, plain or instrumental, preview, and whether it is the active override). `IsLoading`, `StatusText` (empty list, load errors) and `UnavailableText` (providers that could not be reached) describe the list. `ActiveOverrideText` and `ClearOverrideVisibility` come from the response's `activeOverride`.
+- Choices: `UseCandidateAsync`, `RefetchAsync`, `MarkNoLyricsAsync`, and `ClearOverrideAsync` post to `POST /api/lyrics/{trackId}/override`, which answers with the same `LyricsPayload` as `ReceiveLyrics`, per-syllable timing included, so the karaoke fill keeps following each word after a choice. `CanChoose` blocks a second choice while one is in flight. A successful choice closes the picker and raises `LyricsChanged` with the lyrics now in effect; the server also broadcasts them through `ReceiveLyrics`. The root applies them only while they match the track on screen, since the HTTP answer can arrive after the next track's lyrics. A failed choice keeps the picker open and explains why in `StatusText`.
+- `NotifyTrackChanged` (called by the root on each poll) closes the picker when the track changes, and answers that arrive after the picker closed or the track changed are dropped.
+- `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `400`, `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
+- `LyricsPickerDialog` is the `ContentDialog` the track card (desktop and tablet) and the mobile settings tab open. It hides itself when the picker closes.
 
 ---
 

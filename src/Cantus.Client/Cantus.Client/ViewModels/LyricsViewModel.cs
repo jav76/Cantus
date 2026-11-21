@@ -25,6 +25,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly PlaybackTiming _timing;
     private readonly SessionViewModel _session;
     private readonly DisplayPairingViewModel _pairing;
+    private readonly LyricsPickerViewModel _lyricsPicker;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
@@ -69,6 +70,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
     public DisplayPairingViewModel Pairing => _pairing;
+    public LyricsPickerViewModel LyricsPicker => _lyricsPicker;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
 
@@ -476,7 +478,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         DisplayCredentialStore? displayCredentials = null,
         TimeProvider? timeProvider = null,
         IDisplayManagementApi? displaysApi = null,
-        PendingPairCodeStore? pendingPairCodes = null)
+        PendingPairCodeStore? pendingPairCodes = null,
+        ILyricsCorrectionService? lyricsCorrection = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -521,6 +524,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             timeProvider,
             RunOnUIThread);
         _pairing.DisplayEnded += () => ClearPlayback(resetTransport: true);
+
+        _lyricsPicker = new LyricsPickerViewModel(
+            lyricsCorrection ?? new LyricsCorrectionService(client),
+            _session,
+            () => _transport.PlaybackState?.CurrentTrack,
+            _pairing);
+        _lyricsPicker.LyricsChanged += OnPickerLyricsChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
@@ -733,6 +743,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             DeviceName = "No Device";
             _themeManager.UpdateTrackMetadata(null, null, null);
             NotifyEmptyStateText();
+            _lyricsPicker.NotifyTrackChanged();
             return;
         }
 
@@ -744,6 +755,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         DeviceName = state.DeviceName ?? "Spotify";
         NotifyEmptyStateText();
         _session.ApplyActiveUser(state.ActiveUserDisplayName, state.ActiveUserId);
+        _lyricsPicker.NotifyTrackChanged();
 
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
@@ -834,6 +846,24 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         int visibleChars = (text ?? string.Empty).Trim().Length;
         return Math.Max(visibleChars * SUNG_MS_PER_CHAR, MIN_ESTIMATED_WORD_MS);
+    }
+
+    /// <summary>
+    /// The picker's answer comes over HTTP while track changes arrive over
+    /// SignalR, so the next track's lyrics can land first. Only apply the
+    /// answer while it still belongs to the track on screen.
+    /// </summary>
+    private void OnPickerLyricsChanged(LyricsPayload lyrics)
+    {
+        string? playingTrackId = _transport.PlaybackState?.CurrentTrack?.Id;
+        bool isForAnotherTrack = (_lastLyrics is not null && _lastLyrics.TrackId != lyrics.TrackId)
+            || (playingTrackId is not null && playingTrackId != lyrics.TrackId);
+        if (isForAnotherTrack)
+        {
+            return;
+        }
+
+        OnLyricsReceived(lyrics);
     }
 
     private void OnLyricsReceived(LyricsPayload? lyrics)
@@ -947,6 +977,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (resetTransport)
         {
             NotifyEmptyStateText();
+            _lyricsPicker.NotifyTrackChanged();
         }
         OnPropertyChanged(nameof(HasSyncedLyrics));
         OnPropertyChanged(nameof(HasPlainLyrics));
