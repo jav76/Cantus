@@ -209,50 +209,47 @@
                     </Border>
 
                     <!-- Device & Playback State -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,8">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                            <views:CantusIcon Grid.Column="0" Kind="Display" Size="16" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1"
-                                       Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}"
-                                       FontSize="13"
-                                       Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
-                                       VerticalAlignment="Center"
-                                       TextWrapping="NoWrap"
-                                       TextTrimming="CharacterEllipsis"
-                                       ToolTipService.ToolTip="{x:Bind ViewModel.DeviceName, Mode=OneWay}" />
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind GetPlaybackStatus(Transport.IsPlaying), Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                        </Grid>
-                    </Border>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <views:CantusIcon Grid.Column="0" Kind="Display" Size="16" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}"
+                                   FontSize="13"
+                                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTipService.ToolTip="{x:Bind ViewModel.DeviceName, Mode=OneWay}" />
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind GetPlaybackStatus(Transport.IsPlaying), Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                    </Grid>
+
+                    <!-- Splits the player from the settings sections below -->
+                    <Border Style="{StaticResource CantusHairlineStyle}" />
 
                     <!-- Manual Sync Offset Adjuster -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
-                        <StackPanel Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Text="Sync offset" VerticalAlignment="Center" Style="{StaticResource CantusSectionLabelStyle}" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                            </Grid>
-                            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
-                                <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="1" Content="-0.1s" Click="OnNudgeMinus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="2" Content="Reset" Click="OnResetOffsetClicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="3" Content="+0.1s" Click="OnNudgePlus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                                <Button Grid.Column="4" Content="+0.5s" Click="OnNudgePlus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+                    <StackPanel Spacing="10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBlock Grid.Column="0" Text="Sync offset" VerticalAlignment="Center" Style="{StaticResource CantusSectionLabelStyle}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
+                            <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                            <Button Grid.Column="1" Content="-0.1s" Click="OnNudgeMinus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                            <Button Grid.Column="2" Content="Reset" Click="OnResetOffsetClicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                            <Button Grid.Column="3" Content="+0.1s" Click="OnNudgePlus100Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                            <Button Grid.Column="4" Content="+0.5s" Click="OnNudgePlus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
+                        </Grid>
+                    </StackPanel>
 
-                    <!-- Paired Display Card -->
+                    <!-- Paired Display -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.DisplayInfoVisibility, Mode=OneWay}">
                         <TextBlock Text="Display" Style="{StaticResource CantusSectionLabelStyle}" />
-                        <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <views:CantusIcon Kind="Display" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                                <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="Paired display (view only)" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
-                                </StackPanel>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <views:CantusIcon Grid.Column="0" Kind="Display" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="Paired display (view only)" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                             </StackPanel>
-                        </Border>
+                        </Grid>
                     </StackPanel>
 
                     <!-- Wrong Lyrics Picker (owner only) -->
@@ -271,82 +268,68 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Connected Spotify Account Card -->
+                    <!-- Connected Spotify Account -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <TextBlock Text="Spotify account" Style="{StaticResource CantusSectionLabelStyle}" />
-                        
+
                         <!-- Logged in state -->
-                        <Border Background="#15FFFFFF"
-                                BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="12,10"
-                                Visibility="{x:Bind Session.HasSessionsVisibility, Mode=OneWay}">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#20FFFFFF" Margin="0,0,10,0">
-                                    <views:CantusIcon Kind="Account" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center" />
-                                        <TextBlock Text="Active Account" FontSize="11" Foreground="#10B981" />
-                                    </StackPanel>
+                        <Grid ColumnDefinitions="Auto,*,Auto" Visibility="{x:Bind Session.HasSessionsVisibility, Mode=OneWay}">
+                            <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#20FFFFFF" Margin="0,0,10,0">
+                                <views:CantusIcon Kind="Account" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center" />
+                                    <TextBlock Text="Active Account" FontSize="11" Foreground="#10B981" />
                                 </StackPanel>
-                                <Button Grid.Column="2"
-                                        Click="OnLogoutClicked"
-                                        Background="#1AFFFFFF"
-                                        Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
-                                        CornerRadius="6"
-                                        Padding="8,4"
-                                        ToolTipService.ToolTip="Log Out">
-                                    <views:CantusIcon Kind="SignOut" Size="14" />
-                                </Button>
-                            </Grid>
-                        </Border>
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Click="OnLogoutClicked"
+                                    Background="#1AFFFFFF"
+                                    Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="8,4"
+                                    ToolTipService.ToolTip="Log Out">
+                                <views:CantusIcon Kind="SignOut" Size="14" />
+                            </Button>
+                        </Grid>
 
                         <!-- Not logged in state -->
-                        <Border Background="#15FFFFFF"
-                                BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="12,10"
-                                Visibility="{x:Bind Session.NoSessionsVisibility, Mode=OneWay}">
-                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
-                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="Not Connected" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                                    <TextBlock Text="Log in to view lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10" Visibility="{x:Bind Session.NoSessionsVisibility, Mode=OneWay}">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Not Connected" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                                <TextBlock Text="Log in to view lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                            </StackPanel>
+                            <Button Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Click="OnPairAsDisplayClicked"
+                                    HorizontalAlignment="Stretch"
+                                    Background="#1AFFFFFF"
+                                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                    BorderThickness="1"
+                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="10,5"
+                                    ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <views:CantusIcon Kind="Display" Size="13" />
+                                    <TextBlock Text="Pair as display" FontSize="11" />
                                 </StackPanel>
-                                <Button Grid.Row="1"
-                                        Grid.ColumnSpan="2"
-                                        Click="OnPairAsDisplayClicked"
-                                        HorizontalAlignment="Stretch"
-                                        Background="#1AFFFFFF"
-                                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                                        BorderThickness="1"
-                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
-                                        CornerRadius="6"
-                                        Padding="10,5"
-                                        ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <views:CantusIcon Kind="Display" Size="13" />
-                                        <TextBlock Text="Pair as display" FontSize="11" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Grid.Column="1"
-                                        Click="OnConnectSpotifyClicked"
-                                        Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                        Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
-                                        CornerRadius="6"
-                                        Padding="10,5"
-                                        FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <views:CantusIcon Kind="SpotifyConnect" Size="13" />
-                                        <TextBlock Text="Connect" FontSize="11" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                        </Border>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Click="OnConnectSpotifyClicked"
+                                    Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="10,5"
+                                    FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <views:CantusIcon Kind="SpotifyConnect" Size="13" />
+                                    <TextBlock Text="Connect" FontSize="11" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <!-- Owner's Displays -->

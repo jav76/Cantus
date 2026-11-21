@@ -138,6 +138,13 @@
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
             </Style>
 
+            <!-- One-pixel divider between sections that share a surface. -->
+            <Style x:Key="CantusHairlineStyle" TargetType="Border">
+                <Setter Property="Height" Value="1" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="Background" Value="{ThemeResource CantusCardBorderBrush}" />
+            </Style>
+
             <DataTemplate x:Key="CantusDialogTitleTemplate">
                 <TextBlock Text="{Binding}"
                            FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
