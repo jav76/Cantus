@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Persistence.Entities;
@@ -131,7 +132,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         if (sessionEntity is null)
         {
-            throw new InvalidOperationException($"User session '{userId}' not found.");
+            throw new InvalidOperationException($"User session {SessionLogRef.For(userId)} not found.");
         }
 
         string rawRefreshToken = _encryptionService.Decrypt(sessionEntity.EncryptedRefreshToken);
@@ -232,7 +233,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to auto-refresh expired token for user {UserId}", sessionEntity.Id);
+                _logger.LogError(
+                    ex,
+                    "Failed to auto-refresh expired token for Spotify user {SpotifyUserId} (Session: {SessionRef})",
+                    sessionEntity.SpotifyUserId,
+                    SessionLogRef.For(sessionEntity.Id));
             }
         }
 

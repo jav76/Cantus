@@ -1,4 +1,5 @@
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
@@ -84,9 +85,9 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
 
         _logger.LogInformation(
-            "Client connected to PlaybackHub: {ConnectionId} (User: {UserId}, Credential: {CredentialKind}, Total: {Count})",
+            "Client connected to PlaybackHub: {ConnectionId} (Session: {SessionRef}, Credential: {CredentialKind}, Total: {Count})",
             Context.ConnectionId,
-            userId ?? "Unauthenticated",
+            caller is null ? "Unauthenticated" : SessionLogRef.For(userId),
             caller?.Kind.ToString() ?? "None",
             _registry.ConnectedClientsCount);
 
@@ -378,7 +379,11 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             return (int)PlayerCommandResult.Failed;
         }
 
-        _logger.LogInformation("Player command {Command} requested by user {UserId}", commandName, userId);
+        _logger.LogInformation(
+            "Player command {Command} requested by Spotify user {SpotifyUserId} (Session: {SessionRef})",
+            commandName,
+            session.SpotifyUserId,
+            SessionLogRef.For(userId));
 
         PlayerCommandResult result = await action(session.AccessToken);
 
@@ -488,7 +493,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Follow-up playback poll failed for user {UserId}", userId);
+                _logger.LogWarning(ex, "Follow-up playback poll failed for Session {SessionRef}", SessionLogRef.For(userId));
             }
         });
     }

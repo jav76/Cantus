@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
@@ -232,8 +233,9 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         : TimeSpan.FromSeconds(60);
                     _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
                     _logger.LogWarning(
-                        "Spotify API rate limit hit for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
-                        session.Id,
+                        "Spotify API rate limit hit for Spotify user {SpotifyUserId} (Session: {SessionRef}). Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                        session.SpotifyUserId,
+                        SessionLogRef.For(session.Id),
                         _rateLimitUntilUtc,
                         retryAfter);
 
@@ -253,7 +255,10 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 }
                 catch (Exception ex) when (IsUnauthorized(ex))
                 {
-                    _logger.LogWarning("Spotify token expired for user {UserId}. Refreshing...", session.Id);
+                    _logger.LogWarning(
+                        "Spotify token expired for Spotify user {SpotifyUserId} (Session: {SessionRef}). Refreshing...",
+                        session.SpotifyUserId,
+                        SessionLogRef.For(session.Id));
                     try
                     {
                         UserSession refreshedSession = await authService.RefreshTokenAsync(
@@ -270,8 +275,9 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             : TimeSpan.FromSeconds(60);
                         _rateLimitUntilUtc = DateTimeOffset.UtcNow.Add(retryAfter);
                         _logger.LogWarning(
-                            "Spotify API rate limit hit during token refresh for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
-                            session.Id,
+                            "Spotify API rate limit hit during token refresh for Spotify user {SpotifyUserId} (Session: {SessionRef}). Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                            session.SpotifyUserId,
+                            SessionLogRef.For(session.Id),
                             _rateLimitUntilUtc,
                             retryAfter);
 
@@ -291,7 +297,11 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     }
                     catch (Exception refreshEx)
                     {
-                        _logger.LogError(refreshEx, "Failed to refresh token for user {UserId}", session.Id);
+                        _logger.LogError(
+                            refreshEx,
+                            "Failed to refresh token for Spotify user {SpotifyUserId} (Session: {SessionRef})",
+                            session.SpotifyUserId,
+                            SessionLogRef.For(session.Id));
                     }
                 }
 
@@ -518,7 +528,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogError(ex, "Error polling Spotify playback for user {UserId}", userId);
+                _logger.LogError(ex, "Error polling Spotify playback for Session {SessionRef}", SessionLogRef.For(userId));
                 _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_options.PausedPollIntervalMs);
             }
         }
