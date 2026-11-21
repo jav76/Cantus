@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -236,6 +237,44 @@ public sealed class LyricsCorrectionServiceTests
         result.Status.Should().Be(LyricsCorrectionStatus.Succeeded);
         result.Lyrics!.TrackId.Should().Be(TRACK_ID);
         result.Lyrics.Lines.Should().ContainSingle().Which.Text.Should().Be("We're no strangers to love");
+    }
+
+    [Fact]
+    public async Task ApplyOverrideAsync_KeepsWordTimingSoKaraokeFillStillFollowsEachWord()
+    {
+        // Arrange
+        const string wordTimedJson = """
+            {
+              "trackId": "4cOdK2wGLETKBW3PvgPWqT",
+              "isSynced": true,
+              "lines": [
+                {
+                  "timestampMs": 18450,
+                  "text": "We're no strangers",
+                  "syllables": [
+                    { "timestampMs": 18450, "durationMs": 400, "text": "We're " },
+                    { "timestampMs": 18850, "durationMs": 300, "text": "no " },
+                    { "timestampMs": 19150, "durationMs": 900, "text": "strangers" }
+                  ]
+                }
+              ]
+            }
+            """;
+        (RecordingHandler handler, LyricsCorrectionService service) = CreateService(SESSION_TOKEN);
+        handler.Respond = _ => Json(HttpStatusCode.OK, wordTimedJson);
+
+        // Act
+        LyricsOverrideResult result = await service.ApplyOverrideAsync(
+            TRACK_ID,
+            LyricsOverrideRequestPayload.ForCandidate("NetEase", "111"));
+
+        // Assert
+        LyricLinePayload line = result.Lyrics!.Lines.Should().ContainSingle().Subject;
+        line.Syllables.Should().NotBeNull();
+        line.Syllables!.Select(s => (s.TimestampMs, s.DurationMs, s.Text)).Should().Equal(
+            (18450L, 400L, "We're "),
+            (18850L, 300L, "no "),
+            (19150L, 900L, "strangers"));
     }
 
     [Theory]
