@@ -49,7 +49,9 @@ jobs:
           echo "REF=ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Pull Image
-        run: docker pull "${{ steps.image.outputs.REF }}"
+        env:
+          IMAGE: ${{ steps.image.outputs.REF }}
+        run: docker pull "$IMAGE"
 
       # The stack's own compose file and .env stay authoritative; the override
       # only swaps the locally built image for the released one.
@@ -70,6 +72,8 @@ jobs:
 
       - name: Verify Health
         shell: bash
+        env:
+          IMAGE: ${{ steps.image.outputs.REF }}
         run: |
           set -euo pipefail
           if ! docker run --rm --network cantus-net curlimages/curl:8.11.1 \
@@ -77,4 +81,4 @@ jobs:
             docker logs --tail 100 cantus
             exit 1
           fi
-          echo "### 🚢 Deployed \`${{ steps.image.outputs.REF }}\` to the development stack" >> "$GITHUB_STEP_SUMMARY"
+          echo "### 🚢 Deployed \`${IMAGE}\` to the development stack" >> "$GITHUB_STEP_SUMMARY"
