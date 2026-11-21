@@ -179,6 +179,73 @@ public sealed class DisplayManagementEndpointTests : IClassFixture<WebApplicatio
             .Should().ContainSingle().Which.Id.Should().Be(kept.Display.Id);
     }
 
+    [Theory]
+    [InlineData(RENAME)]
+    [InlineData(REVOKE)]
+    public async Task OwnerChange_TellsOwnersSessionConnectionsTheDisplaysChanged(string endpoint)
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        UserSessionEntity other = await _host.Store.SeedSessionAsync("Other");
+        CreatedDisplay tv = await _host.Store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        CreatedDisplay kitchen = await _host.Store.CreateDisplayService().CreateAsync(owner.Id, "Kitchen");
+        // The Display connects first, so its own connect notice is not mistaken for the change's.
+        HubConnection kitchenConnection = await _host.ConnectDisplayAsync(kitchen);
+        HubConnection ownerConnection = await _host.ConnectAsync(owner.Id);
+        HubConnection otherConnection = await _host.ConnectAsync(other.Id);
+        Task ownerNotified = DisplaysChangedAsync(ownerConnection);
+        int otherNotices = 0;
+        int displayNotices = 0;
+        otherConnection.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => otherNotices++);
+        kitchenConnection.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => displayNotices++);
+
+        HttpResponseMessage response = await _host
+            .CreateClient(DisplayTestHost.SESSION_COOKIE, owner.Id)
+            .SendAsync(CreateRequest(endpoint, tv.Display.Id));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        await DisplayTestHost.WaitAsync(ownerNotified);
+        otherNotices.Should().Be(0);
+        displayNotices.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task OwnerChange_ForUnknownDisplay_DoesNotReportDisplaysChanged()
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        HubConnection ownerConnection = await _host.ConnectAsync(owner.Id);
+        int notices = 0;
+        ownerConnection.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => notices++);
+
+        HttpResponseMessage response = await _host
+            .CreateClient(DisplayTestHost.SESSION_COOKIE, owner.Id)
+            .SendAsync(CreateRequest(REVOKE, "missing-display"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        notices.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DisplayConnecting_TellsOwnersSessionConnectionsTheDisplaysChanged()
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        CreatedDisplay tv = await _host.Store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        HubConnection ownerConnection = await _host.ConnectAsync(owner.Id);
+        Task ownerNotified = DisplaysChangedAsync(ownerConnection);
+
+        await _host.ConnectDisplayAsync(tv);
+
+        await DisplayTestHost.WaitAsync(ownerNotified);
+        (await _host.Store.CreateDisplayService().ListAsync(owner.Id))
+            .Should().ContainSingle().Which.LastSeenAtUtc.Should().NotBeNull();
+    }
+
+    private static Task DisplaysChangedAsync(HubConnection connection)
+    {
+        TaskCompletionSource notified = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => notified.TrySetResult());
+        return notified.Task;
+    }
+
     private static Task<Exception?> ClosedAsync(HubConnection connection)
     {
         TaskCompletionSource<Exception?> closed = new(TaskCreationOptions.RunContinuationsAsynchronously);

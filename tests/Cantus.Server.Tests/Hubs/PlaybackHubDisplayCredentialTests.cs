@@ -150,6 +150,35 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
     }
 
     [Fact]
+    public async Task OnConnectedAsync_WithDisplayToken_TellsOwnersSessionsTheDisplaysChanged()
+    {
+        UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
+        CreatedDisplay display = await _store.CreateDisplayService().CreateAsync(owner.Id, "TV");
+        Mock<IPlaybackClient> ownerGroup = new();
+        Mock<IPlaybackClient> displayGroup = new();
+        _mockClients.Setup(c => c.Group($"user_{owner.Id}")).Returns(ownerGroup.Object);
+        _mockClients.Setup(c => c.Group($"display_{owner.Id}")).Returns(displayGroup.Object);
+
+        await CreateHub(WithCookie(DISPLAY_COOKIE, display.Token)).OnConnectedAsync();
+
+        ownerGroup.Verify(c => c.ReceiveDisplaysChanged(), Times.Once);
+        displayGroup.Verify(c => c.ReceiveDisplaysChanged(), Times.Never);
+        _mockCaller.Verify(c => c.ReceiveDisplaysChanged(), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnConnectedAsync_WithSession_DoesNotReportDisplaysChanged()
+    {
+        Mock<IPlaybackClient> group = new();
+        _mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(group.Object);
+
+        await ConnectAsync(CredentialKind.Session);
+
+        group.Verify(c => c.ReceiveDisplaysChanged(), Times.Never);
+        _mockCaller.Verify(c => c.ReceiveDisplaysChanged(), Times.Never);
+    }
+
+    [Fact]
     public async Task OnConnectedAsync_WithDisplayToken_CountsAsViewerOfOwner()
     {
         UserSessionEntity owner = await _store.SeedSessionAsync("Owner");

@@ -207,6 +207,29 @@ public sealed class DisplayPairingEndpointTests : IClassFixture<WebApplicationFa
     }
 
     [Fact]
+    public async Task Approve_WithSession_TellsOwnersSessionConnectionsTheDisplaysChanged()
+    {
+        UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");
+        HubConnection ownerConnection = await _host.ConnectAsync(owner.Id);
+        TaskCompletionSource notified = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        ownerConnection.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => notified.TrySetResult());
+        HubConnection waiting = await _host.ConnectAsync();
+        int waitingNotices = 0;
+        waiting.On(nameof(IPlaybackClient.ReceiveDisplaysChanged), () => waitingNotices++);
+        DisplayPairingDto pairing = await _host.RequestPairingAsync(waiting);
+
+        HttpResponseMessage response = await _host.ApproveAsync(
+            pairing.Code,
+            DISPLAY_NAME,
+            DisplayTestHost.SESSION_COOKIE,
+            owner.Id);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        await DisplayTestHost.WaitAsync(notified.Task);
+        waitingNotices.Should().Be(0);
+    }
+
+    [Fact]
     public async Task Approve_SameCodeTwice_SecondReturnsNotFound()
     {
         UserSessionEntity owner = await _host.Store.SeedSessionAsync("Owner");

@@ -142,6 +142,7 @@ public static class DisplayEndpoints
             created.Display.Id,
             pairing.ConnectionId);
 
+        await NotifyDisplaysChangedAsync(hubContext, owner.Id);
         return Results.Created($"/api/displays/{created.Display.Id}", created.Display.ToDto());
     }
 
@@ -169,6 +170,7 @@ public static class DisplayEndpoints
         [FromBody] DisplayRenameDto request,
         IDisplayService displayService,
         ICredentialResolver credentialResolver,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -187,7 +189,13 @@ public static class DisplayEndpoints
         }
 
         bool renamed = await displayService.RenameAsync(owner.Id, displayId, name, cancellationToken);
-        return renamed ? Results.NoContent() : DisplayNotFound();
+        if (!renamed)
+        {
+            return DisplayNotFound();
+        }
+
+        await NotifyDisplaysChangedAsync(hubContext, owner.Id);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> HandleRevoke(
@@ -195,6 +203,7 @@ public static class DisplayEndpoints
         IDisplayService displayService,
         IDisplayConnectionTracker displayConnections,
         ICredentialResolver credentialResolver,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -214,8 +223,15 @@ public static class DisplayEndpoints
         }
 
         await displayConnections.DisconnectAsync(displayId);
+        await NotifyDisplaysChangedAsync(hubContext, owner.Id);
         return Results.NoContent();
     }
+
+    /// <summary>Lets every Session connection of the owner refresh its Displays list.</summary>
+    private static Task NotifyDisplaysChangedAsync(
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        string ownerSessionId) =>
+        hubContext.Clients.Group(PlaybackGroups.Owner(ownerSessionId)).ReceiveDisplaysChanged();
 
     /// <summary>
     /// Owner-only: 401 without a credential, 403 for a Display token, which is view-only.

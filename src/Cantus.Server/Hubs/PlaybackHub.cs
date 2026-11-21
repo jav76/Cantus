@@ -107,6 +107,11 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                 {
                     await Clients.Caller.ReceiveSessions(sessionDtos);
                 }
+                else
+                {
+                    // Connecting updates the Display's last-seen time in the owner's list.
+                    await Clients.Group(PlaybackGroups.Owner(userId)).ReceiveDisplaysChanged();
+                }
 
                 DiagnosticsDto diagnostics = new()
                 {
