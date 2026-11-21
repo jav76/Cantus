@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\src\Cantus.Client\Cantus.Client\Icons\*.cs" Link="Icons\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\Cantus.Client\Cantus.Client\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\Cantus.Client\Cantus.Client\Services\*.cs" Link="Services\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\Cantus.Client\Cantus.Client\ViewModels\*.cs" Link="ViewModels\%(Filename)%(Extension)" />
