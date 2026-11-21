@@ -54,6 +54,15 @@ Cantus adheres to strict C# conventions:
 
 ---
 
+## Versions and Releases
+
+- Local and CI builds report `0.2.0-dev`, the default `Version` in `Directory.Build.props`.
+- A release is cut by pushing a SemVer tag such as `v0.2.0-beta.1`. The release workflow strips the leading `v` and passes the rest as `-p:Version` (and `APP_VERSION` for the Docker image), so release builds report exactly the tag's version.
+- A tag with a pre-release suffix (`-beta.1`, `-rc.1`) is published as a pre-release.
+- After a release, raise the default in `Directory.Build.props` to the next planned version with a `-dev` suffix.
+
+---
+
 ## Submitting a Pull Request
 
 1. Verify that your code builds cleanly (`dotnet build Cantus.slnx --configuration Release`).
