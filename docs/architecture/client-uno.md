@@ -1,6 +1,6 @@
 # Client & Uno Platform Architecture
 
-The Cantus client is built with **Uno Platform**, enabling a unified C# and XAML codebase to run natively across Linux (Skia/X11), Windows (WinUI 3), and modern web browsers via WebAssembly.
+The Cantus client is built with **Uno Platform**, so one C# and XAML codebase runs on Linux, Windows and macOS (Skia desktop) and in web browsers (WebAssembly).
 
 ---
 
@@ -80,26 +80,26 @@ flowchart TD
         MobileSettings --> PickerDialog
     end
 
-    SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
-    LVM -->|lyrics, track, toast| MainView
-    Theme -->|brushes and colors| MainView
-    Layout -->|breakpoint, sizes, mobile tab| MainView
-    Transport -->|controls and status| TrackCard
+    SignalR -->|"PlaybackState, Lyrics, NTP, Sessions"| LVM
+    LVM -->|"lyrics, track, toast"| MainView
+    Theme -->|"brushes and colors"| MainView
+    Layout -->|"breakpoint, sizes, mobile tab"| MainView
+    Transport -->|"controls and status"| TrackCard
     Transport --> MiniBar
-    Timing -->|offset and latency| TrackCard
+    Timing -->|"offset and latency"| TrackCard
     Timing --> MobileSettings
-    Session -->|sign-in state| Header
+    Session -->|"sign-in state"| Header
     Session --> TrackCard
     Session --> MobileSettings
-    PairingApi -->|pairing code| Pairing
-    Pairing -->|code, QR, owner-only visibility| PairingView
+    PairingApi -->|"pairing code"| Pairing
+    Pairing -->|"code, QR, owner-only visibility"| PairingView
     Pairing --> TrackCard
     Pairing --> MobileSettings
-    DisplaysApi -->|approve, list, rename, revoke| Displays
-    Displays -->|Displays list| DisplaysCard
-    Displays -->|approval, rename and remove prompt| PromptView
-    Picker -->|candidates and choices| PickerDialog
-    Correction -->|REST: candidates, override| Server[(Cantus Server)]
+    DisplaysApi -->|"approve, list, rename, revoke"| Displays
+    Displays -->|"Displays list"| DisplaysCard
+    Displays -->|"approval, rename and remove prompt"| PromptView
+    Picker -->|"candidates and choices"| PickerDialog
+    Correction -->|"REST candidates and override"| Server[("Cantus Server")]
 ```
 
 ---
@@ -107,9 +107,9 @@ flowchart TD
 ## Core Client Components
 
 ### 1. `SignalRPlaybackClient`
-- Manages the WebSocket lifecycle: automatic reconnect with exponential backoff, clock synchronization, and dispatching incoming payload events.
-- Utilizes `CantusJsonContext` (`JsonSerializerContext`) for AOT / trimmed WebAssembly source-generated JSON deserialization, ensuring zero reflection overhead and maximum runtime reliability.
-- Runs the 4-timestamp NTP clock synchronization loop and passes each sample to `ClockOffsetEstimator`, which filters the samples and holds the resulting `RttMs` and `ClockOffsetMs`.
+- Manages the WebSocket lifecycle: SignalR automatic reconnect (retries after 0, 1, 2, 5 and 10 seconds), plus a 5-second reconnect timer (`ReconnectInterval`) that starts a new connection whenever the hub is fully disconnected. It also dispatches incoming payload events.
+- Uses `CantusJsonContext` (`JsonSerializerContext`) for source-generated JSON, so serialization works in the trimmed WebAssembly build without reflection.
+- Runs the 4-timestamp NTP clock synchronization loop and passes each sample to `ClockOffsetEstimator`, which filters the samples and holds the resulting `RttMs` and `ClockOffsetMs` (see [NTP Clock Synchronization](ntp-clock-sync.md)).
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`
@@ -155,9 +155,8 @@ flowchart TD
   - **Dynamic Viewport Padding**: Computes top and bottom padding at runtime based on container height so that both the first and final lines of any track can be aligned to the vertical center.
 
 ### 4. `WasmInterop` Browser Hooks
-- Embedded JavaScript bridge for Uno WebAssembly:
-  - Hooks into browser `document.addEventListener("visibilitychange")` to track tab focus/minimization.
-  - Relays visibility state into C# via `SignalRPlaybackClient.ReportVisibilityAsync`, enabling server-side background poll rate reduction.
+- C# wrappers over `window.CantusInterop` (defined in `WasmScripts/index.html`) for Uno WebAssembly. On desktop heads they return defaults.
+  - `IsDocumentVisible` returns `!document.hidden`. `MainPage` polls it every 2 seconds and, on a change, calls `LyricsViewModel.ReportVisibilityAsync` (and `RefreshPlaybackAsync` when visible again), which lets the server slow polling for hidden tabs.
   - Reads the page's query string (`GetLocationSearch`) and drops one parameter from the address without a reload (`RemoveQueryParameter`), for the `?pair=` approval link.
 
 ### 5. `LyricLineViewModel`
@@ -171,8 +170,8 @@ flowchart TD
 - `LyricsViewModel` maps syllables off the wire. A syllable without a duration (enhanced LRC word tags carry only starts) runs until the next syllable starts, and the last one until the line's fill end. When there is no fill end (the final line) or it is not after the last syllable's start, the last syllable gets a short text-length estimate so it still fills instead of snapping full.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
-- `ThemeManager` extracts dynamic palettes from album artwork bytes and provides WCAG-compliant high-contrast theme brushes. It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
-- `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints. It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
+- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
 - Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
@@ -234,8 +233,11 @@ flowchart TD
 
 ## Target Runtime Matrix
 
-| Platform Target | Runtime Engine | UI Backend | Packaging |
+| Platform Target | Target Framework | UI Backend | Packaging (release workflow) |
 | :--- | :--- | :--- | :--- |
-| **WebAssembly (WASM)** | .NET 10 WebAssembly | Uno DOM/HTML Engine | Embedded in Docker container (`wwwroot`). |
-| **Linux Desktop / Raspberry Pi** | .NET 10 CoreCLR | Skia / X11 / Wayland | Standalone native binary / Flatpak. |
-| **Windows Desktop** | .NET 10 CoreCLR | WinUI 3 / Windows App SDK | MSIX / Standalone `.exe`. |
+| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries). |
+| **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`). |
+| **Windows Desktop** | `net10.0-desktop` (`win-x64`) | Skia (Win32) | `.zip` and Inno Setup installer (`packaging/windows`). |
+| **macOS Desktop** | `net10.0-desktop` (`osx-x64`, `osx-arm64`) | Skia (macOS) | `.tar.gz`. |
+
+The client project also has a `net10.0-windows10.0.26100` (WinUI) target when built on Windows, but releases ship the Skia desktop build.

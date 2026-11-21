@@ -1,22 +1,22 @@
 # NTP Clock Synchronization
 
-Synchronized lyrics require timing precision within tens of milliseconds. Because browser and device system clocks can drift significantly relative to the server and audio source, Cantus implements an **NTP-style 4-timestamp clock synchronization protocol** over SignalR.
+Synchronized lyrics need timing within tens of milliseconds. Device clocks drift relative to the server, so Cantus runs an **NTP-style 4-timestamp clock sync** over SignalR.
 
 ---
 
 ## Why Clock Synchronization Matters
 
-When Spotify reports that a track is at progress `01:45.320` at timestamp $T$, the client must accurately render the exact millisecond position as time elapses.
+Each playback snapshot carries Spotify's progress plus the server timestamp it was taken at. The client projects the current position as `progress + (serverNow - timestamp)`, which only works if the client knows the server's clock.
 
 Without clock synchronization:
-- Client system clock drift creates noticeable desynchronization (lyrics advancing too fast or too slow).
-- Variable network round-trip latency introduces jitter when playback updates arrive.
+- Client clock skew shifts every projected position (lyrics run early or late).
+- Variable network round-trip latency adds jitter when playback updates arrive.
 
 ---
 
 ## The 4-Timestamp Synchronization Algorithm
 
-Cantus uses the standard Network Time Protocol (NTP) round-trip model:
+Cantus uses the standard NTP round-trip model. Names match `SignalRPlaybackClient.SyncClockAsync`:
 
 ```mermaid
 sequenceDiagram
@@ -24,64 +24,65 @@ sequenceDiagram
     actor Client as Uno Client
     actor Server as SignalR PlaybackHub
 
-    Note over Client: t0 = Client Send Time
-    Client->>Server: SyncClock(t0)
-    Note over Server: t1 = Server Receive Time<br/>t2 = Server Transmit Time
-    Server-->>Client: ClockSyncResponse(t0, t1, t2)
-    Note over Client: t3 = Client Receive Time
+    Note over Client: "t1 = client send time"
+    Client->>Server: SyncClock(t1)
+    Note over Server: "t2 = server receive time, t3 = server send time"
+    Server-->>Client: "ClockSyncResponse(t1, t2, t3)"
+    Note over Client: "t4 = client receive time"
 ```
 
-1. **Client Send ($t_0$)**: Client records its local Unix time in milliseconds ($t_0$) and sends `SyncClock(t0)` to the hub.
-2. **Server Receive ($t_1$)**: Server captures timestamp ($t_1$) upon receiving the frame.
-3. **Server Transmit ($t_2$)**: Server captures timestamp ($t_2$) as it transmits the response payload containing $(t_0, t_1, t_2)$.
-4. **Client Receive ($t_3$)**: Client captures timestamp ($t_3$) when the response arrives.
+1. **Client send ($t_1$)**: the client reads its clock and calls `SyncClock(t1)` on the hub.
+2. **Server receive ($t_2$)** and **server send ($t_3$)**: `PlaybackHub.SyncClock` reads the server clock twice and returns `ClockSyncResponse(t1, t2, t3)`.
+3. **Client receive ($t_4$)**: the client reads its clock when the response arrives.
+
+All timestamps are Unix milliseconds from `DateTimeOffset.UtcNow`, so precision is 1 ms.
 
 ---
 
 ## Offset and Jitter Filtering
 
-From these four timestamps, Cantus calculates two core metrics:
+From the four timestamps the client computes:
 
-1. **Round-Trip Delay ($\delta$)**:
+1. **Round-trip delay ($\delta$)**, clamped to at least 0:
 
-    $$\delta = (t_3 - t_0) - (t_2 - t_1)$$
+    $$\delta = (t_4 - t_1) - (t_3 - t_2)$$
 
-    Measures pure network transit time excluding server processing overhead.
+2. **Clock offset ($\theta$)**: how far the server clock is ahead of the client clock.
 
-2. **Clock Offset ($\theta$)**:
+    $$\theta = \frac{(t_2 - t_1) + (t_3 - t_4)}{2}$$
 
-    $$\theta = \frac{(t_1 - t_0) + (t_2 - t_3)}{2}$$
+The offset is computed in whole milliseconds and truncated toward zero.
 
-    Represents how much the client clock leads or lags behind the server clock.
+`SignalRPlaybackClient.SyncClockAsync` hands the four timestamps to `ClockOffsetEstimator`, which owns this math and the sample filter below. The client's `RttMs` and `ClockOffsetMs` read the estimator's current values (both `0` before the first sample).
 
-A negative round-trip delay (for example after a client clock step) is clamped to `0`. The offset is computed in whole milliseconds and truncated toward zero.
+### Sample Filter (`ClockOffsetEstimator.AddSample`)
 
-In code, `SignalRPlaybackClient.SyncClockAsync` takes the four timestamps (named `t1` to `t4` there, for $t_0$ to $t_3$ here) and hands them to `ClockOffsetEstimator`, which owns the math and the filter below. The client's `RttMs` and `ClockOffsetMs` read the estimator's current values (both `0` before the first sample).
+- The client keeps the 5 most recent samples (`MAX_NTP_SAMPLES`).
+- The first sample is used as-is.
+- With 3 or more samples, the single sample with the highest round-trip time is dropped (the first one on a tie).
+- The rest are averaged, each weighted by `1 / max(1, RTT)` (lower latency counts more).
+- The result is blended into the previous value with an exponential moving average (`alpha = 0.35`), so the offset moves gradually instead of jumping.
 
-### Jitter Filter
+### Sync Schedule
 
-`ClockOffsetEstimator.AddSample` updates the estimate on every sample:
-
-- The last 5 samples are kept (`MAX_NTP_SAMPLES`); older ones are dropped.
-- The first sample is taken directly as the round-trip delay and offset.
-- With 3 or more samples, the single sample with the highest round-trip delay (the first one on a tie) is discarded as a spike.
-- The remaining samples are averaged, weighted by inverse round-trip delay ($1 / \max(1, \delta)$), so low-latency samples count more.
-- The result is smoothed with an exponential moving average ($\alpha = 0.35$) against the previous estimate, so drift is tracked without visual jumps.
-
-The client syncs as soon as it connects and then every 5 seconds.
+- A sync runs when the hub connection starts, then every 5 seconds on a timer.
+- A sync also runs after each automatic reconnect.
 
 ---
 
 ## Continuous Playback Interpolation
 
-Once the offset is known, the client runs a 60 FPS UI animation timer:
+`LyricsViewModel` runs a 16 ms `DispatcherTimer` (about 60 FPS). Each tick:
 
 ```mermaid
 flowchart LR
-    A["Last Known Playback Snapshot<br/>Progress: 45.200s @ ServerTime"] --> B["Current Client Clock + Offset"]
-    B --> C["Interpolated Progress = 45.200s + ElapsedTime"]
-    C --> D["Evaluate Active Lyric Line Index"]
-    D --> E["Smooth Scroll Animation"]
+    A["Last playback snapshot: progress and server timestamp"] --> B["Server now = client clock + offset"]
+    B --> C["Target = progress + elapsed - latency compensation"]
+    C --> D["Phase-locked loop steers the displayed position"]
+    D --> E["Add track offset and pick the active lyric line"]
 ```
 
-This ensures fluid, 60fps lyric scrolling even when Spotify polling updates arrive every 500ms over the network.
+- If the displayed position is more than 1,500 ms from the target, it snaps to the target.
+- Otherwise it advances by the tick time, sped up or slowed down by up to 5% to close the gap without a visible jump.
+
+This keeps lyrics scrolling smoothly between server polls, which arrive every 1.2 to 4 seconds during playback (see [Adaptive Polling](adaptive-polling.md)).

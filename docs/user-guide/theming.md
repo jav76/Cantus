@@ -32,11 +32,11 @@ flowchart TD
 
 ## Available Theme Modes
 
-You can switch between theme modes by pressing <kbd>T</kbd> on your keyboard or selecting the theme menu in the UI:
+Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info** tab) to move to the next theme. The order is Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, Dynamic, then back to Midnight Violet. The choice is not saved: each launch starts on Midnight Violet.
 
 | Theme Mode | Description | Ideal Use Case |
 | :--- | :--- | :--- |
-| **Dynamic Palette** | Adapts colors, glow, and text highlights to match the current album artwork. | Daily listening, TV living room display, visualizers. |
+| **Dynamic** | Adapts colors, glow, and text highlights to match the current album artwork. | Daily listening, TV living room display, visualizers. |
 | **Midnight Violet (Default)** | Deep indigo background with violet accents. | General use, low-light viewing. |
 | **Emerald Synth** | Dark slate background with emerald green accents. | Night viewing, low eye strain. |
 | **Cyberpunk Sunset** | Dark purple-tinted background with neon rose and amber accents. | High-energy visuals. |
@@ -48,19 +48,20 @@ You can switch between theme modes by pressing <kbd>T</kbd> on your keyboard or 
 
 ## Lyric Animation States
 
-Each line of synchronized lyrics exists in one of four distinct visual states:
+Each line of synchronized lyrics is in one of three visual states:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Upcoming: Track Loaded
-    Upcoming --> Active: Track Time Reaches Line Timestamp
-    Active --> Passed: Next Line Becomes Active
-    Active --> Instrumental: Instrumental Gap > 8s
-    Instrumental --> Upcoming: Gap Ends
-    Passed --> [*]: Song Finished
+    [*] --> Upcoming: Track loaded
+    Upcoming --> Active: Track time reaches line timestamp
+    Active --> Passed: Next line becomes active
+    Passed --> [*]: Song finished
 ```
 
-- **Upcoming Lines**: Rendered with 50% opacity in neutral text color, allowing you to read upcoming words without drawing primary visual focus.
-- **Active Singing Line**: Rendered with 100% opacity, enlarged font weight, vibrant accent color glow, and centered vertically in the viewport.
-- **Passed Lines**: Gently dimmed (30% opacity) and scrolled upwards out of the primary viewport.
-- **Instrumental Break**: A soft pulsating icon appears between lines when there is a musical interlude longer than 8 seconds.
+- **Upcoming Lines**: 75% opacity, medium weight, in the theme's upcoming-lyric color.
+- **Active Line**: 100% opacity, bold, larger font, in the theme's active-lyric color, centered vertically in the viewport.
+- **Passed Lines**: 45% opacity, normal weight, smaller font, scrolled up out of the center.
+
+### Instrumental Breaks
+
+When the gap from the active line to the next one is 8 seconds or more (or before the first line), and at least 3 seconds remain, Cantus shows a countdown such as `♪ Instrumental Interlude (12s) ♪` on the lyrics stage and the track card. It is hidden in static lyrics mode.
