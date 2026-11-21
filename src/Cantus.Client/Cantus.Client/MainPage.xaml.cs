@@ -23,6 +23,8 @@ public sealed partial class MainPage : Page
 
     public DisplaysViewModel Displays => ViewModel.Session.Displays;
 
+    public VisualEffectsViewModel Effects => ViewModel.Effects;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);

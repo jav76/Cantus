@@ -104,9 +104,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
         // Radio groups are tracked by name across the app, so each header gets its own names.
         string groupPrefix = $"CantusTheme-{Guid.NewGuid():N}";
-        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnPostProcessingToggled);
-        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnPostProcessingToggled);
-        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnPostProcessingToggled);
+        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnEffectToggled);
+        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnEffectToggled);
+        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnEffectToggled);
 
         Loaded += (s, e) =>
         {
@@ -126,12 +126,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         ViewModel?.Theme.SetThemeMode(mode);
     }
 
-    private void OnPostProcessingToggled(bool isEnabled)
+    private void OnEffectToggled(VisualEffect effect, bool isEnabled)
     {
-        if (ViewModel is not null)
-        {
-            ViewModel.IsPostProcessingEnabled = isEnabled;
-        }
+        ViewModel?.Effects.SetEnabled(effect, isEnabled);
     }
 
     private void OnThemeMenuOpening(object sender, object e)
@@ -143,7 +140,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
     {
         if (_subscribedViewModel is not null)
         {
-            _subscribedViewModel.PropertyChanged -= OnThemeStateChanged;
+            _subscribedViewModel.Effects.PropertyChanged -= OnEffectsChanged;
             _subscribedViewModel.Theme.PropertyChanged -= OnThemeStateChanged;
         }
 
@@ -151,27 +148,32 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
         if (viewModel is not null)
         {
-            viewModel.PropertyChanged += OnThemeStateChanged;
+            viewModel.Effects.PropertyChanged += OnEffectsChanged;
             viewModel.Theme.PropertyChanged += OnThemeStateChanged;
         }
     }
 
     private void OnThemeStateChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ThemeManager.CurrentMode) or nameof(LyricsViewModel.IsPostProcessingEnabled))
+        if (e.PropertyName == nameof(ThemeManager.CurrentMode))
         {
             SyncThemeMenus();
         }
+    }
+
+    private void OnEffectsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SyncThemeMenus();
     }
 
     private void SyncThemeMenus()
     {
         if (ViewModel is null) return;
         ThemeMode mode = ViewModel.Theme.CurrentMode;
-        bool isPostProcessingEnabled = ViewModel.IsPostProcessingEnabled;
-        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, isPostProcessingEnabled);
-        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, isPostProcessingEnabled);
-        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, isPostProcessingEnabled);
+        VisualEffectsViewModel effects = ViewModel.Effects;
+        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, effects);
+        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, effects);
+        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, effects);
     }
 
     private async void OnOpenDiagnosticsHudClicked(object sender, RoutedEventArgs e)

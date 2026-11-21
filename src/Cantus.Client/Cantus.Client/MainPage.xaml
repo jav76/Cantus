@@ -19,7 +19,8 @@
             </Border.Background>
         </Border>
 
-        <!-- Ambient Artwork Backdrop: full-resolution album art behind a darkening scrim (Dynamic theme only).
+        <!-- Ambient Artwork Backdrop: album art (sharp, or a small blurred copy when background blur is on)
+             behind a darkening scrim (Dynamic theme only).
              ImageBrush centers the UniformToFill crop; an Image element would clip to the top-left. -->
         <Border Visibility="{x:Bind ViewModel.AmbientBackgroundVisibility, Mode=OneWay}"
                 HorizontalAlignment="Stretch"
@@ -35,7 +36,7 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Background="#000000"
-                Opacity="0.62" />
+                Opacity="{x:Bind ViewModel.AmbientScrimOpacity, Mode=OneWay}" />
 
         <!-- Main Responsive Content Container (replaced by the pairing screen while pairing) -->
         <Grid Padding="{x:Bind Layout.ContentPadding, Mode=OneWay}"
@@ -148,7 +149,8 @@
             </StackPanel>
         </Border>
 
-        <!-- Post-processing effects (film grain and vignette): topmost, over every theme and kiosk mode -->
-        <views:PostProcessingOverlay Visibility="{x:Bind ViewModel.PostProcessingVisibility, Mode=OneWay}" />
+        <!-- Post-processing overlay (film grain, vignette, scanlines): topmost, over every theme and kiosk mode -->
+        <views:PostProcessingOverlay Effects="{x:Bind Effects}"
+                                     Visibility="{x:Bind Effects.AnyOverlayEffectVisibility, Mode=OneWay}" />
     </Grid>
 </Page>

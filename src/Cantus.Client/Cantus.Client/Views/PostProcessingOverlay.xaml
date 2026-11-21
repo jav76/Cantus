@@ -4,9 +4,15 @@
              IsHitTestVisible="False">
 
     <Grid x:Name="OverlayRoot">
-        <Border x:Name="VignetteLayer" />
+        <StackPanel x:Name="ScanlineHost"
+                    VerticalAlignment="Top"
+                    Visibility="{x:Bind Effects.ScanlinesVisibility, Mode=OneWay, FallbackValue=Collapsed}" />
 
-        <Canvas x:Name="GrainHost">
+        <Border x:Name="VignetteLayer"
+                Visibility="{x:Bind Effects.VignetteVisibility, Mode=OneWay, FallbackValue=Collapsed}" />
+
+        <Canvas x:Name="GrainHost"
+                Visibility="{x:Bind Effects.FilmGrainVisibility, Mode=OneWay, FallbackValue=Collapsed}">
             <Canvas.RenderTransform>
                 <TranslateTransform x:Name="GrainShift" />
             </Canvas.RenderTransform>

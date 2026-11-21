@@ -70,6 +70,9 @@ public sealed class ThemeManager : INotifyPropertyChanged
     /// </summary>
     public string? AmbientArtworkUrl { get; private set; }
 
+    /// <summary>The artwork service behind the Dynamic theme, shared so the backdrop blur reuses its download.</summary>
+    internal AlbumArtColorService ArtColorService => _artColorService;
+
     /// <summary>Every selectable mode, in the order the theme pickers list them and <see cref="CycleNextTheme"/> walks them.</summary>
     public static IReadOnlyList<ThemeMode> AvailableModes { get; } =
     [

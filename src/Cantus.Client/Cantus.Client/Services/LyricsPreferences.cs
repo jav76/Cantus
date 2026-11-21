@@ -11,10 +11,13 @@ public sealed class LyricsPreferences : ILyricsPreferences
     private const string KEY_AUTOSCROLL = "cantus_autoscroll";
     private const string KEY_KARAOKE = "cantus_karaoke";
     private const string KEY_LATENCY = "cantus_latency_ms";
-    private const string KEY_POST_PROCESSING = "cantus_post_processing";
+    private const string KEY_FILM_GRAIN = "cantus_fx_film_grain";
+    private const string KEY_VIGNETTE = "cantus_fx_vignette";
+    private const string KEY_SCANLINES = "cantus_fx_scanlines";
+    private const string KEY_BACKGROUND_BLUR = "cantus_fx_background_blur";
     private const bool DEFAULT_AUTOSCROLL_ENABLED = true;
     private const bool DEFAULT_KARAOKE_ENABLED = true;
-    private const bool DEFAULT_POST_PROCESSING_ENABLED = false;
+    private const bool DEFAULT_EFFECT_ENABLED = false;
 
     private readonly ISettingsStore _store;
 
@@ -35,10 +38,28 @@ public sealed class LyricsPreferences : ILyricsPreferences
         set => _store.SetValue(KEY_KARAOKE, value);
     }
 
-    public bool IsPostProcessingEnabled
+    public bool IsFilmGrainEnabled
     {
-        get => ReadBool(KEY_POST_PROCESSING, DEFAULT_POST_PROCESSING_ENABLED);
-        set => _store.SetValue(KEY_POST_PROCESSING, value);
+        get => ReadBool(KEY_FILM_GRAIN, DEFAULT_EFFECT_ENABLED);
+        set => _store.SetValue(KEY_FILM_GRAIN, value);
+    }
+
+    public bool IsVignetteEnabled
+    {
+        get => ReadBool(KEY_VIGNETTE, DEFAULT_EFFECT_ENABLED);
+        set => _store.SetValue(KEY_VIGNETTE, value);
+    }
+
+    public bool IsScanlinesEnabled
+    {
+        get => ReadBool(KEY_SCANLINES, DEFAULT_EFFECT_ENABLED);
+        set => _store.SetValue(KEY_SCANLINES, value);
+    }
+
+    public bool IsBackgroundBlurEnabled
+    {
+        get => ReadBool(KEY_BACKGROUND_BLUR, DEFAULT_EFFECT_ENABLED);
+        set => _store.SetValue(KEY_BACKGROUND_BLUR, value);
     }
 
     public int LatencyCompensationMs

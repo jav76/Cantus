@@ -1,21 +1,25 @@
 using System;
 using Cantus.Client.Models;
+using Cantus.Client.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Shapes;
 using Windows.Foundation;
 using Windows.UI;
 
 namespace Cantus.Client.Views;
 
 /// <summary>
-/// Full-window film grain and vignette drawn over every theme. The grain is a
-/// few pre-made noise tiles: each frame shows one tile layer and shifts the
-/// whole grid by a random whole-pixel offset, so a frame costs one transform
-/// and two opacity changes, never a re-rasterised bitmap. It works the same on
-/// the WASM DOM renderer (CSS transforms) and desktop Skia. The frame timer
-/// runs only while the overlay is loaded and visible.
+/// Full-window scanlines, vignette and film grain drawn over every theme, each
+/// shown or hidden by <see cref="Effects"/>. The grain is a few pre-made noise
+/// tiles: each frame shows one tile layer and shifts the whole grid by a
+/// random whole-pixel offset, so a frame costs one transform and two opacity
+/// changes, never a re-rasterised bitmap. Scanlines are static 1 px
+/// rectangles, rebuilt only when the line count changes. Both work the same on
+/// the WASM DOM renderer and desktop Skia. The grain timer runs only while the
+/// overlay is loaded and the grain layer is visible.
 /// </summary>
 public sealed partial class PostProcessingOverlay : UserControl
 {
@@ -30,6 +34,17 @@ public sealed partial class PostProcessingOverlay : UserControl
     private const byte VIGNETTE_MID_ALPHA = 22;
     private const byte VIGNETTE_EDGE_ALPHA = 72;
 
+    private const double SCANLINE_PERIOD = 4;
+    private const double SCANLINE_THICKNESS = 1;
+    private const double SCANLINE_OPACITY = 0.22;
+
+    public static readonly DependencyProperty EffectsProperty =
+        DependencyProperty.Register(
+            nameof(Effects),
+            typeof(VisualEffectsViewModel),
+            typeof(PostProcessingOverlay),
+            new PropertyMetadata(null));
+
     private readonly Random _random = new();
     private readonly Canvas[] _grainLayers = new Canvas[GRAIN_TILE_COUNT];
     private readonly BitmapImage?[] _grainSources = new BitmapImage?[GRAIN_TILE_COUNT];
@@ -40,6 +55,8 @@ public sealed partial class PostProcessingOverlay : UserControl
     private int _currentLayer = -1;
     private int _columns;
     private int _rows;
+    private int _scanlineCount;
+    private SolidColorBrush? _scanlineBrush;
 
     public PostProcessingOverlay()
     {
@@ -47,15 +64,28 @@ public sealed partial class PostProcessingOverlay : UserControl
 
         VignetteLayer.Background = CreateVignetteBrush();
         GrainHost.Opacity = GRAIN_OPACITY;
+        ScanlineHost.Opacity = SCANLINE_OPACITY;
         OverlayRoot.Clip = _clip;
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SizeChanged += OnSizeChanged;
         RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
+        GrainHost.RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
+        ScanlineHost.RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
     }
 
-    private bool IsActive => _isLoaded && Visibility == Visibility.Visible;
+    public VisualEffectsViewModel? Effects
+    {
+        get => (VisualEffectsViewModel?)GetValue(EffectsProperty);
+        set => SetValue(EffectsProperty, value);
+    }
+
+    private bool IsShown => _isLoaded && Visibility == Visibility.Visible;
+
+    private bool IsGrainActive => IsShown && GrainHost.Visibility == Visibility.Visible;
+
+    private bool IsScanlinesActive => IsShown && ScanlineHost.Visibility == Visibility.Visible;
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -77,15 +107,25 @@ public sealed partial class PostProcessingOverlay : UserControl
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         _clip.Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height);
-        if (IsActive)
+        if (IsGrainActive)
         {
             EnsureGrainTiles(e.NewSize.Width, e.NewSize.Height);
+        }
+
+        if (IsScanlinesActive)
+        {
+            EnsureScanlines(e.NewSize.Height);
         }
     }
 
     private void UpdateRunningState()
     {
-        if (IsActive)
+        if (IsScanlinesActive)
+        {
+            EnsureScanlines(ActualHeight);
+        }
+
+        if (IsGrainActive)
         {
             EnsureGrainTiles(ActualWidth, ActualHeight);
             if (_frameTimer is null)
@@ -121,8 +161,8 @@ public sealed partial class PostProcessingOverlay : UserControl
     }
 
     /// <summary>
-    /// Builds the tile grids the first time the overlay is shown, so a device
-    /// with effects off never downloads the tiles, and rebuilds them only when
+    /// Builds the tile grids the first time the grain is shown, so a device
+    /// with grain off never downloads the tiles, and rebuilds them only when
     /// the window grows or shrinks across a tile boundary.
     /// </summary>
     private void EnsureGrainTiles(double width, double height)
@@ -161,6 +201,38 @@ public sealed partial class PostProcessingOverlay : UserControl
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Keeps one line per <see cref="SCANLINE_PERIOD"/> down the overlay. Lines
+    /// stretch to the width on their own, so only a height change that alters
+    /// the count touches the tree.
+    /// </summary>
+    private void EnsureScanlines(double height)
+    {
+        int count = ScanlineLayout.GetLineCount(height, SCANLINE_PERIOD);
+        if (count == _scanlineCount)
+        {
+            return;
+        }
+
+        _scanlineBrush ??= new SolidColorBrush(Color.FromArgb(255, 0, 0, 0));
+        while (ScanlineHost.Children.Count < count)
+        {
+            ScanlineHost.Children.Add(new Rectangle
+            {
+                Height = SCANLINE_THICKNESS,
+                Margin = new Thickness(0, 0, 0, SCANLINE_PERIOD - SCANLINE_THICKNESS),
+                Fill = _scanlineBrush,
+            });
+        }
+
+        while (ScanlineHost.Children.Count > count)
+        {
+            ScanlineHost.Children.RemoveAt(ScanlineHost.Children.Count - 1);
+        }
+
+        _scanlineCount = count;
     }
 
     private Canvas CreateLayer(bool isCurrent)

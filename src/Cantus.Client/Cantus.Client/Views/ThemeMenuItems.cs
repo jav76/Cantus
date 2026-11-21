@@ -2,25 +2,24 @@ using System;
 using System.Collections.Generic;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
+using Cantus.Client.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 
 namespace Cantus.Client.Views;
 
 /// <summary>
 /// Builds and syncs the theme menu content: one radio item per mode in
-/// <see cref="ThemeManager.AvailableModes"/>, a separator, then the
-/// post-processing effects toggle. Every theme menu uses this, so they list
-/// the same items in the same order.
+/// <see cref="ThemeManager.AvailableModes"/>, a separator, then one toggle per
+/// effect in <see cref="VisualEffectsViewModel.AvailableEffects"/>. Every theme
+/// menu uses this, so they list the same items in the same order.
 /// </summary>
 internal static class ThemeMenuItems
 {
-    public const string POST_PROCESSING_TEXT = "Post-processing effects";
-
     public static void Populate(
         IList<MenuFlyoutItemBase> items,
         string groupName,
         Action<ThemeMode> onThemeSelected,
-        Action<bool> onPostProcessingToggled)
+        Action<VisualEffect, bool> onEffectToggled)
     {
         foreach (ThemeMode mode in ThemeManager.AvailableModes)
         {
@@ -36,23 +35,29 @@ internal static class ThemeMenuItems
 
         items.Add(new MenuFlyoutSeparator());
 
-        ToggleMenuFlyoutItem toggle = new() { Text = POST_PROCESSING_TEXT };
-        toggle.Click += (sender, e) => onPostProcessingToggled(toggle.IsChecked);
-        items.Add(toggle);
+        foreach (VisualEffect effect in VisualEffectsViewModel.AvailableEffects)
+        {
+            ToggleMenuFlyoutItem toggle = new()
+            {
+                Text = effect.GetDisplayName(),
+                Tag = effect,
+            };
+            toggle.Click += (sender, e) => onEffectToggled(effect, toggle.IsChecked);
+            items.Add(toggle);
+        }
     }
 
-    public static void Sync(IEnumerable<MenuFlyoutItemBase> items, ThemeMode currentMode, bool isPostProcessingEnabled)
+    public static void Sync(IEnumerable<MenuFlyoutItemBase> items, ThemeMode currentMode, VisualEffectsViewModel effects)
     {
         foreach (MenuFlyoutItemBase item in items)
         {
-            // RadioMenuFlyoutItem derives from ToggleMenuFlyoutItem, so it is matched first.
             if (item is RadioMenuFlyoutItem radio && radio.Tag is ThemeMode mode)
             {
                 radio.IsChecked = mode == currentMode;
             }
-            else if (item is ToggleMenuFlyoutItem toggle)
+            else if (item is ToggleMenuFlyoutItem toggle && toggle.Tag is VisualEffect effect)
             {
-                toggle.IsChecked = isPostProcessingEnabled;
+                toggle.IsChecked = effects.IsEnabled(effect);
             }
         }
     }

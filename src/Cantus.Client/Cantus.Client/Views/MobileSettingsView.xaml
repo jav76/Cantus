@@ -109,10 +109,26 @@
                               SelectedIndex="{x:Bind Theme.CurrentModeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
                               AutomationProperties.Name="Color theme" />
-                    <CheckBox Content="Post-processing effects"
-                              IsChecked="{x:Bind ViewModel.IsPostProcessingEnabled, Mode=TwoWay}"
-                              Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                    <TextBlock Text="Film grain and a soft vignette on every theme, saved on this device."
+                    <TextBlock Text="EFFECTS"
+                               Margin="0,6,0,0"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                    <StackPanel>
+                        <CheckBox Content="Film grain"
+                                  IsChecked="{x:Bind Effects.IsFilmGrainEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Vignette"
+                                  IsChecked="{x:Bind Effects.IsVignetteEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Scanlines"
+                                  IsChecked="{x:Bind Effects.IsScanlinesEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Blur album background"
+                                  IsChecked="{x:Bind Effects.IsBackgroundBlurEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                    </StackPanel>
+                    <TextBlock Text="Saved on this device. Background blur applies to the Dynamic theme only."
                                FontSize="11"
                                TextWrapping="Wrap"
                                Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />

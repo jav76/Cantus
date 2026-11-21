@@ -59,27 +59,32 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isStaticLyricsMode;
     private bool _isAutoScrollEnabled;
     private bool _isUserScrollingPaused;
-    private Microsoft.UI.Xaml.Media.ImageSource? _ambientBackgroundSource;
-    private string? _lastAmbientArtworkUrl;
+    private const double AMBIENT_SCRIM_OPACITY = 0.62;
+    private const double BLURRED_AMBIENT_SCRIM_OPACITY = 0.55;
+    private readonly AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource> _ambientBackdrop;
+    private readonly VisualEffectsViewModel _effects;
     private const int THEME_TOAST_DURATION_MS = 2000;
     private readonly DispatcherTimer _themeToastTimer;
     private string _themeToastText = string.Empty;
     private bool _isThemeToastVisible;
     private bool _isKaraokeModeEnabled;
-    private bool _isPostProcessingEnabled;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public PlaybackTransport Transport => _transport;
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
+    public VisualEffectsViewModel Effects => _effects;
     public DisplayPairingViewModel Pairing => _pairing;
     public LyricsPickerViewModel LyricsPicker => _lyricsPicker;
     public SongLookupViewModel Lookup => _lookup;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
 
-    public Microsoft.UI.Xaml.Media.ImageSource? AmbientBackgroundSource => _ambientBackgroundSource;
-    public Visibility AmbientBackgroundVisibility => _ambientBackgroundSource is null ? Visibility.Collapsed : Visibility.Visible;
+    public Microsoft.UI.Xaml.Media.ImageSource? AmbientBackgroundSource => _ambientBackdrop.Source;
+    public Visibility AmbientBackgroundVisibility => _ambientBackdrop.Source is null ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Blur already removes busy detail, so the blurred backdrop needs less darkening for readable lyrics.</summary>
+    public double AmbientScrimOpacity => _ambientBackdrop.IsBlurred ? BLURRED_AMBIENT_SCRIM_OPACITY : AMBIENT_SCRIM_OPACITY;
 
     public string AppVersion => BuildInfo.Version;
 
@@ -424,23 +429,6 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         IsKaraokeModeEnabled = !IsKaraokeModeEnabled;
     }
 
-    /// <summary>Per-device film grain and vignette overlay, drawn over every theme.</summary>
-    public bool IsPostProcessingEnabled
-    {
-        get => _isPostProcessingEnabled;
-        set
-        {
-            if (_isPostProcessingEnabled != value)
-            {
-                _isPostProcessingEnabled = value;
-                _preferences.IsPostProcessingEnabled = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(PostProcessingVisibility));
-            }
-        }
-    }
-
-    public Visibility PostProcessingVisibility => IsPostProcessingEnabled ? Visibility.Visible : Visibility.Collapsed;
     public Visibility ResumeAutoScrollVisibility => (IsAutoScrollEnabled && IsUserScrollingPaused && HasSyncedLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
 
     public event Action<bool>? AutoScrollEnabledChanged;
@@ -510,7 +498,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
         _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
-        _isPostProcessingEnabled = _preferences.IsPostProcessingEnabled;
+        _effects = new VisualEffectsViewModel(_preferences);
+        _effects.PropertyChanged += OnEffectsPropertyChanged;
+        _ambientBackdrop = new AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource>(
+            CreateSharpBackdrop,
+            CreateBlurredBackdropAsync,
+            ClientLoggingManager.CreateLogger<LyricsViewModel>());
+        _ambientBackdrop.SourceChanged += OnAmbientBackdropChanged;
 
         try
         {
@@ -673,33 +667,42 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void UpdateAmbientBackground()
     {
-        string? artworkUrl = _themeManager.AmbientArtworkUrl;
-        if (artworkUrl == _lastAmbientArtworkUrl)
-        {
-            return;
-        }
+        _ambientBackdrop.Update(_themeManager.AmbientArtworkUrl, _effects.IsBackgroundBlurEnabled);
+    }
 
-        _lastAmbientArtworkUrl = artworkUrl;
-
-        if (artworkUrl is null)
+    private void OnEffectsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(VisualEffectsViewModel.IsBackgroundBlurEnabled))
         {
-            _ambientBackgroundSource = null;
+            UpdateAmbientBackground();
         }
-        else
-        {
-            try
-            {
-                _ambientBackgroundSource = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(artworkUrl));
-            }
-            catch (Exception)
-            {
-                // Headless test environments cannot create XAML bitmaps.
-                _ambientBackgroundSource = null;
-            }
-        }
+    }
 
+    private void OnAmbientBackdropChanged()
+    {
         OnPropertyChanged(nameof(AmbientBackgroundSource));
         OnPropertyChanged(nameof(AmbientBackgroundVisibility));
+        OnPropertyChanged(nameof(AmbientScrimOpacity));
+    }
+
+    private static Microsoft.UI.Xaml.Media.ImageSource CreateSharpBackdrop(string artworkUrl) =>
+        new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(artworkUrl));
+
+    private async Task<Microsoft.UI.Xaml.Media.ImageSource?> CreateBlurredBackdropAsync(
+        string artworkUrl,
+        System.Threading.CancellationToken cancellationToken)
+    {
+        byte[]? png = await _themeManager.ArtColorService.GetBlurredArtworkPngAsync(artworkUrl, cancellationToken);
+        if (png is null)
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        Microsoft.UI.Xaml.Media.Imaging.BitmapImage image = new();
+        using System.IO.MemoryStream stream = new(png);
+        await image.SetSourceAsync(stream.AsRandomAccessStream());
+        return image;
     }
 
     private void OnThemeManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)

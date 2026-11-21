@@ -9,7 +9,10 @@ public sealed class LyricsPreferencesTests
     private const string KEY_AUTOSCROLL = "cantus_autoscroll";
     private const string KEY_KARAOKE = "cantus_karaoke";
     private const string KEY_LATENCY = "cantus_latency_ms";
-    private const string KEY_POST_PROCESSING = "cantus_post_processing";
+    private const string KEY_FILM_GRAIN = "cantus_fx_film_grain";
+    private const string KEY_VIGNETTE = "cantus_fx_vignette";
+    private const string KEY_SCANLINES = "cantus_fx_scanlines";
+    private const string KEY_BACKGROUND_BLUR = "cantus_fx_background_blur";
     private const int DEFAULT_LATENCY_MS = 200;
     private const int MAX_LATENCY_MS = 1000;
     private const int CUSTOM_LATENCY_MS = 350;
@@ -24,7 +27,10 @@ public sealed class LyricsPreferencesTests
         // Assert
         preferences.IsAutoScrollEnabled.Should().BeTrue();
         preferences.IsKaraokeModeEnabled.Should().BeTrue();
-        preferences.IsPostProcessingEnabled.Should().BeFalse();
+        preferences.IsFilmGrainEnabled.Should().BeFalse();
+        preferences.IsVignetteEnabled.Should().BeFalse();
+        preferences.IsScanlinesEnabled.Should().BeFalse();
+        preferences.IsBackgroundBlurEnabled.Should().BeFalse();
         preferences.LatencyCompensationMs.Should().Be(DEFAULT_LATENCY_MS);
     }
 
@@ -38,14 +44,20 @@ public sealed class LyricsPreferencesTests
         // Act
         writer.IsAutoScrollEnabled = false;
         writer.IsKaraokeModeEnabled = false;
-        writer.IsPostProcessingEnabled = true;
+        writer.IsFilmGrainEnabled = true;
+        writer.IsVignetteEnabled = true;
+        writer.IsScanlinesEnabled = true;
+        writer.IsBackgroundBlurEnabled = true;
         writer.LatencyCompensationMs = CUSTOM_LATENCY_MS;
         LyricsPreferences reader = new(store);
 
         // Assert
         reader.IsAutoScrollEnabled.Should().BeFalse();
         reader.IsKaraokeModeEnabled.Should().BeFalse();
-        reader.IsPostProcessingEnabled.Should().BeTrue();
+        reader.IsFilmGrainEnabled.Should().BeTrue();
+        reader.IsVignetteEnabled.Should().BeTrue();
+        reader.IsScanlinesEnabled.Should().BeTrue();
+        reader.IsBackgroundBlurEnabled.Should().BeTrue();
         reader.LatencyCompensationMs.Should().Be(CUSTOM_LATENCY_MS);
     }
 
@@ -59,13 +71,19 @@ public sealed class LyricsPreferencesTests
         // Act
         preferences.IsAutoScrollEnabled = false;
         preferences.IsKaraokeModeEnabled = true;
-        preferences.IsPostProcessingEnabled = true;
+        preferences.IsFilmGrainEnabled = true;
+        preferences.IsVignetteEnabled = false;
+        preferences.IsScanlinesEnabled = true;
+        preferences.IsBackgroundBlurEnabled = true;
         preferences.LatencyCompensationMs = CUSTOM_LATENCY_MS;
 
         // Assert
         store.Values[KEY_AUTOSCROLL].Should().Be(false);
         store.Values[KEY_KARAOKE].Should().Be(true);
-        store.Values[KEY_POST_PROCESSING].Should().Be(true);
+        store.Values[KEY_FILM_GRAIN].Should().Be(true);
+        store.Values[KEY_VIGNETTE].Should().Be(false);
+        store.Values[KEY_SCANLINES].Should().Be(true);
+        store.Values[KEY_BACKGROUND_BLUR].Should().Be(true);
         store.Values[KEY_LATENCY].Should().Be(CUSTOM_LATENCY_MS);
     }
 
@@ -76,7 +94,10 @@ public sealed class LyricsPreferencesTests
         InMemorySettingsStore store = new();
         store.SetValue(KEY_AUTOSCROLL, "False");
         store.SetValue(KEY_KARAOKE, "false");
-        store.SetValue(KEY_POST_PROCESSING, "True");
+        store.SetValue(KEY_FILM_GRAIN, "True");
+        store.SetValue(KEY_VIGNETTE, "true");
+        store.SetValue(KEY_SCANLINES, "TRUE");
+        store.SetValue(KEY_BACKGROUND_BLUR, "True");
         store.SetValue(KEY_LATENCY, "350");
 
         // Act
@@ -85,7 +106,10 @@ public sealed class LyricsPreferencesTests
         // Assert
         preferences.IsAutoScrollEnabled.Should().BeFalse();
         preferences.IsKaraokeModeEnabled.Should().BeFalse();
-        preferences.IsPostProcessingEnabled.Should().BeTrue();
+        preferences.IsFilmGrainEnabled.Should().BeTrue();
+        preferences.IsVignetteEnabled.Should().BeTrue();
+        preferences.IsScanlinesEnabled.Should().BeTrue();
+        preferences.IsBackgroundBlurEnabled.Should().BeTrue();
         preferences.LatencyCompensationMs.Should().Be(CUSTOM_LATENCY_MS);
     }
 
@@ -96,7 +120,10 @@ public sealed class LyricsPreferencesTests
         InMemorySettingsStore store = new();
         store.SetValue(KEY_AUTOSCROLL, "not-a-bool");
         store.SetValue(KEY_KARAOKE, NON_BOOLEAN_VALUE);
-        store.SetValue(KEY_POST_PROCESSING, "sometimes");
+        store.SetValue(KEY_FILM_GRAIN, "sometimes");
+        store.SetValue(KEY_VIGNETTE, NON_BOOLEAN_VALUE);
+        store.SetValue(KEY_SCANLINES, "1");
+        store.SetValue(KEY_BACKGROUND_BLUR, "yes");
         store.SetValue(KEY_LATENCY, "soon");
 
         // Act
@@ -105,7 +132,10 @@ public sealed class LyricsPreferencesTests
         // Assert
         preferences.IsAutoScrollEnabled.Should().BeTrue();
         preferences.IsKaraokeModeEnabled.Should().BeTrue();
-        preferences.IsPostProcessingEnabled.Should().BeFalse();
+        preferences.IsFilmGrainEnabled.Should().BeFalse();
+        preferences.IsVignetteEnabled.Should().BeFalse();
+        preferences.IsScanlinesEnabled.Should().BeFalse();
+        preferences.IsBackgroundBlurEnabled.Should().BeFalse();
         preferences.LatencyCompensationMs.Should().Be(DEFAULT_LATENCY_MS);
     }
 
