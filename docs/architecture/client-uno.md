@@ -109,7 +109,7 @@ flowchart TD
 ### 1. `SignalRPlaybackClient`
 - Manages the WebSocket lifecycle: automatic reconnect with exponential backoff, clock synchronization, and dispatching incoming payload events.
 - Utilizes `CantusJsonContext` (`JsonSerializerContext`) for AOT / trimmed WebAssembly source-generated JSON deserialization, ensuring zero reflection overhead and maximum runtime reliability.
-- Runs the 4-timestamp NTP clock synchronization loop.
+- Runs the 4-timestamp NTP clock synchronization loop and passes each sample to `ClockOffsetEstimator`, which filters the samples and holds the resulting `RttMs` and `ClockOffsetMs`.
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`

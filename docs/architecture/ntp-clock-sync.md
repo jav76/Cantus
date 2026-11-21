@@ -27,11 +27,11 @@ sequenceDiagram
     Note over Client: t0 = Client Send Time
     Client->>Server: SyncClock(t0)
     Note over Server: t1 = Server Receive Time<br/>t2 = Server Transmit Time
-    Server-->>Client: SyncClockResponse(t0, t1, t2)
+    Server-->>Client: ClockSyncResponse(t0, t1, t2)
     Note over Client: t3 = Client Receive Time
 ```
 
-1. **Client Send ($t_0$)**: Client records local high-resolution timestamp ($t_0$) and sends `SyncClock(t0)` to the hub.
+1. **Client Send ($t_0$)**: Client records its local Unix time in milliseconds ($t_0$) and sends `SyncClock(t0)` to the hub.
 2. **Server Receive ($t_1$)**: Server captures timestamp ($t_1$) upon receiving the frame.
 3. **Server Transmit ($t_2$)**: Server captures timestamp ($t_2$) as it transmits the response payload containing $(t_0, t_1, t_2)$.
 4. **Client Receive ($t_3$)**: Client captures timestamp ($t_3$) when the response arrives.
@@ -54,12 +54,21 @@ From these four timestamps, Cantus calculates two core metrics:
 
     Represents how much the client clock leads or lags behind the server clock.
 
-### Moving Average Jitter Filter
+A negative round-trip delay (for example after a client clock step) is clamped to `0`. The offset is computed in whole milliseconds and truncated toward zero.
 
-- When the client connects, it performs a burst of 5 initial sync samples.
-- Samples with abnormally high round-trip latency (spikes/outliers) are discarded.
-- The remaining samples are averaged to compute a stable base clock offset $\theta_{\text{stable}}$.
-- Periodic background syncs occur every 5 seconds to track long-term clock drift smoothly without visual jumps.
+In code, `SignalRPlaybackClient.SyncClockAsync` takes the four timestamps (named `t1` to `t4` there, for $t_0$ to $t_3$ here) and hands them to `ClockOffsetEstimator`, which owns the math and the filter below. The client's `RttMs` and `ClockOffsetMs` read the estimator's current values (both `0` before the first sample).
+
+### Jitter Filter
+
+`ClockOffsetEstimator.AddSample` updates the estimate on every sample:
+
+- The last 5 samples are kept (`MAX_NTP_SAMPLES`); older ones are dropped.
+- The first sample is taken directly as the round-trip delay and offset.
+- With 3 or more samples, the single sample with the highest round-trip delay (the first one on a tie) is discarded as a spike.
+- The remaining samples are averaged, weighted by inverse round-trip delay ($1 / \max(1, \delta)$), so low-latency samples count more.
+- The result is smoothed with an exponential moving average ($\alpha = 0.35$) against the previous estimate, so drift is tracked without visual jumps.
+
+The client syncs as soon as it connects and then every 5 seconds.
 
 ---
 
