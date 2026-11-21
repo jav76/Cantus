@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
+using Cantus.Client.Tests.Services;
 using Cantus.Client.ViewModels;
 using FluentAssertions;
 using Microsoft.UI.Xaml;
@@ -17,8 +18,21 @@ public sealed class LyricsViewModelLyricsPickerTests
 
     private readonly SignalRPlaybackClient _client = new();
     private readonly Mock<ILyricsCorrectionService> _service = new();
+    private readonly Mock<IDisplayManagementApi> _displaysApi = new();
 
-    private LyricsViewModel CreateRoot() => new(_client, lyricsCorrection: _service.Object);
+    public LyricsViewModelLyricsPickerTests()
+    {
+        _displaysApi
+            .Setup(a => a.ListAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DisplayListResult(DisplayManagementStatus.Succeeded, new List<DisplayInfoPayload>()));
+    }
+
+    private LyricsViewModel CreateRoot() => new(
+        _client,
+        displayCredentials: new DisplayCredentialStore(new InMemorySettingsStore()),
+        displaysApi: _displaysApi.Object,
+        pendingPairCodes: new PendingPairCodeStore(new InMemorySettingsStore()),
+        lyricsCorrection: _service.Object);
 
     private void PlayTrack(string trackId)
     {
