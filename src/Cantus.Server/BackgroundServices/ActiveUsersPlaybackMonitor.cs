@@ -20,7 +20,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IPlaybackSessionRegistry _registry;
     private readonly IHubContext<PlaybackHub, IPlaybackClient> _hubContext;
-    private readonly PlaybackPollerOptions _options;
+    private readonly PollingCadencePolicy _cadence;
     private readonly ILogger<ActiveUsersPlaybackMonitor> _logger;
     private readonly object _wakeLock = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _nextPollUtc = new();
@@ -44,7 +44,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         _scopeFactory = scopeFactory;
         _registry = registry;
         _hubContext = hubContext;
-        _options = options.Value;
+        _cadence = new PollingCadencePolicy(options.Value);
         _logger = logger;
 
         _registry.OnClientsConnected += (_, _) => TriggerImmediatePoll();
@@ -105,7 +105,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     {
                         using CancellationTokenSource linkedZeroClients =
                             CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token);
-                        await Task.Delay(1000, linkedZeroClients.Token);
+                        await Task.Delay(PollingCadencePolicy.NO_CONNECTED_CLIENTS_DELAY_MS, linkedZeroClients.Token);
                     }
                     catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                     {
@@ -133,7 +133,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in ActiveUsersPlaybackMonitor poller loop.");
-                await Task.Delay(3000, stoppingToken);
+                await Task.Delay(PollingCadencePolicy.LOOP_ERROR_DELAY_MS, stoppingToken);
             }
         }
 
@@ -156,7 +156,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             _pausedSinceUtc.Clear();
             _idleSinceUtc.Clear();
             _lastTrackIdByUser.Clear();
-            return _options.IdlePollIntervalMs;
+            return _cadence.NoActiveUsersDelayMs;
         }
 
         // Purge state for disconnected users
@@ -190,14 +190,14 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = 1,
                     PollerStatus = rateLimitStatus,
-                    ActivePollIntervalMs = (int)Math.Min(remaining.TotalMilliseconds, 10000),
+                    ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(remaining),
                     ActiveUserId = session.Id,
                     ActiveUserName = session.DisplayName,
                     ServerTimeUtc = DateTimeOffset.UtcNow
                 });
             }
 
-            return (int)Math.Clamp(remaining.TotalMilliseconds, 1000, 10000);
+            return _cadence.GetRateLimitedLoopDelayMs(remaining);
         }
 
         foreach (string userId in activeUserIds)
@@ -245,13 +245,13 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         ConnectedClients = _registry.ConnectedClientsCount,
                         AuthorizedSessions = 1,
                         PollerStatus = rateLimitStatus,
-                        ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                        ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(retryAfter),
                         ActiveUserId = session.Id,
                         ActiveUserName = session.DisplayName,
                         ServerTimeUtc = DateTimeOffset.UtcNow
                     });
 
-                    return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
+                    return _cadence.GetRateLimitedLoopDelayMs(retryAfter);
                 }
                 catch (Exception ex) when (IsUnauthorized(ex))
                 {
@@ -287,13 +287,13 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             ConnectedClients = _registry.ConnectedClientsCount,
                             AuthorizedSessions = 1,
                             PollerStatus = rateLimitStatus,
-                            ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                            ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(retryAfter),
                             ActiveUserId = session.Id,
                             ActiveUserName = session.DisplayName,
                             ServerTimeUtc = DateTimeOffset.UtcNow
                         });
 
-                        return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
+                        return _cadence.GetRateLimitedLoopDelayMs(retryAfter);
                     }
                     catch (Exception refreshEx)
                     {
@@ -340,37 +340,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                                 cancellationToken);
                         }
 
-                        // Calculate dynamic horizon polling interval
-                        if (!isVisible)
-                        {
-                            userIntervalMs = _options.BackgroundPollIntervalMs;
-                        }
-                        else
-                        {
-                            TimeSpan duration = currentPlayback.CurrentTrack?.Duration ?? TimeSpan.Zero;
-                            TimeSpan progress = currentPlayback.Progress;
-                            TimeSpan remaining = duration > progress ? duration - progress : TimeSpan.Zero;
-
-                            if (duration > TimeSpan.Zero)
-                            {
-                                if (remaining.TotalMilliseconds <= _options.ImminentEndThresholdMs)
-                                {
-                                    userIntervalMs = _options.ImminentEndPollIntervalMs;
-                                }
-                                else if (remaining.TotalMilliseconds <= _options.ApproachingEndThresholdMs)
-                                {
-                                    userIntervalMs = _options.ApproachingEndPollIntervalMs;
-                                }
-                                else
-                                {
-                                    userIntervalMs = _options.ActivePollIntervalMs;
-                                }
-                            }
-                            else
-                            {
-                                userIntervalMs = _options.ActivePollIntervalMs;
-                            }
-                        }
+                        userIntervalMs = _cadence.GetUserPollIntervalMs(currentPlayback, isVisible, TimeSpan.Zero);
 
                         // Update in-memory registry. On the same track the
                         // snapshot's lyrics and offset are kept as they are at
@@ -445,22 +415,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         DateTimeOffset pausedSince = _pausedSinceUtc.GetOrAdd(session.Id, now);
                         TimeSpan pausedDuration = now - pausedSince;
 
-                        if (!isVisible)
-                        {
-                            userIntervalMs = Math.Max(_options.PausedDeepPollIntervalMs, _options.BackgroundPollIntervalMs);
-                        }
-                        else if (pausedDuration > TimeSpan.FromMinutes(5))
-                        {
-                            userIntervalMs = _options.PausedDeepPollIntervalMs;
-                        }
-                        else if (pausedDuration > TimeSpan.FromMinutes(1))
-                        {
-                            userIntervalMs = _options.PausedExtendedPollIntervalMs;
-                        }
-                        else
-                        {
-                            userIntervalMs = _options.PausedPollIntervalMs;
-                        }
+                        userIntervalMs = _cadence.GetUserPollIntervalMs(currentPlayback, isVisible, pausedDuration);
 
                         _registry.UpdateUserPlayback(session.Id, session.DisplayName, currentPlayback);
 
@@ -488,22 +443,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     DateTimeOffset idleSince = _idleSinceUtc.GetOrAdd(session.Id, now);
                     TimeSpan idleDuration = now - idleSince;
 
-                    if (!isVisible)
-                    {
-                        userIntervalMs = Math.Max(_options.IdleDeepPollIntervalMs, _options.BackgroundPollIntervalMs);
-                    }
-                    else if (idleDuration > TimeSpan.FromMinutes(10))
-                    {
-                        userIntervalMs = _options.IdleDeepPollIntervalMs;
-                    }
-                    else if (idleDuration > TimeSpan.FromMinutes(2))
-                    {
-                        userIntervalMs = _options.IdleExtendedPollIntervalMs;
-                    }
-                    else
-                    {
-                        userIntervalMs = _options.IdlePollIntervalMs;
-                    }
+                    userIntervalMs = _cadence.GetUserPollIntervalMs(null, isVisible, idleDuration);
 
                     _registry.UpdateUserState(
                         session.Id,
@@ -529,29 +469,20 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.LogError(ex, "Error polling Spotify playback for Session {SessionRef}", SessionLogRef.For(userId));
-                _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_options.PausedPollIntervalMs);
+                _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_cadence.PollErrorIntervalMs);
             }
         }
 
-        DateTimeOffset earliestNext = DateTimeOffset.MaxValue;
+        DateTimeOffset? earliestNext = null;
         foreach (string uid in activeUserIds)
         {
-            if (_nextPollUtc.TryGetValue(uid, out DateTimeOffset t))
+            if (_nextPollUtc.TryGetValue(uid, out DateTimeOffset t) && (earliestNext is null || t < earliestNext))
             {
-                if (t < earliestNext)
-                {
-                    earliestNext = t;
-                }
+                earliestNext = t;
             }
         }
 
-        if (earliestNext == DateTimeOffset.MaxValue)
-        {
-            return _options.ActivePollIntervalMs;
-        }
-
-        TimeSpan waitTime = earliestNext - DateTimeOffset.UtcNow;
-        return (int)Math.Clamp(waitTime.TotalMilliseconds, 500, 10000);
+        return _cadence.GetLoopDelayMs(earliestNext, DateTimeOffset.UtcNow);
     }
 
     /// <summary>

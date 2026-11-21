@@ -4,6 +4,8 @@ Spotify does not provide an outgoing WebSocket webhook for user playback changes
 
 The engine dynamically schedules per-user polling intervals based on player activity, remaining track duration, browser tab visibility, and client interaction.
 
+The cadence rules below live in `PollingCadencePolicy`, a pure type with no I/O or timers: given an owner's playback state, visibility and how long they have been paused or idle, or the remaining rate-limit cooldown, it returns the next delay. `ActiveUsersPlaybackMonitor` runs the loop, calls Spotify, tracks when each owner was last paused or idle, and keeps `_nextPollUtc` and `_rateLimitUntilUtc`. `PollingCadencePolicyTests` has one case per cadence in the table.
+
 ---
 
 ## State Machine Architecture
@@ -66,7 +68,7 @@ stateDiagram-v2
 | **Idle (Initial)** | `10,000ms` | No active playback $\le$ 2 minutes | Detects when user opens Spotify and queues a track (0.10 req/s). |
 | **Idle (Extended)** | `30,000ms` | No active playback 2–10 minutes | Intermediate backoff when Spotify is closed or idle (0.033 req/s). |
 | **Idle (Deep)** | `60,000ms` | No active playback $>$ 10 minutes | Maximum power/quota savings while keeping viewer connections alive (0.016 req/s). |
-| **Background Throttled** | `20,000ms` | All connected viewer tabs are hidden / minimized | Drastically reduces polling while user is not looking at the lyrics display (0.05 req/s). |
+| **Background Throttled** | `20,000ms` | All connected viewer tabs are hidden / minimized. A hidden paused or idle owner uses the slower of this and the deep cadence (`30,000ms` paused, `60,000ms` idle by default). | Drastically reduces polling while user is not looking at the lyrics display (0.05 req/s). |
 | **Sleeping** | `0ms` (Halted) | Zero connected viewers (Session or Display connections) | Complete suspension: **0 req/s** (zero quota consumption). |
 
 ---
