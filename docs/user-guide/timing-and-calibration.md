@@ -15,7 +15,7 @@ When playing music from Spotify, the Spotify API reports where the playback curs
 | **Standard Bluetooth (SBC / AAC)** | `120ms – 250ms` | Wireless packet buffering and encoding. |
 | **AirPlay / Chromecast Audio** | `1000ms – 2000ms` | Whole-home streaming buffer sync. |
 
-Cantus ships with a built-in **device latency compensation** (default `200ms`) that delays lyric rendering to match typical wireless audio output. If your output is low-latency (wired headphones, USB DAC), that default makes lyrics trail the audio slightly — reduce it with <kbd>[</kbd> as described below.
+Cantus ships with a built-in **device latency compensation** (default `200ms`) that delays lyric rendering to match typical wireless audio output. If your output is low-latency (wired headphones, USB DAC), that default makes lyrics trail the audio slightly: reduce it with <kbd>[</kbd> as described below.
 
 ---
 
@@ -33,7 +33,7 @@ flowchart LR
 
 ### Adjusting Per-Track Timing via UI Steppers
 
-In the **Track Card** (Desktop/Tablet) or **Settings View** (Mobile), use the `SYNC OFFSET` stepper buttons:
+In the **Track Card** (desktop and tablet) or the **Sync & Info** tab (mobile), use the `SYNC OFFSET` stepper buttons:
 
 - **`+0.1s` / `+0.5s`**: Nudges lyrics **earlier** if the text is highlighting after you hear the singer.
 - **`-0.5s` / `-0.1s`**: Nudges lyrics **later** if the text is highlighting before you hear the singer.
@@ -46,12 +46,12 @@ The stepper buttons keep the track offset between `-30.0s` and `+30.0s`.
 The <kbd>[</kbd> and <kbd>]</kbd> keys adjust the device-wide latency compensation in `50ms` steps:
 
 1. Listen to the vocals while watching the highlighted line on screen.
-2. If the lyrics highlight **too late** (after you hear the singer — common on wired output):
+2. If the lyrics highlight **too late** (after you hear the singer, common on wired output):
    - Press <kbd>[</kbd> to reduce the compensation; lyrics render **earlier**.
-3. If the lyrics highlight **too early** (before you hear the singer — common on Bluetooth/AirPlay):
+3. If the lyrics highlight **too early** (before you hear the singer, common on Bluetooth/AirPlay):
    - Press <kbd>]</kbd> to increase the compensation; lyrics render **later**.
 
-The current value is shown as **Device Latency** in the mobile Settings view and as **Latency Compensation** in the diagnostics HUD, ranges `0–1000ms`, and persists per device/browser.
+The current value is shown as **Device Latency** in the mobile Settings view and as **Latency Compensation** in the diagnostics HUD, ranges `0` to `1000ms`, and persists per device/browser. A [paired Display](displays.md) can adjust its own latency compensation too, but not per-track offsets. There is no reset key: step back to the value you want.
 
 ---
 
@@ -72,5 +72,5 @@ The effective render position is:
 rendered position = interpolated playback position − device latency compensation + per-track offset
 ```
 
-- **Device latency compensation** (keyboard <kbd>[</kbd>/<kbd>]</kbd>, settings steppers) calibrates your audio output chain once per device — it applies to every track and persists locally.
+- **Device latency compensation** (keyboard <kbd>[</kbd>/<kbd>]</kbd>, settings steppers) calibrates your audio output chain once per device: it applies to every track and persists locally.
 - **Per-track offsets** (the `SYNC OFFSET` steppers) handle song-specific quirks (unusual mastering, mistimed community lyrics) and stack on top of the device calibration, persisted server-side per Spotify track ID.
