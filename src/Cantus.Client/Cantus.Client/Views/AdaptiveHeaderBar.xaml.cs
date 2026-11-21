@@ -97,6 +97,17 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         await dialog.ShowAsync();
     }
 
+    private async void OnOpenSongLookupClicked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null) return;
+        SongLookupDialog dialog = new(ViewModel);
+        if (this.XamlRoot is not null)
+        {
+            dialog.XamlRoot = this.XamlRoot;
+        }
+        await dialog.ShowAsync();
+    }
+
     private void OnToggleKioskClicked(object sender, RoutedEventArgs e)
     {
         Layout?.ToggleKioskMode();

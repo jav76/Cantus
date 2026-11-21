@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -22,11 +23,13 @@ public sealed partial class MainPage : Page
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
         LyricsPreferences preferences = new(new LocalSettingsStore());
+        SongLookupClient lookupClient = new(client, new HttpClient());
         ViewModel = new LyricsViewModel(
             client,
             ThemeManager.Instance,
             ResponsiveLayoutManager.Instance,
-            preferences);
+            preferences,
+            lookupClient);
         this.InitializeComponent();
 
         this.Loaded += async (s, e) =>
@@ -97,6 +100,12 @@ public sealed partial class MainPage : Page
 
     private void OnPageKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        // Letters typed into a text box (such as the Find a song fragment) are text, not shortcuts.
+        if (XamlRoot is not null && FocusManager.GetFocusedElement(XamlRoot) is TextBox)
+        {
+            return;
+        }
+
         if (e.Key == VirtualKey.F11 || e.Key == VirtualKey.K)
         {
             ViewModel.Layout.ToggleKioskMode();

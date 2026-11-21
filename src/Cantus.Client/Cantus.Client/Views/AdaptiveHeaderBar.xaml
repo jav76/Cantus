@@ -52,6 +52,22 @@
 
                 <!-- Action Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- Find a Song by Lyrics (signed-in owners only) -->
+                    <Button Click="OnOpenSongLookupClicked"
+                            Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}"
+                            Background="#1AFFFFFF"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            ToolTipService.ToolTip="Find a song by lyrics">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE721;" FontSize="15" />
+                            <TextBlock Text="Find Song" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- Theme Switcher -->
                     <Button Click="OnCycleThemeClicked"
                             Background="#1AFFFFFF"
@@ -133,6 +149,18 @@
 
                 <!-- Compact Action Buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Button Click="OnOpenSongLookupClicked"
+                            Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}"
+                            Background="#1AFFFFFF"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="8"
+                            Padding="8,6"
+                            ToolTipService.ToolTip="Find a song by lyrics">
+                        <FontIcon Glyph="&#xE721;" FontSize="14" />
+                    </Button>
+
                     <Button Click="OnCycleThemeClicked"
                             Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
@@ -210,6 +238,13 @@
                             Padding="8,5">
                         <Button.Flyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Text="Find Song by Lyrics"
+                                                Click="OnOpenSongLookupClicked"
+                                                Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE721;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="Cycle Theme (T)" Click="OnCycleThemeClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE790;" />
