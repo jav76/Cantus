@@ -18,6 +18,7 @@ flowchart TD
     Swatches --> Background[Hue-Matched Dark Background]
     Primary --> ActiveLyric[Active Lyric Glow and Accents]
     Art --> Backdrop[Full-Screen Artwork Backdrop Behind Darkening Scrim]
+    Fetch --> Blur[Optional Blurred Backdrop]
 ```
 
 ### Color Extraction Principles
@@ -25,7 +26,7 @@ flowchart TD
 1. **Median-Cut Quantization**: The artwork is downsampled and quantized into up to eight dominant color swatches. Near-black, near-white, and transparent pixels are excluded so letterboxing and vignettes do not skew the palette.
 2. **Vibrancy-Weighted Accent Selection**: The primary accent is the swatch with the best combination of saturation, population, and mid-range lightness. The secondary accent prefers a swatch at least 30 degrees away in hue; grayscale artwork keeps its neutral character instead of being forced into artificial color.
 3. **Legibility Clamping**: Accent saturation and lightness are clamped into ranges that keep lyrics crisp against the hue-matched dark background, regardless of how dark or washed out the artwork is.
-4. **Ambient Artwork Backdrop**: The full-resolution album cover fills the entire viewport behind a darkening scrim (center-cropped to fit), so different albums produce visibly different backdrops: recognizable artwork in the background, with the scrim keeping lyrics comfortably readable on top.
+4. **Ambient Artwork Backdrop**: The full-resolution album cover fills the entire viewport behind a darkening scrim (center-cropped to fit), so different albums produce visibly different backdrops: recognizable artwork in the background, with the scrim keeping lyrics comfortably readable on top. With **Blur album background** on, a softly blurred copy replaces the sharp cover (see [Post-Processing Effects](#post-processing-effects)).
 5. **Instant Fallback**: A metadata-derived placeholder palette is applied immediately while extraction runs, and remains active if the artwork cannot be fetched (for example, when offline). Extracted palettes are cached per artwork URL, so revisiting a track re-themes instantly.
 
 ---
@@ -55,11 +56,19 @@ Every theme is dark, and the whole interface follows it: text boxes, menus, drop
 
 ## Post-Processing Effects
 
-**Post-processing effects** adds animated film grain and a soft vignette (darker edges) over the whole app, on top of every theme and in kiosk mode. It is off by default.
+Optional effects you can combine freely. Each one is off by default.
 
-- Turn it on or off with the **Post-processing effects** item at the bottom of the theme menu, or the checkbox in the **COLOR THEME** card on the mobile **Sync & Info** tab.
-- The setting is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
-- The grain is faint and the vignette leaves the centre clear, so lyrics stay readable. The animation stops while the effects are off.
+| Effect | What it does | Applies to |
+| :--- | :--- | :--- |
+| **Film grain** | Faint animated noise, like old film. | Every theme and kiosk mode |
+| **Vignette** | Darkens the window edges and leaves the centre clear. | Every theme and kiosk mode |
+| **Scanlines** | Thin, static horizontal lines, like a CRT screen. | Every theme and kiosk mode |
+| **Blur album background** | Shows a soft, blurred version of the album cover behind the lyrics instead of the sharp one, with a slightly lighter scrim. | The **Dynamic** theme only |
+
+- Toggle them in the theme menu, below the list of themes (on small screens: overflow menu, **Theme**), or with the checkboxes under **EFFECTS** in the **COLOR THEME** card on the mobile **Sync & Info** tab.
+- Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
+- **Blur album background** can be switched on in any theme, but it only changes something in Dynamic, the one theme with an album art backdrop. The sharp cover shows first and the blurred one replaces it a moment later. If the blur fails, the sharp cover stays.
+- All effects are subtle, so lyrics stay readable. The grain animation stops while film grain is off.
 
 ---
 

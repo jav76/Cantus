@@ -43,7 +43,7 @@ Inside each layout, controls shrink before they overflow:
 - **Diagnostics HUD:** drops its 420px minimum width on small screens.
 - **Desktop app:** the window cannot be made smaller than 360 x 560.
 
-On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the **Post-processing effects** toggle), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
+On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
 
 ---
 

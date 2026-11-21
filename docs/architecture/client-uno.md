@@ -40,6 +40,7 @@ flowchart TD
         Picker[LyricsPickerViewModel]
         Lookup[SongLookupViewModel]
         Guess[SongGuessViewModel Collection]
+        FxVM[VisualEffectsViewModel]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
@@ -58,6 +59,8 @@ flowchart TD
         Lookup --> Guess
         Transport --> Anchor
         Timing --> Prefs
+        LVM --> FxVM
+        FxVM --> Prefs
     end
 
     subgraph XAML Views
@@ -113,6 +116,9 @@ flowchart TD
     Session -->|owner actions| Header
     LookupClient -->|search / play| Lookup
     Lookup -->|state, guesses| Find
+    FxVM -->|"layer visibility"| Effects
+    FxVM -->|"effect toggles"| Header
+    FxVM --> MobileSettings
 ```
 
 ---
@@ -127,8 +133,8 @@ flowchart TD
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
-- Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Effects` (`VisualEffectsViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`, `AmbientBackgroundVisibility`, `AmbientScrimOpacity`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
@@ -187,7 +193,7 @@ flowchart TD
 - `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor`, `ActiveOnPrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
 - Brushes keep their identity: a palette change only sets `.Color` on each `SolidColorBrush`, so anything holding a brush follows the theme live.
 - **Mode list.** `ThemeManager.AvailableModes` is the one ordered list of modes (Dynamic, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark), and `AvailableModeNames` holds their `GetDisplayName()` text index for index. `CycleNextTheme` (the <kbd>T</kbd> key) walks this list and wraps. `CurrentModeIndex` is the current mode's position, raised with `CurrentMode`; the Sync & Info `ComboBox` binds `SelectedIndex` to it two-way and ignores the `-1` of a cleared selection.
-- **Theme menus.** The Large and Medium header Theme buttons open a `MenuFlyout`, and the Small overflow menu has a **Theme** `MenuFlyoutSubItem`. `ThemeMenuItems.Populate` fills all three from `AvailableModes`: one `RadioMenuFlyoutItem` per mode, a separator, then a **Post-processing effects** `ToggleMenuFlyoutItem`. Each menu has its own radio `GroupName` (group names are app-wide). `AdaptiveHeaderBar` re-checks the items with `ThemeMenuItems.Sync` when a menu opens and when `CurrentMode` or `IsPostProcessingEnabled` changes. The theme toast comes from the `CurrentMode` setter, so every picker shows it.
+- **Theme menus.** The Large and Medium header Theme buttons open a `MenuFlyout`, and the Small overflow menu has a **Theme** `MenuFlyoutSubItem`. `ThemeMenuItems.Populate` fills all three from `AvailableModes`: one `RadioMenuFlyoutItem` per mode, a separator, then one `ToggleMenuFlyoutItem` per `VisualEffectsViewModel.AvailableEffects` entry (Film grain, Vignette, Scanlines, Blur album background (Dynamic theme)), tagged with its `VisualEffect`. Each menu has its own radio `GroupName` (group names are app-wide). `AdaptiveHeaderBar` re-checks the items with `ThemeMenuItems.Sync` when a menu opens, when `CurrentMode` changes and on any `Effects` property change, so the three menus stay in step with each other and the mobile checkboxes. The theme toast comes from the `CurrentMode` setter, so every picker shows it.
 - `OnPrimaryAccentBrush` is the text and icon colour for accent backgrounds (accent buttons, checkbox glyphs, the selected mobile tab). For the preset themes it is near-black when the accent's relative luminance is above 0.5 (OLED Monochrome's white accent), white otherwise. In `Dynamic` mode it picks near-black or white by the higher WCAG contrast ratio (`GetContrastRatio`), which switches to near-black at a luminance of about 0.18. `MenuSurfaceBrush` is the opaque card colour used for menus and dropdowns.
 - **App resources.** `App.xaml` sets `RequestedTheme="Dark"` (every palette is dark) and declares placeholder `Cantus*Brush` resources (`CantusTextPrimaryBrush`, `CantusTextSecondaryBrush`, `CantusTextMutedBrush`, `CantusBackgroundBrush`, `CantusSurfaceCardBrush`, `CantusMenuSurfaceBrush`, `CantusCardBorderBrush`, `CantusPrimaryAccentBrush`, `CantusOnPrimaryAccentBrush`). `App.OnLaunched` calls `ThemeManager.ApplyToResources` before `MainPage` exists, which replaces them with the live brushes.
   - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox (including its `ComboBoxBackground*` state keys, mapped to `SurfaceCard`) and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
@@ -200,15 +206,22 @@ flowchart TD
   - `ShouldShowStageModeLabels(stageWidth)` is a static rule (420px) that `LyricsStageView` applies to its own top bar width from `SizeChanged`, through its `ModeLabelVisibility` property.
   - `MIN_WINDOW_WIDTH` x `MIN_WINDOW_HEIGHT` (360 x 560) is set on the desktop window's `OverlappedPresenter` (`PreferredMinimumWidth`/`Height`) in `App.OnLaunched`. The WASM head has no minimum, so phones narrower than 360px still work.
 - **Overflow handling.** The Large header telemetry pills sit in a `PriorityStackPanel` (`Views/PriorityStackPanel.cs`): children are listed highest priority first, and `PriorityFitLayout.CountFitting` keeps the leading ones that fit. The rest are arranged at zero size outside the panel's clip, so `Visibility` is never changed during layout. The track card's album art has `MaxWidth` = `AlbumArtSize` and stretches, so it never widens the card's `ScrollViewer` content past the viewport (Large art was 2px wider than the card). Its height is kept square in `SizeChanged` through `SquareArtSizing.GetNextHeight`, which only grows the art when the vertical scrollbar is already shown or the taller art still fits. This stops a resize loop where a scrollbar that takes layout space keeps appearing and disappearing. Rows with long text (device name, kiosk title, Diagnostics HUD values, pairing status) use a `Grid` star column with `CharacterEllipsis` or wrapping instead of a horizontal `StackPanel`, which measures its children at infinite width.
-- **Post-processing overlay.** `LyricsViewModel.IsPostProcessingEnabled` (persisted as `cantus_post_processing`) drives `PostProcessingVisibility`. `PostProcessingOverlay` is the last child of the `MainPage` root `Grid`, so it covers every layout, theme and kiosk mode, and it is `IsHitTestVisible="False"`.
-  - **Vignette:** a `RadialGradientBrush` that stays clear to 55% of the radius and darkens towards the edges.
+- **Visual effects.** `VisualEffectsViewModel` (`LyricsViewModel.Effects`) owns four per-device booleans: `IsFilmGrainEnabled`, `IsVignetteEnabled`, `IsScanlinesEnabled` and `IsBackgroundBlurEnabled`. It reads them from `ILyricsPreferences` once, and each setter writes through and notifies only on a real change. `IsEnabled(VisualEffect)` and `SetEnabled` serve the menus. `FilmGrainVisibility`, `VignetteVisibility` and `ScanlinesVisibility` drive the overlay layers, and `AnyOverlayEffectVisibility` collapses the whole overlay when none is on.
+- **Post-processing overlay.** `PostProcessingOverlay` is the last child of the `MainPage` root `Grid`, so it covers every layout, theme and kiosk mode, and it is `IsHitTestVisible="False"`. It takes `Effects` as a dependency property and binds each layer's `Visibility` to it. Layers, bottom to top:
+  - **Scanlines:** a `StackPanel` of 1px black `Rectangle`s, one every 4px, at 22% opacity. Lines stretch to the width on their own; `ScanlineLayout.GetLineCount` sets the count, and the list changes only when a resize changes the count. No assets.
+  - **Vignette:** a `RadialGradientBrush` that stays clear to 60% of the radius and darkens towards the edges.
   - **Film grain:** three 256px noise tiles (`Assets/PostProcessing/grain_N.png`, about 23 KB each, made by `scripts/generate_grain_tiles.py`). PNGs under `Assets` are plain content, so Uno.Resizetizer does not touch them. Each tile has its own grid layer of `Image` elements one tile larger than the window (`FilmGrainLayout.GetTileCount`).
   - **Per frame (42 ms, about 24 fps):** the overlay shows the next layer and shifts the grid by a random whole-pixel offset (`FilmGrainLayout.GetJitterOffset`). That is one transform and two opacity changes, which is cheap on the WASM DOM renderer (CSS) and on desktop Skia. Nothing is re-rasterised.
-  - **Lifetime:** the tiles load the first time the overlay is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
+  - **Lifetime:** the tiles load the first time film grain is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and the grain layer is visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
+- **Background blur (Dynamic theme).** The blur runs in managed code, so the WASM DOM renderer and desktop Skia show the same image:
+  - **Pixels:** when `AlbumArtColorService` decodes artwork for swatches (StbImageSharp), it also keeps an 80px-long-side thumbnail (`ArtworkBlur.Downscale`, area average). `GetBlurredArtworkPngAsync` blurs that thumbnail with three box-blur passes of radius 4 (`ArtworkBlur.BoxBlur`, close to a Gaussian) and encodes it with `PngEncoder` (RGBA, one zlib `IDAT`, CRC-32). It downloads only when no thumbnail is cached. Swatches and thumbnails are cached for 16 URLs and blurred PNGs for 8 (`BoundedUrlCache`, oldest out first).
+  - **Display:** `AmbientBackdrop<ImageSource>` picks what `MainPage` shows from `ThemeManager.AmbientArtworkUrl` and `Effects.IsBackgroundBlurEnabled`. The sharp `BitmapImage` shows at once, and a blurred one, loaded with `BitmapImage.SetSourceAsync` from the PNG stream, replaces it when ready. The `ImageBrush` (`UniformToFill`) upscales it smoothly.
+  - **Staleness:** a blur result is used only if its artwork URL is still current and blur is still on. A new track or turning blur off cancels the pending blur and shows the sharp art straight away. A failed or empty blur keeps the sharp art and logs at Debug or Warning.
+  - **Scrim:** `AmbientScrimOpacity` is `AMBIENT_SCRIM_OPACITY` (0.62) over sharp art and `BLURRED_AMBIENT_SCRIM_OPACITY` (0.55) over blurred art, since the blur already removes busy detail.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
-- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll, karaoke mode and post-processing effects by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
-- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_post_processing`, `cantus_latency_ms`), the defaults (on, on, off, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, the visual effects by `VisualEffectsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
+- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_fx_film_grain`, `cantus_fx_vignette`, `cantus_fx_scanlines`, `cantus_fx_background_blur`, `cantus_latency_ms`), the defaults (auto-scroll and karaoke on, every effect off, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
 - `DisplayCredentialStore` keeps the Display token, id and name (`cantus_display_token`, `cantus_display_id`, `cantus_display_name`) through the same `ISettingsStore`, so a paired Display reconnects after a restart. `ISettingsStore` cannot remove keys, so clearing blanks them.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
