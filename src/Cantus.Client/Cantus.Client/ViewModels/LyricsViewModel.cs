@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Cantus.Client.Models;
@@ -26,6 +27,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly SessionViewModel _session;
     private readonly DisplayPairingViewModel _pairing;
     private readonly LyricsPickerViewModel _lyricsPicker;
+    private readonly SongLookupViewModel _lookup;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
@@ -57,8 +59,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isStaticLyricsMode;
     private bool _isAutoScrollEnabled;
     private bool _isUserScrollingPaused;
-    private Microsoft.UI.Xaml.Media.ImageSource? _ambientBackgroundSource;
-    private string? _lastAmbientArtworkUrl;
+    private const double AMBIENT_SCRIM_OPACITY = 0.62;
+    private const double BLURRED_AMBIENT_SCRIM_OPACITY = 0.55;
+    private readonly AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource> _ambientBackdrop;
+    private readonly VisualEffectsViewModel _effects;
     private const int THEME_TOAST_DURATION_MS = 2000;
     private readonly DispatcherTimer _themeToastTimer;
     private string _themeToastText = string.Empty;
@@ -69,13 +73,18 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTransport Transport => _transport;
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
+    public VisualEffectsViewModel Effects => _effects;
     public DisplayPairingViewModel Pairing => _pairing;
     public LyricsPickerViewModel LyricsPicker => _lyricsPicker;
+    public SongLookupViewModel Lookup => _lookup;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
 
-    public Microsoft.UI.Xaml.Media.ImageSource? AmbientBackgroundSource => _ambientBackgroundSource;
-    public Visibility AmbientBackgroundVisibility => _ambientBackgroundSource is null ? Visibility.Collapsed : Visibility.Visible;
+    public Microsoft.UI.Xaml.Media.ImageSource? AmbientBackgroundSource => _ambientBackdrop.Source;
+    public Visibility AmbientBackgroundVisibility => _ambientBackdrop.Source is null ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Blur already removes busy detail, so the blurred backdrop needs less darkening for readable lyrics.</summary>
+    public double AmbientScrimOpacity => _ambientBackdrop.IsBlurred ? BLURRED_AMBIENT_SCRIM_OPACITY : AMBIENT_SCRIM_OPACITY;
 
     public string AppVersion => BuildInfo.Version;
 
@@ -419,6 +428,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         IsKaraokeModeEnabled = !IsKaraokeModeEnabled;
     }
+
     public Visibility ResumeAutoScrollVisibility => (IsAutoScrollEnabled && IsUserScrollingPaused && HasSyncedLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
 
     public event Action<bool>? AutoScrollEnabledChanged;
@@ -479,7 +489,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         TimeProvider? timeProvider = null,
         IDisplayManagementApi? displaysApi = null,
         PendingPairCodeStore? pendingPairCodes = null,
-        ILyricsCorrectionService? lyricsCorrection = null)
+        ILyricsCorrectionService? lyricsCorrection = null,
+        ISongLookupClient? lookupClient = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -487,6 +498,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
         _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
+        _effects = new VisualEffectsViewModel(_preferences);
+        _effects.PropertyChanged += OnEffectsPropertyChanged;
+        _ambientBackdrop = new AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource>(
+            CreateSharpBackdrop,
+            CreateBlurredBackdropAsync,
+            ClientLoggingManager.CreateLogger<LyricsViewModel>());
+        _ambientBackdrop.SourceChanged += OnAmbientBackdropChanged;
 
         try
         {
@@ -514,8 +532,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             timeProvider,
             RunOnUIThread,
             pendingPairCodes ?? new PendingPairCodeStore(new LocalSettingsStore()));
-        _session.SessionEnded += () => ClearPlayback(resetTransport: false);
-        _session.LoggedOut += () => ClearPlayback(resetTransport: true);
+        _session.SessionEnded += () => EndAccountState(resetTransport: false);
+        _session.LoggedOut += () => EndAccountState(resetTransport: true);
+        _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
 
         _pairing = new DisplayPairingViewModel(
             client,
@@ -648,33 +667,42 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void UpdateAmbientBackground()
     {
-        string? artworkUrl = _themeManager.AmbientArtworkUrl;
-        if (artworkUrl == _lastAmbientArtworkUrl)
-        {
-            return;
-        }
+        _ambientBackdrop.Update(_themeManager.AmbientArtworkUrl, _effects.IsBackgroundBlurEnabled);
+    }
 
-        _lastAmbientArtworkUrl = artworkUrl;
-
-        if (artworkUrl is null)
+    private void OnEffectsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(VisualEffectsViewModel.IsBackgroundBlurEnabled))
         {
-            _ambientBackgroundSource = null;
+            UpdateAmbientBackground();
         }
-        else
-        {
-            try
-            {
-                _ambientBackgroundSource = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(artworkUrl));
-            }
-            catch (Exception)
-            {
-                // Headless test environments cannot create XAML bitmaps.
-                _ambientBackgroundSource = null;
-            }
-        }
+    }
 
+    private void OnAmbientBackdropChanged()
+    {
         OnPropertyChanged(nameof(AmbientBackgroundSource));
         OnPropertyChanged(nameof(AmbientBackgroundVisibility));
+        OnPropertyChanged(nameof(AmbientScrimOpacity));
+    }
+
+    private static Microsoft.UI.Xaml.Media.ImageSource CreateSharpBackdrop(string artworkUrl) =>
+        new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(artworkUrl));
+
+    private async Task<Microsoft.UI.Xaml.Media.ImageSource?> CreateBlurredBackdropAsync(
+        string artworkUrl,
+        System.Threading.CancellationToken cancellationToken)
+    {
+        byte[]? png = await _themeManager.ArtColorService.GetBlurredArtworkPngAsync(artworkUrl, cancellationToken);
+        if (png is null)
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        Microsoft.UI.Xaml.Media.Imaging.BitmapImage image = new();
+        using System.IO.MemoryStream stream = new(png);
+        await image.SetSourceAsync(stream.AsRandomAccessStream());
+        return image;
     }
 
     private void OnThemeManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -957,6 +985,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// drops the transport's playback state, so the empty stage asks the user
     /// to connect again.
     /// </summary>
+    /// <summary>The next account to sign in on this client must not see the previous owner's lookup.</summary>
+    private void EndAccountState(bool resetTransport)
+    {
+        ClearPlayback(resetTransport);
+        _lookup.Reset();
+    }
+
     private void ClearPlayback(bool resetTransport)
     {
         CurrentTitle = "No Track Playing";

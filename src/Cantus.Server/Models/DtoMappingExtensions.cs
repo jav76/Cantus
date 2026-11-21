@@ -1,10 +1,14 @@
 using Cantus.Core.Models;
+using Cantus.Core.Search;
 using Cantus.Infrastructure.Lyrics;
+using Cantus.Server.Services;
 
 namespace Cantus.Server.Models;
 
 public static class DtoMappingExtensions
 {
+    private const int CONFIDENCE_DECIMALS = 2;
+
     public static DisplayDto ToDto(this DisplayInfo display)
     {
         return new DisplayDto
@@ -157,5 +161,79 @@ public static class DtoMappingExtensions
             CreatedAtUtc = session.CreatedAtUtc,
             UpdatedAtUtc = session.UpdatedAtUtc
         };
+    }
+
+    public static SongLookupResponseDto ToDto(this SongLookupResult result)
+    {
+        return new SongLookupResponseDto
+        {
+            Outcome = result.Outcome switch
+            {
+                SongMatchOutcome.Accepted => "accepted",
+                SongMatchOutcome.Ambiguous => "ambiguous",
+                _ => "none"
+            },
+            OnlineRecommended = result.OnlineRecommended,
+            Guesses = result.Guesses.Select(guess => guess.ToDto()).ToList(),
+            Providers = result.Providers.Select(provider => provider.ToDto()).ToList()
+        };
+    }
+
+    public static SongGuessDto ToDto(this SongGuess guess)
+    {
+        return new SongGuessDto
+        {
+            Source = guess.Source,
+            SpotifyTrackId = guess.SpotifyTrackId,
+            Title = guess.Title,
+            Artist = guess.Artist,
+            Album = guess.Album,
+            DurationMs = guess.DurationMs,
+            Confidence = Math.Round(guess.Confidence, CONFIDENCE_DECIMALS, MidpointRounding.AwayFromZero),
+            Verified = guess.Verified,
+            MatchedLines = guess.MatchedLines,
+            VersionCount = guess.VersionCount
+        };
+    }
+
+    public static SongLookupProviderDto ToDto(this SongLookupProviderStatus status)
+    {
+        return new SongLookupProviderDto
+        {
+            Name = status.ProviderName,
+            Status = status.State switch
+            {
+                SongLookupProviderState.Ok => "ok",
+                SongLookupProviderState.Skipped => "skipped",
+                SongLookupProviderState.Disabled => "disabled",
+                SongLookupProviderState.RateLimited => "rateLimited",
+                _ => "unavailable"
+            },
+            RetryAfterSeconds = ToRetryAfterSeconds(status.RetryAfter)
+        };
+    }
+
+    public static SongLookupPlayResponseDto ToDto(this SongPlayResult result)
+    {
+        return new SongLookupPlayResponseDto
+        {
+            Status = result.Status switch
+            {
+                SongPlayStatus.Success => "success",
+                SongPlayStatus.NotOnSpotify => "notOnSpotify",
+                SongPlayStatus.NoActiveDevice => "noActiveDevice",
+                SongPlayStatus.MissingPermissions => "missingPermissions",
+                SongPlayStatus.RateLimited => "rateLimited",
+                _ => "failed"
+            },
+            Track = result.Track?.ToDto(),
+            RetryAfterSeconds = ToRetryAfterSeconds(result.RetryAfter)
+        };
+    }
+
+    /// <summary>Whole seconds, rounded up so a client never retries a moment too early.</summary>
+    private static int? ToRetryAfterSeconds(TimeSpan? retryAfter)
+    {
+        return retryAfter is null ? null : (int)Math.Ceiling(Math.Max(0, retryAfter.Value.TotalSeconds));
     }
 }

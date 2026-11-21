@@ -179,6 +179,14 @@
         .uno-loader {
             display: none !important;
         }
+
+        /* Uno's DOM renderer does not pass a TextBox's Foreground to the native field, which then keeps the
+           browser's black text. Inheriting from the themed parent makes typed text follow the active theme. */
+        input,
+        textarea {
+            color: inherit;
+            caret-color: currentColor;
+        }
     </style>
 </head>
 <body>

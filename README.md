@@ -18,6 +18,7 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 - **Clock Synchronization**: Four-timestamp NTP-style clock offset estimation and smooth position interpolation filter network jitter.
 - **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (4.0s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff when paused/idle, and 20s background tab throttling) and halts polling when zero viewers are connected to conserve API quota.
 - **Multi-Tier Lyrics Resolution**: SQLite cache first, then LRCLIB, then the optional NetEase fallback, with negative caching for tracks no provider has. See [Lyrics Providers](#lyrics-providers).
+- **Find a Song by Lyrics**: Type a line you half remember. Cantus fuzzy-searches the lyrics it already has, falls back to NetEase and LRCLIB lyric search within rate limits, and lets you play or queue the best guess on Spotify.
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
 - **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time.
 - **Self-Hosted and Private**: Zero third-party telemetry. User tokens are encrypted at rest using ASP.NET Core Data Protection.
@@ -121,6 +122,7 @@ Cantus is configured via environment variables or `appsettings.json`:
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
 | `Netease__Enabled` | No | `true` | Enables the NetEase lyrics fallback. Set `false` to use LRCLIB only. |
 | `CANTUS_LOG_CONFIGURATION` | No | `none` | Log verbosity profile: `none`, `debug`, or `trace`. |
+| `SongLookup__ExternalSearchEnabled` | No | `true` | Lets song lookups send lyric fragments to NetEase and LRCLIB. Set `false` to search only the local lyrics library. |
 | `PlaybackPoller__ActivePollIntervalMs` | No | `4000` | Baseline Spotify polling cadence (ms) during active playback. |
 
 ### Persistent Data Layout
@@ -207,6 +209,7 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 3. Start playback on any Spotify device (phone, desktop, speaker, or web player).
 4. Lyrics scroll automatically in synchronization with active playback.
 5. If lyrics run early or late, use the `SYNC OFFSET` buttons (±0.1 s / ±0.5 s) for the current track, or <kbd>[</kbd> / <kbd>]</kbd> to change this device's latency compensation by 50 ms. Per-track offsets are stored in the database.
+6. Select **Find Song** in the header to look up a song by a lyric line you remember, then play or queue it.
 
 ---
 

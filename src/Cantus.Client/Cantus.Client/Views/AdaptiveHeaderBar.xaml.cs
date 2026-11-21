@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -88,22 +89,108 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         header.Pairing = viewModel?.Pairing;
         header.Theme = viewModel?.Theme;
         header.Layout = viewModel?.Layout;
+        if (header._isLoaded)
+        {
+            header.SubscribeToThemeState(viewModel);
+        }
     }
+
+    private LyricsViewModel? _subscribedViewModel;
+    private bool _isLoaded;
 
     public AdaptiveHeaderBar()
     {
         this.InitializeComponent();
+
+        // Radio groups are tracked by name across the app, so each header gets its own names.
+        string groupPrefix = $"CantusTheme-{Guid.NewGuid():N}";
+        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnEffectToggled);
+        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnEffectToggled);
+        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnEffectToggled);
+
+        Loaded += (s, e) =>
+        {
+            _isLoaded = true;
+            SubscribeToThemeState(ViewModel);
+            SyncThemeMenus();
+        };
+        Unloaded += (s, e) =>
+        {
+            _isLoaded = false;
+            SubscribeToThemeState(null);
+        };
     }
 
-    private void OnCycleThemeClicked(object sender, RoutedEventArgs e)
+    private void OnThemeSelected(ThemeMode mode)
     {
-        ViewModel?.Theme.CycleNextTheme();
+        ViewModel?.Theme.SetThemeMode(mode);
+    }
+
+    private void OnEffectToggled(VisualEffect effect, bool isEnabled)
+    {
+        ViewModel?.Effects.SetEnabled(effect, isEnabled);
+    }
+
+    private void OnThemeMenuOpening(object sender, object e)
+    {
+        SyncThemeMenus();
+    }
+
+    private void SubscribeToThemeState(LyricsViewModel? viewModel)
+    {
+        if (_subscribedViewModel is not null)
+        {
+            _subscribedViewModel.Effects.PropertyChanged -= OnEffectsChanged;
+            _subscribedViewModel.Theme.PropertyChanged -= OnThemeStateChanged;
+        }
+
+        _subscribedViewModel = viewModel;
+
+        if (viewModel is not null)
+        {
+            viewModel.Effects.PropertyChanged += OnEffectsChanged;
+            viewModel.Theme.PropertyChanged += OnThemeStateChanged;
+        }
+    }
+
+    private void OnThemeStateChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ThemeManager.CurrentMode))
+        {
+            SyncThemeMenus();
+        }
+    }
+
+    private void OnEffectsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SyncThemeMenus();
+    }
+
+    private void SyncThemeMenus()
+    {
+        if (ViewModel is null) return;
+        ThemeMode mode = ViewModel.Theme.CurrentMode;
+        VisualEffectsViewModel effects = ViewModel.Effects;
+        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, effects);
+        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, effects);
+        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, effects);
     }
 
     private async void OnOpenDiagnosticsHudClicked(object sender, RoutedEventArgs e)
     {
         if (ViewModel is null) return;
         DiagnosticsHudDialog dialog = new(ViewModel);
+        if (this.XamlRoot is not null)
+        {
+            dialog.XamlRoot = this.XamlRoot;
+        }
+        await dialog.ShowAsync();
+    }
+
+    private async void OnOpenSongLookupClicked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null) return;
+        SongLookupDialog dialog = new(ViewModel);
         if (this.XamlRoot is not null)
         {
             dialog.XamlRoot = this.XamlRoot;
@@ -151,6 +238,15 @@ public sealed partial class AdaptiveHeaderBar : UserControl
             await Session.LogoutAsync();
         }
     }
+
+    /// <summary>Find a song is owner-only, so it never shows on a Display, even one paired after a sign-in.</summary>
+    public Visibility GetSongLookupVisibility(Visibility ownerControls, Visibility ownerActions) =>
+        ownerControls == Visibility.Visible && ownerActions == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+    public Visibility GetLabelVisibility(bool showLabels)
+        => showLabels ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {

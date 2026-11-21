@@ -8,10 +8,25 @@ namespace Cantus.Infrastructure.Spotify;
 public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
 {
     private readonly ILogger<SpotifyPlayerClient> _logger;
+    private readonly SpotifyRateLimitGate _rateLimitGate;
+    private readonly Func<string, SpotifyClient> _clientFactory;
 
-    public SpotifyPlayerClient(ILogger<SpotifyPlayerClient> logger)
+    public SpotifyPlayerClient(
+        ILogger<SpotifyPlayerClient> logger,
+        SpotifyRateLimitGate? rateLimitGate = null)
+        : this(logger, accessToken => new SpotifyClient(accessToken), rateLimitGate)
+    {
+    }
+
+    /// <summary>Test seam: lets tests route SDK calls through a fake HTTP handler.</summary>
+    internal SpotifyPlayerClient(
+        ILogger<SpotifyPlayerClient> logger,
+        Func<string, SpotifyClient> clientFactory,
+        SpotifyRateLimitGate? rateLimitGate = null)
     {
         _logger = logger;
+        _clientFactory = clientFactory;
+        _rateLimitGate = rateLimitGate ?? new(TimeProvider.System);
     }
 
     public async Task<PlaybackState?> GetCurrentPlaybackAsync(
@@ -25,7 +40,7 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
 
         try
         {
-            SpotifyClient spotify = new(accessToken);
+            SpotifyClient spotify = _clientFactory(accessToken);
             DateTimeOffset tRequest = DateTimeOffset.UtcNow;
             CurrentlyPlayingContext? playback = await spotify.Player.GetCurrentPlayback(cancellationToken);
             DateTimeOffset tResponse = DateTimeOffset.UtcNow;
@@ -38,16 +53,7 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             TrackInfo trackInfo;
             if (playback.Item is FullTrack fullTrack)
             {
-                trackInfo = new TrackInfo
-                {
-                    Id = fullTrack.Id ?? string.Empty,
-                    Title = fullTrack.Name,
-                    Artist = string.Join(", ", fullTrack.Artists.Select(a => a.Name)),
-                    Album = fullTrack.Album?.Name,
-                    AlbumArtUrl = fullTrack.Album?.Images?.FirstOrDefault()?.Url,
-                    Duration = TimeSpan.FromMilliseconds(fullTrack.DurationMs),
-                    IsExplicit = fullTrack.Explicit
-                };
+                trackInfo = SpotifyTrackMapper.ToTrackInfo(fullTrack);
             }
             else if (playback.Item is FullEpisode fullEpisode)
             {
@@ -180,6 +186,30 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             spotify => spotify.Player.SetRepeat(new PlayerSetRepeatRequest(state.Value), cancellationToken));
     }
 
+    public Task<PlayerCommandResult> PlayTrackAsync(
+        string accessToken,
+        string trackUri,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecutePlayerCommandAsync(
+            accessToken,
+            "play-track",
+            spotify => spotify.Player.ResumePlayback(
+                new PlayerResumePlaybackRequest { Uris = new List<string> { trackUri } },
+                cancellationToken));
+    }
+
+    public Task<PlayerCommandResult> AddToQueueAsync(
+        string accessToken,
+        string trackUri,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecutePlayerCommandAsync(
+            accessToken,
+            "queue",
+            spotify => spotify.Player.AddToQueue(new PlayerAddToQueueRequest(trackUri), cancellationToken));
+    }
+
     private async Task<PlayerCommandResult> ExecutePlayerCommandAsync(
         string accessToken,
         string commandName,
@@ -192,9 +222,14 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
 
         try
         {
-            SpotifyClient spotify = new(accessToken);
+            SpotifyClient spotify = _clientFactory(accessToken);
             bool accepted = await command(spotify);
             return accepted ? PlayerCommandResult.Success : PlayerCommandResult.Failed;
+        }
+        catch (APITooManyRequestsException ex)
+        {
+            ReportRateLimit(commandName, ex.RetryAfter);
+            return PlayerCommandResult.Failed;
         }
         catch (APIException ex)
         {
@@ -219,5 +254,15 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             _logger.LogError(ex, "Error sending Spotify player command {Command}.", commandName);
             return PlayerCommandResult.Failed;
         }
+    }
+
+    private void ReportRateLimit(string commandName, TimeSpan retryAfter)
+    {
+        TimeSpan applied = _rateLimitGate.Report(retryAfter);
+        _logger.LogWarning(
+            "Spotify rate limit hit on player command {Command}. Pausing Spotify calls until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+            commandName,
+            _rateLimitGate.LimitedUntilUtc,
+            applied);
     }
 }

@@ -267,4 +267,153 @@ public sealed class ResponsiveLayoutManagerTests
         layout.AlbumArtSize.Should().Be(240.0);
         notified.Should().Contain(nameof(ResponsiveLayoutManager.AlbumArtSize));
     }
+    [Theory]
+    [InlineData(680.0, 900.0)]
+    [InlineData(768.0, 1024.0)]
+    [InlineData(834.0, 1194.0)]
+    public void MediumPortrait_KeepsTheSidebar(double width, double height)
+    {
+        ResponsiveLayoutManager layout = new();
+
+        layout.UpdateDimensions(width, height);
+
+        layout.IsMedium.Should().BeTrue();
+        layout.Orientation.Should().Be(LayoutOrientation.Portrait);
+        layout.ShowSidebar.Should().BeTrue();
+        layout.SidePanelWidth.Should().Be(290.0);
+    }
+
+    [Fact]
+    public void FullscreenTv_HidesTheSidebar()
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(1280, 800);
+
+        layout.IsKioskMode = true;
+
+        layout.ShowSidebar.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(1080.0, false)]
+    [InlineData(1199.0, false)]
+    [InlineData(1200.0, true)]
+    [InlineData(1600.0, true)]
+    public void ShowFullHeaderLabels_FollowsWindowWidth(double width, bool expected)
+    {
+        ResponsiveLayoutManager layout = new();
+
+        layout.UpdateDimensions(width, 800);
+
+        layout.ShowFullHeaderLabels.Should().Be(expected);
+    }
+
+    [Fact]
+    public void WidthChangeInsideABreakpoint_NotifiesWidthDependentProperties()
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(1300, 800);
+        List<string?> notified = new();
+        layout.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        layout.UpdateDimensions(1150, 800);
+
+        layout.CurrentBreakpoint.Should().Be(LayoutBreakpoint.Large);
+        layout.ShowFullHeaderLabels.Should().BeFalse();
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.ShowFullHeaderLabels));
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.IsKioskBarCompact));
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.IsKioskBarStacked));
+        notified.Should().Contain(nameof(ResponsiveLayoutManager.ContentPadding));
+    }
+
+    [Theory]
+    [InlineData(320.0, 568.0, true)]
+    [InlineData(360.0, 740.0, true)]
+    [InlineData(379.0, 800.0, true)]
+    [InlineData(390.0, 844.0, false)]
+    [InlineData(900.0, 600.0, false)]
+    public void IsNarrowPhone_OnlyForSmallScreensUnder380(double width, double height, bool expected)
+    {
+        ResponsiveLayoutManager layout = new();
+
+        layout.UpdateDimensions(width, height);
+
+        layout.IsNarrowPhone.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(375.0, true)]
+    [InlineData(699.0, true)]
+    [InlineData(700.0, false)]
+    [InlineData(1920.0, false)]
+    public void IsKioskBarCompact_FollowsWindowWidth(double width, bool expected)
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(width, 1000);
+
+        layout.IsKioskMode = true;
+
+        layout.IsKioskBarCompact.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(320.0, true)]
+    [InlineData(479.0, true)]
+    [InlineData(480.0, false)]
+    [InlineData(1920.0, false)]
+    public void IsKioskBarStacked_FollowsWindowWidth(double width, bool expected)
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.UpdateDimensions(width, 1000);
+
+        layout.IsKioskMode = true;
+
+        layout.IsKioskBarStacked.Should().Be(expected);
+    }
+
+    [Fact]
+    public void KioskContentPadding_ShrinksOnPhoneWidths()
+    {
+        ResponsiveLayoutManager layout = new();
+        layout.IsKioskMode = true;
+
+        layout.UpdateDimensions(1920, 1080);
+        layout.ContentPadding.Left.Should().Be(48);
+
+        layout.UpdateDimensions(400, 800);
+        layout.ContentPadding.Left.Should().Be(12);
+        layout.ContentPadding.Right.Should().Be(12);
+    }
+
+    [Fact]
+    public void DiagnosticsHudMinWidth_IsDroppedOnSmall()
+    {
+        ResponsiveLayoutManager layout = new();
+
+        layout.UpdateDimensions(375, 667);
+        layout.DiagnosticsHudMinWidth.Should().Be(0.0);
+
+        layout.UpdateDimensions(1280, 800);
+        layout.DiagnosticsHudMinWidth.Should().Be(ResponsiveLayoutManager.DIAGNOSTICS_HUD_MIN_WIDTH);
+    }
+
+    [Fact]
+    public void HeaderAccountNameMaxWidth_IsCapped()
+    {
+        ResponsiveLayoutManager layout = new();
+
+        layout.HeaderAccountNameMaxWidth.Should().Be(ResponsiveLayoutManager.HEADER_ACCOUNT_NAME_MAX_WIDTH);
+    }
+
+    [Theory]
+    [InlineData(300.0, false)]
+    [InlineData(419.0, false)]
+    [InlineData(420.0, true)]
+    [InlineData(900.0, true)]
+    [InlineData(0.0, true)]
+    [InlineData(double.NaN, true)]
+    public void ShouldShowStageModeLabels_DependsOnStageWidth(double stageWidth, bool expected)
+    {
+        ResponsiveLayoutManager.ShouldShowStageModeLabels(stageWidth).Should().Be(expected);
+    }
 }

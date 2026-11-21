@@ -27,9 +27,23 @@ flowchart TD
 | Form Factor | Breakpoint | Header Mode | Track Card | Lyrics Stage | Navigation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Small (Mobile)** | `< 680px` | Minimal + Overflow Flyout | Compact 56px thumbnail strip or dedicated tab | Touch-focused, 24px active line | 3-Tab Bottom Bar (Lyrics / Track / Sync & Info) |
-| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork | Balanced 32px active line | Direct dual-pane or adaptive portrait flow |
+| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork, in landscape and portrait | Balanced 32px active line | Dual-pane workspace |
 | **Large (Desktop)** | `>= 1080px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
 | **Fullscreen (TV)** | Kiosk toggle (<kbd>K</kbd> / <kbd>F11</kbd>) | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
+
+### Narrow Windows
+
+Inside each layout, controls shrink before they overflow:
+
+- **Large header:** the telemetry pills (connection, RTT, skew, poller) are hidden from the right when they do not fit, so the connection pill goes last. Below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the Spotify button is trimmed; hover it for the full name.
+- **Track card:** the album art shrinks to fit the card. A long device name is trimmed; hover it for the full name.
+- **Lyrics stage:** when the stage is narrower than 420px, the Karaoke, Autoscroll and Static/Live buttons become icon-only (hover for the tooltip). The theme toast shows at the top of the lyrics, not beside these buttons.
+- **Phones under 380px:** the mobile tab bar stacks each icon above its label, and the now-playing strip drops its timestamp and offset column.
+- **Kiosk mini bar:** long titles are trimmed. Below 700px the timestamp is hidden and **Exit Kiosk** becomes an icon, so it always stays on screen. Below 480px the album art is hidden and the seek bar moves to its own row under the title. Kiosk padding also shrinks on phone widths.
+- **Diagnostics HUD:** drops its 420px minimum width on small screens.
+- **Desktop app:** the window cannot be made smaller than 360 x 560.
+
+On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
 
 ---
 
@@ -105,7 +119,7 @@ When the Cantus window is focused, and focus is not in a text field, these keys 
 | <kbd>Esc</kbd> | **Exit Kiosk Mode** | Leaves the kiosk stage. |
 | <kbd>[</kbd> | **Lyrics Earlier (-50ms)** | Lowers this device's latency compensation, so lyrics render earlier. Use it when lyrics trail the audio. |
 | <kbd>]</kbd> | **Lyrics Later (+50ms)** | Raises this device's latency compensation, so lyrics render later. Use it when lyrics run ahead of the audio. |
-| <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. See [Theming](theming.md). |
+| <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. To pick one directly, use the **Theme** menu in the header. See [Theming](theming.md). |
 | <kbd>M</kbd> | **Cycle Mobile Tab** | On small layouts only: moves between the Lyrics, Track and Sync & Info tabs. |
 
 The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track `SYNC OFFSET`. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the `SYNC OFFSET` **Reset** button for the track offset.

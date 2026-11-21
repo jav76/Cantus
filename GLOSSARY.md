@@ -8,3 +8,9 @@ _Avoid_: room, kiosk session, shared session
 
 **Display token**: The credential a Display holds. It grants viewing of one owner's playback and nothing else.
 _Avoid_: room id, access token (that term means the Spotify token)
+
+**Fragment**: The remembered lyric text an owner types to find a song. It may be inexact and may span two lyric lines.
+_Avoid_: query, search term, snippet
+
+**Guess**: One ranked song a lookup returns for a Fragment, from the server's library or an online lyrics provider, with a match score. Versions of the same song are grouped into one Guess.
+_Avoid_: result, match, hit, candidate (that term means a lyrics override candidate)

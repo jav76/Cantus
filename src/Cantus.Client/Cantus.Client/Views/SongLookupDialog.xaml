@@ -1,0 +1,149 @@
+<ContentDialog x:Class="Cantus.Client.Views.SongLookupDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:vm="using:Cantus.Client.ViewModels"
+               Title="Find a song by lyrics"
+               CloseButtonText="Close"
+               Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+               CornerRadius="16">
+
+    <!-- No DefaultButton: Enter in the fragment box searches instead of closing the dialog. -->
+    <StackPanel Spacing="12" MinWidth="280" MaxWidth="560" Margin="0,8,0,0">
+
+        <TextBlock Text="Type a line you remember. It does not have to be exact."
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox x:Name="FragmentBox"
+                     Grid.Column="0"
+                     MaxLength="200"
+                     Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                     Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                     PlaceholderText="e.g. is this the real life, is this just fantasy"
+                     Text="{x:Bind Lookup.Fragment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     KeyDown="OnFragmentKeyDown" />
+            <Button Grid.Column="1"
+                    Click="OnSearchClicked"
+                    IsEnabled="{x:Bind Lookup.CanSearch, Mode=OneWay}"
+                    Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
+                    CornerRadius="8"
+                    Padding="14,6"
+                    FontWeight="SemiBold">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE721;" FontSize="14" />
+                    <TextBlock Text="Search" FontSize="13" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Status Row -->
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+            <ProgressRing Grid.Column="0"
+                          Width="18"
+                          Height="18"
+                          IsActive="{x:Bind Lookup.IsSearching, Mode=OneWay}"
+                          Visibility="{x:Bind Lookup.SearchingVisibility, Mode=OneWay}"
+                          Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                          VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1"
+                       Text="{x:Bind Lookup.StatusText, Mode=OneWay}"
+                       Visibility="{x:Bind Lookup.StatusVisibility, Mode=OneWay}"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+            <HyperlinkButton Grid.Column="2"
+                             Content="Not it? Search online"
+                             Click="OnSearchOnlineClicked"
+                             Visibility="{x:Bind Lookup.SearchOnlineVisibility, Mode=OneWay}"
+                             Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                             FontSize="13"
+                             Padding="4,2"
+                             VerticalAlignment="Center" />
+        </Grid>
+
+        <!-- Empty State -->
+        <TextBlock Text="Guesses from your library show first, then online matches if needed."
+                   Visibility="{x:Bind GetEmptyHintVisibility(Lookup.State), Mode=OneWay}"
+                   FontSize="12"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   Margin="0,12"
+                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+
+        <!-- Guess Cards -->
+        <ScrollViewer MaxHeight="420"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Visibility="{x:Bind Lookup.GuessesVisibility, Mode=OneWay}">
+            <ItemsControl ItemsSource="{x:Bind Lookup.Guesses, Mode=OneWay}"
+                          Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SongGuessViewModel">
+                        <Border Background="#15FFFFFF"
+                                BorderBrush="{StaticResource CantusCardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,8">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{x:Bind Title}"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind ArtistAlbumText}" FontSize="13" Opacity="0.85" TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind MatchedLinesText}"
+                                           Visibility="{x:Bind MatchedLinesVisibility}"
+                                           FontSize="13"
+                                           FontStyle="Italic"
+                                           Opacity="0.85"
+                                           TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{x:Bind MatchText}"
+                                               FontSize="12"
+                                               Opacity="0.7"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center" />
+                                    <Button Grid.Column="1"
+                                            Click="OnPlayClicked"
+                                            IsEnabled="{x:Bind CanAct, Mode=OneWay}"
+                                            Background="#20FFFFFF"
+                                            CornerRadius="6"
+                                            Padding="10,4"
+                                            ToolTipService.ToolTip="Play now on your active Spotify device">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE768;" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                            <TextBlock Text="Play" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="2"
+                                            Click="OnQueueClicked"
+                                            IsEnabled="{x:Bind CanAct, Mode=OneWay}"
+                                            Background="#20FFFFFF"
+                                            CornerRadius="6"
+                                            Padding="10,4"
+                                            ToolTipService.ToolTip="Add to your Spotify queue">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                            <TextBlock Text="Queue" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <TextBlock Text="{x:Bind StatusText, Mode=OneWay}"
+                                           Visibility="{x:Bind StatusVisibility, Mode=OneWay}"
+                                           FontSize="12"
+                                           Opacity="0.85"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </StackPanel>
+</ContentDialog>

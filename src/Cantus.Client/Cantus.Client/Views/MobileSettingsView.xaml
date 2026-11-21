@@ -103,23 +103,36 @@
                     BorderThickness="1"
                     CornerRadius="16"
                     Padding="16,14">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="COLOR THEME" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
-                        <TextBlock Text="Custom Palette" FontSize="13" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" Margin="0,2,0,0" />
+                <StackPanel Spacing="10">
+                    <TextBlock Text="COLOR THEME" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                    <ComboBox ItemsSource="{x:Bind services:ThemeManager.AvailableModeNames}"
+                              SelectedIndex="{x:Bind Theme.CurrentModeIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Color theme" />
+                    <TextBlock Text="EFFECTS"
+                               Margin="0,6,0,0"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                    <StackPanel>
+                        <CheckBox Content="Film grain"
+                                  IsChecked="{x:Bind Effects.IsFilmGrainEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Vignette"
+                                  IsChecked="{x:Bind Effects.IsVignetteEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Scanlines"
+                                  IsChecked="{x:Bind Effects.IsScanlinesEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                        <CheckBox Content="Blur album background"
+                                  IsChecked="{x:Bind Effects.IsBackgroundBlurEnabled, Mode=TwoWay}"
+                                  Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Click="OnCycleThemeClicked"
-                            Background="#20FFFFFF"
-                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
-                            CornerRadius="8"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE790;" FontSize="13" />
-                            <TextBlock Text="Cycle Theme" FontSize="12" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                    <TextBlock Text="Saved on this device. Background blur applies to the Dynamic theme only."
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                </StackPanel>
             </Border>
 
             <!-- Paired Display Card -->
@@ -214,7 +227,7 @@
                             <Button Grid.Column="1"
                                     Click="OnConnectSpotifyClicked"
                                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                    Foreground="White"
+                                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                     CornerRadius="6"
                                     Padding="12,6"
                                     FontWeight="SemiBold">

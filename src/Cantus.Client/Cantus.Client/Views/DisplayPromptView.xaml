@@ -15,18 +15,20 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center">
                 <StackPanel Spacing="14">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon Glyph="&#xE7F4;"
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <FontIcon Grid.Column="0"
+                                  Glyph="&#xE7F4;"
                                   FontSize="18"
                                   VerticalAlignment="Center"
                                   Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind Displays.PromptTitle, Mode=OneWay}"
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind Displays.PromptTitle, Mode=OneWay}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    VerticalAlignment="Center"
                                    TextWrapping="Wrap"
                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                    </StackPanel>
+                    </Grid>
 
                     <TextBlock Text="{x:Bind Displays.PromptMessage, Mode=OneWay}"
                                FontSize="13"
@@ -41,7 +43,7 @@
                         <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
                         <Button Click="OnConnectSpotifyClicked"
                                 Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="White"
+                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="8"
                                 Padding="12,6"
                                 FontWeight="SemiBold">
@@ -111,7 +113,7 @@
                                 Content="{x:Bind Displays.ConfirmText, Mode=OneWay}"
                                 IsEnabled="{x:Bind Displays.CanConfirm, Mode=OneWay}"
                                 Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="White"
+                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="8"
                                 Padding="16,8"
                                 FontSize="13"

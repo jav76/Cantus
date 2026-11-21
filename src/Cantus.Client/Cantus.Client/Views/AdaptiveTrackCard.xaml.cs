@@ -303,6 +303,33 @@ public sealed partial class AdaptiveTrackCard : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
+    private void OnAlbumArtFrameSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateAlbumArtHeight(e.NewSize.Width);
+    }
+
+    private void OnStandardCardScrollerSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateAlbumArtHeight(AlbumArtFrame.ActualWidth);
+    }
+
+    private void UpdateAlbumArtHeight(double width)
+    {
+        double? height = SquareArtSizing.GetNextHeight(
+            AlbumArtFrame.Height,
+            width,
+            StandardCardScroller.ComputedVerticalScrollBarVisibility == Visibility.Visible,
+            StandardCardScroller.ExtentHeight,
+            StandardCardScroller.ViewportHeight);
+        if (height is double next)
+        {
+            AlbumArtFrame.Height = next;
+        }
+    }
+
+    public Visibility GetNarrowPhoneHiddenVisibility(bool isNarrowPhone)
+        => isNarrowPhone ? Visibility.Collapsed : Visibility.Visible;
+
     public Visibility GetStandardCardVisibility(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;

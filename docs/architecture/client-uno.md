@@ -20,6 +20,8 @@ flowchart TD
         PairingApi -.-> Context
         DisplaysApi -.-> Context
         Correction -.-> Context
+        LookupClient[SongLookupClient REST]
+        LookupClient -.-> Context
     end
 
     subgraph MVVM ViewModels
@@ -36,6 +38,9 @@ flowchart TD
         Pairing[DisplayPairingViewModel]
         Credentials[DisplayCredentialStore]
         Picker[LyricsPickerViewModel]
+        Lookup[SongLookupViewModel]
+        Guess[SongGuessViewModel Collection]
+        FxVM[VisualEffectsViewModel]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
@@ -50,8 +55,12 @@ flowchart TD
         Picker --> Session
         Picker --> Pairing
         Picker --> Correction
+        LVM --> Lookup
+        Lookup --> Guess
         Transport --> Anchor
         Timing --> Prefs
+        LVM --> FxVM
+        FxVM --> Prefs
     end
 
     subgraph XAML Views
@@ -66,6 +75,8 @@ flowchart TD
         PromptView[DisplayPromptView.xaml]
         DisplaysCard[DisplaysCard.xaml]
         PickerDialog[LyricsPickerDialog.xaml]
+        Find[SongLookupDialog.xaml]
+        Effects[PostProcessingOverlay.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
@@ -73,11 +84,13 @@ flowchart TD
         MainView --> MiniBar
         MainView --> PairingView
         MainView --> PromptView
+        MainView --> Effects
         TrackCard --> DisplaysCard
         MobileSettings --> DisplaysCard
         Header --> Hud
         TrackCard --> PickerDialog
         MobileSettings --> PickerDialog
+        Header --> Find
     end
 
     SignalR -->|"PlaybackState, Lyrics, NTP, Sessions"| LVM
@@ -100,6 +113,12 @@ flowchart TD
     Displays -->|"approval, rename and remove prompt"| PromptView
     Picker -->|"candidates and choices"| PickerDialog
     Correction -->|"REST candidates and override"| Server[("Cantus Server")]
+    Session -->|owner actions| Header
+    LookupClient -->|search / play| Lookup
+    Lookup -->|state, guesses| Find
+    FxVM -->|"layer visibility"| Effects
+    FxVM -->|"effect toggles"| Header
+    FxVM --> MobileSettings
 ```
 
 ---
@@ -114,8 +133,8 @@ flowchart TD
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
-- Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Effects` (`VisualEffectsViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`, `AmbientBackgroundVisibility`, `AmbientScrimOpacity`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
@@ -126,7 +145,7 @@ flowchart TD
 - Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, `Session`, `Theme`, and `Layout` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
@@ -142,10 +161,11 @@ flowchart TD
 | `DisplayPairingView` | Yes | | | | Yes | | | Yes | Yes |
 | `DisplaysCard` | Yes | | | | | Yes | | Yes | |
 | `DisplayPromptView` | Yes | | | | | Yes | | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | | |
-| `LyricsPickerDialog` | | | | | | | Yes | | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | Yes | |
+| `LyricsPickerDialog` | | | | | | | Yes | Yes | |
+| `SongLookupDialog` | | | | | | | | Yes | |
 
-`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property.
+`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property, with `Theme` set to `ThemeManager.Instance`. `SongLookupDialog` takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -170,12 +190,38 @@ flowchart TD
 - `LyricsViewModel` maps syllables off the wire. A syllable without a duration (enhanced LRC word tags carry only starts) runs until the next syllable starts, and the last one until the line's fill end. When there is no fill end (the final line) or it is not after the last syllable's start, the last syllable gets a short text-length estimate so it still fills instead of snapping full.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
-- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor`, `ActiveOnPrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- Brushes keep their identity: a palette change only sets `.Color` on each `SolidColorBrush`, so anything holding a brush follows the theme live.
+- **Mode list.** `ThemeManager.AvailableModes` is the one ordered list of modes (Dynamic, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark), and `AvailableModeNames` holds their `GetDisplayName()` text index for index. `CycleNextTheme` (the <kbd>T</kbd> key) walks this list and wraps. `CurrentModeIndex` is the current mode's position, raised with `CurrentMode`; the Sync & Info `ComboBox` binds `SelectedIndex` to it two-way and ignores the `-1` of a cleared selection.
+- **Theme menus.** The Large and Medium header Theme buttons open a `MenuFlyout`, and the Small overflow menu has a **Theme** `MenuFlyoutSubItem`. `ThemeMenuItems.Populate` fills all three from `AvailableModes`: one `RadioMenuFlyoutItem` per mode, a separator, then one `ToggleMenuFlyoutItem` per `VisualEffectsViewModel.AvailableEffects` entry (Film grain, Vignette, Scanlines, Blur album background (Dynamic theme)), tagged with its `VisualEffect`. Each menu has its own radio `GroupName` (group names are app-wide). `AdaptiveHeaderBar` re-checks the items with `ThemeMenuItems.Sync` when a menu opens, when `CurrentMode` changes and on any `Effects` property change, so the three menus stay in step with each other and the mobile checkboxes. The theme toast comes from the `CurrentMode` setter, so every picker shows it.
+- `OnPrimaryAccentBrush` is the text and icon colour for accent backgrounds (accent buttons, checkbox glyphs, the selected mobile tab). For the preset themes it is near-black when the accent's relative luminance is above 0.5 (OLED Monochrome's white accent), white otherwise. In `Dynamic` mode it picks near-black or white by the higher WCAG contrast ratio (`GetContrastRatio`), which switches to near-black at a luminance of about 0.18. `MenuSurfaceBrush` is the opaque card colour used for menus and dropdowns.
+- **App resources.** `App.xaml` sets `RequestedTheme="Dark"` (every palette is dark) and declares placeholder `Cantus*Brush` resources (`CantusTextPrimaryBrush`, `CantusTextSecondaryBrush`, `CantusTextMutedBrush`, `CantusBackgroundBrush`, `CantusSurfaceCardBrush`, `CantusMenuSurfaceBrush`, `CantusCardBorderBrush`, `CantusPrimaryAccentBrush`, `CantusOnPrimaryAccentBrush`). `App.OnLaunched` calls `ThemeManager.ApplyToResources` before `MainPage` exists, which replaces them with the live brushes.
+  - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox (including its `ComboBoxBackground*` state keys, mapped to `SurfaceCard`) and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
+  - Button keys are not mapped. Instead `App.xaml` has an implicit `Button` style (based on `MaterialBaseButtonStyle`, so the 40px minimum size and fonts stay) with its own template. It keeps each button's own `Background` in every state, where the Material template swapped in its own primary colour on hover, press and focus. Hover and press show a faint `CantusTextPrimaryBrush` layer (8% and 16%), keyboard focus a 2px `CantusPrimaryAccentBrush` ring, and Disabled dims the button. `Padding` is the whole inner gap: Material's extra 8px `ButtonContentMargin` is dropped so narrow rows such as the sync offset buttons keep their labels.
+  - On the WASM head, Uno's DOM renderer does not pass a TextBox's `Foreground` to the native `<input>`, which kept the browser's black text. `WasmScripts/index.html` sets `input, textarea { color: inherit; }` so typed text takes the themed colour of its parent.
+  - Inside a `DataTemplate`, where `x:Bind Theme` is out of reach, use `{StaticResource CantusTextPrimaryBrush}` and the other `Cantus*` keys. They resolve to the live brushes, so they follow theme changes too.
 - `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
+  - **Sidebar.** `ShowSidebar` is true for Large and Medium, and `SidePanelWidth` is 290 for Medium in both orientations. Medium portrait used to get a 0px sidebar, which hid the track card and its controls.
+  - **Width rules inside a breakpoint.** These are raised on every width change, not only on a breakpoint change: `ShowFullHeaderLabels` (width >= `FULL_HEADER_LABELS_MIN_WIDTH`, 1200: Large header Find Song and Theme labels and the brand subtitle), `IsNarrowPhone` (Small and under 380: mobile tab bar stacks icon over label, the now-playing strip drops its timestamp column), `IsKioskBarCompact` (under 700: kiosk bar hides the timestamp and the Exit Kiosk label), `IsKioskBarStacked` (under 480: kiosk bar hides the album art, tightens its padding and moves the seek bar to its own row, set from `MiniPlaybackBar` code-behind) and `ContentPadding` (kiosk padding drops to 12 on phone widths). `HeaderAccountNameMaxWidth` (160) caps the Large header account name, and `DiagnosticsHudMinWidth` is 420, or 0 on Small.
+  - `ShouldShowStageModeLabels(stageWidth)` is a static rule (420px) that `LyricsStageView` applies to its own top bar width from `SizeChanged`, through its `ModeLabelVisibility` property.
+  - `MIN_WINDOW_WIDTH` x `MIN_WINDOW_HEIGHT` (360 x 560) is set on the desktop window's `OverlappedPresenter` (`PreferredMinimumWidth`/`Height`) in `App.OnLaunched`. The WASM head has no minimum, so phones narrower than 360px still work.
+- **Overflow handling.** The Large header telemetry pills sit in a `PriorityStackPanel` (`Views/PriorityStackPanel.cs`): children are listed highest priority first, and `PriorityFitLayout.CountFitting` keeps the leading ones that fit. The rest are arranged at zero size outside the panel's clip, so `Visibility` is never changed during layout. The track card's album art has `MaxWidth` = `AlbumArtSize` and stretches, so it never widens the card's `ScrollViewer` content past the viewport (Large art was 2px wider than the card). Its height is kept square in `SizeChanged` through `SquareArtSizing.GetNextHeight`, which only grows the art when the vertical scrollbar is already shown or the taller art still fits. This stops a resize loop where a scrollbar that takes layout space keeps appearing and disappearing. Rows with long text (device name, kiosk title, Diagnostics HUD values, pairing status) use a `Grid` star column with `CharacterEllipsis` or wrapping instead of a horizontal `StackPanel`, which measures its children at infinite width.
+- **Visual effects.** `VisualEffectsViewModel` (`LyricsViewModel.Effects`) owns four per-device booleans: `IsFilmGrainEnabled`, `IsVignetteEnabled`, `IsScanlinesEnabled` and `IsBackgroundBlurEnabled`. It reads them from `ILyricsPreferences` once, and each setter writes through and notifies only on a real change. `IsEnabled(VisualEffect)` and `SetEnabled` serve the menus. `FilmGrainVisibility`, `VignetteVisibility` and `ScanlinesVisibility` drive the overlay layers, and `AnyOverlayEffectVisibility` collapses the whole overlay when none is on.
+- **Post-processing overlay.** `PostProcessingOverlay` is the last child of the `MainPage` root `Grid`, so it covers every layout, theme and kiosk mode, and it is `IsHitTestVisible="False"`. It takes `Effects` as a dependency property and binds each layer's `Visibility` to it. Layers, bottom to top:
+  - **Scanlines:** a `StackPanel` of 1px black `Rectangle`s, one every 4px, at 22% opacity. Lines stretch to the width on their own; `ScanlineLayout.GetLineCount` sets the count, and the list changes only when a resize changes the count. No assets.
+  - **Vignette:** a `RadialGradientBrush` that stays clear to 60% of the radius and darkens towards the edges.
+  - **Film grain:** three 256px noise tiles (`Assets/PostProcessing/grain_N.png`, about 23 KB each, made by `scripts/generate_grain_tiles.py`). PNGs under `Assets` are plain content, so Uno.Resizetizer does not touch them. Each tile has its own grid layer of `Image` elements one tile larger than the window (`FilmGrainLayout.GetTileCount`).
+  - **Per frame (42 ms, about 24 fps):** the overlay shows the next layer and shifts the grid by a random whole-pixel offset (`FilmGrainLayout.GetJitterOffset`). That is one transform and two opacity changes, which is cheap on the WASM DOM renderer (CSS) and on desktop Skia. Nothing is re-rasterised.
+  - **Lifetime:** the tiles load the first time film grain is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and the grain layer is visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
+- **Background blur (Dynamic theme).** The blur runs in managed code, so the WASM DOM renderer and desktop Skia show the same image:
+  - **Pixels:** when `AlbumArtColorService` decodes artwork for swatches (StbImageSharp), it also keeps an 80px-long-side thumbnail (`ArtworkBlur.Downscale`, alpha-weighted area average). `GetBlurredArtworkPngAsync` blurs that thumbnail with three box-blur passes of radius 4 (`ArtworkBlur.BoxBlur`, close to a Gaussian, on premultiplied alpha so transparent pixels do not tint the art) and encodes it with `PngEncoder` (RGBA, one zlib `IDAT`, CRC-32). It downloads only when no thumbnail is cached. Swatches and thumbnails are cached for 16 URLs and blurred PNGs for 8 (`BoundedUrlCache`, oldest out first).
+  - **Display:** `AmbientBackdrop<ImageSource>` picks what `MainPage` shows from `ThemeManager.AmbientArtworkUrl` and `Effects.IsBackgroundBlurEnabled`. The sharp `BitmapImage` shows at once, and a blurred one, loaded with `BitmapImage.SetSourceAsync` from the PNG stream, replaces it when ready. The `ImageBrush` (`UniformToFill`) upscales it smoothly.
+  - **Staleness:** a blur result is used only if its artwork URL is still current and blur is still on. A new track or turning blur off cancels the pending blur and shows the sharp art straight away. A failed or empty blur keeps the sharp art and logs at Debug or Warning.
+  - **Scrim:** `AmbientScrimOpacity` is `AMBIENT_SCRIM_OPACITY` (0.62) over sharp art and `BLURRED_AMBIENT_SCRIM_OPACITY` (0.55) over blurred art, since the blur already removes busy detail.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
-- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
-- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, the visual effects by `VisualEffectsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
+- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_fx_film_grain`, `cantus_fx_vignette`, `cantus_fx_scanlines`, `cantus_fx_background_blur`, `cantus_latency_ms`), the defaults (auto-scroll and karaoke on, every effect off, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
 - `DisplayCredentialStore` keeps the Display token, id and name (`cantus_display_token`, `cantus_display_id`, `cantus_display_name`) through the same `ISettingsStore`, so a paired Display reconnects after a restart. `ISettingsStore` cannot remove keys, so clearing blanks them.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
@@ -198,6 +244,7 @@ flowchart TD
 - `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
 - `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
+- `OwnerActionsVisibility` shows owner-only actions such as Find Song. It is keyed on `CurrentUserSession`, not `IsAuthorized`, because a paired Display is authorized but normally never receives the Session list. Views also check `Pairing.OwnerControlsVisibility` for a Display paired after a sign-in.
 - Composes `Displays` (`DisplaysViewModel`), the owner's Display management. A Session list or a completed sign-in turns it on and loads the list; signing out, a revoke or an empty Session list turns it off and empties the list.
 
 ### 11. `DisplayPairingViewModel` & `DisplayPairingView`
@@ -228,6 +275,13 @@ flowchart TD
 - `NotifyTrackChanged` (called by the root on each poll) closes the picker when the track changes, and answers that arrive after the picker closed or the track changed are dropped.
 - `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `400`, `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
 - `LyricsPickerDialog` is the `ContentDialog` the track card (desktop and tablet) and the mobile settings tab open. It hides itself when the picker closes.
+
+### 14. `SongLookupViewModel`, `SongGuessViewModel` & `SongLookupDialog`
+- `SongLookupClient` posts to `/api/lookup/search` and `/api/lookup/play` with payloads registered in `CantusJsonContext`. It reads `ServerBaseUrl` and the Session token per request, sends `Authorization: Bearer` only when a token exists, and otherwise relies on the same-origin `cantus_session_id` cookie (WASM after a reload).
+- `SongLookupViewModel` runs a two-phase search: `scope: "local"` first, so library guesses show at once; when the server answers `onlineRecommended`, a second call with `scope: "auto"` runs while those guesses stay visible. "Not it? Search online" sends `scope: "online"`. A generation counter and a `CancellationTokenSource` drop stale responses; closing the dialog cancels the search in flight. There is no search-as-you-type.
+- States (`SongLookupState`): `Idle`, `SearchingLibrary`, `SearchingOnline`, `Results`, `Empty`, `Error`, `RateLimited`. A `403` shows "needs a signed-in account"; an inbound `429` shows "try again in a minute".
+- `SongGuessViewModel` holds one guess: title, artist and album (`ArtistAlbumText`, "Artist / Album" or just the artist), matched lines, the match text ("86% match, in your library", "found online (NetEase)"), and its own Play and Queue status.
+- `SongLookupDialog` is a `ContentDialog` opened from the header (a Find Song button on Large and Medium layouts, an overflow menu item on Small), visible only while both `Session.OwnerActionsVisibility` and `Pairing.OwnerControlsVisibility` are visible (`GetSongLookupVisibility`), so a client paired as a Display after a sign-in never shows it. It has no `DefaultButton`: Enter in the fragment box (`MaxLength` 200) is handled in `KeyDown` and searches instead of closing the dialog. `MainPage` skips its keyboard shortcuts while a text box has focus, so typing `K`, `T` or `M` does not trigger the kiosk, theme or mobile tab shortcuts.
 
 ---
 

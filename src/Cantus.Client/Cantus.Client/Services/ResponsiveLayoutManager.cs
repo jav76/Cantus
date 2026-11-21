@@ -21,6 +21,19 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     public const double SMALL_BREAKPOINT_MAX_WIDTH = 680.0;
     public const double MEDIUM_BREAKPOINT_MAX_WIDTH = 1080.0;
 
+    // Width thresholds for trimming individual controls inside a breakpoint (in logical pixels)
+    public const double FULL_HEADER_LABELS_MIN_WIDTH = 1200.0;
+    public const double HEADER_ACCOUNT_NAME_MAX_WIDTH = 160.0;
+    public const double NARROW_PHONE_MAX_WIDTH = 380.0;
+    public const double COMPACT_KIOSK_BAR_MAX_WIDTH = 700.0;
+    public const double STACKED_KIOSK_BAR_MAX_WIDTH = 480.0;
+    public const double STAGE_MODE_LABELS_MIN_WIDTH = 420.0;
+    public const double DIAGNOSTICS_HUD_MIN_WIDTH = 420.0;
+
+    // Smallest desktop window the layouts are designed for
+    public const int MIN_WINDOW_WIDTH = 360;
+    public const int MIN_WINDOW_HEIGHT = 560;
+
     private double _windowWidth = 1280.0;
     private double _windowHeight = 800.0;
     private bool _isKioskMode;
@@ -38,6 +51,7 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
             {
                 _windowWidth = value;
                 OnPropertyChanged();
+                NotifyWidthDependentProperties();
             }
         }
     }
@@ -144,7 +158,8 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     public bool IsMobileSettingsActive => IsSmall && MobileView == MobileViewMode.SyncAndSettings;
 
     // Structural visibility & sizing properties
-    public bool ShowSidebar => (IsLarge || (IsMedium && Orientation == LayoutOrientation.Landscape)) && !IsFullscreenTv;
+    // Medium portrait keeps the sidebar: without it the track card and its controls had no home.
+    public bool ShowSidebar => IsLarge || IsMedium;
     public bool ShowTopHeader => !IsFullscreenTv;
     public bool ShowMobileTabBar => IsSmall && !IsFullscreenTv;
     public bool ShowMiniBottomBar => IsFullscreenTv;
@@ -152,7 +167,7 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
     public double SidePanelWidth => CurrentBreakpoint switch
     {
         LayoutBreakpoint.Small => 0.0,
-        LayoutBreakpoint.Medium => (Orientation == LayoutOrientation.Landscape ? 290.0 : 0.0),
+        LayoutBreakpoint.Medium => 290.0,
         LayoutBreakpoint.Large => 380.0,
         _ => 0.0
     };
@@ -206,9 +221,27 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         LayoutBreakpoint.Small => new Thickness(12, 10, 12, 12),
         LayoutBreakpoint.Medium => new Thickness(18, 14, 18, 16),
         LayoutBreakpoint.Large => new Thickness(24, 20, 24, 24),
-        LayoutBreakpoint.FullscreenTv => new Thickness(48, 32, 48, 32),
+        LayoutBreakpoint.FullscreenTv => WindowWidth < SMALL_BREAKPOINT_MAX_WIDTH
+            ? new Thickness(12, 10, 12, 12)
+            : new Thickness(48, 32, 48, 32),
         _ => new Thickness(24)
     };
+
+    /// <summary>Find Song and Theme labels and the brand subtitle in the Large header.</summary>
+    public bool ShowFullHeaderLabels => WindowWidth >= FULL_HEADER_LABELS_MIN_WIDTH;
+
+    public double HeaderAccountNameMaxWidth => HEADER_ACCOUNT_NAME_MAX_WIDTH;
+
+    /// <summary>Phones under about 380 px drop secondary text such as the mobile strip timestamps.</summary>
+    public bool IsNarrowPhone => IsSmall && WindowWidth < NARROW_PHONE_MAX_WIDTH;
+
+    /// <summary>The kiosk mini bar goes icon-only and drops the timestamp so Exit Kiosk stays on screen.</summary>
+    public bool IsKioskBarCompact => WindowWidth < COMPACT_KIOSK_BAR_MAX_WIDTH;
+
+    /// <summary>On phone widths the kiosk mini bar hides the album art and moves the seek bar to its own row.</summary>
+    public bool IsKioskBarStacked => WindowWidth < STACKED_KIOSK_BAR_MAX_WIDTH;
+
+    public double DiagnosticsHudMinWidth => IsSmall ? 0.0 : DIAGNOSTICS_HUD_MIN_WIDTH;
 
     public double LyricsMaxWidth => CurrentBreakpoint switch
     {
@@ -223,6 +256,10 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         LayoutBreakpoint.Large => HeaderDisplayMode.Full,
         _ => HeaderDisplayMode.Hidden
     };
+
+    /// <summary>Stage mode buttons show their labels only when the stage itself is wide enough.</summary>
+    public static bool ShouldShowStageModeLabels(double stageWidth)
+        => double.IsNaN(stageWidth) || stageWidth <= 0 || stageWidth >= STAGE_MODE_LABELS_MIN_WIDTH;
 
     public event Action<LayoutBreakpoint>? BreakpointChanged;
     public event Action? LayoutChanged;
@@ -323,6 +360,17 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsMobileLyricsActive));
         OnPropertyChanged(nameof(IsMobileNowPlayingActive));
         OnPropertyChanged(nameof(IsMobileSettingsActive));
+        OnPropertyChanged(nameof(IsNarrowPhone));
+        OnPropertyChanged(nameof(DiagnosticsHudMinWidth));
+    }
+
+    private void NotifyWidthDependentProperties()
+    {
+        OnPropertyChanged(nameof(ShowFullHeaderLabels));
+        OnPropertyChanged(nameof(IsNarrowPhone));
+        OnPropertyChanged(nameof(IsKioskBarCompact));
+        OnPropertyChanged(nameof(IsKioskBarStacked));
+        OnPropertyChanged(nameof(ContentPadding));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

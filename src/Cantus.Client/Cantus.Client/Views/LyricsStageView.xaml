@@ -14,29 +14,7 @@
         <Grid RowDefinitions="Auto,*">
             
             <!-- Top Action Controls -->
-            <Grid Grid.Row="0" Margin="0,0,0,12">
-                <!-- Transient Theme-Mode Indicator Toast (stage placement for non-Small layouts:
-                     the empty space above the lyrics, centered with them) -->
-                <Border Visibility="{x:Bind ViewModel.ThemeToastStageVisibility, Mode=OneWay}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
-                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                        BorderThickness="1"
-                        CornerRadius="18"
-                        Padding="16,9"
-                        IsHitTestVisible="False">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE790;"
-                                  FontSize="14"
-                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind ViewModel.ThemeToastText, Mode=OneWay}"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"
-                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
-
+            <Grid Grid.Row="0" Margin="0,0,0,12" SizeChanged="OnTopBarSizeChanged">
                 <StackPanel Orientation="Horizontal"
                             Spacing="8"
                             HorizontalAlignment="Right"
@@ -52,7 +30,7 @@
                             ToolTipService.ToolTip="Toggle the karaoke line-progress underline">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE720;" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="Karaoke" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="Karaoke" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
 
@@ -67,7 +45,7 @@
                             ToolTipService.ToolTip="Toggle dynamic centered lyrics scrolling (Autoscroll)">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="{x:Bind ViewModel.AutoScrollToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.AutoScrollToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.AutoScrollToggleText, Mode=OneWay}" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
 
@@ -82,7 +60,7 @@
                             ToolTipService.ToolTip="Toggle between Live Synced and Static Plain Lyrics">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -213,15 +191,38 @@
                         VerticalAlignment="Bottom"
                         Margin="0,0,0,16"
                         Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                        Foreground="White"
+                        Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                         BorderThickness="0"
                         CornerRadius="20"
                         Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="White" />
-                        <TextBlock Text="Resume Autoscroll" FontSize="12" FontWeight="SemiBold" Foreground="White" />
+                        <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
+                        <TextBlock Text="Resume Autoscroll" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
                     </StackPanel>
                 </Button>
+
+                <!-- Transient Theme-Mode Indicator Toast (stage placement for non-Small layouts:
+                     the top of the lyrics area, so it never shares a band with the mode buttons) -->
+                <Border Visibility="{x:Bind ViewModel.ThemeToastStageVisibility, Mode=OneWay}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,4,0,0"
+                        Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Padding="16,9"
+                        IsHitTestVisible="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE790;"
+                                  FontSize="14"
+                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.ThemeToastText, Mode=OneWay}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
             </Grid>
         </Grid>
     </Border>

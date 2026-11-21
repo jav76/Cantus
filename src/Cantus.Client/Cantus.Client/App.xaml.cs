@@ -24,6 +24,8 @@ public partial class App : Application
     {
         base.OnLaunched(args);
 
+        ThemeManager.Instance.ApplyToResources(Resources);
+
         MainWindow ??= Microsoft.UI.Xaml.Window.Current ?? new Window();
 
         if (MainWindow.Content is not Frame rootFrame)
@@ -40,9 +42,28 @@ public partial class App : Application
 
 #if !__WASM__
         MainWindow.Title = "Cantus - Real-Time Spotify Synced Lyrics";
+        ApplyMinimumWindowSize(MainWindow);
 #endif
         MainWindow.Activate();
     }
+
+#if !__WASM__
+    private static void ApplyMinimumWindowSize(Window window)
+    {
+        try
+        {
+            if (window.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                presenter.PreferredMinimumWidth = ResponsiveLayoutManager.MIN_WINDOW_WIDTH;
+                presenter.PreferredMinimumHeight = ResponsiveLayoutManager.MIN_WINDOW_HEIGHT;
+            }
+        }
+        catch (Exception ex)
+        {
+            ClientLoggingManager.CreateLogger<App>().LogWarning(ex, "Could not set the minimum window size");
+        }
+    }
+#endif
 
     private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
     {

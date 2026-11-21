@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using Cantus.Core.Interfaces;
 using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Lyrics;
+using Cantus.Infrastructure.Lyrics.Lookup;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Security;
 using Cantus.Infrastructure.Spotify;
@@ -36,13 +38,29 @@ public static class DependencyInjection
             configuration.GetSection(NeteaseOptions.SECTION_NAME));
         services.Configure<LyricsCacheOptions>(
             configuration.GetSection(LyricsCacheOptions.SECTION_NAME));
+        services.AddOptions<SongLookupOptions>()
+            .Bind(configuration.GetSection(SongLookupOptions.SECTION_NAME))
+            .Validate(
+                options => Validator.TryValidateObject(
+                    options,
+                    new ValidationContext(options),
+                    validationResults: null,
+                    validateAllProperties: true),
+                $"{SongLookupOptions.SECTION_NAME} values are outside their allowed ranges.")
+            .ValidateOnStart();
 
         // 2. Persistence (SQLite EF Core)
         string connectionString = configuration.GetConnectionString("CantusDatabase")
             ?? "Data Source=cantus.db";
 
-        services.AddDbContext<CantusDbContext>(options =>
-            options.UseSqlite(connectionString));
+        // The interceptor keeps the in-memory lyrics search index in step with
+        // every cache and override write.
+        services.AddSingleton<LyricsSearchIndex>();
+        services.AddSingleton<LyricsCorpusChangeInterceptor>();
+        services.AddDbContext<CantusDbContext>((sp, options) =>
+            options
+                .UseSqlite(connectionString)
+                .AddInterceptors(sp.GetRequiredService<LyricsCorpusChangeInterceptor>()));
 
         // 3. Security & Data Protection
         services.AddDataProtection();
@@ -58,13 +76,21 @@ public static class DependencyInjection
                 sp.GetRequiredService<SqliteLyricsCacheRepository>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCacheRepositoryDecorator>>()));
 
+        // The gate state is shared; each pipeline gets a new handler from the
+        // factory, because a reused handler already has an InnerHandler when
+        // IHttpClientFactory rebuilds the pipeline.
+        services.AddSingleton<ProviderRateGate>();
+
         services.AddHttpClient<LrclibLyricsProvider>((sp, client) =>
         {
             LrclibOptions options = sp.GetRequiredService<IOptions<LrclibOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            LrclibLyricsProvider.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()));
 
         services.AddHttpClient<NeteaseLyricsProvider>((sp, client) =>
         {
@@ -74,7 +100,10 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", options.BaseUrl);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            NeteaseLyricsProvider.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()));
 
         // Ordered lyrics fallback chain: LRCLIB first, then any enabled
         // fallback providers. CachedLyricsService walks this list in order.
@@ -102,6 +131,20 @@ public static class DependencyInjection
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsProviderDecorator>>()));
         services.AddScoped<LyricsOverrideService>();
 
+        services.AddScoped<SqliteLyricsCorpusReader>();
+        services.AddScoped<ILyricsCorpusReader>(sp =>
+            new TraceLoggingLyricsCorpusReaderDecorator(
+                sp.GetRequiredService<SqliteLyricsCorpusReader>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCorpusReaderDecorator>>()));
+
+        services.AddSingleton<SongLookupQueryCache>();
+        services.AddSingleton<SongLookupBudget>();
+        services.AddScoped<SongLookupService>();
+        services.AddScoped<ISongLookupService>(sp =>
+            new TraceLoggingSongLookupServiceDecorator(
+                sp.GetRequiredService<SongLookupService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSongLookupServiceDecorator>>()));
+
         // 6. Spotify Services
         services.AddScoped<SpotifyAuthService>();
         services.AddScoped<ISpotifyAuthService>(sp =>
@@ -109,11 +152,18 @@ public static class DependencyInjection
                 sp.GetRequiredService<SpotifyAuthService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyAuthServiceDecorator>>()));
 
+        services.AddSingleton<SpotifyRateLimitGate>();
         services.AddScoped<SpotifyPlayerClient>();
         services.AddScoped<ISpotifyPlayerClient>(sp =>
             new TraceLoggingSpotifyPlayerClientDecorator(
                 sp.GetRequiredService<SpotifyPlayerClient>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyPlayerClientDecorator>>()));
+        services.AddScoped<SpotifyCatalogClient>();
+        services.AddScoped<ISpotifyCatalogClient>(sp =>
+            new TraceLoggingSpotifyCatalogClientDecorator(
+                sp.GetRequiredService<SpotifyCatalogClient>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyCatalogClientDecorator>>()));
+        services.AddScoped<SpotifyTrackResolver>();
 
         // 7. Displays
         services.AddScoped<DisplayService>();

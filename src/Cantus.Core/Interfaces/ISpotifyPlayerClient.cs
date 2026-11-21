@@ -24,4 +24,12 @@ public interface ISpotifyPlayerClient
 
     /// <param name="repeatMode">"off", "track", or "context".</param>
     Task<PlayerCommandResult> SetRepeatAsync([Redact] string accessToken, string repeatMode, CancellationToken cancellationToken = default);
+
+    /// <summary>Starts <paramref name="trackUri"/> on the active device, replacing the current playback context.</summary>
+    /// <param name="trackUri">A <c>spotify:track:{id}</c> URI.</param>
+    Task<PlayerCommandResult> PlayTrackAsync([Redact] string accessToken, string trackUri, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds <paramref name="trackUri"/> to the end of the active device's queue.</summary>
+    /// <param name="trackUri">A <c>spotify:track:{id}</c> URI.</param>
+    Task<PlayerCommandResult> AddToQueueAsync([Redact] string accessToken, string trackUri, CancellationToken cancellationToken = default);
 }

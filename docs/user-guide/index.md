@@ -23,6 +23,7 @@ flowchart LR
 - **Smooth Karaoke Scrolling**: Lyrics scroll to keep the active line centered, and fill word by word when word timing is available.
 - **Audio Delay Calibration**: Set a per-device latency compensation for Bluetooth or AirPlay speakers, and a per-track offset for lyrics that are timed early or late.
 - **Dynamic Artwork Palette Theming**: The ambient backdrop and accent colors adapt to the album artwork of the current track.
+- **Find a Song by Lyrics**: Type a half-remembered line to find the song, then play or queue it.
 - **Instrumental Break Detection**: Shows an instrumental countdown during long gaps between lines.
 - **Privacy First**: Your Spotify tokens are stored encrypted on your own server, and Cantus sends no telemetry. Track title, artist, album and duration are sent to the lyrics providers (LRCLIB, and NetEase when enabled) to look up lyrics.
 
@@ -36,3 +37,4 @@ Explore the sections below to get the most out of your Cantus setup:
 2. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
 3. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
 4. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
+5. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.

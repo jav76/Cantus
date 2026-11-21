@@ -116,6 +116,12 @@ builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 builder.Services.AddScoped<ICredentialResolver, CredentialResolver>();
 builder.Services.AddDisplayPairing(builder.Configuration);
+builder.Services.AddSongLookup();
+builder.Services.AddScoped<SongPlaybackService>();
+builder.Services.AddScoped<ISongPlaybackService>(sp =>
+    new TraceLoggingSongPlaybackServiceDecorator(
+        sp.GetRequiredService<SongPlaybackService>(),
+        sp.GetRequiredService<ILogger<TraceLoggingSongPlaybackServiceDecorator>>()));
 
 // 7. Reverse Proxy & Forwarded Headers
 // Forwarded headers are only honoured from proxies the operator trusts.
@@ -261,6 +267,7 @@ app.MapHub<PlaybackHub>("/hubs/playback");
 app.MapAuthEndpoints();
 app.MapLyricsEndpoints();
 app.MapDisplayEndpoints();
+app.MapSongLookupEndpoints();
 app.MapHealthEndpoints();
 
 // 17. SPA Fallback

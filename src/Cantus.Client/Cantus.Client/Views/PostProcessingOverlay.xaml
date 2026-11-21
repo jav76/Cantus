@@ -1,0 +1,21 @@
+<UserControl x:Class="Cantus.Client.Views.PostProcessingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="False">
+
+    <Grid x:Name="OverlayRoot">
+        <StackPanel x:Name="ScanlineHost"
+                    VerticalAlignment="Top"
+                    Visibility="{x:Bind Effects.ScanlinesVisibility, Mode=OneWay, FallbackValue=Collapsed}" />
+
+        <Border x:Name="VignetteLayer"
+                Visibility="{x:Bind Effects.VignetteVisibility, Mode=OneWay, FallbackValue=Collapsed}" />
+
+        <Canvas x:Name="GrainHost"
+                Visibility="{x:Bind Effects.FilmGrainVisibility, Mode=OneWay, FallbackValue=Collapsed}">
+            <Canvas.RenderTransform>
+                <TranslateTransform x:Name="GrainShift" />
+            </Canvas.RenderTransform>
+        </Canvas>
+    </Grid>
+</UserControl>

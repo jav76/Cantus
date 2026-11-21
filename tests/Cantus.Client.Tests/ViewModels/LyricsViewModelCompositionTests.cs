@@ -24,6 +24,8 @@ public sealed class LyricsViewModelCompositionTests
         vm.Transport.Should().NotBeNull();
         vm.Timing.Should().NotBeNull();
         vm.Session.Should().NotBeNull();
+        vm.Effects.Should().NotBeNull();
+        vm.Lookup.Should().NotBeNull();
         vm.LyricsPicker.Should().NotBeNull();
         vm.Theme.Should().NotBeNull();
         vm.Layout.Should().NotBeNull();
@@ -35,6 +37,8 @@ public sealed class LyricsViewModelCompositionTests
     [InlineData(typeof(PlaybackTransport))]
     [InlineData(typeof(PlaybackTiming))]
     [InlineData(typeof(SessionViewModel))]
+    [InlineData(typeof(VisualEffectsViewModel))]
+    [InlineData(typeof(SongLookupViewModel))]
     [InlineData(typeof(DisplayPairingViewModel))]
     [InlineData(typeof(DisplaysViewModel))]
     [InlineData(typeof(LyricsPickerViewModel))]

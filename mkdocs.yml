@@ -88,6 +88,7 @@ nav:
       - Pairing & Managing Displays: user-guide/displays.md
       - Timing & Latency Calibration: user-guide/timing-and-calibration.md
       - Dynamic Theming: user-guide/theming.md
+      - Find a Song by Lyrics: user-guide/song-lookup.md
   - Operator Guide:
       - Overview: operator-guide/index.md
       - Self-Hosting with Docker: operator-guide/self-hosting.md

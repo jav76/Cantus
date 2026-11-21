@@ -86,6 +86,22 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 | **`LyricsCache__WordTimingUpgradeMaxAttempts`** | `int` | `3` | How many times a cached entry without word timing is re-fetched from word-timing providers (NetEase) to look for word-timed lyrics. `0` turns upgrades off; they are also skipped when NetEase is disabled. | No |
 | **`LyricsCache__WordTimingUpgradeIntervalDays`** | `int` | `7` | Minimum days between word-timing upgrade attempts for the same track. | No |
 
+### Song Lookup (`SongLookup`)
+Settings for [finding a song by lyrics](rest-api.md#song-lookup-endpoints). Values outside the allowed range stop the server at startup.
+
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`SongLookup__ExternalSearchEnabled`** | `bool` | `true` | Lets lookups call online lyrics search (NetEase, LRCLIB). Set `false` to search only the server's own lyrics library; no fragment then leaves the server. | No |
+| **`SongLookup__LrclibTitleGuessEnabled`** | `bool` | `true` | Lets lookups try parts of the fragment as an LRCLIB track title. NetEase is unaffected. | No |
+| **`SongLookup__OnlineLookupsPerMinute`** | `int` | `6` | Lookups per Spotify user per rolling minute that may call a lyrics provider (1 to 60). Library-only searches and cached answers do not count. | No |
+| **`SongLookup__LrclibRequestsPerMinute`** | `int` | `10` | Lookup requests sent to LRCLIB per rolling minute, server-wide (1 to 60). Now-playing lyric fetches are not counted or refused. | No |
+| **`SongLookup__NeteaseRequestsPerMinute`** | `int` | `6` | Lookup requests sent to NetEase per rolling minute, server-wide (1 to 60). Now-playing lyric fetches are not counted or refused. | No |
+| **`SongLookup__SearchPermitLimit`** | `int` | `20` | Search requests allowed per client address per window (at least 1). IPv6 addresses in the same `/64` count as one client. | No |
+| **`SongLookup__PlayPermitLimit`** | `int` | `12` | Play and queue requests allowed per client address per window (at least 1). | No |
+| **`SongLookup__RateLimitWindowSeconds`** | `int` | `60` | Length of the search and play rate limit windows in seconds (1 to 3600). | No |
+
+`Netease__Enabled=false` also removes NetEase from lookups.
+
 ### Cross-Origin Requests (`Cors`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |

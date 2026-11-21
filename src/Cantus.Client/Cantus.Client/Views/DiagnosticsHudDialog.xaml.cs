@@ -1,3 +1,4 @@
+using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 
 namespace Cantus.Client.Views;
@@ -12,12 +13,18 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
 
     public SessionViewModel Session { get; }
 
+    public ThemeManager Theme { get; }
+
+    public ResponsiveLayoutManager Layout { get; }
+
     public DiagnosticsHudDialog(LyricsViewModel viewModel)
     {
         ViewModel = viewModel;
         Transport = viewModel.Transport;
         Timing = viewModel.Timing;
         Session = viewModel.Session;
+        Theme = viewModel.Theme;
+        Layout = viewModel.Layout;
         this.InitializeComponent();
     }
 

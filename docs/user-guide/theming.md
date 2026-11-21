@@ -18,6 +18,7 @@ flowchart TD
     Swatches --> Background[Hue-Matched Dark Background]
     Primary --> ActiveLyric[Active Lyric Glow and Accents]
     Art --> Backdrop[Full-Screen Artwork Backdrop Behind Darkening Scrim]
+    Fetch --> Blur[Optional Blurred Backdrop]
 ```
 
 ### Color Extraction Principles
@@ -25,14 +26,19 @@ flowchart TD
 1. **Median-Cut Quantization**: The artwork is downsampled and quantized into up to eight dominant color swatches. Near-black, near-white, and transparent pixels are excluded so letterboxing and vignettes do not skew the palette.
 2. **Vibrancy-Weighted Accent Selection**: The primary accent is the swatch with the best combination of saturation, population, and mid-range lightness. The secondary accent prefers a swatch at least 30 degrees away in hue; grayscale artwork keeps its neutral character instead of being forced into artificial color.
 3. **Legibility Clamping**: Accent saturation and lightness are clamped into ranges that keep lyrics crisp against the hue-matched dark background, regardless of how dark or washed out the artwork is.
-4. **Ambient Artwork Backdrop**: The full-resolution album cover fills the entire viewport behind a darkening scrim (center-cropped to fit), so different albums produce visibly different backdrops: recognizable artwork in the background, with the scrim keeping lyrics comfortably readable on top.
+4. **Ambient Artwork Backdrop**: The full-resolution album cover fills the entire viewport behind a darkening scrim (center-cropped to fit), so different albums produce visibly different backdrops: recognizable artwork in the background, with the scrim keeping lyrics comfortably readable on top. With **Blur album background** on, a softly blurred copy replaces the sharp cover (see [Post-Processing Effects](#post-processing-effects)).
 5. **Instant Fallback**: A metadata-derived placeholder palette is applied immediately while extraction runs, and remains active if the artwork cannot be fetched (for example, when offline). Extracted palettes are cached per artwork URL, so revisiting a track re-themes instantly.
 
 ---
 
 ## Available Theme Modes
 
-Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info** tab) to move to the next theme. The order is Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, Dynamic, then back to Midnight Violet. The choice is not saved: each launch starts on Midnight Violet.
+Pick a theme from either dropdown:
+
+- **Header bar:** the **Theme** button (a palette icon with a small arrow on tablet layouts) opens a menu that lists every theme, with a check next to the active one. On small screens the same list is under **Theme** in the overflow menu.
+- **Sync & Info tab (mobile):** the **COLOR THEME** card has a dropdown of all themes.
+
+<kbd>T</kbd> still moves to the next theme in list order: Dynamic, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, then back to Dynamic. Every change shows a short toast with the theme name. The theme choice is not saved: each launch starts on Midnight Violet.
 
 | Theme Mode | Description | Ideal Use Case |
 | :--- | :--- | :--- |
@@ -43,6 +49,26 @@ Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info*
 | **Nordic Slate** | Deep slate-navy background with cyan and sky-blue accents. | Subtle, understated displays. |
 | **OLED Monochrome** | True-black background with white accents. | OLED displays, burn-in avoidance. |
 | **Solarized Dark** | Classic Solarized base tones with blue accents. | Long reading sessions. |
+
+Every theme is dark, and the whole interface follows it: text boxes, menus, dropdowns, checkboxes, progress rings and dialogs (Find a song, Wrong lyrics?, Diagnostics) all switch colours with the theme, without a restart. Labels on accent-coloured buttons and the selected mobile tab turn dark when the accent is light (for example the white accent of OLED Monochrome). With Dynamic, they use whichever of dark or white contrasts more with the album accent, so amber, orange and lime accents get dark labels.
+
+---
+
+## Post-Processing Effects
+
+Optional effects you can combine freely. Each one is off by default.
+
+| Effect | What it does | Applies to |
+| :--- | :--- | :--- |
+| **Film grain** | Faint animated noise, like old film. | Every theme and kiosk mode |
+| **Vignette** | Darkens the window edges and leaves the centre clear. | Every theme and kiosk mode |
+| **Scanlines** | Thin, static horizontal lines, like a CRT screen. | Every theme and kiosk mode |
+| **Blur album background** | Shows a soft, blurred version of the album cover behind the lyrics instead of the sharp one, with a slightly lighter scrim. | The **Dynamic** theme only |
+
+- Toggle them in the theme menu, below the list of themes (on small screens: overflow menu, **Theme**), or with the checkboxes under **EFFECTS** in the **COLOR THEME** card on the mobile **Sync & Info** tab.
+- Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
+- **Blur album background** can be switched on in any theme, but it only changes something in Dynamic, the one theme with an album art backdrop. The sharp cover shows first and the blurred one replaces it a moment later. If the blur fails, the sharp cover stays.
+- All effects are subtle, so lyrics stay readable. The grain animation stops while film grain is off.
 
 ---
 

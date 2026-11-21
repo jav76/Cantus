@@ -118,6 +118,14 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     public Visibility HasSessionsVisibility =>
         AuthorizedSessionsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>
+    /// Owner-only actions such as Find a song. Keyed on <see cref="CurrentUserSession"/>, not
+    /// <see cref="IsAuthorized"/>: a paired Display is authorized by diagnostics but never
+    /// receives the Session list.
+    /// </summary>
+    public Visibility OwnerActionsVisibility =>
+        CurrentUserSession is not null ? Visibility.Visible : Visibility.Collapsed;
+
     public string ServerBaseUrl => _client.ServerBaseUrl;
 
     /// <summary>
@@ -256,6 +264,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     private void NotifySessionList()
     {
         OnPropertyChanged(nameof(CurrentUserSession));
+        OnPropertyChanged(nameof(OwnerActionsVisibility));
         OnPropertyChanged(nameof(NoSessionsVisibility));
         OnPropertyChanged(nameof(HasSessionsVisibility));
         NotifyAuthorization();

@@ -114,9 +114,11 @@ A Display connection goes through `RequestDisplayActivity(userId)` instead, whic
 
 ## Rate Limit Backoff (HTTP 429) & Error Handling
 
-If Spotify responds with `APITooManyRequestsException` (HTTP 429):
-1. The engine reads `RetryAfter` from the exception (defaulting to 60 seconds if it is not set).
-2. Sets `_rateLimitUntilUtc`, which pauses playback polling for every owner until the cooldown expires. Transport commands sent through the hub are not blocked.
+The back-off is shared: `SpotifyRateLimitGate` (a singleton) holds one pause for every Spotify caller, namely the poller, transport commands from the hub (pause, seek, volume, ...), song lookup track search, and play or queue.
+
+If Spotify responds with `APITooManyRequestsException` (HTTP 429) to any of them:
+1. The caller reports `RetryAfter` from the exception to the gate (defaulting to 60 seconds if it is not set). A shorter report never ends an active pause early.
+2. The poller skips its Spotify calls for every owner until the pause expires. Song lookup search, play and queue check the gate first and answer `rateLimited` without calling Spotify. Hub transport commands are still sent; a rejected one reports `Failed`.
 3. Sends runtime diagnostics to each polled owner's viewers via `ReceiveDiagnostics`, repeated on each loop pass (at most every 10 seconds) while the cooldown lasts:
    ```json
    {
@@ -128,6 +130,8 @@ If Spotify responds with `APITooManyRequestsException` (HTTP 429):
 5. Polling resumes automatically once the retry window elapses.
 
 The same handling applies when the 429 arrives during a token refresh.
+
+A 429 on a transport command therefore pauses the poller too, where before it only failed that command.
 
 ---
 

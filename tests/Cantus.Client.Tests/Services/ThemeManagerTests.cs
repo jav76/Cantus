@@ -469,4 +469,275 @@ public sealed class ThemeManagerTests
         notified.Should().Contain(nameof(ThemeManager.ActivePrimaryAccentColor));
         notified.Should().Contain(nameof(ThemeManager.ActiveBackgroundColor));
     }
+
+    [Fact]
+    public void OnPrimaryAccent_OledMonochromeWhiteAccent_IsNearBlack()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(ThemeMode.OLEDMonochrome);
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(tm.ActiveOnPrimaryAccentColor).Should().BeLessThan(0.05);
+        tm.ActiveOnPrimaryAccentColor.A.Should().Be(255);
+    }
+
+    [Theory]
+    [InlineData(ThemeMode.MidnightViolet)]
+    [InlineData(ThemeMode.EmeraldSynth)]
+    [InlineData(ThemeMode.CyberpunkSunset)]
+    [InlineData(ThemeMode.NordicSlate)]
+    [InlineData(ThemeMode.SolarizedDark)]
+    public void OnPrimaryAccent_ColouredAccents_StayWhite(ThemeMode mode)
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(mode);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void OnPrimaryAccent_Dynamic_FollowsTheExtractedAccent()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new();
+        ThemeManager tm = CreateThemeManager(handler);
+        tm.UpdateTrackMetadata("Song", "Artist", null);
+
+        // Act
+        tm.SetThemeMode(ThemeMode.Dynamic);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().Be(ThemeManager.GetOnAccentColor(tm.ActivePalette.PrimaryAccent, useHigherContrast: true));
+    }
+
+    [Theory]
+    [InlineData(250, 165, 80)]
+    [InlineData(209, 186, 71)]
+    [InlineData(242, 128, 13)]
+    public void GetOnAccentColor_HigherContrast_PicksDarkForMidLuminanceAccents(byte r, byte g, byte b)
+    {
+        // Act
+        Color onAccent = ThemeManager.GetOnAccentColor(Color.FromArgb(255, r, g, b), useHigherContrast: true);
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(onAccent).Should().BeLessThan(0.05);
+    }
+
+    [Fact]
+    public void GetOnAccentColor_HigherContrast_KeepsWhiteOnDarkAccents()
+    {
+        // Act
+        Color onBlue = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 37, 99, 235), useHigherContrast: true);
+
+        // Assert
+        onBlue.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void GetContrastRatio_BlackOnWhite_IsTwentyOne()
+    {
+        // Assert
+        ThemeManager.GetContrastRatio(1.0, 0.0).Should().BeApproximately(21.0, 0.001);
+        ThemeManager.GetContrastRatio(0.0, 1.0).Should().BeApproximately(21.0, 0.001);
+    }
+
+    [Theory]
+    [InlineData(ThemeMode.MidnightViolet)]
+    [InlineData(ThemeMode.EmeraldSynth)]
+    [InlineData(ThemeMode.CyberpunkSunset)]
+    [InlineData(ThemeMode.NordicSlate)]
+    [InlineData(ThemeMode.OLEDMonochrome)]
+    [InlineData(ThemeMode.SolarizedDark)]
+    public void OnPrimaryAccent_NeverMatchesTheAccent(ThemeMode mode)
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(mode);
+
+        // Assert
+        tm.ActiveOnPrimaryAccentColor.Should().NotBe(tm.ActivePrimaryAccentColor);
+    }
+
+    [Fact]
+    public void GetOnAccentColor_PicksDarkForLightAccentsAndWhiteForDarkOnes()
+    {
+        // Act
+        Color onYellow = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 250, 204, 21));
+        Color onBlue = ThemeManager.GetOnAccentColor(Color.FromArgb(255, 37, 99, 235));
+
+        // Assert
+        ThemeManager.GetRelativeLuminance(onYellow).Should().BeLessThan(0.05);
+        onBlue.Should().Be(Color.FromArgb(255, 255, 255, 255));
+    }
+
+    [Fact]
+    public void PaletteChange_NotifiesOnPrimaryAccentAndMenuSurfaceBrushes()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        List<string?> notified = new();
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        tm.SetThemeMode(ThemeMode.OLEDMonochrome);
+
+        // Assert
+        notified.Should().Contain(nameof(ThemeManager.OnPrimaryAccentBrush));
+        notified.Should().Contain(nameof(ThemeManager.MenuSurfaceBrush));
+        notified.Should().Contain(nameof(ThemeManager.ActiveOnPrimaryAccentColor));
+    }
+
+    [Fact]
+    public void GetMenuSurfaceColor_IsTheOpaqueCardColour()
+    {
+        // Act
+        Color surface = ThemeManager.GetMenuSurfaceColor(ColorPalette.NordicSlate);
+
+        // Assert
+        surface.Should().Be(Color.FromArgb(255, 30, 41, 59));
+    }
+
+    [Theory]
+    [InlineData("CantusTextPrimaryBrush", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("CantusOnPrimaryAccentBrush", ThemeManager.ThemeBrush.OnPrimaryAccent)]
+    [InlineData("OutlinedTextBoxForegroundFocused", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("OutlinedTextBoxPlaceholderForeground", ThemeManager.ThemeBrush.TextMuted)]
+    [InlineData("OnSurfaceBrush", ThemeManager.ThemeBrush.TextPrimary)]
+    [InlineData("SurfaceBrush", ThemeManager.ThemeBrush.MenuSurface)]
+    [InlineData("ComboBoxDropDownBackground", ThemeManager.ThemeBrush.MenuSurface)]
+    [InlineData("ComboBoxBackground", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundPointerOver", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundPressed", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundFocused", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundFocusedPressed", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundUnfocused", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("ComboBoxBackgroundDisabled", ThemeManager.ThemeBrush.SurfaceCard)]
+    [InlineData("CheckBoxGlyphForegroundChecked", ThemeManager.ThemeBrush.OnPrimaryAccent)]
+    [InlineData("ProgressRingForeground", ThemeManager.ThemeBrush.PrimaryAccent)]
+    public void ResourceBrushKeys_MapControlKeysToThemeBrushes(string key, ThemeManager.ThemeBrush expected)
+    {
+        // Assert
+        ThemeManager.ResourceBrushKeys.Should().ContainKey(key).WhoseValue.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ResourceBrushKeys_LeaveButtonTemplatesAlone()
+    {
+        // Assert
+        ThemeManager.ResourceBrushKeys.Keys.Should().NotContain(key => key.Contains("Button") && !key.StartsWith("TextBoxDeleteButton"));
+    }
+
+    [Fact]
+    public void AvailableModes_ListsEveryModeInCycleOrder()
+    {
+        // Assert
+        ThemeManager.AvailableModes.Should().Equal(
+            ThemeMode.Dynamic,
+            ThemeMode.MidnightViolet,
+            ThemeMode.EmeraldSynth,
+            ThemeMode.CyberpunkSunset,
+            ThemeMode.NordicSlate,
+            ThemeMode.OLEDMonochrome,
+            ThemeMode.SolarizedDark);
+        ThemeManager.AvailableModes.Should().BeEquivalentTo(Enum.GetValues<ThemeMode>());
+    }
+
+    [Fact]
+    public void AvailableModeNames_MatchDisplayNamesIndexForIndex()
+    {
+        // Assert
+        ThemeManager.AvailableModeNames.Should().Equal(
+            "Dynamic Palette",
+            "Midnight Violet",
+            "Emerald Synth",
+            "Cyberpunk Sunset",
+            "Nordic Slate",
+            "OLED Monochrome",
+            "Solarized Dark");
+    }
+
+    [Fact]
+    public void CycleNextTheme_FromEachMode_MovesToTheNextAvailableModeAndWraps()
+    {
+        for (int i = 0; i < ThemeManager.AvailableModes.Count; i++)
+        {
+            // Arrange
+            ThemeManager tm = new();
+            tm.SetThemeMode(ThemeManager.AvailableModes[i]);
+
+            // Act
+            tm.CycleNextTheme();
+
+            // Assert
+            tm.CurrentMode.Should().Be(ThemeManager.AvailableModes[(i + 1) % ThemeManager.AvailableModes.Count]);
+        }
+    }
+
+    [Fact]
+    public void CurrentModeIndex_TracksCurrentMode()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(ThemeMode.NordicSlate);
+
+        // Assert
+        tm.CurrentModeIndex.Should().Be(4);
+    }
+
+    [Fact]
+    public void SettingCurrentModeIndex_SelectsThatMode()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.CurrentModeIndex = 6;
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.SolarizedDark);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(7)]
+    public void SettingCurrentModeIndex_OutOfRange_KeepsCurrentMode(int index)
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.EmeraldSynth);
+
+        // Act
+        tm.CurrentModeIndex = index;
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.EmeraldSynth);
+    }
+
+    [Fact]
+    public void ChangingMode_RaisesCurrentModeIndexChanged()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.MidnightViolet);
+        List<string?> notified = [];
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        tm.CurrentModeIndex = 2;
+
+        // Assert
+        notified.Should().Contain(nameof(ThemeManager.CurrentMode));
+        notified.Should().Contain(nameof(ThemeManager.CurrentModeIndex));
+    }
 }

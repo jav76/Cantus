@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -22,15 +23,19 @@ public sealed partial class MainPage : Page
 
     public DisplaysViewModel Displays => ViewModel.Session.Displays;
 
+    public VisualEffectsViewModel Effects => ViewModel.Effects;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
         LyricsPreferences preferences = new(new LocalSettingsStore());
+        SongLookupClient lookupClient = new(client, new HttpClient());
         ViewModel = new LyricsViewModel(
             client,
             ThemeManager.Instance,
             ResponsiveLayoutManager.Instance,
-            preferences);
+            preferences,
+            lookupClient: lookupClient);
         this.InitializeComponent();
         OpenPairLink();
 
@@ -131,8 +136,9 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        // Letters typed into a field are not shortcuts.
-        if (e.OriginalSource is TextBox)
+        // Letters typed into a field (including the Find a song box inside a dialog) are not shortcuts.
+        if (e.OriginalSource is TextBox
+            || (XamlRoot is not null && FocusManager.GetFocusedElement(XamlRoot) is TextBox))
         {
             return;
         }

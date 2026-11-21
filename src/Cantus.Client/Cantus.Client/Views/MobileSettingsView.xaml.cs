@@ -102,6 +102,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(ThemeProperty, value);
     }
 
+    public static readonly DependencyProperty EffectsProperty =
+        DependencyProperty.Register(
+            nameof(Effects),
+            typeof(VisualEffectsViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public VisualEffectsViewModel? Effects
+    {
+        get => (VisualEffectsViewModel?)GetValue(EffectsProperty);
+        private set => SetValue(EffectsProperty, value);
+    }
+
     // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -113,16 +126,12 @@ public sealed partial class MobileSettingsView : UserControl
         settings.Displays = viewModel?.Session.Displays;
         settings.LyricsPicker = viewModel?.LyricsPicker;
         settings.Theme = viewModel?.Theme;
+        settings.Effects = viewModel?.Effects;
     }
 
     public MobileSettingsView()
     {
         InitializeComponent();
-    }
-
-    private void OnCycleThemeClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel?.Theme.CycleNextTheme();
     }
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)

@@ -212,6 +212,81 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
+    public async Task LogoutAsync_ClearsTheSongLookup()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new("http://127.0.0.1:59999/hubs/playback");
+        LyricsViewModel vm = new(client, lookupClient: CreateLookupClientWithAGuess());
+        await SearchLookupAsync(vm);
+
+        // Act
+        await vm.Session.LogoutAsync();
+
+        // Assert
+        AssertLookupCleared(vm);
+    }
+
+    [Fact]
+    public async Task SessionEnded_ClearsTheSongLookup()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client, lookupClient: CreateLookupClientWithAGuess());
+        await SearchLookupAsync(vm);
+
+        // Act
+        vm.Session.ApplySessions(null);
+
+        // Assert
+        AssertLookupCleared(vm);
+    }
+
+    private const string LOOKUP_FRAGMENT = "a line i remember from the song";
+
+    private static ISongLookupClient CreateLookupClientWithAGuess()
+    {
+        Mock<ISongLookupClient> lookupClient = new();
+        lookupClient
+            .Setup(c => c.SearchAsync(LOOKUP_FRAGMENT, "local", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SongLookupCallResult(
+                SongLookupCallStatus.Success,
+                new SongLookupResponsePayload
+                {
+                    Outcome = "accepted",
+                    OnlineRecommended = false,
+                    Guesses = new[]
+                    {
+                        new SongGuessPayload
+                        {
+                            Source = "Local",
+                            Title = "Previous Owner Song",
+                            Artist = "Artist",
+                            Confidence = 0.9,
+                            Verified = true,
+                            MatchedLines = Array.Empty<string>(),
+                            VersionCount = 1,
+                        },
+                    },
+                    Providers = Array.Empty<SongLookupProviderPayload>(),
+                }));
+        return lookupClient.Object;
+    }
+
+    private static async Task SearchLookupAsync(LyricsViewModel vm)
+    {
+        vm.Lookup.Fragment = LOOKUP_FRAGMENT;
+        await vm.Lookup.SearchAsync();
+        vm.Lookup.Guesses.Should().ContainSingle();
+    }
+
+    private static void AssertLookupCleared(LyricsViewModel vm)
+    {
+        vm.Lookup.Fragment.Should().BeEmpty();
+        vm.Lookup.Guesses.Should().BeEmpty();
+        vm.Lookup.State.Should().Be(SongLookupState.Idle);
+    }
+
+    [Fact]
     public async Task EmptyStateText_ReflectsWhetherATrackIsPlaying()
     {
         // Arrange - fresh session: nothing connected, nothing playing

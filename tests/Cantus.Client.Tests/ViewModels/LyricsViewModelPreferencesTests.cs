@@ -2,6 +2,7 @@ using Cantus.Client.Services;
 using Cantus.Client.Tests.Services;
 using Cantus.Client.ViewModels;
 using FluentAssertions;
+using Microsoft.UI.Xaml;
 using Xunit;
 
 namespace Cantus.Client.Tests.ViewModels;
@@ -22,6 +23,7 @@ public sealed class LyricsViewModelPreferencesTests
         {
             IsAutoScrollEnabled = false,
             IsKaraokeModeEnabled = false,
+            IsScanlinesEnabled = true,
             LatencyCompensationMs = STORED_LATENCY_MS,
         };
 
@@ -31,6 +33,8 @@ public sealed class LyricsViewModelPreferencesTests
         // Assert
         vm.IsAutoScrollEnabled.Should().BeFalse();
         vm.IsKaraokeModeEnabled.Should().BeFalse();
+        vm.Effects.IsScanlinesEnabled.Should().BeTrue();
+        vm.Effects.IsFilmGrainEnabled.Should().BeFalse();
         vm.Timing.LatencyCompensationMs.Should().Be(STORED_LATENCY_MS);
         vm.Timing.CalibrationText.Should().Be("400 ms");
     }
@@ -52,6 +56,17 @@ public sealed class LyricsViewModelPreferencesTests
         preferences.IsAutoScrollEnabled.Should().BeFalse();
         preferences.IsKaraokeModeEnabled.Should().BeFalse();
         preferences.LatencyCompensationMs.Should().Be(UPDATED_LATENCY_MS + LATENCY_STEP_MS);
+    }
+
+    [Fact]
+    public void Effects_AreOffByDefault()
+    {
+        // Act
+        LyricsViewModel vm = CreateViewModel(new LyricsPreferences(new InMemorySettingsStore()));
+
+        // Assert
+        vm.Effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Collapsed);
+        vm.Effects.IsBackgroundBlurEnabled.Should().BeFalse();
     }
 
     [Fact]

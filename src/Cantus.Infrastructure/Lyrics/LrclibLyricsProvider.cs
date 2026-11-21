@@ -11,9 +11,11 @@ using Microsoft.Extensions.Options;
 
 namespace Cantus.Infrastructure.Lyrics;
 
-public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
+public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
 {
-    public string ProviderName => "LRCLIB";
+    public const string PROVIDER_NAME = "LRCLIB";
+
+    public string ProviderName => PROVIDER_NAME;
 
     public bool SupportsWordTiming => false;
 
@@ -84,6 +86,14 @@ public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
 
             // Both endpoints answered without a match: an authoritative miss.
             return LyricsFetchResult.NotFound();
+        }
+        catch (ProviderRateLimitedException ex)
+        {
+            _logger.LogDebug(
+                "Skipped LRCLIB lyrics for track {TrackId}: requests are paused for {RetryAfterSeconds} s",
+                track.Id,
+                ex.RetryAfter.TotalSeconds);
+            return LyricsFetchResult.Unavailable();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

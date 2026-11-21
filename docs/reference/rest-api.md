@@ -342,6 +342,122 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 
 ---
 
+## Song Lookup Endpoints
+
+Find a song from a remembered, possibly misremembered, lyric line, then play or queue it on Spotify. See [Find a Song by Lyrics](../user-guide/song-lookup.md) for the user view and [Song Lookup](../architecture/lyrics-caching.md#song-lookup-by-remembered-lyrics) for how matching works.
+
+Both endpoints are owner-only and rate limited per client address, each counted on its own: 20 search requests and 12 plays per 60 seconds by default (see [`SongLookup`](configuration.md#song-lookup-songlookup)). The limit is counted before the credential check, so unauthenticated calls spend permits too. Over the limit they return `429 Too Many Requests` with no `Retry-After` header. IPv6 addresses in the same `/64` count as one client, as for the [pairing limits](#display-endpoints).
+
+Enum values on the wire are strings. Spotify and provider problems never change the HTTP status: they are reported inside a `200` body, because `403` and `429` already mean "Display token" and "inbound limit".
+
+---
+
+### `POST /api/lookup/search`
+Ranks songs that match a lyric fragment: the server's lyrics library first, then online lyrics search when the library has no clear answer.
+
+- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Request Body**:
+```json
+{ "fragment": "amazing grace how sweet the sound", "scope": "local" }
+```
+  - `fragment` (`string`): at most 200 characters, with at least 3 words or 4 CJK characters. Longer fragments are cut to the first 24 words or 48 CJK characters.
+  - `scope` (`string`, optional): `local`, `auto` (the default when missing) or `online`.
+- **Behavior**:
+  1. **Library**: every song with lyrics in the server's cache or overrides is scored against the fragment. The library is server-wide, so it includes tracks any Session on this server has played.
+  2. **Decision**: the best guess is `accepted` when it scores at least `0.70` and leads the next different song by at least `0.10`. Otherwise the outcome is `ambiguous` (best score at least `0.50`) or `none`.
+  3. **Online**: with `scope: "auto"` and an outcome that is not `accepted`, or with `scope: "online"`, NetEase lyric search runs first (1 request). LRCLIB title search (up to 2 requests) runs only while the outcome is still not `accepted`; with NetEase disabled, `scope: "online"` always asks LRCLIB. At most 3 provider requests and 10 seconds per lookup; a timeout returns what was found so far.
+  4. **Merge**: online hits are scored with the same scorer, ranked with the library guesses, and decided again. Versions of the same song (for example a remaster under another track id) are grouped into one guess.
+  5. `scope: "local"` never calls a provider and reports enabled providers as `skipped`, or as `rateLimited` when the outcome is not `accepted` and the caller's online budget is spent.
+  6. Each Spotify user may run 6 online lookups per minute (`SongLookup:OnlineLookupsPerMinute`). Answers reused from the 10-minute in-memory query cache do not count. When the budget is spent, providers report `rateLimited` and library guesses are still returned.
+  7. A lookup never writes the lyrics cache or the negative cache.
+- **Response `200 OK`**:
+```json
+{
+  "outcome": "accepted",
+  "onlineRecommended": false,
+  "guesses": [
+    {
+      "source": "Local",
+      "spotifyTrackId": "1a2b3c4d5e6f7g8h9i0jKL",
+      "title": "Amazing Grace",
+      "artist": "The Example Singers",
+      "album": "Hymns",
+      "durationMs": null,
+      "confidence": 0.93,
+      "verified": true,
+      "matchedLines": [
+        "Amazing grace, how sweet the sound",
+        "That saved a wretch like me"
+      ],
+      "versionCount": 2
+    }
+  ],
+  "providers": [
+    { "name": "NetEase", "status": "skipped", "retryAfterSeconds": null },
+    { "name": "LRCLIB", "status": "skipped", "retryAfterSeconds": null }
+  ]
+}
+```
+  - `outcome`: `accepted`, `ambiguous` or `none`. `none` can still carry low-scoring guesses.
+  - `onlineRecommended`: `true` only for `scope: "local"` when the outcome is not `accepted`, a provider is enabled and the caller's online budget is not spent. Clients then repeat the search with `scope: "auto"`, which spends a second inbound permit.
+  - `guesses`: at most 5 guesses scoring at least `0.40`, best first, followed by up to 3 NetEase hits the scorer could not confirm (`verified: false`, for example Traditional against Simplified Chinese).
+  - `source`: `Local`, `NetEase` or `LRCLIB`. Only `Local` guesses have a `spotifyTrackId`; `durationMs` is `null` for them.
+  - `confidence`: match score from `0` to `1`, rounded to 2 decimals. It is not a probability.
+  - `matchedLines`: up to 2 lyric lines where the fragment matched best.
+  - `versionCount`: how many versions were grouped into this guess.
+  - `providers[].status`: `ok`, `skipped`, `disabled`, `unavailable` or `rateLimited`. `retryAfterSeconds` is set only for `rateLimited`.
+- **Response `400 Bad Request`**: `fragment` is missing, blank, too short or over 200 characters, or `scope` is unknown. The body is `{ "message": "..." }`.
+- **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). No lyrics are read and no provider is called.
+- **Response `429 Too Many Requests`**: inbound rate limit reached.
+
+---
+
+### `POST /api/lookup/play`
+Plays or queues a guess on the owner's active Spotify device.
+
+- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Request Body**: a library guess by id, or an online guess by title and artist.
+```json
+{ "action": "play", "spotifyTrackId": "1a2b3c4d5e6f7g8h9i0jKL" }
+```
+```json
+{ "action": "queue", "title": "Amazing Grace", "artist": "The Example Singers", "durationMs": 245000 }
+```
+  - `action` (`string`): `play` or `queue`.
+  - `spotifyTrackId` (`string`): a 22-character Spotify track id. Takes precedence over `title` and `artist`.
+  - `title`, `artist` (`string`, at most 300 characters each), `durationMs` (`int`, optional): used when there is no track id.
+- **Behavior**:
+  1. While Spotify calls are paused by a recent `429`, nothing is sent and the status is `rateLimited`.
+  2. A guess without a track id is searched on Spotify at click time (track search on the title and primary artist, then one plain-text retry, 5 results each). A hit is accepted only when its title matches and either an artist matches on whole words or the duration is within 3 seconds. Otherwise the status is `notOnSpotify` and nothing plays.
+  3. `play` starts the track at once and replaces the current playback context (album or playlist). `queue` adds it to the end of the user's Spotify queue.
+  4. After a successful `play`, the server polls playback twice shortly after, as for transport commands, so viewers see the new track and its lyrics quickly.
+- **Response `200 OK`**:
+```json
+{
+  "status": "success",
+  "track": {
+    "id": "1a2b3c4d5e6f7g8h9i0jKL",
+    "title": "Amazing Grace",
+    "artist": "The Example Singers",
+    "album": "Hymns",
+    "albumArtUrl": "https://i.scdn.co/image/ab67616d0000b273example",
+    "durationMs": 245000,
+    "isExplicit": false
+  },
+  "retryAfterSeconds": null
+}
+```
+  - `status`: `success`, `notOnSpotify`, `noActiveDevice`, `missingPermissions` (no playback scope, or not a Premium account), `rateLimited` or `failed`.
+  - `track`: the Spotify track a title and artist resolved to, so the UI can show what actually started. `null` for a play by id.
+  - `retryAfterSeconds`: whole seconds until Spotify may be called again, set only for `rateLimited`.
+- **Response `400 Bad Request`**: unknown `action`, a malformed `spotifyTrackId`, neither a track id nor both `title` and `artist`, or a `title` or `artist` over 300 characters. The body is `{ "message": "..." }`.
+- **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
+- **Response `403 Forbidden`**: the caller holds a Display token. Nothing is sent to Spotify.
+- **Response `429 Too Many Requests`**: inbound rate limit reached.
+
+---
+
 ## Health & Monitoring Endpoints
 
 ### `GET /api/health`

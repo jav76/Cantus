@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using FluentAssertions;
+using StbImageSharp;
 using Xunit;
 
 namespace Cantus.Client.Tests.Services;
@@ -281,5 +282,92 @@ public sealed class AlbumArtColorServiceTests
         beforeFetch.Should().BeNull();
         cacheHit.Should().BeTrue();
         afterFetch.Should().BeSameAs(fetched);
+    }
+
+    [Fact]
+    public async Task GetBlurredArtworkPngAsync_ReturnsADecodableRedPng()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new() { ResponseHandler = _ => CreateImageResponse(RED_PNG_BASE64) };
+        AlbumArtColorService service = CreateService(handler);
+
+        // Act
+        byte[]? png = await service.GetBlurredArtworkPngAsync(TEST_URL, CancellationToken.None);
+
+        // Assert
+        png.Should().NotBeNull();
+        ImageResult decoded = ImageResult.FromMemory(png!, ColorComponents.RedGreenBlueAlpha);
+        decoded.Width.Should().Be(8);
+        decoded.Height.Should().Be(8);
+        decoded.Data[0].Should().BeGreaterThan(200);
+        decoded.Data[1].Should().BeLessThan(40);
+    }
+
+    [Fact]
+    public async Task GetBlurredArtworkPngAsync_AfterSwatchExtraction_DoesNotFetchAgain()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new() { ResponseHandler = _ => CreateImageResponse(RED_JPEG_BASE64) };
+        AlbumArtColorService service = CreateService(handler);
+        await service.GetSwatchesAsync(TEST_URL, CancellationToken.None);
+
+        // Act
+        byte[]? first = await service.GetBlurredArtworkPngAsync(TEST_URL, CancellationToken.None);
+        byte[]? second = await service.GetBlurredArtworkPngAsync(TEST_URL, CancellationToken.None);
+
+        // Assert
+        handler.InvocationCount.Should().Be(1);
+        first.Should().NotBeNull();
+        second.Should().BeSameAs(first);
+    }
+
+    [Fact]
+    public async Task GetBlurredArtworkPngAsync_HttpError_ReturnsNull()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new() { ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.NotFound) };
+        AlbumArtColorService service = CreateService(handler);
+
+        // Act
+        byte[]? png = await service.GetBlurredArtworkPngAsync(TEST_URL, CancellationToken.None);
+
+        // Assert
+        png.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBlurredArtworkPngAsync_NonImagePayload_ReturnsNull()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([1, 2, 3, 4]),
+            },
+        };
+        AlbumArtColorService service = CreateService(handler);
+
+        // Act
+        byte[]? png = await service.GetBlurredArtworkPngAsync(TEST_URL, CancellationToken.None);
+
+        // Assert
+        png.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBlurredArtworkPngAsync_CancelledToken_ThrowsOperationCanceled()
+    {
+        // Arrange
+        MockHttpMessageHandler handler = new() { ResponseHandler = _ => CreateImageResponse(RED_PNG_BASE64) };
+        AlbumArtColorService service = CreateService(handler);
+        using CancellationTokenSource cts = new();
+        cts.Cancel();
+
+        // Act
+        Func<Task> act = () => service.GetBlurredArtworkPngAsync(TEST_URL, cts.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 }

@@ -20,9 +20,9 @@
                     CornerRadius="10"
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
-                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xEC4F;" FontSize="15" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
-                    <TextBlock Text="Lyrics" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
+                <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xEC4F;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
+                    <TextBlock Text="Lyrics" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
                 </StackPanel>
             </Button>
 
@@ -34,9 +34,9 @@
                     CornerRadius="10"
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
-                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xE8D6;" FontSize="15" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
-                    <TextBlock Text="Track" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
+                <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE8D6;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
+                    <TextBlock Text="Track" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
                 </StackPanel>
             </Button>
 
@@ -48,9 +48,9 @@
                     CornerRadius="10"
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
-                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xE713;" FontSize="15" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
-                    <TextBlock Text="Sync &amp; Info" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
+                <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE713;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
+                    <TextBlock Text="Sync &amp; Info" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
                 </StackPanel>
             </Button>
         </Grid>
