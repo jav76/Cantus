@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Cantus.Infrastructure.Lyrics;
 
-public class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
+public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvider
 {
     public const string PROVIDER_NAME = "LRCLIB";
 

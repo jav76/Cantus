@@ -460,7 +460,7 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
         public List<NeteaseSongDto>? Songs { get; set; }
     }
 
-    internal sealed class NeteaseSongDto
+    internal class NeteaseSongDto
     {
         [JsonPropertyName("id")]
         public long Id { get; set; }

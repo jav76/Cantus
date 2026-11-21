@@ -80,6 +80,27 @@ public sealed class LyricsProviderRegistrationTests
         primary.RequestCount.Should().Be(0);
     }
 
+    [Fact]
+    public async Task FragmentSearch_DuringLookupCooldown_IsRefusedByTheGateWithoutSending()
+    {
+        CountingHandler primary = new();
+        IConfiguration configuration = new ConfigurationBuilder().Build();
+        ServiceCollection services = new();
+        services.AddLogging();
+        services.AddCantusInfrastructure(configuration);
+        services.ConfigureHttpClientDefaults(builder => builder.ConfigurePrimaryHttpMessageHandler(() => primary));
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        provider.GetRequiredService<ProviderRateGate>().ReportLookupCooldown(NeteaseLyricsProvider.PROVIDER_NAME);
+        NeteaseLyricsProvider netease = scope.ServiceProvider.GetRequiredService<NeteaseLyricsProvider>();
+
+        Func<Task> search = () => netease.SearchByFragmentAsync(new LyricsFragmentQuery("is this the real life", []));
+
+        await search.Should().ThrowAsync<ProviderRateLimitedException>();
+        primary.RequestCount.Should().Be(0);
+    }
+
     [Theory]
     [InlineData("0")]
     [InlineData("500")]
@@ -121,5 +142,36 @@ public sealed class LyricsProviderRegistrationTests
         chain.Select(p => p.ProviderName).Should().Equal("LRCLIB");
         scope.ServiceProvider.GetService<LyricsCandidateService>().Should().NotBeNull(
             "candidates are gathered from this same chain");
+    }
+
+    [Fact]
+    public void FragmentSearchProviders_ByDefault_AreLrclibAndNeteaseFromTheChain()
+    {
+        using ServiceProvider provider = BuildProvider(new Dictionary<string, string?>());
+        using IServiceScope scope = provider.CreateScope();
+
+        IReadOnlyList<ILyricsFetchProvider> chain =
+            scope.ServiceProvider.GetRequiredService<IReadOnlyList<ILyricsFetchProvider>>();
+
+        chain.OfType<ILyricsFragmentSearchProvider>()
+            .Select(p => p.ProviderName)
+            .Should().Equal("LRCLIB", "NetEase");
+    }
+
+    [Fact]
+    public void FragmentSearchProviders_WhenNeteaseDisabled_AreLrclibOnly()
+    {
+        using ServiceProvider provider = BuildProvider(new Dictionary<string, string?>
+        {
+            ["Netease:Enabled"] = "false",
+        });
+        using IServiceScope scope = provider.CreateScope();
+
+        IReadOnlyList<ILyricsFetchProvider> chain =
+            scope.ServiceProvider.GetRequiredService<IReadOnlyList<ILyricsFetchProvider>>();
+
+        chain.OfType<ILyricsFragmentSearchProvider>()
+            .Select(p => p.ProviderName)
+            .Should().Equal("LRCLIB");
     }
 }
