@@ -76,9 +76,63 @@ public sealed class LyricsViewModelDisplayManagementTests
         fixture.ListCalls().Should().Be(0);
     }
 
+    [Fact]
+    public void DisplaysChanged_RefetchesTheDisplays()
+    {
+        // Arrange
+        ManagementFixture fixture = new();
+        fixture.SignIn();
+        fixture.Api
+            .Setup(a => a.ListAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DisplayListResult(
+                DisplayManagementStatus.Succeeded,
+                new List<DisplayInfoPayload>
+                {
+                    new() { Id = "display-1", Name = "TV" },
+                    new() { Id = "display-2", Name = "Kitchen" },
+                }));
+
+        // Act
+        fixture.Client.Raise(c => c.DisplaysChanged += null);
+
+        // Assert
+        fixture.ListCalls().Should().Be(2);
+        fixture.ViewModel.Session.Displays.Displays.Select(d => d.Name).Should().Equal("TV", "Kitchen");
+    }
+
+    [Fact]
+    public void DisplaysChanged_WhenSignedOut_DoesNotCallTheServer()
+    {
+        // Arrange
+        ManagementFixture fixture = new();
+
+        // Act
+        fixture.Client.Raise(c => c.DisplaysChanged += null);
+
+        // Assert
+        fixture.ListCalls().Should().Be(0);
+    }
+
+    [Fact]
+    public void SigningIn_ReopensTheApprovalForACodeKeptThroughSignIn()
+    {
+        // Arrange
+        InMemorySettingsStore store = new();
+        ManagementFixture before = new(store);
+        before.ViewModel.Session.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+        ManagementFixture fixture = new(store);
+
+        // Act
+        fixture.SignIn();
+
+        // Assert
+        fixture.ViewModel.Session.Displays.PromptMode.Should().Be(DisplayPromptMode.Approve);
+        fixture.ViewModel.Session.Displays.PromptCode.Should().Be("K7QH2MZP");
+    }
+
     private sealed class ManagementFixture
     {
-        public ManagementFixture()
+        public ManagementFixture(InMemorySettingsStore? pendingCodes = null)
         {
             Client = new Mock<ISignalRPlaybackClient>();
             Client.SetupProperty(c => c.DisplayToken);
@@ -100,7 +154,8 @@ public sealed class LyricsViewModelDisplayManagementTests
                 new LyricsPreferences(new InMemorySettingsStore()),
                 new Mock<IDisplayPairingApi>().Object,
                 new DisplayCredentialStore(new InMemorySettingsStore()),
-                displaysApi: Api.Object);
+                displaysApi: Api.Object,
+                pendingPairCodes: new PendingPairCodeStore(pendingCodes ?? new InMemorySettingsStore()));
         }
 
         public Mock<ISignalRPlaybackClient> Client { get; }

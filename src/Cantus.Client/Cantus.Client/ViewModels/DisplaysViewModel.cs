@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
 using Microsoft.UI.Xaml;
@@ -23,8 +24,9 @@ public enum DisplayPromptMode
 /// <summary>
 /// The owner's Displays: the list shown in settings (name, last seen) with rename and revoke,
 /// and the prompt that approves a Display's pairing code, typed in or read from the
-/// <c>?pair=</c> link. The server sends the owner no event when a Display changes, so the
-/// list is fetched again after each owner action, on sign-in, and when settings open.
+/// <c>?pair=</c> link. The list is fetched on sign-in, after each owner action, and whenever
+/// the server reports that the owner's Displays changed. Last-seen text is re-described once
+/// a minute so it ages between fetches.
 /// </summary>
 public sealed class DisplaysViewModel : INotifyPropertyChanged
 {
@@ -57,9 +59,14 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
     private const char PARAMETER_SEPARATOR = '&';
     private const char VALUE_SEPARATOR = '=';
 
+    private static readonly TimeSpan LAST_SEEN_REFRESH_INTERVAL = TimeSpan.FromMinutes(1);
+
     private readonly IDisplayManagementApi _api;
     private readonly TimeProvider _timeProvider;
     private readonly Func<long> _serverClockOffsetMs;
+    private readonly Action<Action> _runOnUiThread;
+    private readonly PendingPairCodeStore? _pendingCodes;
+    private ITimer? _lastSeenTimer;
 
     private bool _isSignedIn;
     private bool _isLoading;
@@ -80,11 +87,15 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
     public DisplaysViewModel(
         IDisplayManagementApi api,
         TimeProvider? timeProvider = null,
-        Func<long>? serverClockOffsetMs = null)
+        Func<long>? serverClockOffsetMs = null,
+        Action<Action>? runOnUiThread = null,
+        PendingPairCodeStore? pendingCodes = null)
     {
         _api = api;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _serverClockOffsetMs = serverClockOffsetMs ?? (() => 0);
+        _runOnUiThread = runOnUiThread ?? (action => action());
+        _pendingCodes = pendingCodes;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -230,6 +241,7 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
     /// <summary>
     /// Takes the sign-in state from the Session. Signing out empties the list and closes a
     /// rename or remove prompt; an approval prompt stays so the owner can sign in again.
+    /// Signing in reopens the approval prompt for a code kept through the sign-in.
     /// </summary>
     public void SetSignedIn(bool isSignedIn)
     {
@@ -239,8 +251,14 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
         }
 
         _isSignedIn = isSignedIn;
-        if (!isSignedIn)
+        if (isSignedIn)
         {
+            StartLastSeenTimer();
+            RestorePendingCode();
+        }
+        else
+        {
+            StopLastSeenTimer();
             _refreshGeneration++;
             _hasLoaded = false;
             IsLoading = false;
@@ -316,7 +334,34 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
         }
 
         OpenApproval(code);
+        if (!IsSignedIn)
+        {
+            _pendingCodes?.Save(code, _timeProvider.GetUtcNow());
+        }
         return true;
+    }
+
+    /// <summary>
+    /// Keeps the approval prompt's code through a sign-in that leaves the page, so the prompt
+    /// reopens with it once this device is signed in.
+    /// </summary>
+    public void KeepCodeThroughSignIn()
+    {
+        string code = NormalizeCode(_promptCode);
+        if (_promptMode == DisplayPromptMode.Approve && !IsSignedIn && IsValidCode(code))
+        {
+            _pendingCodes?.Save(code, _timeProvider.GetUtcNow());
+        }
+    }
+
+    /// <summary>Describes each Display's last-seen time against the current clock.</summary>
+    public void RefreshLastSeen()
+    {
+        DateTimeOffset now = ServerNow();
+        foreach (DisplayItemViewModel display in Displays)
+        {
+            display.RefreshLastSeen(now);
+        }
     }
 
     public void StartRename(DisplayItemViewModel display)
@@ -334,7 +379,14 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Closes the prompt. A request already sent still finishes and refreshes the list.</summary>
-    public void CancelPrompt() => ClosePrompt();
+    public void CancelPrompt()
+    {
+        if (_promptMode == DisplayPromptMode.Approve)
+        {
+            _pendingCodes?.Clear();
+        }
+        ClosePrompt();
+    }
 
     /// <summary>Sends the prompt's action. Returns true when it succeeded; errors stay in the prompt.</summary>
     public async Task<bool> ConfirmPromptAsync()
@@ -585,6 +637,30 @@ public sealed class DisplaysViewModel : INotifyPropertyChanged
             Displays.Remove(display);
             OnPropertyChanged(nameof(EmptyVisibility));
         }
+    }
+
+    private void RestorePendingCode()
+    {
+        string? code = _pendingCodes?.Take(_timeProvider.GetUtcNow());
+        if (code is not null && !IsPromptOpen)
+        {
+            OpenApproval(code);
+        }
+    }
+
+    private void StartLastSeenTimer()
+    {
+        _lastSeenTimer ??= _timeProvider.CreateTimer(
+            _ => _runOnUiThread(RefreshLastSeen),
+            null,
+            LAST_SEEN_REFRESH_INTERVAL,
+            LAST_SEEN_REFRESH_INTERVAL);
+    }
+
+    private void StopLastSeenTimer()
+    {
+        _lastSeenTimer?.Dispose();
+        _lastSeenTimer = null;
     }
 
     private DisplayItemViewModel? Find(string displayId) =>

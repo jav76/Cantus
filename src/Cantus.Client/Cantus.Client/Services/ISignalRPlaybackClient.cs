@@ -33,6 +33,9 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     event Action<DisplayPairedPayload>? DisplayPaired;
     event Action<string>? DisplayRevoked;
 
+    /// <summary>The owner's Display list changed on the server; fetch it again.</summary>
+    event Action? DisplaysChanged;
+
     Task StartAsync(CancellationToken cancellationToken = default);
     Task<bool> TryConnectAsync(CancellationToken cancellationToken = default);
     Task SyncClockAsync();

@@ -89,13 +89,19 @@ public sealed class DisplayItemViewModel : INotifyPropertyChanged
     {
         Name = display.Name;
         _lastSeenAtUtc = display.LastSeenAtUtc;
-        string lastSeenText = FormatLastSeen(display.LastSeenAtUtc, nowUtc);
+        RefreshLastSeen(nowUtc);
+        OnPropertyChanged(nameof(LastSeenAtUtc));
+    }
+
+    /// <summary>Describes the same last-seen time against a later clock, so "just now" ages.</summary>
+    internal void RefreshLastSeen(DateTimeOffset nowUtc)
+    {
+        string lastSeenText = FormatLastSeen(_lastSeenAtUtc, nowUtc);
         if (_lastSeenText != lastSeenText)
         {
             _lastSeenText = lastSeenText;
             OnPropertyChanged(nameof(LastSeenText));
         }
-        OnPropertyChanged(nameof(LastSeenAtUtc));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

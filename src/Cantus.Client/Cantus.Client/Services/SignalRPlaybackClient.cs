@@ -255,6 +255,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
     public event Action<DisplayPairedPayload>? DisplayPaired;
     public event Action<string>? DisplayRevoked;
+    public event Action? DisplaysChanged;
 
     internal void RaiseLyricsReceived(LyricsPayload payload)
     {
@@ -523,6 +524,11 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         _connection.On<string>("ReceiveDisplayRevoked", displayId =>
         {
             DisplayRevoked?.Invoke(displayId);
+        });
+
+        _connection.On("ReceiveDisplaysChanged", () =>
+        {
+            DisplaysChanged?.Invoke();
         });
 
         _connection.Reconnecting += ex =>

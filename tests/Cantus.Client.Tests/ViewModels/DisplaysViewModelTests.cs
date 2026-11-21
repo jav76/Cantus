@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
+using Cantus.Client.Tests.Services;
 using Cantus.Client.ViewModels;
 using FluentAssertions;
 using Microsoft.Extensions.Time.Testing;
@@ -706,6 +707,175 @@ public sealed class DisplaysViewModelTests
         text.Should().Be($"Last seen {expectedDate}");
     }
 
+    [Fact]
+    public async Task LastSeenText_AgesWhileTheListIsShown()
+    {
+        // Arrange
+        DisplaysFixture fixture = new();
+        fixture.ListReturns(Display("display-1", "TV", NOW), Display("display-2", "Kitchen", null));
+        await fixture.Displays.RefreshAsync();
+        List<string?> raised = new();
+        fixture.Displays.Displays[0].PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        // Act
+        fixture.Time.Advance(TimeSpan.FromMinutes(5));
+
+        // Assert
+        fixture.Displays.Displays[0].LastSeenText.Should().Be("Last seen 5 min ago");
+        fixture.Displays.Displays[1].LastSeenText.Should().Be(DisplayItemViewModel.NEVER_SEEN_TEXT);
+        raised.Should().Contain(nameof(DisplayItemViewModel.LastSeenText));
+        fixture.Api.Verify(a => a.ListAsync(It.IsAny<CancellationToken>()), Times.Once, "aging needs no fetch");
+    }
+
+    [Fact]
+    public async Task LastSeenText_IsUpdatedOnTheUiThread()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(queueUiWork: true);
+        fixture.ListReturns(Display("display-1", "TV", NOW));
+        await fixture.Displays.RefreshAsync();
+
+        // Act
+        fixture.Time.Advance(TimeSpan.FromMinutes(2));
+
+        // Assert
+        fixture.Displays.Displays[0].LastSeenText.Should().Be(DisplayItemViewModel.JUST_NOW_TEXT);
+
+        // Act
+        fixture.RunUiQueue();
+
+        // Assert
+        fixture.Displays.Displays[0].LastSeenText.Should().Be("Last seen 2 min ago");
+    }
+
+    [Fact]
+    public async Task LastSeenText_StopsAgingAfterSignOut()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(queueUiWork: true);
+        await fixture.Displays.RefreshAsync();
+        fixture.Displays.SetSignedIn(false);
+
+        // Act
+        fixture.Time.Advance(TimeSpan.FromMinutes(5));
+
+        // Assert
+        fixture.UiQueue.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void PairLink_OnASignedOutDevice_ReopensThePromptAfterSignIn()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH-2MZP");
+        fixture.Displays.KeepCodeThroughSignIn();
+        fixture.Time.Advance(TimeSpan.FromMinutes(2));
+
+        // Act: the sign-in leaves the page and comes back without the link
+        DisplaysFixture reloaded = fixture.Reload(signedIn: false);
+        reloaded.Displays.IsPromptOpen.Should().BeFalse();
+        reloaded.Displays.SetSignedIn(true);
+
+        // Assert
+        reloaded.Displays.PromptMode.Should().Be(DisplayPromptMode.Approve);
+        reloaded.Displays.PromptCode.Should().Be("K7QH2MZP");
+        reloaded.Displays.SignInHintVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void KeepCodeThroughSignIn_KeepsATypedCodeNormalized()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApproval();
+        fixture.Displays.PromptCode = "k7qh-2mzp";
+
+        // Act
+        fixture.Displays.KeepCodeThroughSignIn();
+        DisplaysFixture reloaded = fixture.Reload(signedIn: true);
+
+        // Assert
+        reloaded.Displays.PromptCode.Should().Be("K7QH2MZP");
+    }
+
+    [Fact]
+    public void KeptCode_IsUsedOnlyOnce()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+        fixture.Reload(signedIn: true);
+
+        // Act
+        DisplaysFixture again = fixture.Reload(signedIn: true);
+
+        // Assert
+        again.Displays.IsPromptOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void KeptCode_AfterTheCodeExpired_IsDropped()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+        fixture.Time.Advance(PendingPairCodeStore.CODE_LIFETIME);
+
+        // Act
+        DisplaysFixture reloaded = fixture.Reload(signedIn: true);
+
+        // Assert
+        reloaded.Displays.IsPromptOpen.Should().BeFalse();
+        reloaded.Store.GetValue(PendingPairCodeStore.CODE_KEY).Should().Be(string.Empty);
+    }
+
+    [Fact]
+    public void CancellingTheApproval_ForgetsTheKeptCode()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+
+        // Act
+        fixture.Displays.CancelPrompt();
+        DisplaysFixture reloaded = fixture.Reload(signedIn: true);
+
+        // Assert
+        reloaded.Displays.IsPromptOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void PairLink_OnASignedInDevice_KeepsNothing()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: true);
+
+        // Act
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+        fixture.Displays.KeepCodeThroughSignIn();
+
+        // Assert
+        fixture.Store.GetValue(PendingPairCodeStore.CODE_KEY).Should().BeNull();
+    }
+
+    [Fact]
+    public void SigningIn_WithAnApprovalPromptOpen_KeepsItsCode()
+    {
+        // Arrange
+        DisplaysFixture fixture = new(signedIn: false);
+        fixture.Displays.OpenApprovalFromLink("?pair=K7QH2MZP");
+        fixture.Displays.PromptName = "TV";
+
+        // Act
+        fixture.Displays.SetSignedIn(true);
+
+        // Assert
+        fixture.Displays.PromptCode.Should().Be("K7QH2MZP");
+        fixture.Displays.PromptName.Should().Be("TV", "the open prompt is not replaced");
+        fixture.Displays.CanConfirm.Should().BeTrue();
+    }
+
     private static DisplayInfoPayload Display(string id, string name, DateTimeOffset? lastSeen = null) => new()
     {
         Id = id,
@@ -716,12 +886,27 @@ public sealed class DisplaysViewModelTests
 
     private sealed class DisplaysFixture
     {
-        public DisplaysFixture(bool signedIn = true, long serverClockOffsetMs = 0)
+        private readonly long _serverClockOffsetMs;
+
+        public DisplaysFixture(
+            bool signedIn = true,
+            long serverClockOffsetMs = 0,
+            FakeTimeProvider? time = null,
+            InMemorySettingsStore? store = null,
+            bool queueUiWork = false)
         {
-            Time = new FakeTimeProvider(NOW);
+            _serverClockOffsetMs = serverClockOffsetMs;
+            Time = time ?? new FakeTimeProvider(NOW);
+            Store = store ?? new InMemorySettingsStore();
             Api = new Mock<IDisplayManagementApi>();
             ListReturns();
-            Displays = new DisplaysViewModel(Api.Object, Time, () => serverClockOffsetMs);
+            Action<Action>? runOnUiThread = queueUiWork ? UiQueue.Add : null;
+            Displays = new DisplaysViewModel(
+                Api.Object,
+                Time,
+                () => _serverClockOffsetMs,
+                runOnUiThread,
+                new PendingPairCodeStore(Store));
             if (signedIn)
             {
                 Displays.SetSignedIn(true);
@@ -729,6 +914,24 @@ public sealed class DisplaysViewModelTests
         }
 
         public FakeTimeProvider Time { get; }
+
+        public InMemorySettingsStore Store { get; }
+
+        /// <summary>Work handed to the UI thread when the fixture queues it instead of running it.</summary>
+        public List<Action> UiQueue { get; } = new();
+
+        /// <summary>The same device after the page reloads: same clock and storage, nothing in memory.</summary>
+        public DisplaysFixture Reload(bool signedIn) => new(signedIn, _serverClockOffsetMs, Time, Store);
+
+        public void RunUiQueue()
+        {
+            List<Action> work = UiQueue.ToList();
+            UiQueue.Clear();
+            foreach (Action action in work)
+            {
+                action();
+            }
+        }
 
         public Mock<IDisplayManagementApi> Api { get; }
 

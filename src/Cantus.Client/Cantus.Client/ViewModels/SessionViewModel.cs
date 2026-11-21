@@ -33,14 +33,18 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     public SessionViewModel(
         ISignalRPlaybackClient client,
-        IDisplayManagementApi? displaysApi = null,
-        TimeProvider? timeProvider = null)
+        IDisplayManagementApi displaysApi,
+        TimeProvider? timeProvider = null,
+        Action<Action>? runOnUiThread = null,
+        PendingPairCodeStore? pendingPairCodes = null)
     {
         _client = client;
         Displays = new DisplaysViewModel(
-            displaysApi ?? new DisplayManagementApi(client),
+            displaysApi,
             timeProvider,
-            () => _client.ClockOffsetMs);
+            () => _client.ClockOffsetMs,
+            runOnUiThread,
+            pendingPairCodes);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

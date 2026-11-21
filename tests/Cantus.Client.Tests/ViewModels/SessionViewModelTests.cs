@@ -258,7 +258,9 @@ public sealed class SessionViewModelTests
     public void ServerBaseUrl_DerivesBaseUrlFromClient()
     {
         // Arrange
-        SessionViewModel session = new(new SignalRPlaybackClient("http://192.168.1.50:5000/hubs/playback"));
+        SessionViewModel session = new(
+            new SignalRPlaybackClient("http://192.168.1.50:5000/hubs/playback"),
+            CreateDisplaysApi().Object);
 
         // Act & Assert
         session.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
