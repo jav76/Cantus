@@ -78,6 +78,61 @@ public static class WasmInterop
 #endif
     }
 
+    /// <summary>The page address's query string, including the leading <c>?</c>.</summary>
+    public static string GetLocationSearch()
+    {
+#if __WASM__
+        try
+        {
+            string search = Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                "window.CantusInterop && window.CantusInterop.getLocationSearch ? window.CantusInterop.getLocationSearch() : (window.location.search || '')");
+            if (!string.IsNullOrWhiteSpace(search) && search != "null" && search != "undefined")
+            {
+                return search.Trim();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GetLocationSearch failed");
+        }
+#endif
+        return string.Empty;
+    }
+
+    /// <summary>Drops one query parameter from the address bar without reloading the page.</summary>
+    /// <param name="name">A parameter name made of letters only.</param>
+    public static void RemoveQueryParameter(string name)
+    {
+#if __WASM__
+        if (string.IsNullOrEmpty(name) || !IsAsciiLetters(name))
+        {
+            return;
+        }
+
+        try
+        {
+            Uno.Foundation.WebAssemblyRuntime.InvokeJS(
+                $"window.CantusInterop && window.CantusInterop.removeQueryParameter && window.CantusInterop.removeQueryParameter('{name}')");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "RemoveQueryParameter failed");
+        }
+#endif
+    }
+
+    private static bool IsAsciiLetters(string value)
+    {
+        foreach (char character in value)
+        {
+            if (!char.IsAsciiLetter(character))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static bool IsDocumentVisible()
     {
 #if __WASM__

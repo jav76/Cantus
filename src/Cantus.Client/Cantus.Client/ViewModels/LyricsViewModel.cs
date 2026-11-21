@@ -29,6 +29,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private int _activeLineIndex = -1;
     private long _interpolatedProgressMs;
     private long _lastTickTimestampMs;
+    private bool _wasSettingsActive;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -472,7 +473,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ILyricsPreferences? preferences = null,
         IDisplayPairingApi? pairingApi = null,
         DisplayCredentialStore? displayCredentials = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IDisplayManagementApi? displaysApi = null,
+        PendingPairCodeStore? pendingPairCodes = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -501,7 +504,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
 
-        _session = new SessionViewModel(client);
+        _session = new SessionViewModel(
+            client,
+            displaysApi ?? new DisplayManagementApi(client),
+            timeProvider,
+            RunOnUIThread,
+            pendingPairCodes ?? new PendingPairCodeStore(new LocalSettingsStore()));
         _session.SessionEnded += () => ClearPlayback(resetTransport: false);
         _session.LoggedOut += () => ClearPlayback(resetTransport: true);
 
@@ -533,6 +541,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
         _client.DisplayPaired += pairing => RunOnUIThread(() => _pairing.ApplyDisplayPaired(pairing));
         _client.DisplayRevoked += displayId => RunOnUIThread(() => _pairing.ApplyDisplayRevoked(displayId));
+        _client.DisplaysChanged += () => RunOnUIThread(() => _ = _session.Displays.RefreshAsync());
 
         _ticker = new DispatcherTimer
         {
@@ -600,12 +609,25 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         RefreshLyricLineSizes();
         NotifyThemeToastVisibilities();
+        RefreshDisplaysWhenSettingsOpen();
+    }
+
+    // A Display's REST calls move its last-seen time without a change event, so opening settings fetches again.
+    private void RefreshDisplaysWhenSettingsOpen()
+    {
+        bool isSettingsActive = _layoutManager.IsMobileSettingsActive;
+        if (isSettingsActive && !_wasSettingsActive)
+        {
+            _ = _session.Displays.RefreshAsync();
+        }
+        _wasSettingsActive = isSettingsActive;
     }
 
     private void OnLayoutBreakpointChanged(LayoutBreakpoint breakpoint)
     {
         RefreshLyricLineSizes();
         NotifyThemeToastVisibilities();
+        RefreshDisplaysWhenSettingsOpen();
     }
 
     private void OnPaletteChanged(ColorPalette palette)

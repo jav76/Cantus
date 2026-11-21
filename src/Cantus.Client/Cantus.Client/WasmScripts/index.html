@@ -241,6 +241,17 @@
             },
             isDocumentVisible: function() {
                 return !document.hidden;
+            },
+            getLocationSearch: function() {
+                return window.location.search || "";
+            },
+            removeQueryParameter: function(name) {
+                var url = new URL(window.location.href);
+                if (!url.searchParams.has(name)) {
+                    return;
+                }
+                url.searchParams.delete(name);
+                window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
             }
         };
 

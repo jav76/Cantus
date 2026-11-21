@@ -61,6 +61,8 @@ public static class PlaybackGroups
 
         public Task ReceiveSessionRevoked(string userId) => _owners.ReceiveSessionRevoked(userId);
 
+        public Task ReceiveDisplaysChanged() => _owners.ReceiveDisplaysChanged();
+
         public Task ReceiveDisplayPaired(DisplayPairedDto pairing) => NotForViewers();
 
         public Task ReceiveDisplayRevoked(string displayId) => NotForViewers();

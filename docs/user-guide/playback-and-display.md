@@ -80,12 +80,20 @@ A **Display** is a screen that shows your lyrics and playback without signing in
 
 1. On the screen, open Cantus and choose **Pair as display** in the Spotify account card (on mobile layouts it is under the **Sync & Info** tab).
 2. The screen shows a short code in large type and a QR code. The QR opens `http://<your-server>/?pair=<CODE>` on this Cantus server.
-3. The owner approves the code with a name for the screen. Approving from the Cantus app (scanning the QR or typing the code on a signed-in device) is not available yet. Until then, approve it with [`POST /api/displays/pairings/approve`](../reference/rest-api.md#post-apidisplayspairingsapprove) from a signed-in device.
+3. On a phone or computer signed in to Cantus, scan the QR, or choose **Add display** in the **Displays** card and type the code. Give the screen a name (1 to 64 characters, such as "Living room TV") and choose **Approve**. The Displays card is under the Spotify account card, and under the **Sync & Info** tab on mobile layouts.
 4. The screen switches to the lyrics view by itself. It stores its token on the device (browser storage on the web app, local settings on the desktop app), so it reconnects as the same Display after a restart.
 
 Codes expire after 5 minutes by default. The screen requests a new one when the code expires or its connection to the server drops, so a waiting screen always shows a code that works.
 
 A paired Display is view only. It hides the transport controls, seeking, sync offset steppers and account actions, and it shows which Display it is instead. Device latency is a setting of the screen itself, so a Display keeps the **Device Latency** controls and the <kbd>[</kbd> and <kbd>]</kbd> shortcuts to correct a TV's own lag.
+
+If the QR opens Cantus in a browser that is not signed in, the prompt asks you to sign in first. Choose **Connect Spotify** in the prompt. Cantus keeps the code on this device, and the prompt opens again with it once you are back and signed in. A kept code is dropped if you cancel the prompt or after 5 minutes, when the screen's code has expired anyway.
+
+#### Managing your Displays
+
+The **Displays** card lists every screen paired to your account with when it last connected. Use the pencil button to rename a Display and the trash button to remove it. Removing a Display disconnects it right away and leaves your own sign-in and your other Displays alone; the screen has to be paired again.
+
+The list updates by itself when a Display is paired, renamed or removed, from this device or another one, and when a Display connects. The last-seen times age as you watch, and the refresh button fetches the list again.
 
 If the owner revokes the Display, the screen discards its token at once and returns to the pairing screen with a message saying why. If the server stops accepting the token, the screen keeps it through a few retries (a server restart can refuse it briefly) and then does the same. Pair it again to keep showing lyrics.
 

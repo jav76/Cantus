@@ -25,6 +25,7 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 | Group joined on connect | `user_{sessionId}` | `display_{ownerSessionId}` |
 | Initial snapshot (playback, lyrics, offset, diagnostics) | Yes | Yes |
 | `ReceiveSessions` / `ReceiveAuthSession` / `ReceiveSessionRevoked` | Yes | Never |
+| `ReceiveDisplaysChanged` | Yes | Never |
 | `SyncClock` | Yes | Yes |
 | `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes, forced polls throttled to one per owner every 5 seconds |
 | `SubscribeToUser` | Yes | No-op (bound to its owner) |
@@ -199,3 +200,6 @@ Sent only to the connection that requested a pairing, once an owner approves its
 
 ### `ReceiveDisplayRevoked`
 Sent to each open connection of a Display right before the server closes it, because the owner revoked it or ended their Session. The payload is the Display id (`string`). The token no longer works, so the client should discard it and offer to pair again instead of reconnecting with it.
+
+### `ReceiveDisplaysChanged`
+Sent to the owner's Session connections (`user_{sessionId}`) when their Display list changes: a code is approved, a Display is renamed or revoked, or a Display connects (which can move its last-seen time). It has no payload; fetch [`GET /api/displays`](rest-api.md#get-apidisplays) again. Never sent to a Display connection or to another owner. A Display's REST calls can also move its last-seen time without this event.

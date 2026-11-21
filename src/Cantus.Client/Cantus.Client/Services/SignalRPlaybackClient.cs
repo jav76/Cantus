@@ -214,6 +214,10 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(DisplayPairedPayload))]
 [JsonSerializable(typeof(DisplayPairingRequestPayload))]
 [JsonSerializable(typeof(DisplayPairingCodePayload))]
+[JsonSerializable(typeof(DisplayInfoPayload))]
+[JsonSerializable(typeof(List<DisplayInfoPayload>))]
+[JsonSerializable(typeof(DisplayApprovalRequestPayload))]
+[JsonSerializable(typeof(DisplayRenameRequestPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
@@ -251,6 +255,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
     public event Action<DisplayPairedPayload>? DisplayPaired;
     public event Action<string>? DisplayRevoked;
+    public event Action? DisplaysChanged;
 
     internal void RaiseLyricsReceived(LyricsPayload payload)
     {
@@ -519,6 +524,11 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         _connection.On<string>("ReceiveDisplayRevoked", displayId =>
         {
             DisplayRevoked?.Invoke(displayId);
+        });
+
+        _connection.On("ReceiveDisplaysChanged", () =>
+        {
+            DisplaysChanged?.Invoke();
         });
 
         _connection.Reconnecting += ex =>

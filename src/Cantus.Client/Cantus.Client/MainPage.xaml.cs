@@ -20,6 +20,8 @@ public sealed partial class MainPage : Page
 
     public DisplayPairingViewModel Pairing => ViewModel.Pairing;
 
+    public DisplaysViewModel Displays => ViewModel.Session.Displays;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
@@ -30,6 +32,7 @@ public sealed partial class MainPage : Page
             ResponsiveLayoutManager.Instance,
             preferences);
         this.InitializeComponent();
+        OpenPairLink();
 
         this.Loaded += async (s, e) =>
         {
@@ -71,6 +74,24 @@ public sealed partial class MainPage : Page
         };
     }
 
+    /// <summary>
+    /// A <c>?pair=</c> link from a Display's QR opens the approval prompt. The parameter is
+    /// removed from the address so a reload does not ask again.
+    /// </summary>
+    private void OpenPairLink()
+    {
+        string search = WasmInterop.GetLocationSearch();
+        if (string.IsNullOrEmpty(search) || Pairing.IsDisplay)
+        {
+            return;
+        }
+
+        if (Displays.OpenApprovalFromLink(search))
+        {
+            WasmInterop.RemoveQueryParameter(DisplayPairingViewModel.PAIR_QUERY_PARAMETER);
+        }
+    }
+
     private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
@@ -99,6 +120,23 @@ public sealed partial class MainPage : Page
 
     private void OnPageKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        // While the Display prompt is open, Escape closes it even when focus is outside it.
+        if (Displays.IsPromptOpen)
+        {
+            if (e.Key == VirtualKey.Escape)
+            {
+                Displays.CancelPrompt();
+                e.Handled = true;
+            }
+            return;
+        }
+
+        // Letters typed into a field are not shortcuts.
+        if (e.OriginalSource is TextBox)
+        {
+            return;
+        }
+
         if (e.Key == VirtualKey.F11 || e.Key == VirtualKey.K)
         {
             ViewModel.Layout.ToggleKioskMode();

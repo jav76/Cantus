@@ -18,4 +18,10 @@ public interface IPlaybackClient
 
     /// <summary>Tells a Display connection its token was revoked, just before it is closed.</summary>
     Task ReceiveDisplayRevoked(string displayId);
+
+    /// <summary>
+    /// Tells an owner's Session connections that their Display list changed: a Display was
+    /// paired, renamed, revoked or connected. Carries no payload; the owner fetches the list.
+    /// </summary>
+    Task ReceiveDisplaysChanged();
 }

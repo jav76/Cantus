@@ -63,6 +63,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(PairingProperty, value);
     }
 
+    public static readonly DependencyProperty DisplaysProperty =
+        DependencyProperty.Register(
+            nameof(Displays),
+            typeof(DisplaysViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public DisplaysViewModel? Displays
+    {
+        get => (DisplaysViewModel?)GetValue(DisplaysProperty);
+        private set => SetValue(DisplaysProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -84,6 +97,7 @@ public sealed partial class MobileSettingsView : UserControl
         settings.Timing = viewModel?.Timing;
         settings.Session = viewModel?.Session;
         settings.Pairing = viewModel?.Pairing;
+        settings.Displays = viewModel?.Session.Displays;
         settings.Theme = viewModel?.Theme;
     }
 
@@ -170,6 +184,12 @@ public sealed partial class MobileSettingsView : UserControl
             await Session.LogoutAsync();
         }
     }
+
+    /// <summary>The Displays card shows only for a signed-in owner, never on a Display.</summary>
+    public Visibility GetDisplaysCardVisibility(Visibility ownerControls, Visibility displaysSection) =>
+        ownerControls == Visibility.Visible && displaysSection == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     public string GetRttText(long? rtt = null) => $"{rtt.GetValueOrDefault()}ms";
     public string GetSkewText(long? skew = null)

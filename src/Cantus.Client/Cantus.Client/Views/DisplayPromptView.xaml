@@ -1,0 +1,124 @@
+<UserControl x:Class="Cantus.Client.Views.DisplayPromptView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Approve, rename or remove a Display. Covers the page so it works the same on every layout. -->
+    <Grid Background="#B3000000" KeyDown="OnPromptKeyDown">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                    BorderThickness="1"
+                    CornerRadius="20"
+                    Padding="20,18"
+                    Margin="16,24"
+                    MaxWidth="440"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE7F4;"
+                                  FontSize="18"
+                                  VerticalAlignment="Center"
+                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind Displays.PromptTitle, Mode=OneWay}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{x:Bind Displays.PromptMessage, Mode=OneWay}"
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+
+                    <StackPanel Spacing="8" Visibility="{x:Bind Displays.SignInHintVisibility, Mode=OneWay}">
+                        <TextBlock Text="{x:Bind SignInHint}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="#F59E0B" />
+                        <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
+                        <Button Click="OnConnectSpotifyClicked"
+                                Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                Foreground="White"
+                                CornerRadius="8"
+                                Padding="12,6"
+                                FontWeight="SemiBold">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8D6;" FontSize="12" />
+                                <TextBlock Text="Connect Spotify" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6" Visibility="{x:Bind Displays.CodeFieldVisibility, Mode=OneWay}">
+                        <TextBlock Text="CODE"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBox x:Name="CodeBox"
+                                 Text="{x:Bind Displays.PromptCode, Mode=OneWay}"
+                                 TextChanged="OnCodeChanged"
+                                 PlaceholderText="K7QH-2MZP"
+                                 FontSize="18"
+                                 IsSpellCheckEnabled="False" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6" Visibility="{x:Bind Displays.NameFieldVisibility, Mode=OneWay}">
+                        <TextBlock Text="DISPLAY NAME"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBox x:Name="NameBox"
+                                 Text="{x:Bind Displays.PromptName, Mode=OneWay}"
+                                 TextChanged="OnNameChanged"
+                                 PlaceholderText="Living room TV"
+                                 MaxLength="{x:Bind MaxNameLength}"
+                                 FontSize="14" />
+                    </StackPanel>
+
+                    <Border Visibility="{x:Bind Displays.PromptErrorVisibility, Mode=OneWay}"
+                            Background="#26F87171"
+                            BorderBrush="#F87171"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12,8">
+                        <TextBlock Text="{x:Bind Displays.PromptError, Mode=OneWay}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                    </Border>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                        <ProgressRing Grid.Column="0"
+                                      IsActive="{x:Bind Displays.IsBusy, Mode=OneWay}"
+                                      Visibility="{x:Bind Displays.BusyVisibility, Mode=OneWay}"
+                                      Width="20"
+                                      Height="20"
+                                      Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                        <Button x:Name="CancelButton"
+                                Grid.Column="2"
+                                Click="OnCancelClicked"
+                                Content="Cancel"
+                                Background="#1AFFFFFF"
+                                Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                CornerRadius="8"
+                                Padding="14,8"
+                                FontSize="13" />
+                        <Button Grid.Column="3"
+                                Click="OnConfirmClicked"
+                                Content="{x:Bind Displays.ConfirmText, Mode=OneWay}"
+                                IsEnabled="{x:Bind Displays.CanConfirm, Mode=OneWay}"
+                                Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                Foreground="White"
+                                CornerRadius="8"
+                                Padding="16,8"
+                                FontSize="13"
+                                FontWeight="SemiBold" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

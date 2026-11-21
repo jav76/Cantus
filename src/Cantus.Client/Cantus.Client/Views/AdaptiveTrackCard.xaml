@@ -322,6 +322,10 @@
                             </Grid>
                         </Border>
                     </StackPanel>
+
+                    <!-- Owner's Displays -->
+                    <views:DisplaysCard Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
+                                        ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
                 </StackPanel>
             </ScrollViewer>
 

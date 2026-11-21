@@ -121,6 +121,10 @@
         <views:DisplayPairingView Visibility="{x:Bind Pairing.PairingScreenVisibility, Mode=OneWay}"
                                   ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
 
+        <!-- Owner's Display Prompt (approve a code, rename, remove) -->
+        <views:DisplayPromptView Visibility="{x:Bind Displays.PromptVisibility, Mode=OneWay}"
+                                 ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
+
         <!-- Transient Theme-Mode Indicator Toast (page-level placement, Small breakpoint only;
              wider layouts show it inside the lyrics stage's top row instead) -->
         <Border Visibility="{x:Bind ViewModel.ThemeToastPageVisibility, Mode=OneWay}"

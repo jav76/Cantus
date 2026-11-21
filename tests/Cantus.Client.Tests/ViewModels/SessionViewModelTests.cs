@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -256,7 +258,9 @@ public sealed class SessionViewModelTests
     public void ServerBaseUrl_DerivesBaseUrlFromClient()
     {
         // Arrange
-        SessionViewModel session = new(new SignalRPlaybackClient("http://192.168.1.50:5000/hubs/playback"));
+        SessionViewModel session = new(
+            new SignalRPlaybackClient("http://192.168.1.50:5000/hubs/playback"),
+            CreateDisplaysApi().Object);
 
         // Act & Assert
         session.ServerBaseUrl.Should().Be("http://192.168.1.50:5000");
@@ -373,6 +377,86 @@ public sealed class SessionViewModelTests
         });
     }
 
+    [Fact]
+    public void ApplySessions_StartsDisplayManagementAndLoadsTheDisplays()
+    {
+        // Arrange
+        Mock<IDisplayManagementApi> api = CreateDisplaysApi(new DisplayInfoPayload { Id = "display-1", Name = "TV" });
+        (_, SessionViewModel session) = CreateSession(api);
+
+        // Act
+        session.ApplySessions(new List<AuthorizedSessionPayload>
+        {
+            new() { Id = "user-1", DisplayName = "Alice" },
+        });
+
+        // Assert
+        session.Displays.IsSignedIn.Should().BeTrue();
+        session.Displays.SectionVisibility.Should().Be(Visibility.Visible);
+        session.Displays.Displays.Should().ContainSingle(d => d.Name == "TV");
+        api.Verify(a => a.ListAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void ApplyAuthSession_LoadsTheDisplays()
+    {
+        // Arrange
+        Mock<IDisplayManagementApi> api = CreateDisplaysApi(new DisplayInfoPayload { Id = "display-1", Name = "TV" });
+        (_, SessionViewModel session) = CreateSession(api);
+
+        // Act
+        session.ApplyAuthSession(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+
+        // Assert
+        session.Displays.IsSignedIn.Should().BeTrue();
+        session.Displays.Displays.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void NewSession_DoesNotLoadDisplays()
+    {
+        // Arrange
+        Mock<IDisplayManagementApi> api = CreateDisplaysApi();
+
+        // Act
+        (_, SessionViewModel session) = CreateSession(api);
+
+        // Assert
+        session.Displays.IsSignedIn.Should().BeFalse();
+        session.Displays.SectionVisibility.Should().Be(Visibility.Collapsed);
+        api.Verify(a => a.ListAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("revoke")]
+    [InlineData("empty")]
+    [InlineData("logout")]
+    public async Task EndingTheSession_EmptiesTheDisplays(string ending)
+    {
+        // Arrange
+        Mock<IDisplayManagementApi> api = CreateDisplaysApi(new DisplayInfoPayload { Id = "display-1", Name = "TV" });
+        (_, SessionViewModel session) = CreateSession(api);
+        session.ApplyAuthSession(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
+
+        // Act
+        switch (ending)
+        {
+            case "revoke":
+                session.ApplySessionRevoked("user-1");
+                break;
+            case "empty":
+                session.ApplySessions(new List<AuthorizedSessionPayload>());
+                break;
+            default:
+                await session.LogoutAsync();
+                break;
+        }
+
+        // Assert
+        session.Displays.IsSignedIn.Should().BeFalse();
+        session.Displays.Displays.Should().BeEmpty();
+    }
+
     private static void AssertSignedOut(SessionViewModel session)
     {
         session.Sessions.Should().BeEmpty();
@@ -383,11 +467,21 @@ public sealed class SessionViewModelTests
         session.IsAuthorized.Should().BeFalse();
     }
 
-    private static (Mock<ISignalRPlaybackClient> Client, SessionViewModel Session) CreateSession()
+    private static (Mock<ISignalRPlaybackClient> Client, SessionViewModel Session) CreateSession(
+        Mock<IDisplayManagementApi>? displaysApi = null)
     {
         Mock<ISignalRPlaybackClient> client = new();
         client.Setup(c => c.SubscribeToUserAsync(It.IsAny<string?>())).Returns(Task.CompletedTask);
         client.Setup(c => c.LogoutAsync()).Returns(Task.CompletedTask);
-        return (client, new SessionViewModel(client.Object));
+        return (client, new SessionViewModel(client.Object, (displaysApi ?? CreateDisplaysApi()).Object));
+    }
+
+    private static Mock<IDisplayManagementApi> CreateDisplaysApi(params DisplayInfoPayload[] displays)
+    {
+        Mock<IDisplayManagementApi> api = new();
+        api
+            .Setup(a => a.ListAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DisplayListResult(DisplayManagementStatus.Succeeded, displays.ToList()));
+        return api;
     }
 }
