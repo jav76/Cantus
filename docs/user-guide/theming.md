@@ -32,7 +32,12 @@ flowchart TD
 
 ## Available Theme Modes
 
-Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info** tab) to move to the next theme. The order is Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, Dynamic, then back to Midnight Violet. The choice is not saved: each launch starts on Midnight Violet.
+Pick a theme from either dropdown:
+
+- **Header bar:** the **Theme** button (a palette icon with a small arrow on tablet layouts) opens a menu that lists every theme, with a check next to the active one. On small screens the same list is under **Theme** in the overflow menu.
+- **Sync & Info tab (mobile):** the **COLOR THEME** card has a dropdown of all themes.
+
+<kbd>T</kbd> still moves to the next theme in list order: Dynamic, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, then back to Dynamic. Every change shows a short toast with the theme name. The theme choice is not saved: each launch starts on Midnight Violet.
 
 | Theme Mode | Description | Ideal Use Case |
 | :--- | :--- | :--- |
@@ -45,6 +50,16 @@ Press <kbd>T</kbd> or the theme button (header bar, or the mobile **Sync & Info*
 | **Solarized Dark** | Classic Solarized base tones with blue accents. | Long reading sessions. |
 
 Every theme is dark, and the whole interface follows it: text boxes, menus, dropdowns, checkboxes, progress rings and dialogs (Find a song, Wrong lyrics?, Diagnostics) all switch colours with the theme, without a restart. Labels on accent-coloured buttons turn dark when the accent is light (for example the white accent of OLED Monochrome), so they stay readable.
+
+---
+
+## Post-Processing Effects
+
+**Post-processing effects** adds animated film grain and a soft vignette (darker edges) over the whole app, on top of every theme and in kiosk mode. It is off by default.
+
+- Turn it on or off with the **Post-processing effects** item at the bottom of the theme menu, or the checkbox in the **COLOR THEME** card on the mobile **Sync & Info** tab.
+- The setting is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
+- The grain is faint and the vignette leaves the centre clear, so lyrics stay readable. The animation stops while the effects are off.
 
 ---
 

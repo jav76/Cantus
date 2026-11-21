@@ -73,6 +73,7 @@ flowchart TD
         DisplaysCard[DisplaysCard.xaml]
         PickerDialog[LyricsPickerDialog.xaml]
         Find[SongLookupDialog.xaml]
+        Effects[PostProcessingOverlay.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
@@ -80,6 +81,7 @@ flowchart TD
         MainView --> MiniBar
         MainView --> PairingView
         MainView --> PromptView
+        MainView --> Effects
         TrackCard --> DisplaysCard
         MobileSettings --> DisplaysCard
         Header --> Hud
@@ -184,16 +186,23 @@ flowchart TD
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
 - `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor`, `ActiveOnPrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
 - Brushes keep their identity: a palette change only sets `.Color` on each `SolidColorBrush`, so anything holding a brush follows the theme live.
+- **Mode list.** `ThemeManager.AvailableModes` is the one ordered list of modes (Dynamic, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark), and `AvailableModeNames` holds their `GetDisplayName()` text index for index. `CycleNextTheme` (the <kbd>T</kbd> key) walks this list and wraps. `CurrentModeIndex` is the current mode's position, raised with `CurrentMode`; the Sync & Info `ComboBox` binds `SelectedIndex` to it two-way and ignores the `-1` of a cleared selection.
+- **Theme menus.** The Large and Medium header Theme buttons open a `MenuFlyout`, and the Small overflow menu has a **Theme** `MenuFlyoutSubItem`. `ThemeMenuItems.Populate` fills all three from `AvailableModes`: one `RadioMenuFlyoutItem` per mode, a separator, then a **Post-processing effects** `ToggleMenuFlyoutItem`. Each menu has its own radio `GroupName` (group names are app-wide). `AdaptiveHeaderBar` re-checks the items with `ThemeMenuItems.Sync` when a menu opens and when `CurrentMode` or `IsPostProcessingEnabled` changes. The theme toast comes from the `CurrentMode` setter, so every picker shows it.
 - `OnPrimaryAccentBrush` is the text and icon colour for accent backgrounds: near-black when the accent's relative luminance is above 0.5 (OLED Monochrome's white accent, bright Dynamic accents), white otherwise. `MenuSurfaceBrush` is the opaque card colour used for menus and dropdowns.
 - **App resources.** `App.xaml` sets `RequestedTheme="Dark"` (every palette is dark) and declares placeholder `Cantus*Brush` resources (`CantusTextPrimaryBrush`, `CantusTextSecondaryBrush`, `CantusTextMutedBrush`, `CantusBackgroundBrush`, `CantusSurfaceCardBrush`, `CantusMenuSurfaceBrush`, `CantusCardBorderBrush`, `CantusPrimaryAccentBrush`, `CantusOnPrimaryAccentBrush`). `App.OnLaunched` calls `ThemeManager.ApplyToResources` before `MainPage` exists, which replaces them with the live brushes.
   - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
   - Button keys are not mapped: most buttons set their own translucent `Background` and `Foreground`.
   - Inside a `DataTemplate`, where `x:Bind Theme` is out of reach, use `{StaticResource CantusTextPrimaryBrush}` and the other `Cantus*` keys. They resolve to the live brushes, so they follow theme changes too.
 - `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
+- **Post-processing overlay.** `LyricsViewModel.IsPostProcessingEnabled` (persisted as `cantus_post_processing`) drives `PostProcessingVisibility`. `PostProcessingOverlay` is the last child of the `MainPage` root `Grid`, so it covers every layout, theme and kiosk mode, and it is `IsHitTestVisible="False"`.
+  - **Vignette:** a `RadialGradientBrush` that stays clear to 55% of the radius and darkens towards the edges.
+  - **Film grain:** three 256px noise tiles (`Assets/PostProcessing/grain_N.png`, about 23 KB each, made by `scripts/generate_grain_tiles.py`). PNGs under `Assets` are plain content, so Uno.Resizetizer does not touch them. Each tile has its own grid layer of `Image` elements one tile larger than the window (`FilmGrainLayout.GetTileCount`).
+  - **Per frame (42 ms, about 24 fps):** the overlay shows the next layer and shifts the grid by a random whole-pixel offset (`FilmGrainLayout.GetJitterOffset`). That is one transform and two opacity changes, which is cheap on the WASM DOM renderer (CSS) and on desktop Skia. Nothing is re-rasterised.
+  - **Lifetime:** the tiles load the first time the overlay is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
-- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
-- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll, karaoke mode and post-processing effects by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
+- `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_post_processing`, `cantus_latency_ms`), the defaults (on, on, off, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
 - `DisplayCredentialStore` keeps the Display token, id and name (`cantus_display_token`, `cantus_display_id`, `cantus_display_name`) through the same `ISettingsStore`, so a paired Display reconnects after a restart. `ISettingsStore` cannot remove keys, so clearing blanks them.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 

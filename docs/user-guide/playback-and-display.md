@@ -31,6 +31,8 @@ flowchart TD
 | **Large (Desktop)** | `>= 1080px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
 | **Fullscreen (TV)** | Kiosk toggle (<kbd>K</kbd> / <kbd>F11</kbd>) | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
 
+On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the **Post-processing effects** toggle), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
+
 ---
 
 ## Auto-Scrolling & Interactive Controls
@@ -105,7 +107,7 @@ When the Cantus window is focused, and focus is not in a text field, these keys 
 | <kbd>Esc</kbd> | **Exit Kiosk Mode** | Leaves the kiosk stage. |
 | <kbd>[</kbd> | **Lyrics Earlier (-50ms)** | Lowers this device's latency compensation, so lyrics render earlier. Use it when lyrics trail the audio. |
 | <kbd>]</kbd> | **Lyrics Later (+50ms)** | Raises this device's latency compensation, so lyrics render later. Use it when lyrics run ahead of the audio. |
-| <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. See [Theming](theming.md). |
+| <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. To pick one directly, use the **Theme** menu in the header. See [Theming](theming.md). |
 | <kbd>M</kbd> | **Cycle Mobile Tab** | On small layouts only: moves between the Lyrics, Track and Sync & Info tabs. |
 
 The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track `SYNC OFFSET`. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the `SYNC OFFSET` **Reset** button for the track offset.
