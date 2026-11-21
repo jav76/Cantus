@@ -237,6 +237,27 @@ public static partial class LyricTextNormalizer
         return string.Empty;
     }
 
+    /// <summary>Every credited artist as normalized tokens joined by spaces, in credit order.</summary>
+    public static IReadOnlyList<string> ArtistKeys(string? artist)
+    {
+        if (string.IsNullOrWhiteSpace(artist))
+        {
+            return Array.Empty<string>();
+        }
+
+        List<string> keys = new();
+        foreach (string part in ArtistSeparator().Split(artist))
+        {
+            string key = JoinTokens(Tokenize(part));
+            if (key.Length > 0 && !keys.Contains(key))
+            {
+                keys.Add(key);
+            }
+        }
+
+        return keys;
+    }
+
     /// <summary>True for a single Han, kana or Hangul character token.</summary>
     public static bool IsCjkToken(string token)
     {

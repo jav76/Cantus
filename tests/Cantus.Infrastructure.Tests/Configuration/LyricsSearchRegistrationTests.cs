@@ -1,6 +1,7 @@
 using Cantus.Core.Interfaces;
 using Cantus.Infrastructure.Lyrics.Lookup;
 using Cantus.Infrastructure.Persistence;
+using Cantus.Infrastructure.Spotify;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -51,6 +52,17 @@ public sealed class LyricsSearchRegistrationTests
             .Should().BeSameAs(provider.GetRequiredService<SongLookupBudget>());
         provider.GetRequiredService<SongLookupQueryCache>()
             .Should().BeSameAs(provider.GetRequiredService<SongLookupQueryCache>());
+    }
+
+    [Fact]
+    public void Container_ResolvesTheSpotifyCatalogClientThroughItsTraceDecoratorAndTheResolver()
+    {
+        using ServiceProvider provider = BuildValidatedProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        scope.ServiceProvider.GetRequiredService<ISpotifyCatalogClient>()
+            .Should().BeOfType<TraceLoggingSpotifyCatalogClientDecorator>();
+        scope.ServiceProvider.GetRequiredService<SpotifyTrackResolver>().Should().NotBeNull();
     }
 
     [Fact]

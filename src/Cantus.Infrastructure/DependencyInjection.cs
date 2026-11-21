@@ -158,6 +158,12 @@ public static class DependencyInjection
             new TraceLoggingSpotifyPlayerClientDecorator(
                 sp.GetRequiredService<SpotifyPlayerClient>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyPlayerClientDecorator>>()));
+        services.AddScoped<SpotifyCatalogClient>();
+        services.AddScoped<ISpotifyCatalogClient>(sp =>
+            new TraceLoggingSpotifyCatalogClientDecorator(
+                sp.GetRequiredService<SpotifyCatalogClient>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyCatalogClientDecorator>>()));
+        services.AddScoped<SpotifyTrackResolver>();
 
         // 7. Displays
         services.AddScoped<DisplayService>();

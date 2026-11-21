@@ -13,6 +13,7 @@ namespace Cantus.Infrastructure.Tests.Spotify;
 public class SpotifyPlayerClientTests
 {
     private const int RETRY_AFTER_SECONDS = 42;
+    private const string TRACK_URI = "spotify:track:4u7EnebtmKWzUH433cf5Qv";
 
     private sealed class MockHttpMessageHandler : HttpMessageHandler
     {
@@ -20,17 +21,26 @@ public class SpotifyPlayerClientTests
 
         public int RequestCount { get; private set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        public HttpMethod? LastMethod { get; private set; }
+
+        public Uri? LastUri { get; private set; }
+
+        public string? LastBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             RequestCount++;
+            LastMethod = request.Method;
+            LastUri = request.RequestUri;
+            LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
             if (ResponseHandler is not null)
             {
-                return Task.FromResult(ResponseHandler(request));
+                return ResponseHandler(request);
             }
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
         }
     }
 
@@ -85,6 +95,61 @@ public class SpotifyPlayerClientTests
         gate.IsLimited.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task PlayTrackAsync_SendsThePlayRequestWithTheTrackUri()
+    {
+        SpotifyRateLimitGate gate = new(TimeProvider.System);
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.NoContent)
+        };
+        SpotifyPlayerClient client = CreateClient(handler, gate);
+
+        PlayerCommandResult result = await client.PlayTrackAsync("some-token", TRACK_URI);
+
+        result.Should().Be(PlayerCommandResult.Success);
+        handler.LastMethod.Should().Be(HttpMethod.Put);
+        handler.LastUri!.AbsolutePath.Should().Be("/v1/me/player/play");
+        handler.LastBody.Should().Contain("\"uris\"").And.Contain(TRACK_URI);
+    }
+
+    [Fact]
+    public async Task AddToQueueAsync_SendsTheQueueRequestWithTheTrackUri()
+    {
+        SpotifyRateLimitGate gate = new(TimeProvider.System);
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(HttpStatusCode.NoContent)
+        };
+        SpotifyPlayerClient client = CreateClient(handler, gate);
+
+        PlayerCommandResult result = await client.AddToQueueAsync("some-token", TRACK_URI);
+
+        result.Should().Be(PlayerCommandResult.Success);
+        handler.LastMethod.Should().Be(HttpMethod.Post);
+        handler.LastUri!.AbsolutePath.Should().Be("/v1/me/player/queue");
+        Uri.UnescapeDataString(handler.LastUri.Query).Should().Contain("uri=" + TRACK_URI);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound, PlayerCommandResult.NoActiveDevice)]
+    [InlineData(HttpStatusCode.Forbidden, PlayerCommandResult.MissingPermissions)]
+    public async Task PlayTrackAndQueue_MapSpotifyErrorsToCommandResults(
+        HttpStatusCode statusCode,
+        PlayerCommandResult expected)
+    {
+        SpotifyRateLimitGate gate = new(TimeProvider.System);
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => new HttpResponseMessage(statusCode)
+        };
+        SpotifyPlayerClient client = CreateClient(handler, gate);
+
+        (await client.PlayTrackAsync("some-token", TRACK_URI)).Should().Be(expected);
+        (await client.AddToQueueAsync("some-token", TRACK_URI)).Should().Be(expected);
+        gate.IsLimited.Should().BeFalse();
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
@@ -109,6 +174,8 @@ public class SpotifyPlayerClientTests
         (await client.SeekPlaybackAsync(token, 1000)).Should().Be(PlayerCommandResult.Failed);
         (await client.SetShuffleAsync(token, true)).Should().Be(PlayerCommandResult.Failed);
         (await client.SetRepeatAsync(token, "context")).Should().Be(PlayerCommandResult.Failed);
+        (await client.PlayTrackAsync(token, TRACK_URI)).Should().Be(PlayerCommandResult.Failed);
+        (await client.AddToQueueAsync(token, TRACK_URI)).Should().Be(PlayerCommandResult.Failed);
     }
 
     [Fact]

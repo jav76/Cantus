@@ -53,16 +53,7 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             TrackInfo trackInfo;
             if (playback.Item is FullTrack fullTrack)
             {
-                trackInfo = new TrackInfo
-                {
-                    Id = fullTrack.Id ?? string.Empty,
-                    Title = fullTrack.Name,
-                    Artist = string.Join(", ", fullTrack.Artists.Select(a => a.Name)),
-                    Album = fullTrack.Album?.Name,
-                    AlbumArtUrl = fullTrack.Album?.Images?.FirstOrDefault()?.Url,
-                    Duration = TimeSpan.FromMilliseconds(fullTrack.DurationMs),
-                    IsExplicit = fullTrack.Explicit
-                };
+                trackInfo = SpotifyTrackMapper.ToTrackInfo(fullTrack);
             }
             else if (playback.Item is FullEpisode fullEpisode)
             {
@@ -193,6 +184,30 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
             accessToken,
             "repeat",
             spotify => spotify.Player.SetRepeat(new PlayerSetRepeatRequest(state.Value), cancellationToken));
+    }
+
+    public Task<PlayerCommandResult> PlayTrackAsync(
+        string accessToken,
+        string trackUri,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecutePlayerCommandAsync(
+            accessToken,
+            "play-track",
+            spotify => spotify.Player.ResumePlayback(
+                new PlayerResumePlaybackRequest { Uris = new List<string> { trackUri } },
+                cancellationToken));
+    }
+
+    public Task<PlayerCommandResult> AddToQueueAsync(
+        string accessToken,
+        string trackUri,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecutePlayerCommandAsync(
+            accessToken,
+            "queue",
+            spotify => spotify.Player.AddToQueue(new PlayerAddToQueueRequest(trackUri), cancellationToken));
     }
 
     private async Task<PlayerCommandResult> ExecutePlayerCommandAsync(
