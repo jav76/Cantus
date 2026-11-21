@@ -64,7 +64,7 @@ If a track shows the wrong lyrics, or none:
 - **Re-fetch automatically** looks the track up again. **No lyrics** shows an empty lyrics view for the track.
 - If you already picked lyrics for the track, the picker says so and offers **Use automatic lyrics** to undo it.
 - Your choice applies to every screen showing the track, without a reload, and is kept until you change it.
-- The button appears only while you are signed in and a track is playing. Displays never show it.
+- The button appears only while you are signed in and a track is playing. A [paired Display](displays.md) never shows it.
 
 ---
 

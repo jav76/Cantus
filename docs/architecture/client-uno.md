@@ -48,6 +48,7 @@ flowchart TD
         Pairing --> Credentials
         LVM --> Picker
         Picker --> Session
+        Picker --> Pairing
         Picker --> Correction
         Transport --> Anchor
         Timing --> Prefs
@@ -221,10 +222,10 @@ flowchart TD
 - `DisplaysCard` shows the list with **Add display**, refresh, rename and remove buttons. It sits under the Spotify account card in `AdaptiveTrackCard` (wider layouts) and in `MobileSettingsView`, only for a signed-in owner and never on a Display. `MainPage` ignores keyboard shortcuts while the prompt is open and for keys typed into a text box. <kbd>Escape</kbd> closes the prompt wherever focus is, and <kbd>Enter</kbd> in its code or name field confirms it.
 
 ### 13. `LyricsPickerViewModel`
-- The "Wrong lyrics?" picker for the owner's current track. Composed by the root from `SessionViewModel`, the current track (read through a delegate from `PlaybackTransport`), and an `ILyricsCorrectionService`.
-- `IsAvailable` / `ActionVisibility`: shown only while the Session list has a Session and a track is playing. A Display never receives the Session list, so it never shows the action even though it gets the owner's playback and diagnostics.
+- The "Wrong lyrics?" picker for the owner's current track. Composed by the root from `SessionViewModel`, `DisplayPairingViewModel`, the current track (read through a delegate from `PlaybackTransport`), and an `ILyricsCorrectionService`.
+- `IsAvailable` / `ActionVisibility`: shown only while the Session list has a Session, a track is playing, and this client is not a paired Display (`DisplayPairingViewModel.IsDisplay`). A Display normally never receives the Session list, but one paired after a sign-in can still hold it, so the picker checks both. Becoming a Display closes an open picker, and `OpenAsync` does nothing on a Display. The track card button and the mobile settings card also collapse with `Pairing.OwnerControlsVisibility`, like the other owner-only controls (`GetLyricsPickerVisibility`).
 - `OpenAsync` loads `GET /api/lyrics/{trackId}/candidates` into `Candidates` (`LyricsCandidateItem`: provider, title, artist, duration, synced, plain or instrumental, preview, and whether it is the active override). `IsLoading`, `StatusText` (empty list, load errors) and `UnavailableText` (providers that could not be reached) describe the list. `ActiveOverrideText` and `ClearOverrideVisibility` come from the response's `activeOverride`.
-- Choices: `UseCandidateAsync`, `RefetchAsync`, `MarkNoLyricsAsync`, and `ClearOverrideAsync` post to `POST /api/lyrics/{trackId}/override`. `CanChoose` blocks a second choice while one is in flight. A successful choice closes the picker and raises `LyricsChanged` with the lyrics now in effect; the server also broadcasts them through `ReceiveLyrics`. The root applies them only while they match the track on screen, since the HTTP answer can arrive after the next track's lyrics. A failed choice keeps the picker open and explains why in `StatusText`.
+- Choices: `UseCandidateAsync`, `RefetchAsync`, `MarkNoLyricsAsync`, and `ClearOverrideAsync` post to `POST /api/lyrics/{trackId}/override`, which answers with the same `LyricsPayload` as `ReceiveLyrics`, per-syllable timing included, so the karaoke fill keeps following each word after a choice. `CanChoose` blocks a second choice while one is in flight. A successful choice closes the picker and raises `LyricsChanged` with the lyrics now in effect; the server also broadcasts them through `ReceiveLyrics`. The root applies them only while they match the track on screen, since the HTTP answer can arrive after the next track's lyrics. A failed choice keeps the picker open and explains why in `StatusText`.
 - `NotifyTrackChanged` (called by the root on each poll) closes the picker when the track changes, and answers that arrive after the picker closed or the track changed are dropped.
 - `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `400`, `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
 - `LyricsPickerDialog` is the `ContentDialog` the track card (desktop and tablet) and the mobile settings tab open. It hides itself when the picker closes.
