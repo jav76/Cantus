@@ -10,24 +10,26 @@
             BorderThickness="1"
             CornerRadius="16"
             Padding="20,12">
-        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+        <!-- Track info and progress share the flexible width (2:3), so a long title is trimmed
+             instead of pushing the transport and Exit Kiosk off screen -->
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,2*,3*,Auto,Auto,Auto">
+            <!-- Mini Album Art -->
+            <Border Grid.Column="0" CornerRadius="8" Width="44" Height="44" Background="#1E1E2D" Margin="0,0,14,0" VerticalAlignment="Center">
+                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
+            </Border>
+
             <!-- Mini Track Info -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
-                <Border CornerRadius="8" Width="44" Height="44" Background="#1E1E2D">
-                    <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                </StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
             <!-- Progress Bar (click to seek; hover shows a scrub thumb) -->
-            <Grid Grid.Column="1"
+            <Grid Grid.Column="2"
                   Background="Transparent"
                   MinHeight="18"
                   VerticalAlignment="Center"
-                  Margin="32,0"
+                  Margin="{x:Bind GetProgressMargin(Layout.IsKioskBarCompact), Mode=OneWay}"
                   IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                   PointerReleased="OnProgressBarPointerReleased"
                   PointerEntered="OnSeekBarPointerEntered"
@@ -59,10 +61,17 @@
             </Grid>
 
             <!-- Timestamps -->
-            <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <TextBlock Grid.Column="3"
+                       Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
+                       FontSize="13"
+                       Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                       FontFamily="{StaticResource MonoFontFamily}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,16,0"
+                       Visibility="{x:Bind GetWideBarVisibility(Layout.IsKioskBarCompact), Mode=OneWay}" />
 
             <!-- Transport Controls -->
-            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                 <Button Click="OnSkipPreviousClicked"
                         Background="#22FFFFFF"
                         Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
@@ -96,21 +105,22 @@
             </StackPanel>
 
             <!-- Exit Kiosk Button -->
-            <Button Grid.Column="4"
+            <Button Grid.Column="5"
                     Click="OnToggleKioskClicked"
                     Background="#22FFFFFF"
                     Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                     CornerRadius="8"
-                    Padding="12,6">
+                    Padding="12,6"
+                    ToolTipService.ToolTip="Exit Kiosk (Esc)">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE73F;" FontSize="14" />
-                    <TextBlock Text="Exit Kiosk" FontSize="12" />
+                    <TextBlock Text="Exit Kiosk" FontSize="12" Visibility="{x:Bind GetWideBarVisibility(Layout.IsKioskBarCompact), Mode=OneWay}" />
                 </StackPanel>
             </Button>
 
             <!-- Transport Command Feedback -->
             <TextBlock Grid.Row="1"
-                       Grid.ColumnSpan="5"
+                       Grid.ColumnSpan="6"
                        Text="{x:Bind Transport.TransportStatusText, Mode=OneWay}"
                        Visibility="{x:Bind Transport.TransportStatusVisibility, Mode=OneWay}"
                        FontSize="12"

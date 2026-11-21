@@ -60,6 +60,19 @@ public sealed partial class MiniPlaybackBar : UserControl
         private set => SetValue(ThemeProperty, value);
     }
 
+    public static readonly DependencyProperty LayoutProperty =
+        DependencyProperty.Register(
+            nameof(Layout),
+            typeof(ResponsiveLayoutManager),
+            typeof(MiniPlaybackBar),
+            new PropertyMetadata(null));
+
+    public ResponsiveLayoutManager? Layout
+    {
+        get => (ResponsiveLayoutManager?)GetValue(LayoutProperty);
+        private set => SetValue(LayoutProperty, value);
+    }
+
     // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -68,7 +81,14 @@ public sealed partial class MiniPlaybackBar : UserControl
         bar.Transport = viewModel?.Transport;
         bar.Pairing = viewModel?.Pairing;
         bar.Theme = viewModel?.Theme;
+        bar.Layout = viewModel?.Layout;
     }
+
+    public Visibility GetWideBarVisibility(bool isCompact)
+        => isCompact ? Visibility.Collapsed : Visibility.Visible;
+
+    public Thickness GetProgressMargin(bool isCompact)
+        => isCompact ? new Thickness(12, 0, 12, 0) : new Thickness(32, 0, 32, 0);
 
     public MiniPlaybackBar()
     {

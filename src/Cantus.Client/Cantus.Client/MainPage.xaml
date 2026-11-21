@@ -126,7 +126,7 @@
                                  ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
 
         <!-- Transient Theme-Mode Indicator Toast (page-level placement, Small breakpoint only;
-             wider layouts show it inside the lyrics stage's top row instead) -->
+             wider layouts show it at the top of the lyrics stage instead) -->
         <Border Visibility="{x:Bind ViewModel.ThemeToastPageVisibility, Mode=OneWay}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"

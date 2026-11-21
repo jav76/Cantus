@@ -38,15 +38,16 @@
                             CornerRadius="12"
                             Padding="16,10"
                             HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind Pairing.StatusMessage, Mode=OneWay}"
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <FontIcon Grid.Column="0" Glyph="&#xE946;" FontSize="16" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{x:Bind Pairing.StatusMessage, Mode=OneWay}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center"
                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                        </StackPanel>
+                        </Grid>
                     </Border>
 
                     <!-- QR code and short code -->

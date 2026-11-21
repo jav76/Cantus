@@ -74,6 +74,19 @@ public sealed partial class LyricsStageView : UserControl
         private set => SetValue(LayoutProperty, value);
     }
 
+    public static readonly DependencyProperty ModeLabelVisibilityProperty =
+        DependencyProperty.Register(
+            nameof(ModeLabelVisibility),
+            typeof(Visibility),
+            typeof(LyricsStageView),
+            new PropertyMetadata(Visibility.Visible));
+
+    public Visibility ModeLabelVisibility
+    {
+        get => (Visibility)GetValue(ModeLabelVisibilityProperty);
+        private set => SetValue(ModeLabelVisibilityProperty, value);
+    }
+
     public LyricsStageView()
     {
         InitializeComponent();
@@ -291,6 +304,13 @@ public sealed partial class LyricsStageView : UserControl
 
         storyboard.Begin();
         return storyboard;
+    }
+
+    private void OnTopBarSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ModeLabelVisibility = ResponsiveLayoutManager.ShouldShowStageModeLabels(e.NewSize.Width)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void OnPresentationContainerSizeChanged(object sender, SizeChangedEventArgs e)

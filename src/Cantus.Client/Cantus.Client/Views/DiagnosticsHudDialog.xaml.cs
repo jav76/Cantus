@@ -15,6 +15,8 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
 
     public ThemeManager Theme { get; }
 
+    public ResponsiveLayoutManager Layout { get; }
+
     public DiagnosticsHudDialog(LyricsViewModel viewModel)
     {
         ViewModel = viewModel;
@@ -22,6 +24,7 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
         Timing = viewModel.Timing;
         Session = viewModel.Session;
         Theme = viewModel.Theme;
+        Layout = viewModel.Layout;
         this.InitializeComponent();
     }
 

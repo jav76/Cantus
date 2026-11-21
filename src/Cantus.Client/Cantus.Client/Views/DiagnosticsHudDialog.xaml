@@ -9,7 +9,7 @@
                Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                CornerRadius="16">
 
-    <StackPanel Spacing="16" MinWidth="420" Margin="0,12,0,0">
+    <StackPanel Spacing="16" MinWidth="{x:Bind Layout.DiagnosticsHudMinWidth, Mode=OneWay}" Margin="0,12,0,0">
         
         <!-- SignalR Engine & Network -->
         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14">
@@ -37,7 +37,7 @@
                 <TextBlock Text="SERVER POLLER &amp; SESSIONS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Poller Cadence:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Connected Clients:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.ConnectedClients, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
@@ -54,10 +54,10 @@
                 <TextBlock Text="SPOTIFY DEVICE &amp; STREAM" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Active User:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Session.ActiveUserName, Mode=OneWay}" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Device:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ViewModel.DeviceName, Mode=OneWay}" />
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Volume:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetVolumeText(Transport.VolumePercent), Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
@@ -74,7 +74,7 @@
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Commit SHA:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.CommitSha, Mode=OneWay}" Foreground="{x:Bind Theme.SecondaryAccentBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.CommitSha, Mode=OneWay}" Foreground="{x:Bind Theme.SecondaryAccentBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                 </Grid>
             </StackPanel>
         </Border>

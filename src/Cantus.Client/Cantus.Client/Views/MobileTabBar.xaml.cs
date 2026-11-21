@@ -87,6 +87,11 @@ public sealed partial class MobileTabBar : UserControl
         }
     }
 
+    public Orientation GetTabContentOrientation(bool isNarrowPhone)
+        => isNarrowPhone ? Orientation.Vertical : Orientation.Horizontal;
+
+    public double GetTabContentSpacing(bool isNarrowPhone) => isNarrowPhone ? 2.0 : 6.0;
+
     public Brush GetTabBackground(MobileViewMode? activeMode = null, MobileViewMode currentTab = MobileViewMode.Lyrics)
     {
         MobileViewMode active = activeMode ?? ResponsiveLayoutManager.Instance.MobileView;
