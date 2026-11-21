@@ -12,7 +12,7 @@ The background worker evaluates connected SignalR clients and playback snapshots
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Sleeping: Room Created (0 Viewers)
+    [*] --> Sleeping: Owner Signed In (0 Viewers)
     Sleeping --> Playing: Viewer Connects & Playback Detected (4.0s Poll)
     
     state Playing {
@@ -65,9 +65,9 @@ stateDiagram-v2
 | **Paused (Deep)** | `30,000ms` | Paused duration $>$ 5 minutes | Deep conservation when playback is halted long-term (0.033 req/s). |
 | **Idle (Initial)** | `10,000ms` | No active playback $\le$ 2 minutes | Detects when user opens Spotify and queues a track (0.10 req/s). |
 | **Idle (Extended)** | `30,000ms` | No active playback 2–10 minutes | Intermediate backoff when Spotify is closed or idle (0.033 req/s). |
-| **Idle (Deep)** | `60,000ms` | No active playback $>$ 10 minutes | Maximum power/quota savings while keeping room connection alive (0.016 req/s). |
+| **Idle (Deep)** | `60,000ms` | No active playback $>$ 10 minutes | Maximum power/quota savings while keeping viewer connections alive (0.016 req/s). |
 | **Background Throttled** | `20,000ms` | All connected viewer tabs are hidden / minimized | Drastically reduces polling while user is not looking at the lyrics display (0.05 req/s). |
-| **Sleeping** | `0ms` (Halted) | Zero connected clients across all displays | Complete suspension: **0 req/s** (zero quota consumption). |
+| **Sleeping** | `0ms` (Halted) | Zero connected viewers (Session or Display connections) | Complete suspension: **0 req/s** (zero quota consumption). |
 
 ---
 

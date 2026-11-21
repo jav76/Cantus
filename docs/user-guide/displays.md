@@ -1,6 +1,6 @@
 # Pairing & Managing Displays
 
-A **Display** is a screen, such as a living room TV or a wall tablet, that shows your lyrics and playback without signing in to Spotify on it. You pair it once from a phone or computer that is signed in to Cantus. The screen then holds its own view-only Display token, so a shared screen never gets your account's full rights.
+A **Display** is a screen, such as a TV or a wall tablet, that shows your lyrics and playback without signing in to Spotify on it. You pair it once from a phone or computer that is signed in to Cantus. The screen then holds its own view-only Display token, so a shared screen never gets your account's full rights.
 
 Use a Display for any screen other people can reach. Sign in with Spotify only on devices you want to control playback from.
 

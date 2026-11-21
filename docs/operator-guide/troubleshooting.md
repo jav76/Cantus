@@ -51,9 +51,9 @@ This guide provides solutions to common setup, authentication, and network issue
 ### Symptom: Logs show `Spotify rate limit exceeded (429)`
 - **Cause**: Too many requests within a short timeframe.
 - **Mitigation Built into Cantus**:
-  - Cantus employs an **Adaptive Polling Engine** that automatically backs off to 5s intervals when playback is paused, 10s when idle, and completely halts polling when zero clients are connected to a room.
+  - Cantus employs an **Adaptive Polling Engine** that automatically backs off to 5s intervals when playback is paused, 10s when idle, and completely halts polling for an owner with no connected viewers.
 - **Operator Action**:
-  - If sharing an instance among multiple active listeners, ensure non-active browser tabs are closed. Cantus will automatically spin down polling for disconnected rooms.
+  - If sharing an instance among multiple active listeners, ensure non-active browser tabs are closed. Cantus will automatically spin down polling for owners with no connected viewers. A paired Display counts as a viewer, so remove Displays nobody watches.
 
 ---
 

@@ -207,10 +207,10 @@ public void UpdateProgress(long progressMs)
 Never use string interpolation inside `ILogger` calls. Use semantic message templates:
 ```csharp
 // Correct
-_logger.LogInformation("User {UserId} joined room {RoomCode}", userId, roomCode);
+_logger.LogInformation("Display {DisplayId} paired to connection {ConnectionId}", displayId, connectionId);
 
 // Avoid
-_logger.LogInformation($"User {userId} joined room {roomCode}");
+_logger.LogInformation($"Display {displayId} paired to connection {connectionId}");
 ```
 
 ### 6. Code Formatting

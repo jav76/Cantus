@@ -19,7 +19,7 @@ flowchart LR
 
 ## Key User Features
 
-- **Multiple Screens & Paired Displays**: Any number of screens can follow your Spotify playback at once. Sign in on your own devices, and pair shared screens such as a living room TV as view-only [Displays](displays.md) that never hold your Spotify sign-in.
+- **Multiple Screens & Paired Displays**: Any number of screens can follow your Spotify playback at once. Sign in on your own devices, and pair shared screens such as a family TV as view-only [Displays](displays.md) that never hold your Spotify sign-in.
 - **Micro-Smooth Karaoke Scrolling**: Lyrics scroll smoothly to center the active singing line with gentle animations.
 - **Audio Delay Calibration**: Adjust per-track or global millisecond offsets when using Bluetooth or AirPlay speakers with inherent audio latency.
 - **Dynamic Artwork Palette Theming**: The background ambient lighting and accent typography dynamically adapt to match the album artwork of the currently playing track.

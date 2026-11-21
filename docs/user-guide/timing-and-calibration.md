@@ -13,7 +13,7 @@ When playing music from Spotify, the Spotify API reports where the playback curs
 | **Direct Headphone Jack / USB DAC** | `< 10ms` | Negligible hardware buffering. |
 | **HDMI ARC / Optical Soundbar** | `30ms – 100ms` | TV audio processing & DSP decoding. |
 | **Standard Bluetooth (SBC / AAC)** | `120ms – 250ms` | Wireless packet buffering and encoding. |
-| **AirPlay / Chromecast Audio** | `1000ms – 2000ms` | Multi-room streaming buffer sync. |
+| **AirPlay / Chromecast Audio** | `1000ms – 2000ms` | Whole-home streaming buffer sync. |
 
 Cantus ships with a built-in **device latency compensation** (default `200ms`) that delays lyric rendering to match typical wireless audio output. If your output is low-latency (wired headphones, USB DAC), that default makes lyrics trail the audio slightly — reduce it with <kbd>[</kbd> as described below.
 
