@@ -68,18 +68,21 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Theme Switcher -->
-                    <Button Click="OnCycleThemeClicked"
-                            Background="#1AFFFFFF"
+                    <!-- Theme Dropdown (items built in code by ThemeMenuItems) -->
+                    <Button Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
-                            Padding="12,8"
-                            ToolTipService.ToolTip="Cycle Color Theme (T)">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            Padding="8,8,6,8"
+                            ToolTipService.ToolTip="Color theme and effects (T cycles themes)">
+                        <Button.Flyout>
+                            <MenuFlyout x:Name="LargeThemeMenu" Placement="BottomEdgeAlignedRight" Opening="OnThemeMenuOpening" />
+                        </Button.Flyout>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE790;" FontSize="15" />
                             <TextBlock Text="Theme" FontSize="12" />
+                            <FontIcon Glyph="&#xE70D;" FontSize="8" />
                         </StackPanel>
                     </Button>
 
@@ -162,15 +165,21 @@
                         <FontIcon Glyph="&#xE721;" FontSize="14" />
                     </Button>
 
-                    <Button Click="OnCycleThemeClicked"
-                            Background="#1AFFFFFF"
+                    <!-- Padding is trimmed so the chevron keeps the button at its old width -->
+                    <Button Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                             CornerRadius="8"
-                            Padding="8,6"
-                            ToolTipService.ToolTip="Cycle Theme (T)">
-                        <FontIcon Glyph="&#xE790;" FontSize="14" />
+                            Padding="5,6,4,6"
+                            ToolTipService.ToolTip="Theme and effects (T cycles themes)">
+                        <Button.Flyout>
+                            <MenuFlyout x:Name="MediumThemeMenu" Placement="BottomEdgeAlignedRight" Opening="OnThemeMenuOpening" />
+                        </Button.Flyout>
+                        <StackPanel Orientation="Horizontal">
+                            <FontIcon Glyph="&#xE790;" FontSize="14" />
+                            <FontIcon Glyph="&#xE70D;" FontSize="7" VerticalAlignment="Center" />
+                        </StackPanel>
                     </Button>
 
                     <Button Click="OnOpenDiagnosticsHudClicked"
@@ -240,7 +249,7 @@
                             CornerRadius="6"
                             Padding="8,5">
                         <Button.Flyout>
-                            <MenuFlyout>
+                            <MenuFlyout Opening="OnThemeMenuOpening">
                                 <MenuFlyoutItem Text="Find Song by Lyrics"
                                                 Click="OnOpenSongLookupClicked"
                                                 Visibility="{x:Bind GetSongLookupVisibility(Pairing.OwnerControlsVisibility, Session.OwnerActionsVisibility), Mode=OneWay, FallbackValue=Collapsed}">
@@ -248,11 +257,11 @@
                                         <FontIcon Glyph="&#xE721;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutItem Text="Cycle Theme (T)" Click="OnCycleThemeClicked">
-                                    <MenuFlyoutItem.Icon>
+                                <MenuFlyoutSubItem x:Name="SmallThemeMenu" Text="Theme">
+                                    <MenuFlyoutSubItem.Icon>
                                         <FontIcon Glyph="&#xE790;" />
-                                    </MenuFlyoutItem.Icon>
-                                </MenuFlyoutItem>
+                                    </MenuFlyoutSubItem.Icon>
+                                </MenuFlyoutSubItem>
                                 <MenuFlyoutItem Text="Diagnostics HUD" Click="OnOpenDiagnosticsHudClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE9D9;" />

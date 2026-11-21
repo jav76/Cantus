@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -88,16 +89,89 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         header.Pairing = viewModel?.Pairing;
         header.Theme = viewModel?.Theme;
         header.Layout = viewModel?.Layout;
+        if (header._isLoaded)
+        {
+            header.SubscribeToThemeState(viewModel);
+        }
     }
+
+    private LyricsViewModel? _subscribedViewModel;
+    private bool _isLoaded;
 
     public AdaptiveHeaderBar()
     {
         this.InitializeComponent();
+
+        // Radio groups are tracked by name across the app, so each header gets its own names.
+        string groupPrefix = $"CantusTheme-{Guid.NewGuid():N}";
+        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnPostProcessingToggled);
+        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnPostProcessingToggled);
+        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnPostProcessingToggled);
+
+        Loaded += (s, e) =>
+        {
+            _isLoaded = true;
+            SubscribeToThemeState(ViewModel);
+            SyncThemeMenus();
+        };
+        Unloaded += (s, e) =>
+        {
+            _isLoaded = false;
+            SubscribeToThemeState(null);
+        };
     }
 
-    private void OnCycleThemeClicked(object sender, RoutedEventArgs e)
+    private void OnThemeSelected(ThemeMode mode)
     {
-        ViewModel?.Theme.CycleNextTheme();
+        ViewModel?.Theme.SetThemeMode(mode);
+    }
+
+    private void OnPostProcessingToggled(bool isEnabled)
+    {
+        if (ViewModel is not null)
+        {
+            ViewModel.IsPostProcessingEnabled = isEnabled;
+        }
+    }
+
+    private void OnThemeMenuOpening(object sender, object e)
+    {
+        SyncThemeMenus();
+    }
+
+    private void SubscribeToThemeState(LyricsViewModel? viewModel)
+    {
+        if (_subscribedViewModel is not null)
+        {
+            _subscribedViewModel.PropertyChanged -= OnThemeStateChanged;
+            _subscribedViewModel.Theme.PropertyChanged -= OnThemeStateChanged;
+        }
+
+        _subscribedViewModel = viewModel;
+
+        if (viewModel is not null)
+        {
+            viewModel.PropertyChanged += OnThemeStateChanged;
+            viewModel.Theme.PropertyChanged += OnThemeStateChanged;
+        }
+    }
+
+    private void OnThemeStateChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ThemeManager.CurrentMode) or nameof(LyricsViewModel.IsPostProcessingEnabled))
+        {
+            SyncThemeMenus();
+        }
+    }
+
+    private void SyncThemeMenus()
+    {
+        if (ViewModel is null) return;
+        ThemeMode mode = ViewModel.Theme.CurrentMode;
+        bool isPostProcessingEnabled = ViewModel.IsPostProcessingEnabled;
+        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, isPostProcessingEnabled);
+        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, isPostProcessingEnabled);
+        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, isPostProcessingEnabled);
     }
 
     private async void OnOpenDiagnosticsHudClicked(object sender, RoutedEventArgs e)

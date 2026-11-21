@@ -120,11 +120,6 @@ public sealed partial class MobileSettingsView : UserControl
         InitializeComponent();
     }
 
-    private void OnCycleThemeClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel?.Theme.CycleNextTheme();
-    }
-
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
     {
         if (Timing is not null) await Timing.NudgeOffsetAsync(-500);
