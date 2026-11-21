@@ -27,9 +27,21 @@ flowchart TD
 | Form Factor | Breakpoint | Header Mode | Track Card | Lyrics Stage | Navigation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Small (Mobile)** | `< 680px` | Minimal + Overflow Flyout | Compact 56px thumbnail strip or dedicated tab | Touch-focused, 24px active line | 3-Tab Bottom Bar (Lyrics / Track / Sync & Info) |
-| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork | Balanced 32px active line | Direct dual-pane or adaptive portrait flow |
+| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork, in landscape and portrait | Balanced 32px active line | Dual-pane workspace |
 | **Large (Desktop)** | `>= 1080px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
 | **Fullscreen (TV)** | Kiosk toggle (<kbd>K</kbd> / <kbd>F11</kbd>) | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
+
+### Narrow Windows
+
+Inside each layout, controls shrink before they overflow:
+
+- **Large header:** the telemetry pills (connection, RTT, skew, poller) are hidden from the right when they do not fit, so the connection pill goes last. Below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the Spotify button is trimmed; hover it for the full name.
+- **Track card:** the album art shrinks to fit the card. A long device name is trimmed; hover it for the full name.
+- **Lyrics stage:** when the stage is narrower than 420px, the Karaoke, Autoscroll and Static/Live buttons become icon-only (hover for the tooltip). The theme toast shows at the top of the lyrics, not beside these buttons.
+- **Phones under 380px:** the mobile tab bar stacks each icon above its label, and the now-playing strip drops its timestamp and offset column.
+- **Kiosk mini bar:** long titles are trimmed. Below 700px the timestamp is hidden and **Exit Kiosk** becomes an icon, so it always stays on screen. Kiosk padding also shrinks on phone widths.
+- **Diagnostics HUD:** drops its 420px minimum width on small screens.
+- **Desktop app:** the window cannot be made smaller than 360 x 560.
 
 On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the **Post-processing effects** toggle), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
 
