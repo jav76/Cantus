@@ -85,6 +85,7 @@ nav:
   - User Guide:
       - Overview: user-guide/index.md
       - Playback & Display: user-guide/playback-and-display.md
+      - Pairing & Managing Displays: user-guide/displays.md
       - Timing & Latency Calibration: user-guide/timing-and-calibration.md
       - Dynamic Theming: user-guide/theming.md
       - Find a Song by Lyrics: user-guide/song-lookup.md
@@ -93,6 +94,7 @@ nav:
       - Self-Hosting with Docker: operator-guide/self-hosting.md
       - Spotify App Setup: operator-guide/spotify-setup.md
       - Reverse Proxy Setup: operator-guide/reverse-proxy.md
+      - Displays & Display Tokens: operator-guide/displays.md
       - Troubleshooting: operator-guide/troubleshooting.md
   - Architecture:
       - Overview: architecture/overview.md

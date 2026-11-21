@@ -1,3 +1,4 @@
+using Cantus.Core.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Cantus.Server.Services;
@@ -29,7 +30,7 @@ public static class PlaybackFollowUpPolls
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Follow-up playback poll failed for user {UserId}", userId);
+                logger.LogWarning(ex, "Follow-up playback poll failed for Session {SessionRef}", SessionLogRef.For(userId));
             }
         });
     }

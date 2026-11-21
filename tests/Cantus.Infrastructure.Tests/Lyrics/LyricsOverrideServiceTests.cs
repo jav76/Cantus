@@ -31,6 +31,7 @@ public sealed class LyricsOverrideServiceTests
     {
         _lrclib.ProviderName.Returns("LRCLIB");
         _netease.ProviderName.Returns("NetEase");
+        _netease.SupportsWordTiming.Returns(true);
         _lrclib.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.NotFound());
         _netease.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.NotFound());
 
@@ -55,6 +56,21 @@ public sealed class LyricsOverrideServiceTests
         Artist = Track.Artist,
         IsSynced = true,
         Lines = [new LyricLine(TimeSpan.Zero, text)]
+    };
+
+    private static SyncedLyrics WordTimedLyrics(string text) => new()
+    {
+        TrackId = Track.Id,
+        Title = Track.Title,
+        Artist = Track.Artist,
+        IsSynced = true,
+        Lines =
+        [
+            new LyricLine(
+                TimeSpan.Zero,
+                text,
+                [new LyricSyllable(TimeSpan.Zero, TimeSpan.FromMilliseconds(500), text)])
+        ]
     };
 
     [Fact]
@@ -207,5 +223,56 @@ public sealed class LyricsOverrideServiceTests
         result.Should().BeSameAs(automatic);
         calls.Should().Equal("remove-override", "match");
         await _lrclib.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Refetch_WhenALaterProviderHasWordTiming_PrefersItOverTheFirstLineLevelMatch()
+    {
+        SyncedLyrics lineLevel = Lyrics("Line level");
+        SyncedLyrics wordTimed = WordTimedLyrics("Word timed");
+        _lrclib.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Found(lineLevel));
+        _netease.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Found(wordTimed));
+
+        LyricsOverrideOutcome outcome = await _service.RefetchAsync(Track);
+
+        outcome.Status.Should().Be(LyricsOverrideStatus.Applied);
+        outcome.Lyrics.Should().BeSameAs(wordTimed);
+        await _repository.Received(1).SaveLyricsAsync(wordTimed, Arg.Any<TimeSpan?>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().SaveLyricsAsync(lineLevel, Arg.Any<TimeSpan?>(), Arg.Any<CancellationToken>());
+        await _repository.Received(1).RemoveLyricsOverrideAsync(Track.Id, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Clear_WhenTheCachedMatchIsLineLevel_ReturnsToTheWordTimingUpgradePolicy()
+    {
+        SyncedLyrics wordTimed = WordTimedLyrics("Word timed");
+        _repository.GetCachedLyricsAsync(Track.Id, Arg.Any<CancellationToken>()).Returns(Lyrics("Line level"));
+        _repository.TryStartWordTimingUpgradeAsync(
+                Track.Id,
+                Arg.Any<int>(),
+                Arg.Any<TimeSpan>(),
+                Arg.Any<CancellationToken>())
+            .Returns(true);
+        _netease.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Found(wordTimed));
+
+        SyncedLyrics? result = await _service.ClearAsync(Track);
+
+        result.Should().BeSameAs(wordTimed);
+        await _repository.Received(1).RemoveLyricsOverrideAsync(Track.Id, Arg.Any<CancellationToken>());
+        await _repository.Received(1).SaveLyricsAsync(wordTimed, Arg.Any<TimeSpan?>(), Arg.Any<CancellationToken>());
+        await _lrclib.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Clear_WhenNothingIsCached_PrefersWordTimingFromTheProviderChain()
+    {
+        SyncedLyrics wordTimed = WordTimedLyrics("Word timed");
+        _lrclib.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Found(Lyrics("Line level")));
+        _netease.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Found(wordTimed));
+
+        SyncedLyrics? result = await _service.ClearAsync(Track);
+
+        result.Should().BeSameAs(wordTimed);
+        await _repository.Received(1).SaveLyricsAsync(wordTimed, Arg.Any<TimeSpan?>(), Arg.Any<CancellationToken>());
     }
 }

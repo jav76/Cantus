@@ -1,6 +1,6 @@
 # Client & Uno Platform Architecture
 
-The Cantus client is built with **Uno Platform**, enabling a unified C# and XAML codebase to run natively across Linux (Skia/X11), Windows (WinUI 3), and modern web browsers via WebAssembly.
+The Cantus client is built with **Uno Platform**, so one C# and XAML codebase runs on Linux, Windows and macOS (Skia desktop) and in web browsers (WebAssembly).
 
 ---
 
@@ -13,7 +13,13 @@ flowchart TD
     subgraph Network Layer
         SignalR[SignalRPlaybackClient]
         Context[CantusJsonContext Source Generator]
+        PairingApi[DisplayPairingApi]
+        DisplaysApi[DisplayManagementApi]
+        Correction[LyricsCorrectionService]
         SignalR -.-> Context
+        PairingApi -.-> Context
+        DisplaysApi -.-> Context
+        Correction -.-> Context
         LookupClient[SongLookupClient REST]
         LookupClient -.-> Context
     end
@@ -28,6 +34,10 @@ flowchart TD
         Anchor[OptimisticSeekAnchor]
         Timing[PlaybackTiming]
         Session[SessionViewModel]
+        Displays[DisplaysViewModel]
+        Pairing[DisplayPairingViewModel]
+        Credentials[DisplayCredentialStore]
+        Picker[LyricsPickerViewModel]
         Lookup[SongLookupViewModel]
         Guess[SongGuessViewModel Collection]
         LVM --> LLVM
@@ -37,6 +47,13 @@ flowchart TD
         LVM --> Transport
         LVM --> Timing
         LVM --> Session
+        LVM --> Pairing
+        Session --> Displays
+        Pairing --> Credentials
+        LVM --> Picker
+        Picker --> Session
+        Picker --> Pairing
+        Picker --> Correction
         LVM --> Lookup
         Lookup --> Guess
         Transport --> Anchor
@@ -51,27 +68,46 @@ flowchart TD
         MobileSettings[MobileSettingsView.xaml]
         MiniBar[MiniPlaybackBar.xaml]
         Hud[DiagnosticsHudDialog.xaml]
+        PairingView[DisplayPairingView.xaml]
+        PromptView[DisplayPromptView.xaml]
+        DisplaysCard[DisplaysCard.xaml]
+        PickerDialog[LyricsPickerDialog.xaml]
         Find[SongLookupDialog.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
         MainView --> MobileSettings
         MainView --> MiniBar
+        MainView --> PairingView
+        MainView --> PromptView
+        TrackCard --> DisplaysCard
+        MobileSettings --> DisplaysCard
         Header --> Hud
+        TrackCard --> PickerDialog
+        MobileSettings --> PickerDialog
         Header --> Find
     end
 
-    SignalR -->|PlaybackState / Lyrics / NTP / Sessions| LVM
-    LVM -->|lyrics, track, toast| MainView
-    Theme -->|brushes and colors| MainView
-    Layout -->|breakpoint, sizes, mobile tab| MainView
-    Transport -->|controls and status| TrackCard
+    SignalR -->|"PlaybackState, Lyrics, NTP, Sessions"| LVM
+    LVM -->|"lyrics, track, toast"| MainView
+    Theme -->|"brushes and colors"| MainView
+    Layout -->|"breakpoint, sizes, mobile tab"| MainView
+    Transport -->|"controls and status"| TrackCard
     Transport --> MiniBar
-    Timing -->|offset and latency| TrackCard
+    Timing -->|"offset and latency"| TrackCard
     Timing --> MobileSettings
-    Session -->|sign-in state| Header
+    Session -->|"sign-in state"| Header
     Session --> TrackCard
     Session --> MobileSettings
+    PairingApi -->|"pairing code"| Pairing
+    Pairing -->|"code, QR, owner-only visibility"| PairingView
+    Pairing --> TrackCard
+    Pairing --> MobileSettings
+    DisplaysApi -->|"approve, list, rename, revoke"| Displays
+    Displays -->|"Displays list"| DisplaysCard
+    Displays -->|"approval, rename and remove prompt"| PromptView
+    Picker -->|"candidates and choices"| PickerDialog
+    Correction -->|"REST candidates and override"| Server[("Cantus Server")]
     Session -->|owner actions| Header
     LookupClient -->|search / play| Lookup
     Lookup -->|state, guesses| Find
@@ -82,38 +118,46 @@ flowchart TD
 ## Core Client Components
 
 ### 1. `SignalRPlaybackClient`
-- Manages the WebSocket lifecycle: automatic reconnect with exponential backoff, clock synchronization, and dispatching incoming payload events.
-- Utilizes `CantusJsonContext` (`JsonSerializerContext`) for AOT / trimmed WebAssembly source-generated JSON deserialization, ensuring zero reflection overhead and maximum runtime reliability.
-- Runs the 4-timestamp NTP clock synchronization loop.
+- Manages the WebSocket lifecycle: SignalR automatic reconnect (retries after 0, 1, 2, 5 and 10 seconds), plus a 5-second reconnect timer (`ReconnectInterval`) that starts a new connection whenever the hub is fully disconnected. It also dispatches incoming payload events.
+- Uses `CantusJsonContext` (`JsonSerializerContext`) for source-generated JSON, so serialization works in the trimmed WebAssembly build without reflection.
+- Runs the 4-timestamp NTP clock synchronization loop and passes each sample to `ClockOffsetEstimator`, which filters the samples and holds the resulting `RttMs` and `ClockOffsetMs` (see [NTP Clock Synchronization](ntp-clock-sync.md)).
 - Exposes `ReportVisibilityAsync(bool isVisible)` to signal document visibility state to the server and `RefreshPlaybackAsync()` for on-demand poll wakeups.
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `LyricsPicker` (`LyricsPickerViewModel`), `Lookup` (`SongLookupViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
 - Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
 - Each tick asks `PlaybackTiming` for the clock target and the render position, and asks `PlaybackTransport` to hold the position at an unconfirmed seek.
-- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`, connection state, Session lists, `ReceiveDisplayPaired` and `ReceiveDisplayRevoked` to `DisplayPairingViewModel`, `ReceiveDisplaysChanged` to `Session.Displays`, track changes to `LyricsPickerViewModel`). Lyrics the picker applies go through the same path as `ReceiveLyrics`. When the Session ends it clears the track card, lyrics, and theme; logout and a Display losing its token also clear the transport's playback state.
+- `ReceiveDisplaysChanged` refreshes `Session.Displays` on the UI thread. Opening the mobile **Sync & Info** tab (`Layout.IsMobileSettingsActive` turning on) also refreshes it, because a Display's REST calls can move its last-seen time without that event.
+- Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties. `SongLookupDialog` also takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
-| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Theme` | `Layout` |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `MainPage` | Yes | | | | Yes | Yes |
-| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | Yes |
-| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | Yes |
-| `LyricsStageView` | Yes | | | | Yes | Yes |
-| `MobileSettingsView` | Yes | | Yes | Yes | Yes | |
-| `MobileTabBar` | Yes | | | | Yes | Yes |
-| `MiniPlaybackBar` | Yes | Yes | | | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | |
-| `SongLookupDialog` | | | | | Yes | |
+| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Pairing` | `Displays` | `LyricsPicker` | `Theme` | `Layout` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `MainPage` | Yes | | | | Yes | Yes | | Yes | Yes |
+| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | | | Yes | Yes |
+| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | | Yes | Yes | Yes |
+| `LyricsStageView` | Yes | | | | | | | Yes | Yes |
+| `MobileSettingsView` | Yes | | Yes | Yes | Yes | Yes | Yes | Yes | |
+| `MobileTabBar` | Yes | | | | | | | Yes | Yes |
+| `MiniPlaybackBar` | Yes | Yes | | | Yes | | | Yes | |
+| `DisplayPairingView` | Yes | | | | Yes | | | Yes | Yes |
+| `DisplaysCard` | Yes | | | | | Yes | | Yes | |
+| `DisplayPromptView` | Yes | | | | | Yes | | Yes | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | | |
+| `LyricsPickerDialog` | | | | | | | Yes | | |
+| `SongLookupDialog` | | | | | | | | Yes | |
+
+`LyricsPickerDialog` takes the picker in its constructor and exposes it as the plain `Picker` property. `SongLookupDialog` takes the root in its constructor but keeps no `ViewModel` property: it binds `Lookup` and `Theme` as plain properties.
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -123,23 +167,28 @@ flowchart TD
   - **Dynamic Viewport Padding**: Computes top and bottom padding at runtime based on container height so that both the first and final lines of any track can be aligned to the vertical center.
 
 ### 4. `WasmInterop` Browser Hooks
-- Embedded JavaScript bridge for Uno WebAssembly:
-  - Hooks into browser `document.addEventListener("visibilitychange")` to track tab focus/minimization.
-  - Relays visibility state into C# via `SignalRPlaybackClient.ReportVisibilityAsync`, enabling server-side background poll rate reduction.
+- C# wrappers over `window.CantusInterop` (defined in `WasmScripts/index.html`) for Uno WebAssembly. On desktop heads they return defaults.
+  - `IsDocumentVisible` returns `!document.hidden`. `MainPage` polls it every 2 seconds and, on a change, calls `LyricsViewModel.ReportVisibilityAsync` (and `RefreshPlaybackAsync` when visible again), which lets the server slow polling for hidden tabs.
+  - Reads the page's query string (`GetLocationSearch`) and drops one parameter from the address without a reload (`RemoveQueryParameter`), for the `?pair=` approval link.
 
 ### 5. `LyricLineViewModel`
 - Represents an individual lyric line with observable properties for:
   - `IsActive`: Whether this line is currently being sung.
   - `IsPast`: Whether this line has already finished.
   - `LineBrush`, `FontSize`, `FontWeight`, and `Opacity`: Visual styling dynamically driven by theme and active state.
+- Drives the karaoke underline of the active line (`UpdateLineProgress`, `LineProgressFraction`), which has two modes:
+  - **Word timing** (`HasWordTiming`): the line carries `Syllables` from the lyrics payload. A `SyllableFillTimeline` fills each syllable's visible characters over its real start and duration, and holds still between syllables, so rests and held notes show as they are sung. A word's trailing space is not sung time: the fill crosses it when the next syllable starts. Character positions are found in the displayed line `Text` (enhanced LRC sends trimmed words and keeps the spaces only there), falling back to the joined syllable texts when a syllable is not in it. Width is approximated by character count (exact for CJK lines, where each character is its own syllable). The underline also shows on the final line, since its last syllable gives a real end.
+  - **Elapsed time** (no syllables, or none with visible text): the underline fills over `DurationMs`, the gap to the next line capped by `LyricsViewModel.ComputeLineFillDurationMs` when it is break-length. The final line has no duration and shows no underline.
+- `LyricsViewModel` maps syllables off the wire. A syllable without a duration (enhanced LRC word tags carry only starts) runs until the next syllable starts, and the last one until the line's fill end. When there is no fill end (the final line) or it is not after the last syllable's start, the last syllable gets a short text-length estimate so it still fills instead of snapping full.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
-- `ThemeManager` extracts dynamic palettes from album artwork bytes and provides WCAG-compliant high-contrast theme brushes. It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
-- `ResponsiveLayoutManager` dynamically classifies viewports into `Compact`, `Medium`, `Expanded`, `LargeDesktop`, and `FullscreenTv` breakpoints. It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
+- `ThemeManager` holds the theme mode (`CurrentMode`, `CycleNextTheme`) and the active `ColorPalette`, and exposes it as brushes. In `Dynamic` mode it asks `AlbumArtColorService` for artwork swatches and builds the palette with `ColorExtractionHelper` (see [Dynamic Theming](../user-guide/theming.md)). It raises a property change for every brush and for `ActivePrimaryAccentColor` and `ActiveBackgroundColor` when the palette changes, so views bind to it directly.
+- `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
 - Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
 - `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- `DisplayCredentialStore` keeps the Display token, id and name (`cantus_display_token`, `cantus_display_id`, `cantus_display_name`) through the same `ISettingsStore`, so a paired Display reconnects after a restart. `ISettingsStore` cannot remove keys, so clearing blanks them.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
 ### 8. `PlaybackTransport`
@@ -161,22 +210,54 @@ flowchart TD
 - `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
 - `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
-- `OwnerActionsVisibility` shows owner-only actions such as Find Song. It is keyed on `CurrentUserSession`, not `IsAuthorized`, because a paired Display is authorized but never receives the Session list.
-- Display management attaches here.
+- `OwnerActionsVisibility` shows owner-only actions such as Find Song. It is keyed on `CurrentUserSession`, not `IsAuthorized`, because a paired Display is authorized but normally never receives the Session list. Views also check `Pairing.OwnerControlsVisibility` for a Display paired after a sign-in.
+- Composes `Displays` (`DisplaysViewModel`), the owner's Display management. A Session list or a completed sign-in turns it on and loads the list; signing out, a revoke or an empty Session list turns it off and empties the list.
 
-### 11. `SongLookupViewModel`, `SongGuessViewModel` & `SongLookupDialog`
+### 11. `DisplayPairingViewModel` & `DisplayPairingView`
+- This client's side of becoming a [Display](../reference/rest-api.md#display-endpoints). The owner side (approving, renaming, revoking) belongs to `DisplaysViewModel`, composed by `SessionViewModel`.
+- States (`DisplayPairingState`): `Unpaired` (pairing screen closed), `RequestingCode` (waiting for the hub connection or the code), `ShowingCode`, `CodeExpired` (renewing), `RequestFailed` (retrying), and `Paired`.
+- `StartPairingAsync` opens the pairing screen. Once the hub connection is up it sends the connection id to `POST /api/displays/pairings` through `IDisplayPairingApi`. A code belongs to its connection, so every new `Connected` state requests a new one and any other state drops the shown code.
+- The shown code carries a QR (`QrCodeMatrix`, encoded with QRCoder and drawn as vector rectangles by `DisplayPairingView`) of the approval link `<ServerBaseUrl>/?pair=<CODE>` (`PAIR_QUERY_PARAMETER`), which opens the owner's approval prompt (see `DisplaysViewModel`). `CodeText` splits the code into two groups so it reads easily from a distance.
+- The server's `expiresAtUtc` is turned into a lifetime once, using the NTP clock offset, and clamped to `30s..1h`, so a wrong device clock cannot expire a code early or keep it forever. A one-second countdown (`ExpiresInText`) renews the code when it runs out. Failed requests show why (`StatusMessage`) and retry after 10 seconds, or 60 seconds when rate limited.
+- `CancelPairing` closes the screen and reconnects the hub, because the server drops a connection's pending code only when that connection closes.
+- `ApplyDisplayPaired` accepts any token sent to this connection while it is not already a Display, even for an earlier code or just after Cancel: the server sends it only to the connection that requested the code and has already created the Display, so dropping it would leave an orphan. It saves the token through `DisplayCredentialStore`, sets `Paired`, and reconnects with `ReconnectWithDisplayTokenAsync`. At startup a stored token sets `ISignalRPlaybackClient.DisplayToken` before the first connection.
+- `SignalRPlaybackClient.SelectConnectionCredential` picks what the access token factory sends: the Session token, else the Display token, else nothing (an anonymous connection that registers for the sign-in handoff). `ReconnectWithDisplayTokenAsync` with a token also discards any held Session token and its `session.txt`: pairing is offered only after the server returned no Sessions, so that Session is stale and would otherwise hide the Display token.
+- `ApplyDisplayRevoked` discards the token, raises `DisplayEnded`, reconnects without a credential and reopens the pairing screen with `REVOKED_MESSAGE`. A rejected token shows up as an empty `ReceiveSessions`, which the server never sends to an accepted Display. The server sends the same empty list when checking a credential fails, so the token is kept and retried (after 15 seconds, then 30), and discarded with `REJECTED_MESSAGE` only after `MAX_TOKEN_REJECTIONS` (3) empty lists in a row. `ApplyDiagnostics` ends the run: an accepted Display gets diagnostics with a non-zero authorized count. A non-empty Session list means an owner Session on the device won, so the Display token is dropped quietly.
+- `OwnerControlsVisibility` collapses every owner-only control on a Display: transport buttons and volume, the seek bars (not hit-testable), sync offset steppers, and account actions (Connect, Log Out). Device latency is a per-device preference that never reaches the server, so its controls and the <kbd>[</kbd> <kbd>]</kbd> shortcuts stay. `DisplayInfoVisibility` shows the Display's name instead. `PairingScreenVisibility` and `MainContentVisibility` swap the pairing screen and the main layout.
+
+### 12. `DisplaysViewModel`, `DisplaysCard` & `DisplayPromptView`
+- The owner's side of a [Display](../reference/rest-api.md#display-endpoints), over `IDisplayManagementApi` (`DisplayManagementApi`): `POST /api/displays/pairings/approve`, `GET /api/displays`, `PATCH` and `DELETE /api/displays/{displayId}`. Requests carry the Session token as `Authorization: Bearer` when the client holds one; the web app otherwise relies on the browser sending the Session cookie. Each answer maps to a `DisplayManagementStatus` (`400` `InvalidName`, `401` `NotSignedIn`, `403` `Forbidden`, `404` `NotFound`, `429` `RateLimited`, anything else or no answer `Failed`).
+- `Displays` holds a `DisplayItemViewModel` per Display (name and `LastSeenText`, such as "Last seen 5 min ago", measured against the server clock through the NTP offset). While signed in, a one-minute `TimeProvider` timer re-describes `LastSeenText` on the UI thread (`RefreshLastSeen`), so it ages between fetches. `RefreshAsync` replaces the list with the server's, keeping rows for Displays still listed. Only the latest of overlapping refreshes is applied, and none is applied after sign-out. A failed refresh keeps the rows and shows `ListError`.
+- One prompt (`PromptMode`: `Approve`, `Rename`, `Revoke`) serves all three owner actions. `DisplayPromptView` covers the page, so it works the same in every layout, including the mobile one. `ConfirmPromptAsync` sends the action, and `CanConfirm` gates it: an approval needs a code of letters and digits (case, spaces and hyphens are dropped, as the server does) and a trimmed name of 1 to 64 characters.
+- The list is fetched again after every successful action and on [`ReceiveDisplaysChanged`](../reference/signalr-api.md#receivedisplayschanged), which the server sends the owner's Session connections when a Display is paired, renamed, revoked or connects, so changes made on another device show at once. A rename or remove of a Display that is already gone (`404`) drops its row. Errors stay in the open prompt (`PromptError`) with the typed values kept, so the owner can correct them and retry.
+- `OpenApprovalFromLink` reads the approval link's `pair` query parameter (`ParsePairCode`). At startup `MainPage` passes it the page's query string (`WasmInterop.GetLocationSearch`, web app only) and, when it held a code, removes `pair` from the address (`WasmInterop.RemoveQueryParameter`) so a reload does not ask again. A paired Display ignores the link. Opening the prompt while signed out shows `SIGN_IN_HINT` and a **Connect Spotify** button; approving then answers `401` with `NOT_SIGNED_IN_MESSAGE`. Because the Spotify sign-in leaves the page and returns without the link, a code opened from a link while signed out, or typed in before **Connect Spotify** (`KeepCodeThroughSignIn`), is kept in per-device settings (`PendingPairCodeStore`). Signing in reopens the prompt with it. Cancelling the prompt forgets it, and a code older than the 5-minute pairing lifetime is dropped.
+- `DisplaysCard` shows the list with **Add display**, refresh, rename and remove buttons. It sits under the Spotify account card in `AdaptiveTrackCard` (wider layouts) and in `MobileSettingsView`, only for a signed-in owner and never on a Display. `MainPage` ignores keyboard shortcuts while the prompt is open and for keys typed into a text box. <kbd>Escape</kbd> closes the prompt wherever focus is, and <kbd>Enter</kbd> in its code or name field confirms it.
+
+### 13. `LyricsPickerViewModel`
+- The "Wrong lyrics?" picker for the owner's current track. Composed by the root from `SessionViewModel`, `DisplayPairingViewModel`, the current track (read through a delegate from `PlaybackTransport`), and an `ILyricsCorrectionService`.
+- `IsAvailable` / `ActionVisibility`: shown only while the Session list has a Session, a track is playing, and this client is not a paired Display (`DisplayPairingViewModel.IsDisplay`). A Display normally never receives the Session list, but one paired after a sign-in can still hold it, so the picker checks both. Becoming a Display closes an open picker, and `OpenAsync` does nothing on a Display. The track card button and the mobile settings card also collapse with `Pairing.OwnerControlsVisibility`, like the other owner-only controls (`GetLyricsPickerVisibility`).
+- `OpenAsync` loads `GET /api/lyrics/{trackId}/candidates` into `Candidates` (`LyricsCandidateItem`: provider, title, artist, duration, synced, plain or instrumental, preview, and whether it is the active override). `IsLoading`, `StatusText` (empty list, load errors) and `UnavailableText` (providers that could not be reached) describe the list. `ActiveOverrideText` and `ClearOverrideVisibility` come from the response's `activeOverride`.
+- Choices: `UseCandidateAsync`, `RefetchAsync`, `MarkNoLyricsAsync`, and `ClearOverrideAsync` post to `POST /api/lyrics/{trackId}/override`, which answers with the same `LyricsPayload` as `ReceiveLyrics`, per-syllable timing included, so the karaoke fill keeps following each word after a choice. `CanChoose` blocks a second choice while one is in flight. A successful choice closes the picker and raises `LyricsChanged` with the lyrics now in effect; the server also broadcasts them through `ReceiveLyrics`. The root applies them only while they match the track on screen, since the HTTP answer can arrive after the next track's lyrics. A failed choice keeps the picker open and explains why in `StatusText`.
+- `NotifyTrackChanged` (called by the root on each poll) closes the picker when the track changes, and answers that arrive after the picker closed or the track changed are dropped.
+- `LyricsCorrectionService` makes the REST calls against `ServerBaseUrl`, sends the Session token as a bearer token when the client holds one, and maps `400`, `401`, `403`, `404` and `502` to `LyricsCorrectionStatus`. Its payloads are in `CantusJsonContext`.
+- `LyricsPickerDialog` is the `ContentDialog` the track card (desktop and tablet) and the mobile settings tab open. It hides itself when the picker closes.
+
+### 14. `SongLookupViewModel`, `SongGuessViewModel` & `SongLookupDialog`
 - `SongLookupClient` posts to `/api/lookup/search` and `/api/lookup/play` with payloads registered in `CantusJsonContext`. It reads `ServerBaseUrl` and the Session token per request, sends `Authorization: Bearer` only when a token exists, and otherwise relies on the same-origin `cantus_session_id` cookie (WASM after a reload).
 - `SongLookupViewModel` runs a two-phase search: `scope: "local"` first, so library guesses show at once; when the server answers `onlineRecommended`, a second call with `scope: "auto"` runs while those guesses stay visible. "Not it? Search online" sends `scope: "online"`. A generation counter and a `CancellationTokenSource` drop stale responses; closing the dialog cancels the search in flight. There is no search-as-you-type.
 - States (`SongLookupState`): `Idle`, `SearchingLibrary`, `SearchingOnline`, `Results`, `Empty`, `Error`, `RateLimited`. A `403` shows "needs a signed-in account"; an inbound `429` shows "try again in a minute".
 - `SongGuessViewModel` holds one guess: title, artist, matched lines, the match text ("86% match, in your library", "found online (NetEase)"), and its own Play and Queue status.
-- `SongLookupDialog` is a `ContentDialog` opened from the header (a Find Song button on Large and Medium layouts, an overflow menu item on Small), visible only through `Session.OwnerActionsVisibility`. It has no `DefaultButton`: Enter in the fragment box (`MaxLength` 200) is handled in `KeyDown` and searches instead of closing the dialog. `MainPage` skips its keyboard shortcuts while a text box has focus, so typing `K`, `T` or `M` does not trigger the kiosk, theme or mobile tab shortcuts.
+- `SongLookupDialog` is a `ContentDialog` opened from the header (a Find Song button on Large and Medium layouts, an overflow menu item on Small), visible only while both `Session.OwnerActionsVisibility` and `Pairing.OwnerControlsVisibility` are visible (`GetSongLookupVisibility`), so a client paired as a Display after a sign-in never shows it. It has no `DefaultButton`: Enter in the fragment box (`MaxLength` 200) is handled in `KeyDown` and searches instead of closing the dialog. `MainPage` skips its keyboard shortcuts while a text box has focus, so typing `K`, `T` or `M` does not trigger the kiosk, theme or mobile tab shortcuts.
 
 ---
 
 ## Target Runtime Matrix
 
-| Platform Target | Runtime Engine | UI Backend | Packaging |
+| Platform Target | Target Framework | UI Backend | Packaging (release workflow) |
 | :--- | :--- | :--- | :--- |
-| **WebAssembly (WASM)** | .NET 10 WebAssembly | Uno DOM/HTML Engine | Embedded in Docker container (`wwwroot`). |
-| **Linux Desktop / Raspberry Pi** | .NET 10 CoreCLR | Skia / X11 / Wayland | Standalone native binary / Flatpak. |
-| **Windows Desktop** | .NET 10 CoreCLR | WinUI 3 / Windows App SDK | MSIX / Standalone `.exe`. |
+| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries). |
+| **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`). |
+| **Windows Desktop** | `net10.0-desktop` (`win-x64`) | Skia (Win32) | `.zip` and Inno Setup installer (`packaging/windows`). |
+| **macOS Desktop** | `net10.0-desktop` (`osx-x64`, `osx-arm64`) | Skia (macOS) | `.tar.gz`. |
+
+The client project also has a `net10.0-windows10.0.26100` (WinUI) target when built on Windows, but releases ship the Skia desktop build.

@@ -10,6 +10,10 @@
                 <um:MaterialTheme />
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- Bundled because Consolas is missing on WASM and Linux. The Bold file is its own family: set no FontWeight on it, or renderers add a synthetic bold. -->
+            <FontFamily x:Key="MonoFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Regular.ttf#Noto Sans Mono</FontFamily>
+            <FontFamily x:Key="MonoBoldFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Bold.ttf#Noto Sans Mono</FontFamily>
+
             <SolidColorBrush x:Key="BrandPrimaryBrush" Color="#8B5CF6" />
             <SolidColorBrush x:Key="BrandDarkBackgroundBrush" Color="#0C0D14" />
             <SolidColorBrush x:Key="SurfaceCardBrush" Color="#CC121420" />

@@ -54,13 +54,31 @@ public static class DtoMappingExtensions
         };
     }
 
-    public static LyricsCandidatesDto ToDto(this LyricsCandidateList list, string trackId)
+    public static LyricsCandidatesDto ToDto(
+        this LyricsCandidateList list,
+        string trackId,
+        LyricsOverride? activeOverride = null)
     {
         return new LyricsCandidatesDto
         {
             TrackId = trackId,
             Candidates = list.Candidates.Select(c => c.ToDto()).ToList(),
-            UnavailableProviders = list.UnavailableProviders
+            UnavailableProviders = list.UnavailableProviders,
+            ActiveOverride = activeOverride?.ToDto()
+        };
+    }
+
+    public static LyricsActiveOverrideDto ToDto(this LyricsOverride lyricsOverride)
+    {
+        return new LyricsActiveOverrideDto
+        {
+            Kind = lyricsOverride.Kind switch
+            {
+                LyricsOverrideKind.NoLyrics => LyricsActiveOverrideDto.KIND_NO_LYRICS,
+                _ => LyricsActiveOverrideDto.KIND_CANDIDATE
+            },
+            Provider = lyricsOverride.Provider,
+            CandidateId = lyricsOverride.ProviderCandidateId
         };
     }
 
@@ -85,7 +103,17 @@ public static class DtoMappingExtensions
         List<LyricLineDto> lines = lyrics.Lines.Select(l => new LyricLineDto
         {
             TimestampMs = (long)l.Timestamp.TotalMilliseconds,
-            Text = l.Text
+            Text = l.Text,
+            Syllables = l.Syllables is { Count: > 0 }
+                ? l.Syllables
+                    .Select(s => new LyricSyllableDto
+                    {
+                        TimestampMs = (long)s.Timestamp.TotalMilliseconds,
+                        DurationMs = (long)s.Duration.TotalMilliseconds,
+                        Text = s.Text
+                    })
+                    .ToList()
+                : null
         }).ToList();
 
         return new LyricsDto

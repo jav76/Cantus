@@ -244,6 +244,8 @@ public static class AuthEndpoints
         ISpotifyAuthService authService,
         ISessionTokenResolver sessionResolver,
         ICredentialResolver credentialResolver,
+        IDisplayService displayService,
+        IDisplayConnectionTracker displayConnections,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -268,7 +270,12 @@ public static class AuthEndpoints
             return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
 
-        bool revoked = await authService.RevokeSessionAsync(userId, cancellationToken);
+        bool revoked = await EndSessionAsync(
+            userId,
+            authService,
+            displayService,
+            displayConnections,
+            cancellationToken);
         if (!revoked)
         {
             return Results.NotFound(new { Message = $"Session '{userId}' not found." });
@@ -284,6 +291,8 @@ public static class AuthEndpoints
         ISpotifyAuthService authService,
         ISessionTokenResolver sessionResolver,
         ICredentialResolver credentialResolver,
+        IDisplayService displayService,
+        IDisplayConnectionTracker displayConnections,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -297,13 +306,47 @@ public static class AuthEndpoints
         string? sessionId = sessionResolver.ResolveSessionId(context);
         if (!string.IsNullOrEmpty(sessionId))
         {
-            await authService.RevokeSessionAsync(sessionId, cancellationToken);
+            await EndSessionAsync(
+                sessionId,
+                authService,
+                displayService,
+                displayConnections,
+                cancellationToken);
             await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
             await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
         }
 
         context.Response.Cookies.Delete("cantus_session_id");
         return Results.Ok(new { Message = "Logged out and session revoked." });
+    }
+
+    /// <summary>
+    /// Revokes a Session and closes the live connections of its Displays, which the database
+    /// deletes along with it. Returns false when the Session does not exist.
+    /// </summary>
+    private static async Task<bool> EndSessionAsync(
+        string sessionId,
+        ISpotifyAuthService authService,
+        IDisplayService displayService,
+        IDisplayConnectionTracker displayConnections,
+        CancellationToken cancellationToken)
+    {
+        // Listed before the deletion removes them, but closed only after it, so a closed
+        // Display that reconnects presents a token that no longer validates.
+        IReadOnlyList<DisplayInfo> displays = await displayService.ListAsync(sessionId, cancellationToken);
+
+        bool revoked = await authService.RevokeSessionAsync(sessionId, cancellationToken);
+        if (!revoked)
+        {
+            return false;
+        }
+
+        foreach (DisplayInfo display in displays)
+        {
+            await displayConnections.DisconnectAsync(display.Id);
+        }
+
+        return true;
     }
 
     private static string GenerateAuthSuccessHtml(UserSession session)

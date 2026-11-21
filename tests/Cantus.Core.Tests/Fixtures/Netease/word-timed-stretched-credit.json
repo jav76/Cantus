@@ -1,0 +1,22 @@
+{
+  "sgc": false,
+  "sfy": false,
+  "qfy": false,
+  "lrc": {
+    "version": 128,
+    "lyric": "[00:00.000] 作词 : alpha bravo/charlie delta/echo foxtrot\n[00:01.000] 作曲 : golf hotel/india juliet/kilo lima\n[00:02.200]编曲：mike november\n[00:52.200]oscar papa quebec romeo sierra\n[00:55.090]tango uniform victor whiskey xray\n[00:58.280]yankee zulu alpha2 bravo2\n"
+  },
+  "tlyric": {
+    "version": 27,
+    "lyric": "[00:02.200]\n[00:52.200]甲乙丙丁戊己庚辛壬癸甲\n[00:55.090]乙丙丁戊己庚辛壬\n[00:58.280]癸甲乙丙丁"
+  },
+  "yrc": {
+    "version": 120,
+    "lyric": "[0,0](0,0,0) 作词 : charlie2 delta2/echo2 foxtrot2/golf2 hotel2\n[0,0](0,0,0) 作曲 : india2 juliet2/kilo2 lima2/mike2 november2\n[0,52730](0,10540,0)编(10540,10540,0)曲(21080,10540,0)：(31620,10540,0)oscar2 (42160,10570,0)papa2\n[52730,3150](52730,270,0)quebec2 (53000,150,0)romeo2 (53150,390,0)sierra2 (53540,450,0)tango2 (53990,1470,0)uniform2\n[55880,3300](55880,510,0)victor2 (56390,330,0)whiskey2 (56720,180,0)xray2 (56900,300,0)yankee2 (57200,1710,0)zulu2\n[59180,3060](59180,450,0)alpha3 (59630,480,0)bravo3 (60110,150,0)charlie3 (60260,1980,0)delta3\n"
+  },
+  "ytlrc": {
+    "version": 6,
+    "lyric": "[00:52.730]戊己庚辛壬癸甲乙丙丁戊\n[00:55.880]己庚辛壬癸甲乙丙\n[00:59.180]丁戊己庚辛"
+  },
+  "code": 200
+}

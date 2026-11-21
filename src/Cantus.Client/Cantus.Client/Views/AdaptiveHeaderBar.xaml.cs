@@ -40,6 +40,19 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         private set => SetValue(SessionProperty, value);
     }
 
+    public static readonly DependencyProperty PairingProperty =
+        DependencyProperty.Register(
+            nameof(Pairing),
+            typeof(DisplayPairingViewModel),
+            typeof(AdaptiveHeaderBar),
+            new PropertyMetadata(null));
+
+    public DisplayPairingViewModel? Pairing
+    {
+        get => (DisplayPairingViewModel?)GetValue(PairingProperty);
+        private set => SetValue(PairingProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -72,6 +85,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         AdaptiveHeaderBar header = (AdaptiveHeaderBar)d;
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         header.Session = viewModel?.Session;
+        header.Pairing = viewModel?.Pairing;
         header.Theme = viewModel?.Theme;
         header.Layout = viewModel?.Layout;
     }
@@ -148,6 +162,12 @@ public sealed partial class AdaptiveHeaderBar : UserControl
             await Session.LogoutAsync();
         }
     }
+
+    /// <summary>Find a song is owner-only, so it never shows on a Display, even one paired after a sign-in.</summary>
+    public Visibility GetSongLookupVisibility(Visibility ownerControls, Visibility ownerActions) =>
+        ownerControls == Visibility.Visible && ownerActions == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {

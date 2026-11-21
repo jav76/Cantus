@@ -6,7 +6,7 @@ namespace Cantus.Core.Models;
 public static class BuildInfo
 {
     private const int SHORT_SHA_LENGTH = 7;
-    private const string DEFAULT_VERSION = "1.0.0-dev";
+    private const string DEFAULT_VERSION = "0.2.0-dev";
     private const string UNKNOWN_SHA = "unknown";
 
     static BuildInfo()

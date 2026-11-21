@@ -50,6 +50,45 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(SessionProperty, value);
     }
 
+    public static readonly DependencyProperty PairingProperty =
+        DependencyProperty.Register(
+            nameof(Pairing),
+            typeof(DisplayPairingViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public DisplayPairingViewModel? Pairing
+    {
+        get => (DisplayPairingViewModel?)GetValue(PairingProperty);
+        private set => SetValue(PairingProperty, value);
+    }
+
+    public static readonly DependencyProperty DisplaysProperty =
+        DependencyProperty.Register(
+            nameof(Displays),
+            typeof(DisplaysViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public DisplaysViewModel? Displays
+    {
+        get => (DisplaysViewModel?)GetValue(DisplaysProperty);
+        private set => SetValue(DisplaysProperty, value);
+    }
+
+    public static readonly DependencyProperty LyricsPickerProperty =
+        DependencyProperty.Register(
+            nameof(LyricsPicker),
+            typeof(LyricsPickerViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public LyricsPickerViewModel? LyricsPicker
+    {
+        get => (LyricsPickerViewModel?)GetValue(LyricsPickerProperty);
+        private set => SetValue(LyricsPickerProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -70,6 +109,9 @@ public sealed partial class MobileSettingsView : UserControl
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         settings.Timing = viewModel?.Timing;
         settings.Session = viewModel?.Session;
+        settings.Pairing = viewModel?.Pairing;
+        settings.Displays = viewModel?.Session.Displays;
+        settings.LyricsPicker = viewModel?.LyricsPicker;
         settings.Theme = viewModel?.Theme;
     }
 
@@ -108,6 +150,14 @@ public sealed partial class MobileSettingsView : UserControl
         if (Timing is not null) await Timing.NudgeOffsetAsync(500);
     }
 
+    private async void OnWrongLyricsClicked(object sender, RoutedEventArgs e)
+    {
+        if (LyricsPicker is not null)
+        {
+            await LyricsPickerDialog.ShowForAsync(LyricsPicker, XamlRoot);
+        }
+    }
+
     private void OnLatencyMinusClicked(object sender, RoutedEventArgs e)
     {
         Timing?.AdjustLatencyCompensation(-50);
@@ -141,6 +191,14 @@ public sealed partial class MobileSettingsView : UserControl
         }
     }
 
+    private async void OnPairAsDisplayClicked(object sender, RoutedEventArgs e)
+    {
+        if (Pairing is not null)
+        {
+            await Pairing.StartPairingAsync();
+        }
+    }
+
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)
     {
         if (Session is not null)
@@ -148,6 +206,19 @@ public sealed partial class MobileSettingsView : UserControl
             await Session.LogoutAsync();
         }
     }
+
+    /// <summary>The Displays card shows only for a signed-in owner, never on a Display.</summary>
+    public Visibility GetDisplaysCardVisibility(Visibility ownerControls, Visibility displaysSection) =>
+        BothVisible(ownerControls, displaysSection);
+
+    /// <summary>The "Wrong lyrics?" card is owner-only, so it never shows on a Display.</summary>
+    public Visibility GetLyricsPickerVisibility(Visibility ownerControls, Visibility pickerAction) =>
+        BothVisible(ownerControls, pickerAction);
+
+    private static Visibility BothVisible(Visibility first, Visibility second) =>
+        first == Visibility.Visible && second == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     public string GetRttText(long? rtt = null) => $"{rtt.GetValueOrDefault()}ms";
     public string GetSkewText(long? skew = null)

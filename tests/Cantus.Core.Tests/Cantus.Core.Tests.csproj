@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Cantus.Core\Cantus.Core.csproj" />
     <ProjectReference Include="..\..\src\Cantus.Generators\Cantus.Generators.csproj" />
   </ItemGroup>

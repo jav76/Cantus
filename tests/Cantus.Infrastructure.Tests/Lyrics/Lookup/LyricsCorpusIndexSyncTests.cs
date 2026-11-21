@@ -57,7 +57,7 @@ public sealed class LyricsCorpusIndexSyncTests : IDisposable
     }
 
     /// <summary>The one place these tests build a repository, so a constructor change is a one-line fix.</summary>
-    private static SqliteLyricsCacheRepository CreateRepository(CantusDbContext context) => new(context);
+    private static SqliteLyricsCacheRepository CreateRepository(CantusDbContext context) => new(context, TimeProvider.System);
 
     private async Task WithRepositoryAsync(Func<SqliteLyricsCacheRepository, Task> action)
     {

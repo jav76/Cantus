@@ -34,6 +34,7 @@ public sealed class LyricsCandidatesEndpointTests : IClassFixture<WebApplication
     private readonly Mock<IDisplayService> _mockDisplayService = new();
     private readonly Mock<ILyricsFetchProvider> _lrclib = new();
     private readonly Mock<ILyricsFetchProvider> _netease = new();
+    private readonly Mock<ILyricsCacheRepository> _mockRepository = new();
 
     public LyricsCandidatesEndpointTests(WebApplicationFactory<Program> factory)
     {
@@ -61,6 +62,7 @@ public sealed class LyricsCandidatesEndpointTests : IClassFixture<WebApplication
             {
                 services.AddScoped(_ => _mockAuthService.Object);
                 services.AddScoped(_ => _mockDisplayService.Object);
+                services.AddScoped(_ => _mockRepository.Object);
                 services.AddScoped<IReadOnlyList<ILyricsFetchProvider>>(_ => new[] { _lrclib.Object, _netease.Object });
             });
         });
@@ -226,6 +228,83 @@ public sealed class LyricsCandidatesEndpointTests : IClassFixture<WebApplication
         LyricsCandidatesDto? dto = await response.Content.ReadFromJsonAsync<LyricsCandidatesDto>();
         dto!.Candidates.Select(c => c.ProviderCandidateId).Should().Equal("111");
         dto.UnavailableProviders.Should().Equal("LRCLIB");
+    }
+
+    [Fact]
+    public async Task GetCandidates_WithoutAnOverride_ReportsNoActiveOverride()
+    {
+        HttpClient client = _factory.CreateClient();
+        SetCurrentTrack(SESSION_ID, CurrentTrack);
+        SetupProvidersWithOneCandidateEach();
+
+        HttpResponseMessage response = await client.SendAsync(CandidatesRequest(TRACK_ID, SESSION_ID));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        LyricsCandidatesDto? dto = await response.Content.ReadFromJsonAsync<LyricsCandidatesDto>();
+        dto!.ActiveOverride.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCandidates_WithAPickedCandidate_ReportsItAsTheActiveOverride()
+    {
+        HttpClient client = _factory.CreateClient();
+        SetCurrentTrack(SESSION_ID, CurrentTrack);
+        SetupProvidersWithOneCandidateEach();
+        SyncedLyrics picked = new()
+        {
+            TrackId = TRACK_ID,
+            Title = CurrentTrack.Title,
+            Artist = CurrentTrack.Artist,
+            IsSynced = true,
+            Lines = [new LyricLine(TimeSpan.FromSeconds(1), "I'm writing you this letter")]
+        };
+        _mockRepository
+            .Setup(r => r.GetLyricsOverrideAsync(TRACK_ID, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LyricsOverride.ForCandidate("NetEase", "111", picked));
+
+        HttpResponseMessage response = await client.SendAsync(CandidatesRequest(TRACK_ID, SESSION_ID));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        LyricsCandidatesDto? dto = await response.Content.ReadFromJsonAsync<LyricsCandidatesDto>();
+        dto!.ActiveOverride.Should().BeEquivalentTo(new LyricsActiveOverrideDto
+        {
+            Kind = "candidate",
+            Provider = "NetEase",
+            CandidateId = "111"
+        });
+    }
+
+    [Fact]
+    public async Task GetCandidates_WithANoLyricsOverride_ReportsItWithoutAProvider()
+    {
+        HttpClient client = _factory.CreateClient();
+        SetCurrentTrack(SESSION_ID, CurrentTrack);
+        SetupProvidersWithOneCandidateEach();
+        _mockRepository
+            .Setup(r => r.GetLyricsOverrideAsync(TRACK_ID, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LyricsOverride.ForNoLyrics(TRACK_ID));
+
+        HttpResponseMessage response = await client.SendAsync(CandidatesRequest(TRACK_ID, SESSION_ID));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        LyricsCandidatesDto? dto = await response.Content.ReadFromJsonAsync<LyricsCandidatesDto>();
+        dto!.ActiveOverride.Should().BeEquivalentTo(new LyricsActiveOverrideDto
+        {
+            Kind = "noLyrics",
+            Provider = null,
+            CandidateId = null
+        });
+        dto.Candidates.Should().HaveCount(2);
+    }
+
+    private void SetupProvidersWithOneCandidateEach()
+    {
+        _lrclib
+            .Setup(p => p.GetCandidatesAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { Candidate("LRCLIB", "501", true) });
+        _netease
+            .Setup(p => p.GetCandidatesAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { Candidate("NetEase", "111", true) });
     }
 
     [Fact]

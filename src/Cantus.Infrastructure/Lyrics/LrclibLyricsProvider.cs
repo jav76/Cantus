@@ -17,6 +17,8 @@ public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvide
 
     public string ProviderName => PROVIDER_NAME;
 
+    public bool SupportsWordTiming => false;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,

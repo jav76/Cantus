@@ -1,6 +1,6 @@
 # System Architecture Overview
 
-Cantus is built following **Clean Architecture** principles to separate concerns, ensure testability, and isolate external third-party dependencies (such as Spotify Web API and LRCLIB) from core domain business logic.
+Cantus is built following **Clean Architecture** principles to separate concerns, ensure testability, and isolate external third-party dependencies (such as the Spotify Web API, LRCLIB and NetEase) from core domain business logic.
 
 ---
 
@@ -19,18 +19,18 @@ flowchart TB
     subgraph Layer2["2. Server Engine & Application Layer"]
         Hub["SignalR PlaybackHub<br/>(WebSocket Real-Time Broadcast)"]
         Engine["Adaptive Polling Engine<br/>(ActiveUsersPlaybackMonitor)"]
-        Endpoints["ASP.NET Core Minimal APIs<br/>(/api/auth, /api/lyrics, /api/health)"]
+        Endpoints["ASP.NET Core Minimal APIs<br/>(/api/auth, /api/lyrics, /api/displays, /api/health)"]
     end
 
     subgraph Layer3["3. Core Domain Layer"]
-        Models["Domain Models<br/>(PlaybackState, SyncedLyrics, LyricLine)"]
-        Parser["LRC Parser Engine<br/>(LrcParser, Timestamp Normalizer)"]
-        Interfaces["Repository Interfaces<br/>(ILyricsCacheRepository, ISessionRepository)"]
+        Models["Domain Models<br/>(PlaybackState, TrackInfo, SyncedLyrics, LyricLine)"]
+        Parser["Lyrics Parsers<br/>(LrcParser, YrcParser)"]
+        Interfaces["Interfaces<br/>(ILyricsProvider, ILyricsCacheRepository, ISpotifyAuthService, ISpotifyPlayerClient, IDisplayService)"]
     end
 
     subgraph Layer4["4. Infrastructure & Persistence Layer"]
         Spotify["Spotify Integration<br/>(SpotifyAuthService, SpotifyPlayerClient)"]
-        LRCLIB["Lyrics Provider<br/>(LrclibLyricsProvider)"]
+        LRCLIB["Lyrics Providers<br/>(CachedLyricsService, LrclibLyricsProvider, NeteaseLyricsProvider)"]
         DB["SQLite Database & EF Core<br/>(CantusDbContext)"]
         Crypto["ASP.NET Core Data Protection<br/>(DataProtectionTokenEncryptionService)"]
     end
@@ -39,7 +39,7 @@ flowchart TB
         Docker["Multi-Arch Container<br/>(amd64 / arm64)"]
     end
 
-    Layer1 -->|SignalR / HTTP| Layer2
+    Layer1 -->|"SignalR and HTTP"| Layer2
     Layer2 --> Layer3
     Layer2 --> Layer4
     Layer4 --> Layer3
@@ -53,19 +53,19 @@ flowchart TB
 
 ### 1. Client Presentation (Uno Platform)
 - **Technology**: Uno Platform (C# / XAML), Skia Linux/Windows, WebAssembly.
-- **Responsibilities**: Renders high-frame-rate scrolling lyrics, extracts dynamic color palettes from album artwork, performs local sub-millisecond clock interpolation, and dispatches UI events.
+- **Responsibilities**: Renders scrolling lyrics at about 60 FPS, extracts dynamic color palettes from album artwork, interpolates the playback position from the NTP-corrected clock, and dispatches UI events.
 
 ### 2. Server Engine & Real-Time Hub (ASP.NET Core)
 - **Technology**: ASP.NET Core 10 Minimal APIs, Microsoft SignalR.
-- **Responsibilities**: Coordinates connected client display rooms, manages the background adaptive polling engine (featuring end-of-track acceleration, graduated backoff, client tab visibility throttling, and on-demand refresh), orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
+- **Responsibilities**: Tracks each owner's connected Session and Display connections, manages the background adaptive polling engine (featuring end-of-track acceleration, graduated backoff, client tab visibility throttling, and on-demand refresh), orchestrates Spotify token renewal, and handles 4-timestamp NTP clock sync pings.
 
 ### 3. Core Domain Models & Contracts
-- **Technology**: Pure .NET 10 Standard library (Zero external framework dependencies).
-- **Responsibilities**: Contains entity definitions (`PlaybackState`, `SyncedLyrics`, `LyricLine`, `UserSession`), parsing algorithms (`LrcParser`), and abstract provider/repository contracts.
+- **Technology**: `net10.0` class library. Its only package references are `Microsoft.Extensions.DependencyInjection.Abstractions` and `Microsoft.Extensions.Logging.Abstractions`.
+- **Responsibilities**: Contains domain models (`PlaybackState`, `TrackInfo`, `SyncedLyrics`, `LyricLine`, `UserSession`, `DisplayInfo`, `LyricsOverride`), lyrics parsers (`LrcParser`, `YrcParser`), and provider and repository contracts.
 
 ### 4. Infrastructure & External Services
 - **Technology**: Entity Framework Core with SQLite, ASP.NET Core Data Protection, `HttpClient`.
-- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB for synchronized lyrics with fuzzy matching, manages SQLite caching with 30-day negative caching for instrumental songs, and encrypts OAuth refresh tokens at rest.
+- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB (exact lookup, then search) with NetEase as a fallback, manages the SQLite lyrics cache with 30-day negative caching for tracks no provider has, stores owner overrides and Displays, and encrypts OAuth tokens at rest.
 
 ### 5. DevOps & Containerization
 - **Technology**: Multi-stage Docker build, Docker Compose, GitHub Actions.
@@ -77,7 +77,7 @@ flowchart TB
 
 To explore specific subsystems in depth:
 
-- [**NTP Clock Synchronization**](ntp-clock-sync.md): How Cantus synchronizes client display clocks with sub-millisecond accuracy.
+- [**NTP Clock Synchronization**](ntp-clock-sync.md): How Cantus estimates the offset between client and server clocks.
 - [**Adaptive Polling Engine**](adaptive-polling.md): How Cantus tracks Spotify playback efficiently without exceeding API rate limits.
 - [**Multi-Tier Lyrics Caching**](lyrics-caching.md): How lyrics are resolved, cached, and validated.
 - [**Uno Platform Client Architecture**](client-uno.md): How the MVVM pattern and cross-platform UI rendering work under the hood.

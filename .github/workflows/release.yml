@@ -11,9 +11,7 @@ on:
         required: true
         default: 'v1.0.0'
 
-permissions:
-  contents: write
-  packages: write
+permissions: {}
 
 jobs:
   # ============================================================================
@@ -21,29 +19,43 @@ jobs:
   # ============================================================================
   prepare:
     name: Prepare Release Metadata
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
+    # contents: write creates the draft release.
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.meta.outputs.VERSION }}
       tag: ${{ steps.meta.outputs.TAG }}
       is_prerelease: ${{ steps.meta.outputs.IS_PRERELEASE }}
 
     steps:
+      - name: Restrict Manual Releases to main or a Tag
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" && "$GITHUB_REF" != refs/tags/v* ]]; then
+            echo "::error::Manual releases must be dispatched from main or a v* tag, not ${GITHUB_REF}."
+            exit 1
+          fi
+
       - name: Parse and Validate Version & Tag
         id: meta
         shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            RAW_VER="${{ github.event.inputs.version }}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            RAW_VER="$INPUT_VERSION"
             if [ -z "${RAW_VER}" ]; then
               echo "::error::Release version tag is required when triggering manually."
               exit 1
             fi
           else
-            if [[ ! "${{ github.ref }}" =~ ^refs/tags/ ]]; then
-              echo "::error::Release workflow triggered by push, but ref is not a tag: ${{ github.ref }}"
+            if [[ ! "$GITHUB_REF" =~ ^refs/tags/ ]]; then
+              echo "::error::Release workflow triggered by push, but ref is not a tag: $GITHUB_REF"
               exit 1
             fi
-            RAW_VER="${{ github.ref_name }}"
+            RAW_VER="$GITHUB_REF_NAME"
           fi
 
           CLEAN_VER="${RAW_VER#v}"
@@ -61,14 +73,18 @@ jobs:
             IS_PRERELEASE="true"
           fi
 
-          echo "VERSION=${CLEAN_VER}" >> $GITHUB_OUTPUT
-          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
-          echo "IS_PRERELEASE=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+          {
+            echo "VERSION=${CLEAN_VER}"
+            echo "TAG=${TAG}"
+            echo "IS_PRERELEASE=${IS_PRERELEASE}"
+          } >> "$GITHUB_OUTPUT"
 
-          echo "### 🚀 Release Metadata Prepared" >> $GITHUB_STEP_SUMMARY
-          echo "- **Target Tag**: \`${TAG}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Semantic Version**: \`${CLEAN_VER}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Pre-release**: \`${IS_PRERELEASE}\`" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "### 🚀 Release Metadata Prepared"
+            echo "- **Target Tag**: \`${TAG}\`"
+            echo "- **Semantic Version**: \`${CLEAN_VER}\`"
+            echo "- **Pre-release**: \`${IS_PRERELEASE}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # The draft release is created before any build runs so that each matrix
       # job can attach its own packages directly, rather than pushing ~750 MB
@@ -92,15 +108,21 @@ jobs:
   publish-docker:
     name: Publish Multi-Arch Docker Image (GHCR)
     needs: [prepare]
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
+    # packages: write pushes the image to GHCR.
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Extract Docker Metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -110,20 +132,20 @@ jobs:
             type=raw,value=rc,enable=${{ needs.prepare.outputs.is_prerelease == 'true' }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Multi-Arch Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
@@ -144,6 +166,7 @@ jobs:
     name: Build Desktop Client (${{ matrix.name }})
     needs: [prepare]
     runs-on: ${{ matrix.os }}
+    # contents: write uploads the packages to the draft release.
     permissions:
       contents: write
     strategy:
@@ -153,7 +176,7 @@ jobs:
           - os: windows-latest
             rid: win-x64
             name: Windows-x64
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-x64
             name: Linux-x64
           - os: macos-latest
@@ -165,36 +188,46 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup .NET 10 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: '10.0.x'
 
       - name: Publish Self-Contained Desktop Client
+        shell: bash
+        env:
+          RID: ${{ matrix.rid }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: >
           dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj
           -f net10.0-desktop
-          -r ${{ matrix.rid }}
+          -r "$RID"
           -c Release
           -p:PublishSingleFile=true
-          -p:Version="${{ needs.prepare.outputs.version }}"
-          -p:SourceRevisionId="${{ github.sha }}"
+          -p:Version="$VERSION"
+          -p:SourceRevisionId="$GITHUB_SHA"
           --self-contained true
           -o ./publish
 
       - name: Package Linux Artifacts
         if: runner.os == 'Linux'
         shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           mkdir -p ./artifacts
           tar -czvf "./artifacts/Cantus.Client-Linux-x64.tar.gz" -C ./publish .
-          ./packaging/linux/build-appimage.sh ./publish ./artifacts "${{ needs.prepare.outputs.version }}"
+          ./packaging/linux/build-appimage.sh ./publish ./artifacts "$VERSION"
 
       - name: Package Windows Artifacts
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           New-Item -ItemType Directory -Force -Path ./artifacts
           Compress-Archive -Path ./publish/* -DestinationPath ./artifacts/Cantus.Client-Windows-x64.zip
@@ -205,14 +238,16 @@ jobs:
             choco install innosetup --yes --no-progress
             $isccPath = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
           }
-          & $isccPath /DSourceDir="$((Get-Location).Path)\publish" /DMyAppVersion="${{ needs.prepare.outputs.version }}" /O"$((Get-Location).Path)\artifacts" packaging\windows\installer.iss
+          & $isccPath /DSourceDir="$((Get-Location).Path)\publish" /DMyAppVersion="$env:VERSION" /O"$((Get-Location).Path)\artifacts" packaging\windows\installer.iss
 
       - name: Package macOS Artifacts
         if: runner.os == 'macOS'
         shell: bash
+        env:
+          RID: ${{ matrix.rid }}
         run: |
           mkdir -p ./artifacts
-          tar -czvf "./artifacts/Cantus.Client-macOS-${{ matrix.rid }}.tar.gz" -C ./publish .
+          tar -czvf "./artifacts/Cantus.Client-macOS-${RID}.tar.gz" -C ./publish .
 
       # Checksums are produced here, next to the files, so the finalize job never
       # needs to re-download the binaries to hash them.
@@ -221,24 +256,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.prepare.outputs.tag }}
+          CHECKSUMS: ../CHECKSUMS-desktop-${{ matrix.name }}.txt
         run: |
           set -euo pipefail
           cd ./artifacts
           if command -v sha256sum >/dev/null 2>&1; then
-            HASH="sha256sum"
+            HASH=(sha256sum)
           else
-            HASH="shasum -a 256"
+            HASH=(shasum -a 256)
           fi
-          : > "../CHECKSUMS-desktop-${{ matrix.name }}.txt"
+          : > "$CHECKSUMS"
           for f in *; do
             [ -f "$f" ] || continue
-            $HASH "$f" >> "../CHECKSUMS-desktop-${{ matrix.name }}.txt"
+            "${HASH[@]}" "$f" >> "$CHECKSUMS"
             gh release upload "$TAG" "$f" --repo "$GITHUB_REPOSITORY" --clobber
           done
-          cat "../CHECKSUMS-desktop-${{ matrix.name }}.txt"
+          cat "$CHECKSUMS"
 
       - name: Upload Checksum Fragment
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: checksums-desktop-${{ matrix.name }}
           path: ./CHECKSUMS-desktop-${{ matrix.name }}.txt
@@ -252,17 +288,18 @@ jobs:
     name: Build Server Binary (${{ matrix.name }})
     needs: [prepare]
     runs-on: ${{ matrix.os }}
+    # contents: write uploads the packages to the draft release.
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-x64
             name: Linux-x64
             archive_ext: tar.gz
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-arm64
             name: Linux-arm64
             archive_ext: tar.gz
@@ -277,10 +314,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup .NET 10 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: '10.0.x'
 
@@ -288,22 +327,29 @@ jobs:
         run: dotnet workload install wasm-tools
 
       - name: Publish WASM Client
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: >
           dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj
           -f net10.0-browserwasm
           -c Release
-          -p:Version="${{ needs.prepare.outputs.version }}"
-          -p:SourceRevisionId="${{ github.sha }}"
+          -p:Version="$VERSION"
+          -p:SourceRevisionId="$GITHUB_SHA"
           -o ./wasm_dist
 
       - name: Publish Standalone Server
+        shell: bash
+        env:
+          RID: ${{ matrix.rid }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: >
           dotnet publish src/Cantus.Server/Cantus.Server.csproj
-          -r ${{ matrix.rid }}
+          -r "$RID"
           -c Release
           -p:PublishSingleFile=true
-          -p:Version="${{ needs.prepare.outputs.version }}"
-          -p:SourceRevisionId="${{ github.sha }}"
+          -p:Version="$VERSION"
+          -p:SourceRevisionId="$GITHUB_SHA"
           --self-contained true
           -o ./server_dist
 
@@ -316,9 +362,11 @@ jobs:
       - name: Archive Server Package (Linux / macOS)
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.name }}
         run: |
           mkdir -p ./artifacts
-          tar -czvf "./artifacts/Cantus.Server-${{ matrix.name }}.tar.gz" -C ./server_dist .
+          tar -czvf "./artifacts/Cantus.Server-${PACKAGE_NAME}.tar.gz" -C ./server_dist .
 
       - name: Archive Server Package (Windows)
         if: runner.os == 'Windows'
@@ -334,24 +382,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.prepare.outputs.tag }}
+          CHECKSUMS: ../CHECKSUMS-server-${{ matrix.name }}.txt
         run: |
           set -euo pipefail
           cd ./artifacts
           if command -v sha256sum >/dev/null 2>&1; then
-            HASH="sha256sum"
+            HASH=(sha256sum)
           else
-            HASH="shasum -a 256"
+            HASH=(shasum -a 256)
           fi
-          : > "../CHECKSUMS-server-${{ matrix.name }}.txt"
+          : > "$CHECKSUMS"
           for f in *; do
             [ -f "$f" ] || continue
-            $HASH "$f" >> "../CHECKSUMS-server-${{ matrix.name }}.txt"
+            "${HASH[@]}" "$f" >> "$CHECKSUMS"
             gh release upload "$TAG" "$f" --repo "$GITHUB_REPOSITORY" --clobber
           done
-          cat "../CHECKSUMS-server-${{ matrix.name }}.txt"
+          cat "$CHECKSUMS"
 
       - name: Upload Checksum Fragment
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: checksums-server-${{ matrix.name }}
           path: ./CHECKSUMS-server-${{ matrix.name }}.txt
@@ -364,18 +413,21 @@ jobs:
   publish-release:
     name: Create GitHub Release
     needs: [prepare, publish-docker, build-desktop-clients, build-server-binaries]
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
+    # contents: write uploads SHA256SUMS.txt and publishes the draft release.
     permissions:
       contents: write
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # Only the small checksum fragments travel through artifact storage; the
       # packages themselves are already attached to the draft release.
       - name: Download Checksum Fragments
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: checksums-*
           path: ./checksums
@@ -407,9 +459,14 @@ jobs:
   # ============================================================================
   # 5. Deploy to the Local Development Stack
   # ============================================================================
+  # A manual release from main still publishes, but only a tag deploys: the
+  # production environment would reject any other ref.
   deploy:
     name: Deploy to Development Stack
     needs: [prepare, publish-release]
-    uses: ./.github/workflows/deploy.yml
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions: {}
+    # actionlint does not accept the newer `$/` self-repository form yet.
+    uses: ./.github/workflows/deploy.yml # zizmor: ignore[self-repository]
     with:
       tag: ${{ needs.prepare.outputs.tag }}

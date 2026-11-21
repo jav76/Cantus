@@ -9,9 +9,9 @@ When exposing Cantus to the internet or your local area network, running behind 
 Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse proxy must support:
 - **WebSocket Upgrade Headers**: `Upgrade $http_upgrade; Connection "upgrade";`
 - **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host`
-- **Extended Timeouts**: Setting proxy read timeouts to at least `300s` prevents premature WebSocket disconnects during track pauses.
+- **Idle Timeouts above 15 seconds**: the server sends a SignalR keep-alive every 15 seconds and clients give up after 30 seconds of silence, so any proxy idle timeout above 30 seconds is enough. The `300s` in the examples leaves plenty of headroom.
 
-> **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored — which typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
+> **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored. This typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
 >
 > ```yaml
 > # Trust a Docker bridge network
@@ -26,9 +26,24 @@ Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse 
 
 ---
 
+## Display Pairing Behind a Reverse Proxy
+
+[Pairing a Display](displays.md) needs no extra proxy rules. It uses the same `/api` routes and `/hubs/playback` WebSocket as the rest of the app. Three things depend on your proxy setup:
+
+- **The pairing rate limit keys on the client address.** Requesting a code and approving one are each limited per client address (`DisplayPairing__RateLimitPermitLimit`, 10 per minute by default). Cantus takes that address from `X-Forwarded-For` only when the proxy is trusted (see above). If it is not, every client appears to come from the proxy's own address and shares one limit, so screens show "Too many pairing requests" and approvals fail with `429` as soon as a few people pair at once. Trust the proxy instead of raising the limit.
+- **`TrustAllProxies` lets clients pick their own address.** If Cantus is also reachable directly, a client can send a made-up `X-Forwarded-For` and get a fresh rate limit for each value. Remove the published port when you use it.
+- **Screens behind one NAT share a limit.** Every device on one home network usually has the same public address. Raise `DisplayPairing__RateLimitPermitLimit` if many screens on one network pair at the same time.
+
+The QR code on a waiting screen encodes the address the screen loaded Cantus from. Open screens at the public address phones use (for example `https://cantus.yourdomain.com`), not an internal one such as `http://cantus:5000`.
+
+!!! warning "Credentials in access logs"
+    A browser cannot set headers on a WebSocket, so the web app's SignalR client puts the connection's credential (a Session id or a Display token) in the `access_token` query parameter of `/hubs/playback`. A proxy that logs full request URLs writes these credentials to its access log. Drop query strings from logged URLs, or keep the logs as private as the database.
+
+---
+
 ## 1. Caddy (Recommended)
 
-Caddy automatically obtains and renews Let's Encrypt certificates and passes WebSocket headers by default:
+Caddy automatically obtains and renews Let's Encrypt certificates and passes WebSocket headers by default. When Caddy runs in another container (`cantus:5000`), trust its network with `ForwardedHeaders__KnownNetworks__0` (see above):
 
 ```caddy
 # /etc/caddy/Caddyfile
@@ -101,6 +116,8 @@ services:
     environment:
       - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=https://cantus.yourdomain.com
+      # Traefik runs in another container, so trust its network
+      - ForwardedHeaders__KnownNetworks__0=172.16.0.0/12
     volumes:
       - cantus_data:/app/data
     labels:

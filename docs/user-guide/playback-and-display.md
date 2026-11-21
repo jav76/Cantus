@@ -1,6 +1,6 @@
 # Playback & Display Modes
 
-Cantus is engineered to deliver a seamless, distraction-free lyrics display across any screen format—from a secondary desktop monitor to a dedicated living room TV kiosk.
+Cantus is engineered to deliver a seamless, distraction-free lyrics display across any screen format, from a secondary desktop monitor to a dedicated living room TV kiosk.
 
 ---
 
@@ -48,9 +48,23 @@ If you want to read ahead or check previous lyrics:
 
 ### 3. Floating Resume Button & 3-Second Auto-Resume
 When manual scrolling pauses the display:
-- A floating **"Resume Auto-Scroll"** pill button appears at the bottom-center of the stage.
+- A floating **Resume Autoscroll** pill button appears at the bottom-center of the stage.
 - If no scrolling interaction occurs for **3 seconds**, Cantus automatically resumes auto-scrolling with a smooth transition back to the currently active line.
 - You can also tap the floating **Resume** button at any time to re-center immediately.
+
+### 4. Karaoke Underline
+With the **Karaoke** toggle on, an underline fills beneath the active line:
+- **Word-timed lyrics**: the underline follows each word as it is sung, pauses during rests inside the line, and moves slowly through held notes.
+- **Line-timed lyrics**: the underline fills evenly over the line's duration. It does not track individual words.
+
+### 5. Fixing Wrong Lyrics
+If a track shows the wrong lyrics, or none:
+- Tap **Wrong lyrics?** on the track card. On a phone it is on the **Sync & Info** tab.
+- Cantus lists the lyrics each provider has for the track, with the provider, title, artist, length, whether the lyrics are synced or plain, and their first lines. Tap one to use it.
+- **Re-fetch automatically** looks the track up again. **No lyrics** shows an empty lyrics view for the track.
+- If you already picked lyrics for the track, the picker says so and offers **Use automatic lyrics** to undo it.
+- Your choice applies to every screen showing the track, without a reload, and is kept until you change it.
+- The button appears only while you are signed in and a track is playing. A [paired Display](displays.md) never shows it.
 
 ---
 
@@ -61,10 +75,9 @@ When manual scrolling pauses the display:
 To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi display:
 
 1. Open your browser on the smart TV (or launch a Chromium kiosk on Raspberry Pi) to your Cantus URL: `http://<your-server-ip>:5000`.
-2. Select your user room from the room selector.
+2. Sign in with Spotify, or [pair the screen as a Display](displays.md) so it never holds your account.
 3. Enter fullscreen mode (press <kbd>F11</kbd> or use the TV browser's fullscreen button).
 4. Press <kbd>K</kbd> (or <kbd>F11</kbd> in the app) to switch into the 10-foot kiosk lyrics stage. Kiosk mode is an explicit toggle, so large monitors keep the full desktop controls unless you opt in; press <kbd>Esc</kbd> to exit.
-5. The cursor will auto-hide after 3 seconds of inactivity to keep the display clean.
 
 !!! tip "Raspberry Pi & Kiosk Launch"
     If using a Raspberry Pi or wall tablet, launch Chromium in kiosk mode:
@@ -74,36 +87,39 @@ To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi d
 
 ---
 
-### 2. Multi-Room & Shared Displays
+### 2. Pairing a Screen as a Display
 
-Cantus supports multi-room subscriptions:
-- Each authenticated Spotify account generates a dedicated **Room ID**.
-- Any device on your local network (or the internet if reverse-proxied) can navigate to that Room URL.
-- When you change tracks on your phone or Spotify desktop app, all connected room displays update simultaneously in real-time.
+A **Display** is a screen that shows your lyrics and playback without signing in to Spotify on it. It holds its own view-only Display token, so a shared TV never gets your account's full rights. Choose **Pair as display** on the screen and approve its code from a signed-in phone or computer.
+
+See [Pairing & Managing Displays](displays.md) for the full steps, what a Display can and cannot do, and how to rename or remove one.
 
 ---
 
 ## Keyboard Shortcuts
 
-When the Cantus display window is focused, you can use keyboard shortcuts for quick control:
+When the Cantus window is focused, and focus is not in a text field, these keys work:
 
 | Key | Action | Description |
 | :--- | :--- | :--- |
-| <kbd>F11</kbd> / <kbd>F</kbd> | **Toggle Fullscreen** | Expands viewport to fill the entire monitor. |
-| <kbd>[</kbd> | **Delay Lyrics (-50ms)** | Decreases timing offset if lyrics are appearing too early. |
-| <kbd>]</kbd> | **Advance Lyrics (+50ms)** | Increases timing offset if lyrics are appearing too late. |
-| <kbd>0</kbd> | **Reset Calibration** | Resets custom latency offset for the current track to `0ms`. |
-| <kbd>D</kbd> | **Toggle Diagnostics HUD** | Shows real-time NTP roundtrip, clock skew, and SignalR latency. |
-| <kbd>T</kbd> | **Toggle Theme Mode** | Cycles between Dynamic Cover Art, Dark Slate, and Light themes. |
+| <kbd>K</kbd> / <kbd>F11</kbd> | **Toggle Kiosk Mode** | Switches between the normal layout and the 10-foot kiosk lyrics stage. It does not change browser fullscreen. |
+| <kbd>Esc</kbd> | **Exit Kiosk Mode** | Leaves the kiosk stage. |
+| <kbd>[</kbd> | **Lyrics Earlier (-50ms)** | Lowers this device's latency compensation, so lyrics render earlier. Use it when lyrics trail the audio. |
+| <kbd>]</kbd> | **Lyrics Later (+50ms)** | Raises this device's latency compensation, so lyrics render later. Use it when lyrics run ahead of the audio. |
+| <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. See [Theming](theming.md). |
+| <kbd>M</kbd> | **Cycle Mobile Tab** | On small layouts only: moves between the Lyrics, Track and Sync & Info tabs. |
+
+The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track `SYNC OFFSET`. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the `SYNC OFFSET` **Reset** button for the track offset.
 
 ---
 
 ## Diagnostics HUD
 
-Pressing <kbd>D</kbd> opens the built-in Diagnostics HUD overlay. This displays live performance metrics useful for debugging latency and connection quality:
+Choose the **Diagnostics HUD** button in the header bar (on small layouts, the overflow menu) to open the diagnostics overlay. It shows live metrics useful for debugging latency and connection quality:
 
-- **SignalR State**: Connection status (`Connected`, `Reconnecting`, `Disconnected`).
-- **NTP Clock Offset**: Current estimated clock skew relative to the server (typically `< 2ms`).
-- **Round-Trip Delay (RTT)**: WebSocket ping latency.
-- **Active Polling Cadence**: Current server-side poll interval for your Spotify account (e.g. `500ms`).
-- **Lyrics Source**: LRCLIB query result status (`Direct Hit`, `Fuzzy Match`, `Cache Hit`, `Instrumental`).
+- **Status** and **Transport**: the SignalR connection state (`Connected`, `Reconnecting`, `Disconnected`) and transport.
+- **RTT / NTP Skew**: the round-trip time and estimated clock offset relative to the server.
+- **Latency Compensation**: this device's current compensation, as set with <kbd>[</kbd> and <kbd>]</kbd>.
+- **Poller Cadence**: the server-side poll state and interval for the active account.
+- **Connected Clients** and **Authorized Accounts**.
+- **Active User**, **Device** and **Volume**: the Spotify account and device being followed.
+- **App Version** and **Commit SHA**: the build you are running.

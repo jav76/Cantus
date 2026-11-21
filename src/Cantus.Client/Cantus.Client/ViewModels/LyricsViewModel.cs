@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -24,12 +25,15 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly PlaybackTransport _transport;
     private readonly PlaybackTiming _timing;
     private readonly SessionViewModel _session;
+    private readonly DisplayPairingViewModel _pairing;
+    private readonly LyricsPickerViewModel _lyricsPicker;
     private readonly SongLookupViewModel _lookup;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
     private long _interpolatedProgressMs;
     private long _lastTickTimestampMs;
+    private bool _wasSettingsActive;
 
     private string _connectionStatus = "Connecting...";
     private long _rttMs;
@@ -67,6 +71,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTransport Transport => _transport;
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
+    public DisplayPairingViewModel Pairing => _pairing;
+    public LyricsPickerViewModel LyricsPicker => _lyricsPicker;
     public SongLookupViewModel Lookup => _lookup;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
@@ -259,7 +265,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// with a track to seek within. Read by the stage's hover/press handlers.
     /// </summary>
     public bool CanSeekToLines =>
-        _transport.PlaybackState?.CurrentTrack is not null && HasSyncedLyrics && !IsStaticLyricsMode;
+        _transport.PlaybackState?.CurrentTrack is not null
+        && HasSyncedLyrics
+        && !IsStaticLyricsMode
+        && _pairing.CanControlPlayback;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
@@ -468,6 +477,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ThemeManager? themeManager = null,
         ResponsiveLayoutManager? layoutManager = null,
         ILyricsPreferences? preferences = null,
+        IDisplayPairingApi? pairingApi = null,
+        DisplayCredentialStore? displayCredentials = null,
+        TimeProvider? timeProvider = null,
+        IDisplayManagementApi? displaysApi = null,
+        PendingPairCodeStore? pendingPairCodes = null,
+        ILyricsCorrectionService? lyricsCorrection = null,
         ISongLookupClient? lookupClient = null)
     {
         _client = client;
@@ -497,22 +512,52 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
 
-        _session = new SessionViewModel(client);
-        _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
-
+        _session = new SessionViewModel(
+            client,
+            displaysApi ?? new DisplayManagementApi(client),
+            timeProvider,
+            RunOnUIThread,
+            pendingPairCodes ?? new PendingPairCodeStore(new LocalSettingsStore()));
         _session.SessionEnded += () => EndAccountState(resetTransport: false);
         _session.LoggedOut += () => EndAccountState(resetTransport: true);
+        _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
+
+        _pairing = new DisplayPairingViewModel(
+            client,
+            pairingApi ?? new DisplayPairingApi(client),
+            displayCredentials ?? new DisplayCredentialStore(new LocalSettingsStore()),
+            timeProvider,
+            RunOnUIThread);
+        _pairing.DisplayEnded += () => ClearPlayback(resetTransport: true);
+
+        _lyricsPicker = new LyricsPickerViewModel(
+            lyricsCorrection ?? new LyricsCorrectionService(client),
+            _session,
+            () => _transport.PlaybackState?.CurrentTrack,
+            _pairing);
+        _lyricsPicker.LyricsChanged += OnPickerLyricsChanged;
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
-        _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
+        _client.ConnectionStateChanged += state => RunOnUIThread(() =>
+        {
+            ConnectionStatus = state;
+            _pairing.ApplyConnectionState(state);
+        });
         _client.PlaybackStateReceived += state => RunOnUIThread(() => OnPlaybackStateReceived(state));
         _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
         _client.TrackOffsetReceived += offset => RunOnUIThread(() => _timing.ApplyTrackOffset(offset));
-        _client.SessionsReceived += sessions => RunOnUIThread(() => _session.ApplySessions(sessions));
+        _client.SessionsReceived += sessions => RunOnUIThread(() =>
+        {
+            _pairing.ApplySessions(sessions);
+            _session.ApplySessions(sessions);
+        });
         _client.AuthSessionReceived += session => RunOnUIThread(() => _session.ApplyAuthSession(session));
         _client.SessionRevoked += userId => RunOnUIThread(() => _session.ApplySessionRevoked(userId));
         _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
+        _client.DisplayPaired += pairing => RunOnUIThread(() => _pairing.ApplyDisplayPaired(pairing));
+        _client.DisplayRevoked += displayId => RunOnUIThread(() => _pairing.ApplyDisplayRevoked(displayId));
+        _client.DisplaysChanged += () => RunOnUIThread(() => _ = _session.Displays.RefreshAsync());
 
         _ticker = new DispatcherTimer
         {
@@ -580,12 +625,25 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         RefreshLyricLineSizes();
         NotifyThemeToastVisibilities();
+        RefreshDisplaysWhenSettingsOpen();
+    }
+
+    // A Display's REST calls move its last-seen time without a change event, so opening settings fetches again.
+    private void RefreshDisplaysWhenSettingsOpen()
+    {
+        bool isSettingsActive = _layoutManager.IsMobileSettingsActive;
+        if (isSettingsActive && !_wasSettingsActive)
+        {
+            _ = _session.Displays.RefreshAsync();
+        }
+        _wasSettingsActive = isSettingsActive;
     }
 
     private void OnLayoutBreakpointChanged(LayoutBreakpoint breakpoint)
     {
         RefreshLyricLineSizes();
         NotifyThemeToastVisibilities();
+        RefreshDisplaysWhenSettingsOpen();
     }
 
     private void OnPaletteChanged(ColorPalette palette)
@@ -690,6 +748,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             DeviceName = "No Device";
             _themeManager.UpdateTrackMetadata(null, null, null);
             NotifyEmptyStateText();
+            _lyricsPicker.NotifyTrackChanged();
             return;
         }
 
@@ -701,6 +760,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         DeviceName = state.DeviceName ?? "Spotify";
         NotifyEmptyStateText();
         _session.ApplyActiveUser(state.ActiveUserDisplayName, state.ActiveUserId);
+        _lyricsPicker.NotifyTrackChanged();
 
         _themeManager.UpdateTrackMetadata(track.Title, track.Artist, track.AlbumArtUrl);
 
@@ -721,6 +781,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private const long SUNG_MS_PER_CHAR = 90;
     private const long SUNG_BASE_MS = 600;
     private const long MIN_ESTIMATED_SUNG_MS = 1500;
+    private const long MIN_ESTIMATED_WORD_MS = 400;
 
     /// <summary>
     /// How long the active line's underline takes to fill. For continuous
@@ -742,6 +803,72 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
         long estimate = SUNG_BASE_MS + (displayText.Length * SUNG_MS_PER_CHAR);
         return Math.Clamp(estimate, MIN_ESTIMATED_SUNG_MS, gapMs);
+    }
+
+    /// <summary>
+    /// Copies a line's syllables off the wire. Enhanced LRC word tags carry
+    /// only start times, so a syllable without a duration is sung until the
+    /// next syllable starts, and the last one until the line's fill end (the
+    /// same capped estimate a line without syllables fills over). When that
+    /// end is missing (the final line) or not after the last syllable's start,
+    /// the last syllable gets a text-length estimate instead of snapping full.
+    /// </summary>
+    private static IReadOnlyList<SyllableTiming>? MapSyllables(
+        List<LyricSyllablePayload>? syllables,
+        long? lineFillEndMs)
+    {
+        if (syllables is null || syllables.Count == 0)
+        {
+            return null;
+        }
+
+        List<LyricSyllablePayload> present = syllables
+            .Where(s => s is not null)
+            .ToList();
+        List<SyllableTiming> result = new(present.Count);
+        for (int i = 0; i < present.Count; i++)
+        {
+            LyricSyllablePayload syllable = present[i];
+            long durationMs = syllable.DurationMs;
+            if (durationMs <= 0)
+            {
+                bool isLast = i + 1 == present.Count;
+                long? untilMs = isLast ? lineFillEndMs : present[i + 1].TimestampMs;
+                durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
+                if (isLast && durationMs == 0)
+                {
+                    durationMs = EstimateWordSungMs(syllable.Text);
+                }
+            }
+
+            result.Add(new SyllableTiming(syllable.TimestampMs, durationMs, syllable.Text ?? string.Empty));
+        }
+
+        return result.Count > 0 ? result : null;
+    }
+
+    private static long EstimateWordSungMs(string? text)
+    {
+        int visibleChars = (text ?? string.Empty).Trim().Length;
+        return Math.Max(visibleChars * SUNG_MS_PER_CHAR, MIN_ESTIMATED_WORD_MS);
+    }
+
+    /// <summary>
+    /// The picker's answer comes over HTTP while track changes arrive over
+    /// SignalR, so the next track's lyrics can land first. Only apply the
+    /// answer while it still belongs to the track on screen.
+    /// </summary>
+    private void OnPickerLyricsChanged(LyricsPayload lyrics)
+    {
+        string? playingTrackId = _transport.PlaybackState?.CurrentTrack?.Id;
+        bool isForAnotherTrack = (_lastLyrics is not null && _lastLyrics.TrackId != lyrics.TrackId)
+            || (playingTrackId is not null && playingTrackId != lyrics.TrackId);
+        if (isForAnotherTrack)
+        {
+            return;
+        }
+
+        OnLyricsReceived(lyrics);
     }
 
     private void OnLyricsReceived(LyricsPayload? lyrics)
@@ -794,11 +921,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                     ? ComputeLineFillDurationMs(displayText, nextLineTimestampMs.Value - line.TimestampMs)
                     : null;
 
+                long? lineFillEndMs = lineDurationMs.HasValue ? line.TimestampMs + lineDurationMs.Value : null;
+
                 LyricLineViewModel lineVm = new()
                 {
                     TimestampMs = line.TimestampMs,
                     Text = displayText,
-                    DurationMs = lineDurationMs
+                    DurationMs = lineDurationMs,
+                    Syllables = MapSyllables(line.Syllables, lineFillEndMs)
                 };
 
                 lineVm.RefreshFontSizes(active, inactive, past);
@@ -859,6 +989,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (resetTransport)
         {
             NotifyEmptyStateText();
+            _lyricsPicker.NotifyTrackChanged();
         }
         OnPropertyChanged(nameof(HasSyncedLyrics));
         OnPropertyChanged(nameof(HasPlainLyrics));
@@ -873,6 +1004,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ConnectedClients = diag.ConnectedClients;
         ActivePollIntervalMs = diag.ActivePollIntervalMs;
         _session.ApplyDiagnostics(diag);
+        _pairing.ApplyDiagnostics(diag);
     }
 
     private void OnTick(object? sender, object e)

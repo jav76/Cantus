@@ -18,6 +18,8 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     HubConnectionState State { get; }
     string ClientId { get; }
     string? SessionToken { get; set; }
+    string? DisplayToken { get; set; }
+    string? ConnectionId { get; }
     string ServerBaseUrl { get; }
 
     event Action<string>? ConnectionStateChanged;
@@ -28,6 +30,11 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     event Action<AuthorizedSessionPayload>? AuthSessionReceived;
     event Action<string>? SessionRevoked;
     event Action<DiagnosticsPayload>? DiagnosticsReceived;
+    event Action<DisplayPairedPayload>? DisplayPaired;
+    event Action<string>? DisplayRevoked;
+
+    /// <summary>The owner's Display list changed on the server; fetch it again.</summary>
+    event Action? DisplaysChanged;
 
     Task StartAsync(CancellationToken cancellationToken = default);
     Task<bool> TryConnectAsync(CancellationToken cancellationToken = default);
@@ -38,9 +45,15 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     Task<PlayerCommandResult> SeekPlaybackAsync(long positionMs);
     Task<PlayerCommandResult> SetShuffleAsync(bool enabled);
     Task<PlayerCommandResult> SetRepeatAsync(string repeatMode);
-    Task SubscribeToUserAsync(string? userId);
+    Task SubscribeToUserAsync([Redact] string? userId);
     Task ReportVisibilityAsync(bool isVisible);
     Task RefreshPlaybackAsync();
     Task LogoutAsync();
-    Task ReconnectWithTokenAsync(string? sessionToken);
+    Task ReconnectWithTokenAsync([Redact] string? sessionToken);
+
+    /// <summary>
+    /// Replaces the Display token (null drops it) and opens a new hub connection with it.
+    /// A non-null token also discards any held Session token, which the server has already rejected.
+    /// </summary>
+    Task ReconnectWithDisplayTokenAsync([Redact] string? displayToken);
 }

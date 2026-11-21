@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,6 +70,22 @@ public sealed class LyricLinePayload
 {
     [JsonPropertyName("timestampMs")]
     public long TimestampMs { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Real per-word timing, or null when the line only has line-level timing.</summary>
+    [JsonPropertyName("syllables")]
+    public List<LyricSyllablePayload>? Syllables { get; set; }
+}
+
+public sealed class LyricSyllablePayload
+{
+    [JsonPropertyName("timestampMs")]
+    public long TimestampMs { get; set; }
+
+    [JsonPropertyName("durationMs")]
+    public long DurationMs { get; set; }
 
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
@@ -167,6 +182,28 @@ public sealed class AuthorizedSessionPayload
         IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 }
 
+/// <summary>
+/// <c>ReceiveDisplayPaired</c>: the new Display token, sent once to the connection that
+/// requested the pairing.
+/// </summary>
+public sealed class DisplayPairedPayload
+{
+    [JsonPropertyName("pairingId")]
+    public string PairingId { get; set; } = string.Empty;
+
+    [JsonPropertyName("displayId")]
+    public string DisplayId { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = string.Empty;
+
+    public override string ToString() =>
+        $"DisplayPairedPayload {{ PairingId = {PairingId}, DisplayId = {DisplayId}, Name = {Name}, Token = [REDACTED] }}";
+}
+
 public sealed class ClockSyncResponsePayload
 {
     [JsonPropertyName("clientSendTimeMs")]
@@ -183,12 +220,22 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(TrackInfoPayload))]
 [JsonSerializable(typeof(PlaybackStatePayload))]
 [JsonSerializable(typeof(LyricLinePayload))]
+[JsonSerializable(typeof(LyricSyllablePayload))]
 [JsonSerializable(typeof(LyricsPayload))]
 [JsonSerializable(typeof(TrackOffsetPayload))]
 [JsonSerializable(typeof(DiagnosticsPayload))]
 [JsonSerializable(typeof(AuthorizedSessionPayload))]
 [JsonSerializable(typeof(List<AuthorizedSessionPayload>))]
 [JsonSerializable(typeof(ClockSyncResponsePayload))]
+[JsonSerializable(typeof(DisplayPairedPayload))]
+[JsonSerializable(typeof(DisplayPairingRequestPayload))]
+[JsonSerializable(typeof(DisplayPairingCodePayload))]
+[JsonSerializable(typeof(DisplayInfoPayload))]
+[JsonSerializable(typeof(List<DisplayInfoPayload>))]
+[JsonSerializable(typeof(DisplayApprovalRequestPayload))]
+[JsonSerializable(typeof(DisplayRenameRequestPayload))]
+[JsonSerializable(typeof(LyricsCandidatesPayload))]
+[JsonSerializable(typeof(LyricsOverrideRequestPayload))]
 [JsonSerializable(typeof(SongLookupSearchRequestPayload))]
 [JsonSerializable(typeof(SongLookupResponsePayload))]
 [JsonSerializable(typeof(SongGuessPayload))]
@@ -200,8 +247,6 @@ public partial class CantusJsonContext : JsonSerializerContext
 {
 }
 
-public sealed record NtpSample(long RttMs, long OffsetMs, long TimestampMs);
-
 public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 {
     private HubConnection? _connection;
@@ -211,16 +256,15 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     private readonly string? _configuredServerUrl;
     private bool _isDisposed;
 
-    private readonly List<NtpSample> _ntpHistory = new();
-    private readonly object _ntpLock = new();
-    private const int MAX_NTP_SAMPLES = 5;
+    private readonly ClockOffsetEstimator _clockOffset = new();
 
     public string ClientId { get; } = Guid.NewGuid().ToString("N");
     public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
-    public long RttMs { get; private set; }
-    public long ClockOffsetMs { get; private set; }
+    public long RttMs => _clockOffset.RttMs;
+    public long ClockOffsetMs => _clockOffset.ClockOffsetMs;
     public string TransportType { get; private set; } = "Unknown";
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
+    public string? ConnectionId => _connection?.ConnectionId;
 
     public event Action<string>? ConnectionStateChanged;
     public event Action<PlaybackStatePayload>? PlaybackStateReceived;
@@ -230,6 +274,9 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public event Action<AuthorizedSessionPayload>? AuthSessionReceived;
     public event Action<string>? SessionRevoked;
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
+    public event Action<DisplayPairedPayload>? DisplayPaired;
+    public event Action<string>? DisplayRevoked;
+    public event Action? DisplaysChanged;
 
     internal void RaiseLyricsReceived(LyricsPayload payload)
     {
@@ -258,12 +305,38 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
     public string? SessionToken { get; set; }
 
+    public string? DisplayToken { get; set; }
+
+    /// <summary>Where the desktop heads persist the Session token. Null uses the per-user app data folder.</summary>
+    internal string? SessionFilePath { get; }
+
+    /// <summary>The token the next hub connection presents through the access token factory.</summary>
+    internal string? ConnectionCredential => SelectConnectionCredential(SessionToken, DisplayToken);
+
+    private bool HoldsCredential => ConnectionCredential is not null;
+
+    /// <summary>
+    /// A Session wins over a Display token, matching the server's credential order. Null means
+    /// the connection is anonymous and registers for the sign-in handoff instead.
+    /// </summary>
+    internal static string? SelectConnectionCredential(string? sessionToken, string? displayToken)
+    {
+        if (!string.IsNullOrWhiteSpace(sessionToken))
+        {
+            return sessionToken;
+        }
+
+        return string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+    }
+
     public SignalRPlaybackClient(
         string? serverUrl = null,
         string? sessionToken = null,
-        TimeSpan? reconnectInterval = null)
+        TimeSpan? reconnectInterval = null,
+        string? sessionFilePath = null)
     {
         _configuredServerUrl = serverUrl;
+        SessionFilePath = sessionFilePath;
         SessionToken = sessionToken ?? LoadPersistedSessionToken();
 
         // Web session handoff: a ?auth=<session-id> query parameter (the same value the
@@ -284,11 +357,16 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         }
     }
 
-    private static string GetSessionFilePath()
+    private string GetSessionFilePath()
     {
 #if __WASM__
         return string.Empty;
 #else
+        if (!string.IsNullOrWhiteSpace(SessionFilePath))
+        {
+            return SessionFilePath;
+        }
+
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string cantusDir = System.IO.Path.Combine(appData, "Cantus");
         System.IO.Directory.CreateDirectory(cantusDir);
@@ -296,7 +374,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static string? LoadPersistedSessionToken()
+    private string? LoadPersistedSessionToken()
     {
 #if __WASM__
         return null;
@@ -317,7 +395,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void SavePersistedSessionToken(string token)
+    private void SavePersistedSessionToken(string token)
     {
 #if !__WASM__
         try
@@ -331,7 +409,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void ClearPersistedSessionToken()
+    private void ClearPersistedSessionToken()
     {
 #if !__WASM__
         try
@@ -394,9 +472,9 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         _connection = new HubConnectionBuilder()
             .WithUrl(effectiveUrl, options =>
             {
-                if (!string.IsNullOrWhiteSpace(SessionToken))
+                if (HoldsCredential)
                 {
-                    options.AccessTokenProvider = () => Task.FromResult<string?>(SessionToken);
+                    options.AccessTokenProvider = () => Task.FromResult(ConnectionCredential);
                 }
             })
             .AddJsonProtocol(options =>
@@ -456,6 +534,24 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             DiagnosticsReceived?.Invoke(diag);
         });
 
+        _connection.On<DisplayPairedPayload>("ReceiveDisplayPaired", pairing =>
+        {
+            if (pairing is not null && !string.IsNullOrWhiteSpace(pairing.Token))
+            {
+                DisplayPaired?.Invoke(pairing);
+            }
+        });
+
+        _connection.On<string>("ReceiveDisplayRevoked", displayId =>
+        {
+            DisplayRevoked?.Invoke(displayId);
+        });
+
+        _connection.On("ReceiveDisplaysChanged", () =>
+        {
+            DisplaysChanged?.Invoke();
+        });
+
         _connection.Reconnecting += ex =>
         {
             ConnectionStateChanged?.Invoke("Reconnecting");
@@ -466,7 +562,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
-            if (string.IsNullOrWhiteSpace(SessionToken))
+            if (!HoldsCredential)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
             }
@@ -540,7 +636,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
 
-            if (string.IsNullOrWhiteSpace(SessionToken))
+            if (!HoldsCredential)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId, cancellationToken);
             }
@@ -574,13 +670,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
                 .InvokeAsync<ClockSyncResponsePayload>("SyncClock", t1);
             long t4 = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            long t2 = response.ServerReceiveTimeMs;
-            long t3 = response.ServerSendTimeMs;
-
-            long rawRtt = Math.Max(0, (t4 - t1) - (t3 - t2));
-            long rawOffset = ((t2 - t1) + (t3 - t4)) / 2;
-
-            ProcessNtpSample(rawRtt, rawOffset, t4);
+            _clockOffset.AddSample(t1, response.ServerReceiveTimeMs, response.ServerSendTimeMs, t4);
         }
         catch
         {
@@ -589,54 +679,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     }
 
     public void ProcessNtpSample(long rawRtt, long rawOffset, long timestampMs)
-    {
-        lock (_ntpLock)
-        {
-            _ntpHistory.Add(new NtpSample(rawRtt, rawOffset, timestampMs));
-            if (_ntpHistory.Count > MAX_NTP_SAMPLES)
-            {
-                _ntpHistory.RemoveAt(0);
-            }
-
-            List<NtpSample> samples = _ntpHistory.ToList();
-            if (samples.Count == 1)
-            {
-                RttMs = samples[0].RttMs;
-                ClockOffsetMs = samples[0].OffsetMs;
-                return;
-            }
-
-            // If we have >= 3 samples, discard the single highest RTT spike
-            List<NtpSample> filtered = samples;
-            if (samples.Count >= 3)
-            {
-                long maxRtt = samples.Max(s => s.RttMs);
-                NtpSample worstSample = samples.First(s => s.RttMs == maxRtt);
-                filtered = samples.Where(s => !ReferenceEquals(s, worstSample)).ToList();
-            }
-
-            // Weighted average by inverse RTT (lower latency = higher trust)
-            double totalWeight = 0;
-            double weightedOffsetSum = 0;
-            double totalRttSum = 0;
-
-            foreach (NtpSample s in filtered)
-            {
-                double weight = 1.0 / Math.Max(1, s.RttMs);
-                totalWeight += weight;
-                weightedOffsetSum += s.OffsetMs * weight;
-                totalRttSum += s.RttMs * weight;
-            }
-
-            long computedRtt = (long)(totalRttSum / totalWeight);
-            long computedOffset = (long)(weightedOffsetSum / totalWeight);
-
-            // Apply Exponential Moving Average (EMA: alpha = 0.35)
-            const double ALPHA = 0.35;
-            RttMs = (long)(ALPHA * computedRtt + (1 - ALPHA) * RttMs);
-            ClockOffsetMs = (long)(ALPHA * computedOffset + (1 - ALPHA) * ClockOffsetMs);
-        }
-    }
+        => _clockOffset.AddSample(rawRtt, rawOffset, timestampMs);
 
     public async Task SetTrackOffsetAsync(string trackId, int offsetMs)
     {
@@ -769,6 +812,36 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         else
         {
             ClearPersistedSessionToken();
+        }
+
+        await _connectionLock.WaitAsync();
+        try
+        {
+            if (_connection is not null)
+            {
+                await _connection.StopAsync();
+                await _connection.DisposeAsync();
+                _connection = null;
+            }
+        }
+        finally
+        {
+            _connectionLock.Release();
+        }
+        await TryConnectAsync();
+    }
+
+    public async Task ReconnectWithDisplayTokenAsync(string? displayToken)
+    {
+        DisplayToken = string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+
+        // Pairing is offered only after the server returned no Sessions, so a Session token
+        // still held here is stale. Kept, it would win the credential order and hide the
+        // Display token from the server on every connection.
+        if (DisplayToken is not null && !string.IsNullOrWhiteSpace(SessionToken))
+        {
+            ClearPersistedSessionToken();
+            SessionToken = null;
         }
 
         await _connectionLock.WaitAsync();

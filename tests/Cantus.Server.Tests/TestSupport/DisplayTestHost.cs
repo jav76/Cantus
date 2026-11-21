@@ -143,6 +143,8 @@ public sealed class DisplayTestHost : IAsyncDisposable
 
     public static Task<T> WaitAsync<T>(Task<T> task) => task.WaitAsync(WAIT_TIMEOUT);
 
+    public static Task WaitAsync(Task task) => task.WaitAsync(WAIT_TIMEOUT);
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         using CancellationTokenSource timeout = new(WAIT_TIMEOUT);

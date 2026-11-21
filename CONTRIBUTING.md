@@ -34,8 +34,8 @@ dotnet format Cantus.slnx
 
 ### 4. Running Locally
 ```bash
-# Start ASP.NET Core backend server
-dotnet run --project src/Cantus.Server
+# Start ASP.NET Core backend server (Development keeps the database in the working directory)
+ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/Cantus.Server
 
 # Run Desktop Client
 dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop
@@ -51,6 +51,15 @@ Cantus adheres to strict C# conventions:
 - **File-scoped namespaces**: `namespace Cantus.Core;`.
 - **Allman bracing**: Opening `{` on its own line.
 - **Structured logging**: Never interpolate strings into logger calls (use `_logger.LogInformation("Message {Param}", param)`).
+
+---
+
+## Versions and Releases
+
+- Local and CI builds report `0.2.0-dev`, the default `Version` in `Directory.Build.props`.
+- A release is cut by pushing a SemVer tag such as `v0.2.0-beta.1`. The release workflow strips the leading `v` and passes the rest as `-p:Version` (and `APP_VERSION` for the Docker image), so release builds report exactly the tag's version.
+- A tag with a pre-release suffix (`-beta.1`, `-rc.1`) is published as a pre-release.
+- After a release, raise the default in `Directory.Build.props` to the next planned version with a `-dev` suffix.
 
 ---
 

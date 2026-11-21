@@ -13,6 +13,12 @@ public interface ILyricsFetchProvider
     /// <summary>Short source name for logs (e.g. "LRCLIB", "NetEase").</summary>
     string ProviderName { get; }
 
+    /// <summary>
+    /// Whether this source can ever return syllable timing. Only these providers are queried when a
+    /// cached line-level entry is retried for word timing.
+    /// </summary>
+    bool SupportsWordTiming { get; }
+
     Task<LyricsFetchResult> FetchLyricsAsync(TrackInfo track, CancellationToken cancellationToken = default);
 
     /// <summary>

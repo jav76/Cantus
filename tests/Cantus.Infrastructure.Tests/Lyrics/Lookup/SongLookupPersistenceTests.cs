@@ -59,7 +59,7 @@ public sealed class SongLookupPersistenceTests : IDisposable
     }
 
     /// <summary>The one place these tests build a repository, so a constructor change is a one-line fix.</summary>
-    private static SqliteLyricsCacheRepository CreateRepository(CantusDbContext context) => new(context);
+    private static SqliteLyricsCacheRepository CreateRepository(CantusDbContext context) => new(context, TimeProvider.System);
 
     private static ILyricsFetchProvider CreateProvider(string name, IReadOnlyList<LyricsFragmentHit> hits)
     {

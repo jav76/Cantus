@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Hubs;
@@ -20,7 +21,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IPlaybackSessionRegistry _registry;
     private readonly IHubContext<PlaybackHub, IPlaybackClient> _hubContext;
-    private readonly PlaybackPollerOptions _options;
+    private readonly PollingCadencePolicy _cadence;
     private readonly ILogger<ActiveUsersPlaybackMonitor> _logger;
     private readonly SpotifyRateLimitGate _rateLimitGate;
     private readonly object _wakeLock = new();
@@ -45,7 +46,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
         _scopeFactory = scopeFactory;
         _registry = registry;
         _hubContext = hubContext;
-        _options = options.Value;
+        _cadence = new PollingCadencePolicy(options.Value);
         _logger = logger;
         _rateLimitGate = rateLimitGate ?? new(TimeProvider.System);
 
@@ -107,7 +108,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     {
                         using CancellationTokenSource linkedZeroClients =
                             CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, currentWakeCts.Token);
-                        await Task.Delay(1000, linkedZeroClients.Token);
+                        await Task.Delay(PollingCadencePolicy.NO_CONNECTED_CLIENTS_DELAY_MS, linkedZeroClients.Token);
                     }
                     catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                     {
@@ -135,7 +136,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in ActiveUsersPlaybackMonitor poller loop.");
-                await Task.Delay(3000, stoppingToken);
+                await Task.Delay(PollingCadencePolicy.LOOP_ERROR_DELAY_MS, stoppingToken);
             }
         }
 
@@ -158,7 +159,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             _pausedSinceUtc.Clear();
             _idleSinceUtc.Clear();
             _lastTrackIdByUser.Clear();
-            return _options.IdlePollIntervalMs;
+            return _cadence.NoActiveUsersDelayMs;
         }
 
         // Purge state for disconnected users
@@ -192,14 +193,14 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = 1,
                     PollerStatus = rateLimitStatus,
-                    ActivePollIntervalMs = (int)Math.Min(rateLimitRemaining.TotalMilliseconds, 10000),
+                    ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(rateLimitRemaining),
                     ActiveUserId = session.Id,
                     ActiveUserName = session.DisplayName,
                     ServerTimeUtc = DateTimeOffset.UtcNow
                 });
             }
 
-            return (int)Math.Clamp(rateLimitRemaining.TotalMilliseconds, 1000, 10000);
+            return _cadence.GetRateLimitedLoopDelayMs(rateLimitRemaining);
         }
 
         foreach (string userId in activeUserIds)
@@ -232,8 +233,9 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 {
                     TimeSpan retryAfter = _rateLimitGate.Report(tooManyEx.RetryAfter);
                     _logger.LogWarning(
-                        "Spotify API rate limit hit for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
-                        session.Id,
+                        "Spotify API rate limit hit for Spotify user {SpotifyUserId} (Session: {SessionRef}). Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                        session.SpotifyUserId,
+                        SessionLogRef.For(session.Id),
                         _rateLimitGate.LimitedUntilUtc,
                         retryAfter);
 
@@ -243,17 +245,20 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         ConnectedClients = _registry.ConnectedClientsCount,
                         AuthorizedSessions = 1,
                         PollerStatus = rateLimitStatus,
-                        ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                        ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(retryAfter),
                         ActiveUserId = session.Id,
                         ActiveUserName = session.DisplayName,
                         ServerTimeUtc = DateTimeOffset.UtcNow
                     });
 
-                    return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
+                    return _cadence.GetRateLimitedLoopDelayMs(retryAfter);
                 }
                 catch (Exception ex) when (IsUnauthorized(ex))
                 {
-                    _logger.LogWarning("Spotify token expired for user {UserId}. Refreshing...", session.Id);
+                    _logger.LogWarning(
+                        "Spotify token expired for Spotify user {SpotifyUserId} (Session: {SessionRef}). Refreshing...",
+                        session.SpotifyUserId,
+                        SessionLogRef.For(session.Id));
                     try
                     {
                         UserSession refreshedSession = await authService.RefreshTokenAsync(
@@ -267,8 +272,9 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     {
                         TimeSpan retryAfter = _rateLimitGate.Report(refreshTooManyEx.RetryAfter);
                         _logger.LogWarning(
-                            "Spotify API rate limit hit during token refresh for user {UserId}. Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
-                            session.Id,
+                            "Spotify API rate limit hit during token refresh for Spotify user {SpotifyUserId} (Session: {SessionRef}). Pausing Spotify polling until {RateLimitUntil} UTC (Retry after {RetryAfter})",
+                            session.SpotifyUserId,
+                            SessionLogRef.For(session.Id),
                             _rateLimitGate.LimitedUntilUtc,
                             retryAfter);
 
@@ -278,17 +284,21 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                             ConnectedClients = _registry.ConnectedClientsCount,
                             AuthorizedSessions = 1,
                             PollerStatus = rateLimitStatus,
-                            ActivePollIntervalMs = (int)Math.Min(retryAfter.TotalMilliseconds, 10000),
+                            ActivePollIntervalMs = _cadence.GetRateLimitedReportedIntervalMs(retryAfter),
                             ActiveUserId = session.Id,
                             ActiveUserName = session.DisplayName,
                             ServerTimeUtc = DateTimeOffset.UtcNow
                         });
 
-                        return (int)Math.Clamp(retryAfter.TotalMilliseconds, 1000, 10000);
+                        return _cadence.GetRateLimitedLoopDelayMs(retryAfter);
                     }
                     catch (Exception refreshEx)
                     {
-                        _logger.LogError(refreshEx, "Failed to refresh token for user {UserId}", session.Id);
+                        _logger.LogError(
+                            refreshEx,
+                            "Failed to refresh token for Spotify user {SpotifyUserId} (Session: {SessionRef})",
+                            session.SpotifyUserId,
+                            SessionLogRef.For(session.Id));
                     }
                 }
 
@@ -327,37 +337,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                                 cancellationToken);
                         }
 
-                        // Calculate dynamic horizon polling interval
-                        if (!isVisible)
-                        {
-                            userIntervalMs = _options.BackgroundPollIntervalMs;
-                        }
-                        else
-                        {
-                            TimeSpan duration = currentPlayback.CurrentTrack?.Duration ?? TimeSpan.Zero;
-                            TimeSpan progress = currentPlayback.Progress;
-                            TimeSpan remaining = duration > progress ? duration - progress : TimeSpan.Zero;
-
-                            if (duration > TimeSpan.Zero)
-                            {
-                                if (remaining.TotalMilliseconds <= _options.ImminentEndThresholdMs)
-                                {
-                                    userIntervalMs = _options.ImminentEndPollIntervalMs;
-                                }
-                                else if (remaining.TotalMilliseconds <= _options.ApproachingEndThresholdMs)
-                                {
-                                    userIntervalMs = _options.ApproachingEndPollIntervalMs;
-                                }
-                                else
-                                {
-                                    userIntervalMs = _options.ActivePollIntervalMs;
-                                }
-                            }
-                            else
-                            {
-                                userIntervalMs = _options.ActivePollIntervalMs;
-                            }
-                        }
+                        userIntervalMs = _cadence.GetUserPollIntervalMs(currentPlayback, isVisible, TimeSpan.Zero);
 
                         // Update in-memory registry. On the same track the
                         // snapshot's lyrics and offset are kept as they are at
@@ -432,22 +412,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         DateTimeOffset pausedSince = _pausedSinceUtc.GetOrAdd(session.Id, now);
                         TimeSpan pausedDuration = now - pausedSince;
 
-                        if (!isVisible)
-                        {
-                            userIntervalMs = Math.Max(_options.PausedDeepPollIntervalMs, _options.BackgroundPollIntervalMs);
-                        }
-                        else if (pausedDuration > TimeSpan.FromMinutes(5))
-                        {
-                            userIntervalMs = _options.PausedDeepPollIntervalMs;
-                        }
-                        else if (pausedDuration > TimeSpan.FromMinutes(1))
-                        {
-                            userIntervalMs = _options.PausedExtendedPollIntervalMs;
-                        }
-                        else
-                        {
-                            userIntervalMs = _options.PausedPollIntervalMs;
-                        }
+                        userIntervalMs = _cadence.GetUserPollIntervalMs(currentPlayback, isVisible, pausedDuration);
 
                         _registry.UpdateUserPlayback(session.Id, session.DisplayName, currentPlayback);
 
@@ -475,22 +440,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                     DateTimeOffset idleSince = _idleSinceUtc.GetOrAdd(session.Id, now);
                     TimeSpan idleDuration = now - idleSince;
 
-                    if (!isVisible)
-                    {
-                        userIntervalMs = Math.Max(_options.IdleDeepPollIntervalMs, _options.BackgroundPollIntervalMs);
-                    }
-                    else if (idleDuration > TimeSpan.FromMinutes(10))
-                    {
-                        userIntervalMs = _options.IdleDeepPollIntervalMs;
-                    }
-                    else if (idleDuration > TimeSpan.FromMinutes(2))
-                    {
-                        userIntervalMs = _options.IdleExtendedPollIntervalMs;
-                    }
-                    else
-                    {
-                        userIntervalMs = _options.IdlePollIntervalMs;
-                    }
+                    userIntervalMs = _cadence.GetUserPollIntervalMs(null, isVisible, idleDuration);
 
                     _registry.UpdateUserState(
                         session.Id,
@@ -515,30 +465,21 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogError(ex, "Error polling Spotify playback for user {UserId}", userId);
-                _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_options.PausedPollIntervalMs);
+                _logger.LogError(ex, "Error polling Spotify playback for Session {SessionRef}", SessionLogRef.For(userId));
+                _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_cadence.PollErrorIntervalMs);
             }
         }
 
-        DateTimeOffset earliestNext = DateTimeOffset.MaxValue;
+        DateTimeOffset? earliestNext = null;
         foreach (string uid in activeUserIds)
         {
-            if (_nextPollUtc.TryGetValue(uid, out DateTimeOffset t))
+            if (_nextPollUtc.TryGetValue(uid, out DateTimeOffset t) && (earliestNext is null || t < earliestNext))
             {
-                if (t < earliestNext)
-                {
-                    earliestNext = t;
-                }
+                earliestNext = t;
             }
         }
 
-        if (earliestNext == DateTimeOffset.MaxValue)
-        {
-            return _options.ActivePollIntervalMs;
-        }
-
-        TimeSpan waitTime = earliestNext - DateTimeOffset.UtcNow;
-        return (int)Math.Clamp(waitTime.TotalMilliseconds, 500, 10000);
+        return _cadence.GetLoopDelayMs(earliestNext, DateTimeOffset.UtcNow);
     }
 
     /// <summary>

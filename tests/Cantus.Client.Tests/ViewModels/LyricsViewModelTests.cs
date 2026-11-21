@@ -645,7 +645,7 @@ public sealed class LyricsViewModelTests
     {
         // Arrange
         SignalRPlaybackClient client = new();
-        LyricsViewModel vm = new(client);
+        LyricsViewModel vm = new(client, displaysApi: StubDisplaysApi());
 
         AuthorizedSessionPayload payload = new()
         {
@@ -692,7 +692,7 @@ public sealed class LyricsViewModelTests
     {
         // Arrange
         SignalRPlaybackClient client = new();
-        LyricsViewModel vm = new(client);
+        LyricsViewModel vm = new(client, displaysApi: StubDisplaysApi());
         List<string?> raised = new();
         vm.Session.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
 
@@ -717,7 +717,7 @@ public sealed class LyricsViewModelTests
     {
         // Arrange
         SignalRPlaybackClient client = new();
-        LyricsViewModel vm = new(client);
+        LyricsViewModel vm = new(client, displaysApi: StubDisplaysApi());
         client.RaiseAuthSessionReceived(new AuthorizedSessionPayload { Id = "user-1", DisplayName = "Alice" });
         client.RaisePlaybackStateReceived(new PlaybackStatePayload
         {
@@ -1138,5 +1138,17 @@ public sealed class LyricsViewModelTests
         notified.Should().Contain(nameof(PlaybackTransport.ShuffleButtonForeground));
         notified.Should().Contain(nameof(PlaybackTransport.RepeatButtonForeground));
     }
-}
 
+    /// <summary>
+    /// Signing in loads the owner's Displays; without this stub that would be a real HTTP call
+    /// carrying whatever Session token the machine has saved.
+    /// </summary>
+    private static IDisplayManagementApi StubDisplaysApi()
+    {
+        Mock<IDisplayManagementApi> api = new();
+        api
+            .Setup(a => a.ListAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DisplayListResult(DisplayManagementStatus.Succeeded, new List<DisplayInfoPayload>()));
+        return api.Object;
+    }
+}

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Server.Models;
@@ -57,6 +58,52 @@ public sealed class LyricsEndpointsTests : IClassFixture<WebApplicationFactory<P
         dto!.TrackId.Should().Be("track-123");
         dto.Lines.Should().HaveCount(1);
         dto.Lines[0].Text.Should().Be("Line 1");
+    }
+
+    [Fact]
+    public async Task GetCachedLyrics_WithWordTiming_SendsSyllablesToClients()
+    {
+        HttpClient client = _factory.CreateClient();
+
+        SyncedLyrics lyrics = new()
+        {
+            TrackId = "track-words",
+            Title = "Song Title",
+            Artist = "Artist Name",
+            IsSynced = true,
+            Lines =
+            [
+                new LyricLine(
+                    TimeSpan.FromMilliseconds(27360),
+                    "alpha bravo",
+                    [
+                        new LyricSyllable(TimeSpan.FromMilliseconds(27360), TimeSpan.FromMilliseconds(240), "alpha "),
+                        new LyricSyllable(TimeSpan.FromMilliseconds(27600), TimeSpan.FromMilliseconds(95), "bravo")
+                    ]),
+                new LyricLine(TimeSpan.FromMilliseconds(30000), "line only")
+            ]
+        };
+
+        _mockCacheRepo
+            .Setup(c => c.GetCachedLyricsAsync("track-words", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(lyrics);
+
+        HttpResponseMessage response = await client.GetAsync("/api/lyrics/track-words");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement lines = document.RootElement.GetProperty("lines");
+
+        JsonElement syllables = lines[0].GetProperty("syllables");
+        syllables.GetArrayLength().Should().Be(2);
+        syllables[0].GetProperty("timestampMs").GetInt64().Should().Be(27360);
+        syllables[0].GetProperty("durationMs").GetInt64().Should().Be(240);
+        syllables[0].GetProperty("text").GetString().Should().Be("alpha ");
+        syllables[1].GetProperty("timestampMs").GetInt64().Should().Be(27600);
+        syllables[1].GetProperty("durationMs").GetInt64().Should().Be(95);
+        syllables[1].GetProperty("text").GetString().Should().Be("bravo");
+
+        lines[1].GetProperty("syllables").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     [Fact]

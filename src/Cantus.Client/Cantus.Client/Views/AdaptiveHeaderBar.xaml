@@ -54,7 +54,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <!-- Find a Song by Lyrics (signed-in owners only) -->
                     <Button Click="OnOpenSongLookupClicked"
-                            Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}"
+                            Visibility="{x:Bind GetSongLookupVisibility(Pairing.OwnerControlsVisibility, Session.OwnerActionsVisibility), Mode=OneWay, FallbackValue=Collapsed}"
                             Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
@@ -109,6 +109,7 @@
 
                     <!-- Spotify SSO -->
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
@@ -150,7 +151,7 @@
                 <!-- Compact Action Buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <Button Click="OnOpenSongLookupClicked"
-                            Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}"
+                            Visibility="{x:Bind GetSongLookupVisibility(Pairing.OwnerControlsVisibility, Session.OwnerActionsVisibility), Mode=OneWay, FallbackValue=Collapsed}"
                             Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                             BorderThickness="1"
@@ -195,6 +196,7 @@
                     </Button>
 
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
@@ -222,6 +224,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <!-- Spotify SSO Mini -->
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="6"
@@ -240,7 +243,7 @@
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Find Song by Lyrics"
                                                 Click="OnOpenSongLookupClicked"
-                                                Visibility="{x:Bind Session.OwnerActionsVisibility, Mode=OneWay, FallbackValue=Collapsed}">
+                                                Visibility="{x:Bind GetSongLookupVisibility(Pairing.OwnerControlsVisibility, Session.OwnerActionsVisibility), Mode=OneWay, FallbackValue=Collapsed}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE721;" />
                                     </MenuFlyoutItem.Icon>
@@ -266,7 +269,7 @@
                                         <FontIcon Glyph="&#xE8A5;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutItem Text="Log Out" Click="OnLogoutClicked">
+                                <MenuFlyoutItem Text="Log Out" Click="OnLogoutClicked" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7E8;" />
                                     </MenuFlyoutItem.Icon>

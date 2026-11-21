@@ -1,46 +1,55 @@
 # Configuration & Environment Reference
 
-This document lists all environment variables and configuration options supported by the Cantus server.
+This page lists the environment variables and configuration options read by the Cantus server and desktop client.
+
+---
+
+## How Settings Are Read
+
+Settings under a section (such as `Spotify` or `DisplayPairing`) can be set in `appsettings.json` or as environment variables, with `__` (double underscore) separating nested keys: `DisplayPairing__CodeLength=10`. Environment variables override `appsettings.json`.
+
+The server also loads `appsettings.{Environment}.json` on top of `appsettings.json`. `ASPNETCORE_ENVIRONMENT` defaults to `Production` when unset, including for a local `dotnet run`, so `appsettings.Production.json` applies unless you set `ASPNETCORE_ENVIRONMENT=Development`.
+
+Defaults below are the effective values: the shipped `appsettings.json` wins over the built-in code default where they differ.
 
 ---
 
 ## Environment Variables & Configuration Options
 
-All settings can be configured via environment variables (using double-underscore `__` syntax for nested keys) or in `appsettings.json`.
-
 ### Spotify Authentication
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`Spotify__ClientId`** | `string` | — | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
-| **`CANTUS_HOST_URL`** | `string` | `http://localhost:5000` | Public root URL of your Cantus instance (used for OAuth redirect callbacks). | **Yes** |
-| **`Spotify__ClientSecret`** | `string` | — | Optional Spotify Client Secret (for developer override). | No |
-| **`Spotify__RedirectUri`** | `string` | `http://localhost:5000/api/auth/spotify/callback` | Default OAuth PKCE redirect URI. | No |
+| **`Spotify__ClientId`** | `string` | *(empty)* | 32-character Client ID from your Spotify Developer Dashboard. | **Yes** |
+| **`CANTUS_HOST_URL`** | `string` | *(unset)* | Public root URL of your instance, used to build the OAuth callback (`<url>/api/auth/spotify/callback`). `HOST_URL` and `BASE_URL` are accepted as fallbacks, in that order. When unset, the URL is taken from the incoming request (honouring trusted forwarded headers), then `http://localhost:5000`. Requests whose host is `localhost` or `127.0.0.1` always use their own address. The bundled `docker-compose.yml` sets it to `http://localhost:5000` unless you override it. | Recommended |
+| **`Spotify__RedirectUri`** | `string` | `http://localhost:5000/api/auth/spotify/callback` | Explicit OAuth callback. Used only when `CANTUS_HOST_URL`, `HOST_URL` and `BASE_URL` are all unset and the value is not one of the stock `localhost:5000` / `127.0.0.1:5000` callbacks. | No |
+| **`Spotify__Scopes__0`** | `string[]` | 5 scopes | OAuth scopes requested at login. The five built-in scopes (`user-read-playback-state`, `user-read-currently-playing`, `user-modify-playback-state`, `user-read-private`, `user-read-email`) are always requested: .NET binding appends configured entries to the built-in list, and duplicates are removed. You can add scopes but not remove the defaults. | No |
+| **`Spotify__ClientSecret`** | `string` | *(empty)* | Not used. Cantus uses PKCE, which needs no secret. | No |
 
 ### Storage & Server
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`DATA_DIR`** | `string` | `/app/data` | Base directory for persistent database and encryption keys. | No |
-| **`ConnectionStrings__CantusDatabase`** | `string` | `Data Source=cantus.db` | SQLite database connection string. | No |
-| **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` | Logging verbosity level: `none`, `debug`, or `trace`. | No |
-| **`ASPNETCORE_ENVIRONMENT`** | `string` | `Production` | ASP.NET Core runtime environment profile (`Development`, `Production`). | No |
-| **`ASPNETCORE_URLS`** | `string` | `http://+:5000` | Listening HTTP/WS binding addresses and port. | No |
+| **`ConnectionStrings__CantusDatabase`** | `string` | `Data Source=/app/data/cantus.db` (`Production`), `Data Source=cantus.db` (other environments) | SQLite connection string. A relative path resolves against the working directory. The directory is created at startup if missing. | No |
+| **`DATA_DIR`** | `string` | `/app/data` in the Docker image | Parent of the Data Protection key ring (`$DATA_DIR/keys`). Does not move the database. When unset, `/app/data` is used if it exists; otherwise keys go to the ASP.NET Core default key store. | No |
+| **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` (Release builds), `debug` (Debug builds) | Log profile: `none`, `debug` or `trace` (case-insensitive). Unknown values fall back to the default. See [Logging](#logging-configurations-cli-parameters). | No |
+| **`ASPNETCORE_ENVIRONMENT`** | `string` | `Production` | ASP.NET Core environment (`Development`, `Production`). `Development` also serves the OpenAPI document and Scalar API reference. | No |
+| **`ASPNETCORE_URLS`** | `string` | `http://+:5000` in the Docker image, `http://localhost:5000` otherwise | Listening addresses. | No |
 
 ### Adaptive Playback Polling (`PlaybackPoller`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`PlaybackPoller__ActivePollIntervalMs`** | `int` | `4000` | Baseline polling cadence (ms) when Spotify is actively playing. | No |
-| **`PlaybackPoller__ApproachingEndPollIntervalMs`** | `int` | `2500` | Accelerated cadence (ms) when remaining track duration $\le$ `ApproachingEndThresholdMs`. | No |
-| **`PlaybackPoller__ImminentEndPollIntervalMs`** | `int` | `1200` | Accelerated cadence (ms) when remaining track duration $\le$ `ImminentEndThresholdMs`. | No |
-| **`PlaybackPoller__ApproachingEndThresholdMs`** | `int` | `15000` | Remaining track duration threshold (ms) to engage approaching-end acceleration. | No |
-| **`PlaybackPoller__ImminentEndThresholdMs`** | `int` | `5000` | Remaining track duration threshold (ms) to engage imminent-end acceleration. | No |
-| **`PlaybackPoller__PausedPollIntervalMs`** | `int` | `5000` | Initial polling cadence (ms) when playback is paused ($\le$ 1 min). | No |
-| **`PlaybackPoller__PausedExtendedPollIntervalMs`** | `int` | `15000` | Extended polling cadence (ms) when playback has been paused 1–5 min. | No |
-| **`PlaybackPoller__PausedDeepPollIntervalMs`** | `int` | `30000` | Deep conservation polling cadence (ms) when playback has been paused $>$ 5 min. | No |
-| **`PlaybackPoller__IdlePollIntervalMs`** | `int` | `10000` | Initial polling cadence (ms) when no active playback is detected ($\le$ 2 min). | No |
-| **`PlaybackPoller__IdleExtendedPollIntervalMs`** | `int` | `30000` | Extended polling cadence (ms) when inactive for 2–10 min. | No |
-| **`PlaybackPoller__IdleDeepPollIntervalMs`** | `int` | `60000` | Deep conservation cadence (ms) when inactive $>$ 10 min. | No |
-| **`PlaybackPoller__BackgroundPollIntervalMs`** | `int` | `20000` | Polling cadence (ms) applied when all connected viewer tabs report hidden/minimized. | No |
-| **`PlaybackPoller__DiagnosticsBroadcastIntervalMs`** | `int` | `5000` | Interval (ms) for SignalR telemetry diagnostics broadcast. | No |
+| **`PlaybackPoller__ActivePollIntervalMs`** | `int` | `4000` | Polling cadence (ms) while Spotify is playing. | No |
+| **`PlaybackPoller__ApproachingEndPollIntervalMs`** | `int` | `2500` | Cadence (ms) when remaining track time is at most `ApproachingEndThresholdMs`. | No |
+| **`PlaybackPoller__ImminentEndPollIntervalMs`** | `int` | `1200` | Cadence (ms) when remaining track time is at most `ImminentEndThresholdMs`. | No |
+| **`PlaybackPoller__ApproachingEndThresholdMs`** | `int` | `15000` | Remaining time (ms) that starts approaching-end polling. | No |
+| **`PlaybackPoller__ImminentEndThresholdMs`** | `int` | `5000` | Remaining time (ms) that starts imminent-end polling. | No |
+| **`PlaybackPoller__PausedPollIntervalMs`** | `int` | `5000` | Cadence (ms) for the first minute of a pause. | No |
+| **`PlaybackPoller__PausedExtendedPollIntervalMs`** | `int` | `15000` | Cadence (ms) after 1 to 5 minutes paused. | No |
+| **`PlaybackPoller__PausedDeepPollIntervalMs`** | `int` | `30000` | Cadence (ms) after more than 5 minutes paused. | No |
+| **`PlaybackPoller__IdlePollIntervalMs`** | `int` | `10000` | Cadence (ms) for the first 2 minutes with no active playback, and the loop delay when no viewers are connected. | No |
+| **`PlaybackPoller__IdleExtendedPollIntervalMs`** | `int` | `30000` | Cadence (ms) after 2 to 10 minutes idle. | No |
+| **`PlaybackPoller__IdleDeepPollIntervalMs`** | `int` | `60000` | Cadence (ms) after more than 10 minutes idle. | No |
+| **`PlaybackPoller__BackgroundPollIntervalMs`** | `int` | `20000` | Cadence (ms) while playing when every viewer of the owner reports hidden. When paused or idle and hidden, the larger of this and the matching deep interval is used. | No |
+| **`PlaybackPoller__DiagnosticsBroadcastIntervalMs`** | `int` | `5000` | Not used: diagnostics are sent with every poll. | No |
 
 ### Display Pairing (`DisplayPairing`)
 Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside the allowed range stop the server at startup.
@@ -49,22 +58,22 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 | :--- | :---: | :---: | :--- | :---: |
 | **`DisplayPairing__CodeLength`** | `int` | `8` | Characters in a pairing code (6 to 16). | No |
 | **`DisplayPairing__CodeLifetimeSeconds`** | `int` | `300` | Seconds a pairing code stays valid (30 to 3600). | No |
-| **`DisplayPairing__MaxPendingPairings`** | `int` | `1000` | Pairings that may wait for approval at once, across all clients. Further requests get `503`. | No |
-| **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window. IPv6 addresses in the same `/64` count as one client. | No |
-| **`DisplayPairing__RateLimitWindowSeconds`** | `int` | `60` | Length of the rate limit window in seconds (1 to 3600). | No |
+| **`DisplayPairing__MaxPendingPairings`** | `int` | `1000` | Pairings that may wait for approval at once, across all clients (at least 1). Further requests get `503`. | No |
+| **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window (at least 1). IPv6 addresses in the same `/64` count as one client. Over the limit returns `429`. | No |
+| **`DisplayPairing__RateLimitWindowSeconds`** | `int` | `60` | Length of the fixed rate limit window in seconds (1 to 3600). | No |
 
 ### Lyrics Provider: LRCLIB (`Lrclib`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
 | **`Lrclib__BaseUrl`** | `string` | `https://lrclib.net` | LRCLIB lyrics service base URL. | No |
-| **`Lrclib__TimeoutSeconds`** | `int` | `8` | HTTP request timeout (seconds) for external LRCLIB queries. | No |
-| **`Lrclib__UserAgent`** | `string` | `CantusSyncedLyrics/1.0.0 (https://github.com/cantus)` | HTTP User-Agent header sent to LRCLIB API. | No |
+| **`Lrclib__TimeoutSeconds`** | `int` | `8` | HTTP request timeout (seconds) for LRCLIB queries. | No |
+| **`Lrclib__UserAgent`** | `string` | `CantusSyncedLyrics/1.0.0 (https://github.com/jav76/Cantus)` | HTTP User-Agent header sent to LRCLIB. | No |
 
 ### Lyrics Provider: NetEase Fallback (`Netease`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
 | **`Netease__Enabled`** | `bool` | `true` | Enables the NetEase Cloud Music fallback provider (unofficial API). Set `false` to run LRCLIB-only. | No |
-| **`Netease__BaseUrl`** | `string` | `https://music.163.com` | NetEase web API base URL. | No |
+| **`Netease__BaseUrl`** | `string` | `https://music.163.com` | NetEase web API base URL. Also sent as the `Referer` header. | No |
 | **`Netease__UserAgent`** | `string` | `Mozilla/5.0 (Windows NT 10.0; Win64; x64)` | HTTP User-Agent header sent to the NetEase API. | No |
 | **`Netease__TimeoutSeconds`** | `int` | `10` | HTTP request timeout (seconds) for NetEase queries. | No |
 | **`Netease__SearchLimit`** | `int` | `10` | Maximum search candidates fetched per lookup. | No |
@@ -73,7 +82,9 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 ### Lyrics Cache (`LyricsCache`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`LyricsCache__NegativeCacheDays`** | `int` | `30` | Duration in days to cache negative lookups (instrumental tracks / not found across all providers). | No |
+| **`LyricsCache__NegativeCacheDays`** | `int` | `30` | Days to cache negative lookups (instrumental tracks, or not found across all providers). | No |
+| **`LyricsCache__WordTimingUpgradeMaxAttempts`** | `int` | `3` | How many times a cached entry without word timing is re-fetched from word-timing providers (NetEase) to look for word-timed lyrics. `0` turns upgrades off; they are also skipped when NetEase is disabled. | No |
+| **`LyricsCache__WordTimingUpgradeIntervalDays`** | `int` | `7` | Minimum days between word-timing upgrade attempts for the same track. | No |
 
 ### Song Lookup (`SongLookup`)
 Settings for [finding a song by lyrics](rest-api.md#song-lookup-endpoints). Values outside the allowed range stop the server at startup.
@@ -94,32 +105,34 @@ Settings for [finding a song by lyrics](rest-api.md#song-lookup-endpoints). Valu
 ### Cross-Origin Requests (`Cors`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`Cors__AllowedOrigins__0`** | `string[]` | *(empty)* | Origins permitted to call the API cross-origin with credentials. Empty by default: the bundled web client is served from the same origin and needs no grant. Only set this when hosting the client separately (e.g. `https://lyrics.mydomain.com`). | No |
+| **`Cors__AllowedOrigins__0`** | `string[]` | *(empty)* | Origins permitted to call the API cross-origin with credentials. Empty by default: the bundled web client is served from the same origin and needs no grant. Only set this when hosting the client separately (e.g. `https://lyrics.mydomain.com`). Use `__1`, `__2` for more entries. | No |
 
 ### Reverse Proxy Trust (`ForwardedHeaders`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
-| **`ForwardedHeaders__TrustAllProxies`** | `bool` | `false` | Honour `X-Forwarded-*` from any remote address. Only enable when clients cannot reach Cantus directly (proxy-only exposure) — otherwise any client can spoof its address and scheme. | No |
-| **`ForwardedHeaders__KnownProxies__0`** | `string[]` | *(empty)* | Additional proxy IP addresses to trust, beyond the default loopback. | No |
-| **`ForwardedHeaders__KnownNetworks__0`** | `string[]` | *(empty)* | Proxy networks to trust in CIDR form (e.g. `172.16.0.0/12` for a Docker bridge network). | No |
+| **`ForwardedHeaders__TrustAllProxies`** | `bool` | `false` | Honour `X-Forwarded-*` from any remote address. Only enable when clients cannot reach Cantus directly (proxy-only exposure); otherwise any client can spoof its address and scheme. Overrides the two lists below. | No |
+| **`ForwardedHeaders__KnownProxies__0`** | `string[]` | *(empty)* | Additional proxy IP addresses to trust, beyond the default loopback. Entries that do not parse are skipped silently. | No |
+| **`ForwardedHeaders__KnownNetworks__0`** | `string[]` | *(empty)* | Proxy networks to trust in CIDR form (e.g. `172.16.0.0/12` for a Docker bridge network). Entries that do not parse are skipped silently. | No |
 
 ---
 
 ## Logging Configurations & CLI Parameters
 
-Cantus supports configurable log verbosity across both the Server and the Desktop client.
+The server and the desktop client both take a log profile: `none`, `debug` or `trace`. The CLI option wins over `CANTUS_LOG_CONFIGURATION`. Without either, Release builds (the Docker image and release downloads) use `none` and Debug builds (a plain `dotnet run`) use `debug`.
 
 ### CLI Option: `--log-configuration` (alias: `-l`)
 ```bash
-# Start server with debug logging (console + rolling file + SQLite database)
+# Server with debug logging (console + rolling file + SQLite LogEntries table)
 dotnet run --project src/Cantus.Server -- --log-configuration debug
 
-# Start desktop client with trace logging (console + rolling file)
+# Desktop client with trace logging (console only)
 ./Cantus-Linux-x64.AppImage --log-configuration trace
 ```
 
+In Docker, set `CANTUS_LOG_CONFIGURATION=debug` in the service environment.
+
 ### CLI Option: `--server-url` (alias: `-s`, Desktop client only)
-Points the desktop client at a Cantus server other than the default `http://127.0.0.1:5000`. Accepts the same address you would open in a browser; the SignalR hub path is appended automatically and any query string is dropped. Also readable from the `CANTUS_SERVER_URL` environment variable, with the CLI option taking precedence. An unparseable value is ignored with a warning rather than preventing startup.
+Points the desktop client at a Cantus server other than the default `http://127.0.0.1:5000`. Accepts the same address you would open in a browser; the SignalR hub path (`/hubs/playback`) is appended when missing and any query string is dropped. Also readable from the `CANTUS_SERVER_URL` environment variable, with the CLI option taking precedence. A value that is not an absolute `http`/`https` URL is ignored with a warning rather than preventing startup.
 
 ```bash
 # Connect the desktop client to a server behind an HTTPS reverse proxy
@@ -131,27 +144,35 @@ CANTUS_SERVER_URL=https://lyrics.example.com ./Cantus-Linux-x64.AppImage
 
 > **Spotify login needs HTTPS for remote servers.** Spotify only accepts `http://` redirect URIs on loopback addresses (`127.0.0.1` or `[::1]`), never `localhost` or a LAN IP. A plain `http://192.168.0.10:5000` server will connect, but Spotify login through it fails. Put remote servers behind HTTPS (see [Reverse Proxy](../operator-guide/reverse-proxy.md)).
 
-> The WebAssembly client ignores this: it is served by the Cantus server, so it always connects back to its own origin.
+> The WebAssembly client ignores both options: it is served by the Cantus server, so it always connects back to its own origin and uses the build's default log profile.
 
-### Log Levels & Output Matrix
-| Configuration | Console / Stdout | Rolling File (`%tmp%/cantus/logs`) | SQLite Database (`LogEntries` Table) | Tracing (`[TraceLog]`) |
-| :--- | :---: | :---: | :---: | :---: |
-| **`none`** (Default) | Errors & Warnings | Disabled | Disabled | Disabled |
-| **`debug`** | Information & Debug | Enabled (`cantus-*.log`) | Enabled (Server) | Disabled |
-| **`trace`** | Full Trace Stream | Enabled (`cantus-*.log`) | Enabled (Server) | Enabled (Method Entry/Exit/Timing) |
+### Server Log Outputs
+| Profile | Console / Stdout | Rolling File | SQLite (`LogEntries` table) | `[TraceLog]` method tracing |
+| :--- | :--- | :---: | :---: | :---: |
+| **`none`** | `Information` and above (`Microsoft.*`, `System.*`: `Warning` and above) | Off | Off | Off |
+| **`debug`** | `Debug` and above (`Microsoft.*`, `System.*`: `Information` and above) | On | On | Off |
+| **`trace`** | Everything | On | On | On (entry, exit, timing) |
+
+- The rolling file is `cantus-server.log` in `<temp>/cantus/logs/` (`/tmp/cantus/logs/` on Linux and in the container, which is outside the `/app/data` volume). It rolls daily and at 10 MB, keeping 10 backups.
+- The `LogEntries` table lives in the database set by `ConnectionStrings__CantusDatabase`.
+- The `Logging:LogLevel` section of `appsettings*.json` has no effect: the log profile replaces those filter rules.
+
+The desktop client logs to the console only: `Information` (`none`), `Debug` (`debug`) or `Trace` (`trace`), with `Uno.*`, `Windows.*` and `Microsoft.*` held at `Warning`.
+
+Logs identify a Session by `{SessionRef}`, a short hash, never by its id. Rows written before this change may contain Session ids: see [Session ids in logs from older releases](../operator-guide/troubleshooting.md#session-ids-in-logs-from-older-releases).
 
 ---
 
 ## Storage & File Layout
 
-When running Cantus, the application expects the `/app/data` volume to be writable:
+In the Docker image, `/app/data` must be writable:
 
 ```text
 /app/data/
-├── cantus.db                 # SQLite database (Sessions, Cache, Track Offsets)
+├── cantus.db                 # SQLite database (Sessions, Displays, lyrics cache, track offsets, lyrics overrides, debug logs)
 ├── cantus.db-shm             # SQLite shared memory file (WAL mode)
 ├── cantus.db-wal             # SQLite write-ahead log
-└── keys/                     # XML Keyring for OAuth token encryption at rest
+└── keys/                     # Data Protection key ring for OAuth token encryption at rest
     └── key-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xml
 ```
 
@@ -161,4 +182,4 @@ When running Cantus, the application expects the `/app/data` volume to be writab
 
 | Port | Protocol | Default Purpose |
 | :---: | :---: | :--- |
-| **`5000`** | `TCP (HTTP/WS)` | Web server listening port for both REST APIs, SignalR PlaybackHub, and static WebAssembly client assets. |
+| **`5000`** | `TCP (HTTP/WS)` | REST APIs, the SignalR `PlaybackHub` (`/hubs/playback`) and the static WebAssembly client. |

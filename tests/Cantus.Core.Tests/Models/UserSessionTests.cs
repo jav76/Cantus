@@ -1,4 +1,5 @@
 using System;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using FluentAssertions;
 using Xunit;
@@ -28,7 +29,8 @@ public sealed class UserSessionTests
         string stringRep = session.ToString();
 
         // Assert
-        stringRep.Should().Contain("Id = session-123");
+        stringRep.Should().Contain($"Id = {SessionLogRef.For("session-123")}");
+        stringRep.Should().NotContain("session-123");
         stringRep.Should().Contain("DisplayName = Test User");
         stringRep.Should().Contain("AccessToken = [REDACTED]");
         stringRep.Should().Contain("RefreshToken = [REDACTED]");

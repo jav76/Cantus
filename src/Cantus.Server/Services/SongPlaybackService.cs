@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Core.Search;
 using Cantus.Infrastructure.Spotify;
@@ -126,10 +127,10 @@ public sealed partial class SongPlaybackService : ISongPlaybackService
             : await _playerClient.PlayTrackAsync(accessToken, trackUri, cancellationToken);
 
         _logger.LogInformation(
-            "Lookup {Action} of track {TrackId} for user {UserId}: {Result}",
+            "Lookup {Action} of track {TrackId} for Session {SessionRef}: {Result}",
             request.Action,
             trackId,
-            ownerUserId,
+            SessionLogRef.For(ownerUserId),
             commandResult);
 
         if (commandResult == PlayerCommandResult.Success && request.Action == SongPlayAction.Play)

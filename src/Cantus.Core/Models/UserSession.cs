@@ -1,3 +1,5 @@
+using Cantus.Core.Logging;
+
 namespace Cantus.Core.Models;
 
 public sealed record UserSession
@@ -14,5 +16,5 @@ public sealed record UserSession
     public DateTimeOffset UpdatedAtUtc { get; init; }
 
     public override string ToString() =>
-        $"UserSession {{ Id = {Id}, SpotifyUserId = {SpotifyUserId}, DisplayName = {DisplayName}, Email = {Email}, AccessToken = [REDACTED], RefreshToken = [REDACTED], ExpiresAtUtc = {ExpiresAtUtc} }}";
+        $"UserSession {{ Id = {SessionLogRef.For(Id)}, SpotifyUserId = {SpotifyUserId}, DisplayName = {DisplayName}, Email = {Email}, AccessToken = [REDACTED], RefreshToken = [REDACTED], ExpiresAtUtc = {ExpiresAtUtc} }}";
 }

@@ -9,4 +9,12 @@ public sealed class LyricsCacheOptions
 {
     public const string SECTION_NAME = "LyricsCache";
     public int NegativeCacheDays { get; set; } = 30;
+
+    /// <summary>
+    /// How many times a cached entry without word timing is re-fetched to look for it. 0 disables upgrades.
+    /// </summary>
+    public int WordTimingUpgradeMaxAttempts { get; set; } = 3;
+
+    /// <summary>Minimum days between word-timing upgrade attempts for the same track.</summary>
+    public int WordTimingUpgradeIntervalDays { get; set; } = 7;
 }

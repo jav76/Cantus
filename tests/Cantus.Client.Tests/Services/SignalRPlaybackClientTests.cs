@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
@@ -95,5 +96,80 @@ public sealed class SignalRPlaybackClientTests
         // Assert
         await act1.Should().NotThrowAsync();
         await act2.Should().NotThrowAsync();
+    }
+
+    [Theory]
+    [InlineData("session-token", null, "session-token")]
+    [InlineData(null, "display-token", "display-token")]
+    [InlineData("session-token", "display-token", "session-token")]
+    [InlineData(null, null, null)]
+    [InlineData(" ", " ", null)]
+    [InlineData("", "display-token", "display-token")]
+    public void SelectConnectionCredential_PrefersTheSessionThenTheDisplayToken(
+        string? sessionToken,
+        string? displayToken,
+        string? expected)
+    {
+        // Act & Assert
+        SignalRPlaybackClient.SelectConnectionCredential(sessionToken, displayToken).Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task ReconnectWithDisplayToken_DropsAStaleSessionSoTheDisplayTokenIsSent()
+    {
+        // Arrange
+        string sessionFile = Path.Combine(Path.GetTempPath(), $"cantus-session-{Guid.NewGuid():N}.txt");
+        await File.WriteAllTextAsync(sessionFile, "stale-session");
+        SignalRPlaybackClient client = new(
+            "http://127.0.0.1:59995/hubs/playback",
+            "stale-session",
+            TimeSpan.FromMinutes(5),
+            sessionFile);
+
+        try
+        {
+            // Act
+            await client.ReconnectWithDisplayTokenAsync("display-token");
+
+            // Assert
+            client.SessionToken.Should().BeNull();
+            client.DisplayToken.Should().Be("display-token");
+            client.ConnectionCredential.Should().Be("display-token");
+            File.Exists(sessionFile).Should().BeFalse();
+        }
+        finally
+        {
+            await client.DisposeAsync();
+            File.Delete(sessionFile);
+        }
+    }
+
+    [Fact]
+    public async Task ReconnectWithoutDisplayToken_KeepsTheSession()
+    {
+        // Arrange
+        string sessionFile = Path.Combine(Path.GetTempPath(), $"cantus-session-{Guid.NewGuid():N}.txt");
+        await File.WriteAllTextAsync(sessionFile, "session-token");
+        SignalRPlaybackClient client = new(
+            "http://127.0.0.1:59994/hubs/playback",
+            "session-token",
+            TimeSpan.FromMinutes(5),
+            sessionFile);
+
+        try
+        {
+            // Act
+            await client.ReconnectWithDisplayTokenAsync(null);
+
+            // Assert
+            client.SessionToken.Should().Be("session-token");
+            client.ConnectionCredential.Should().Be("session-token");
+            File.Exists(sessionFile).Should().BeTrue();
+        }
+        finally
+        {
+            await client.DisposeAsync();
+            File.Delete(sessionFile);
+        }
     }
 }

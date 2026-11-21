@@ -9,8 +9,6 @@ Cantus is designed to be completely zero-maintenance once deployed. This guide w
 Create a directory on your server or Raspberry Pi and add a `docker-compose.yml` file:
 
 ```yaml
-version: '3.8'
-
 services:
   cantus:
     image: ghcr.io/jav76/cantus:latest
@@ -42,7 +40,9 @@ View the live logs:
 docker compose logs -f cantus
 ```
 
-Navigate to `http://<your-server-ip>:5000` (or your reverse-proxied HTTPS domain) in your browser.
+Navigate to your HTTPS domain, or `http://127.0.0.1:5000` on the Docker host. The page also loads at `http://<your-server-ip>:5000`, but Spotify login only works over HTTPS or a loopback address (see [Spotify Developer App Setup](spotify-setup.md#2-configure-redirect-uris)).
+
+`ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS=http://+:5000` and `DATA_DIR=/app/data` are already set in the image. All other settings are in the [Configuration Reference](../reference/configuration.md).
 
 ---
 
@@ -62,12 +62,12 @@ Cantus stores all state inside the `/app/data` directory within the container:
 
 | Path | Purpose | Importance |
 | :--- | :--- | :--- |
-| `/app/data/cantus.db` | SQLite database storing user sessions, LRCLIB cache, and track latency calibrations. | Critical |
-| `/app/data/keys/` | XML cryptographic key ring used by ASP.NET Core Data Protection to encrypt Spotify OAuth refresh tokens. | Critical |
+| `/app/data/cantus.db` | SQLite database: Sessions, Displays, lyrics cache, lyrics overrides and per-track offsets. | Critical |
+| `/app/data/keys/` | XML key ring used by ASP.NET Core Data Protection to encrypt Spotify OAuth tokens. | Critical |
 
 !!! caution "Volume Persistence Required"
     Always mount a persistent volume (such as `cantus_data:/app/data` or a host bind mount `./data:/app/data`).
-    If this volume is destroyed or lost, stored sessions will become unreadable and users will need to re-authenticate with Spotify.
+    If the key ring is lost, stored Spotify tokens become unreadable and users must log in with Spotify again. If the database is lost, Sessions and Displays are gone and every screen must be paired again.
 
 ---
 
@@ -88,7 +88,7 @@ docker compose cp cantus:/tmp/cantus-backup.tar.gz ./cantus-backup-$(date +%Y%m%
 To restore on a new server:
 
 ```bash
-# Start container once to initialize directory structure, then stop it
+# Stop the container so the database is not in use
 docker compose down
 docker run --rm -v cantus_data:/app/data -v $(pwd):/backup alpine sh -c "tar -xzf /backup/cantus-backup-*.tar.gz -C /app/data"
 docker compose up -d
