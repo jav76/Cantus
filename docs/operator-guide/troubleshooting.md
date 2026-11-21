@@ -96,3 +96,19 @@ View live structured logs:
 ```bash
 docker compose logs -f --tail=100 cantus
 ```
+
+---
+
+## 7. Paired Displays
+
+### Symptom: Screens show "Too many pairing requests" or approvals fail with `429`
+- **Cause**: The pairing rate limit is per client address. Behind an untrusted proxy every client shares the proxy's address, and so one limit.
+- **Fix**: Trust the proxy with `ForwardedHeaders__KnownProxies__0` or `ForwardedHeaders__KnownNetworks__0`. See [Display pairing behind a reverse proxy](reverse-proxy.md#display-pairing-behind-a-reverse-proxy).
+
+### Symptom: A phone cannot open the QR code from a waiting screen
+- **Cause**: The QR encodes the address the screen loaded Cantus from. An internal address such as `http://cantus:5000`, or `127.0.0.1` in the desktop app, does not work from a phone.
+- **Fix**: Open the screen at the public address, or start the desktop app with `--server-url`. See [Pairing & Managing Displays](../user-guide/displays.md#desktop-app-as-a-display).
+
+### Symptom: A Display went back to the pairing screen on its own
+- **Cause**: The owner removed it, or logged out (which removes all of their Displays). A server restart alone does not unpair a screen: it retries before giving up.
+- **Fix**: Pair the screen again. Check the logs for `Display {DisplayId} revoked` to tell a removal from a log out.
