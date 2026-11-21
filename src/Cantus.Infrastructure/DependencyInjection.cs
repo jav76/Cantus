@@ -53,8 +53,14 @@ public static class DependencyInjection
         string connectionString = configuration.GetConnectionString("CantusDatabase")
             ?? "Data Source=cantus.db";
 
-        services.AddDbContext<CantusDbContext>(options =>
-            options.UseSqlite(connectionString));
+        // The interceptor keeps the in-memory lyrics search index in step with
+        // every cache and override write.
+        services.AddSingleton<LyricsSearchIndex>();
+        services.AddSingleton<LyricsCorpusChangeInterceptor>();
+        services.AddDbContext<CantusDbContext>((sp, options) =>
+            options
+                .UseSqlite(connectionString)
+                .AddInterceptors(sp.GetRequiredService<LyricsCorpusChangeInterceptor>()));
 
         // 3. Security & Data Protection
         services.AddDataProtection();
@@ -124,6 +130,12 @@ public static class DependencyInjection
                 sp.GetRequiredService<CachedLyricsService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsProviderDecorator>>()));
         services.AddScoped<LyricsOverrideService>();
+
+        services.AddScoped<SqliteLyricsCorpusReader>();
+        services.AddScoped<ILyricsCorpusReader>(sp =>
+            new TraceLoggingLyricsCorpusReaderDecorator(
+                sp.GetRequiredService<SqliteLyricsCorpusReader>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingLyricsCorpusReaderDecorator>>()));
 
         // 6. Spotify Services
         services.AddScoped<SpotifyAuthService>();
