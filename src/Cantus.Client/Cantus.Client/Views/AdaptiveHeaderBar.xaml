@@ -29,30 +29,38 @@
                                    Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
                                    Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
                     </StackPanel>
+                    <!-- Connection status: details in the tooltip, problems also get the alert chip -->
+                    <Border Background="Transparent"
+                            Padding="4"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}">
+                        <Ellipse Width="8" Height="8" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" />
+                    </Border>
                 </StackPanel>
 
-                <!-- Diagnostics Telemetry Pills: listed highest priority first; the ones that do not fit are hidden -->
-                <views:PriorityStackPanel Grid.Column="1" Spacing="8" Margin="12,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <!-- Connection Status -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="8" Height="8" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-                    <!-- Latency RTT -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                    </Border>
-                    <!-- NTP Skew -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind GetSkewText(ViewModel.ClockSkewMs), Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                    </Border>
-                    <!-- Poller Cadence -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
-                        <TextBlock Text="{x:Bind ViewModel.PollerStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                    </Border>
-                </views:PriorityStackPanel>
+                <!-- Alert chip: only while the connection is down or the poller is rate limited -->
+                <Border Grid.Column="1"
+                        Margin="12,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind GetAlertVisibility(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay, FallbackValue=Collapsed}"
+                        Background="#15FFFFFF"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="10,4"
+                        ToolTipService.ToolTip="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                        <Ellipse Width="7" Height="7" Fill="{x:Bind GetAlertColor(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind GetAlertText(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay}"
+                                   FontSize="12"
+                                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </Border>
 
                 <!-- Action Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -145,20 +153,38 @@
                         <FontIcon Glyph="&#xE767;" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="Cantus" FontSize="18" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                    <!-- Connection status: details in the tooltip, problems also get the alert chip -->
+                    <Border Background="Transparent"
+                            Padding="4"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}">
+                        <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" />
+                    </Border>
                 </StackPanel>
 
-                <!-- Essential Telemetry -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="8,4">
-                        <TextBlock Text="{x:Bind GetRttText(ViewModel.RttMs), Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
-                    </Border>
-                </StackPanel>
+                <!-- Alert chip: only while the connection is down or the poller is rate limited -->
+                <Border Grid.Column="1"
+                        Margin="12,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="{x:Bind GetAlertVisibility(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay, FallbackValue=Collapsed}"
+                        Background="#15FFFFFF"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="8,4"
+                        ToolTipService.ToolTip="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                        <Ellipse Width="7" Height="7" Fill="{x:Bind GetAlertColor(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind GetAlertText(ViewModel.ConnectionStatus, ViewModel.PollerStatus), Mode=OneWay}"
+                                   FontSize="11"
+                                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </Border>
 
                 <!-- Compact Action Buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -236,7 +262,14 @@
                         <FontIcon Glyph="&#xE767;" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="Cantus" FontSize="17" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                    <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" VerticalAlignment="Center" Margin="2,0,0,0" />
+                    <!-- Connection status: details in the tooltip -->
+                    <Border Background="Transparent"
+                            Padding="4"
+                            VerticalAlignment="Center"
+                            ToolTipService.ToolTip="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind GetStatusTooltip(ViewModel.ConnectionStatus, ViewModel.RttMs, ViewModel.PollerStatus), Mode=OneWay}">
+                        <Ellipse Width="7" Height="7" Fill="{x:Bind GetStatusColor(ViewModel.ConnectionStatus), Mode=OneWay}" />
+                    </Border>
                 </StackPanel>
 
                 <!-- Mobile Quick Actions / Overflow Menu -->

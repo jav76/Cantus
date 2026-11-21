@@ -27,15 +27,15 @@ flowchart TD
 | Form Factor | Breakpoint | Header Mode | Track Card | Lyrics Stage | Navigation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Small (Mobile)** | `< 680px` | Minimal + Overflow Flyout | Compact 56px thumbnail strip or dedicated tab | Touch-focused, 24px active line | 3-Tab Bottom Bar (Lyrics / Track / Sync & Info) |
-| **Medium (Tablet)** | `680px - 1079px` | Compact status + quick action icons | Side-by-side 290px rail with 230px artwork, in landscape and portrait | Balanced 32px active line | Dual-pane workspace |
-| **Large (Desktop)** | `>= 1080px` | Full telemetry pills + actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
+| **Medium (Tablet)** | `680px - 1079px` | Status dot, alert chip + quick action icons | Side-by-side 290px rail with 230px artwork, in landscape and portrait | Balanced 32px active line | Dual-pane workspace |
+| **Large (Desktop)** | `>= 1080px` | Status dot, alert chip + labelled actions | Expansive 380px card with 332px artwork | Grand 38px active line with smooth auto-scroll | Dual-column workspace |
 | **Fullscreen (TV)** | Kiosk toggle (<kbd>K</kbd> / <kbd>F11</kbd>) | Hidden | Floating minimal 10-foot HUD | Centered 50px high-contrast karaoke lyrics | Keyboard / remote navigation |
 
 ### Narrow Windows
 
 Inside each layout, controls shrink before they overflow:
 
-- **Large header:** the telemetry pills (connection, RTT, skew, poller) are hidden from the right when they do not fit, so the connection pill goes last. Below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the Spotify button is trimmed; hover it for the full name.
+- **Large header:** below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the Spotify button is trimmed; hover it for the full name.
 - **Track card:** the album art shrinks to fit the card. A long device name is trimmed; hover it for the full name.
 - **Lyrics stage:** when the stage is narrower than 420px, the Karaoke, Autoscroll and Static/Live buttons become icon-only (hover for the tooltip). The theme toast shows at the top of the lyrics, not beside these buttons.
 - **Phones under 380px:** the mobile tab bar stacks each icon above its label, and the now-playing strip drops its timestamp and offset column.
@@ -125,6 +125,10 @@ When the Cantus window is focused, and focus is not in a text field, these keys 
 The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track **Sync offset**. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the **Reset** button under **Sync offset** for the track offset.
 
 ---
+
+## Connection Status
+
+The dot next to the **Cantus** name shows the connection: green when connected, amber while reconnecting, red otherwise. Hover it for the connection status, round-trip time and poller status. On larger layouts a chip also appears in the middle of the header while something is wrong: the connection is not connected, or Spotify is rate limiting the account (`Rate Limited (...)`). It disappears when things recover.
 
 ## Diagnostics HUD
 

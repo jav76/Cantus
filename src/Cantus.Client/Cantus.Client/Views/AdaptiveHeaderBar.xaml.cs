@@ -277,17 +277,29 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         };
     }
 
+    private static readonly Color HealthyColor = Color.FromArgb(255, 16, 185, 129);
+    private static readonly Color WarningColor = Color.FromArgb(255, 245, 158, 11);
+    private static readonly Color ErrorColor = Color.FromArgb(255, 239, 68, 68);
+
     public SolidColorBrush GetStatusColor(string? status) => status switch
     {
-        "Connected" => new SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
-        "Reconnecting" => new SolidColorBrush(Color.FromArgb(255, 245, 158, 11)),
-        _ => new SolidColorBrush(Color.FromArgb(255, 239, 68, 68))
+        HeaderStatus.CONNECTED => new SolidColorBrush(HealthyColor),
+        "Reconnecting" => new SolidColorBrush(WarningColor),
+        _ => new SolidColorBrush(ErrorColor)
     };
 
-    public string GetRttText(long? rtt = null) => $"RTT: {rtt.GetValueOrDefault()}ms";
-    public string GetSkewText(long? skew = null)
-    {
-        long s = skew.GetValueOrDefault();
-        return $"Skew: {(s >= 0 ? "+" : "")}{s}ms";
-    }
+    public string GetStatusTooltip(string? connectionStatus, long rttMs, string? pollerStatus)
+        => HeaderStatus.GetTooltip(connectionStatus, rttMs, pollerStatus);
+
+    public string GetAlertText(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) ?? string.Empty;
+
+    public Visibility GetAlertVisibility(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) is null ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>A rate-limited poller is a warning; a connection problem keeps its status colour.</summary>
+    public SolidColorBrush GetAlertColor(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.IsConnected(connectionStatus)
+            ? new SolidColorBrush(WarningColor)
+            : GetStatusColor(connectionStatus);
 }
