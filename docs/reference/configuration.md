@@ -126,6 +126,8 @@ CANTUS_SERVER_URL=https://lyrics.example.com ./Cantus-Linux-x64.AppImage
 | **`debug`** | Information & Debug | Enabled (`cantus-*.log`) | Enabled (Server) | Disabled |
 | **`trace`** | Full Trace Stream | Enabled (`cantus-*.log`) | Enabled (Server) | Enabled (Method Entry/Exit/Timing) |
 
+Logs identify a Session by `{SessionRef}`, a short hash, never by its id. Rows written before this change may contain Session ids: see [Session ids in logs from older releases](../operator-guide/troubleshooting.md#session-ids-in-logs-from-older-releases).
+
 ---
 
 ## Storage & File Layout

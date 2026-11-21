@@ -6,7 +6,7 @@ namespace Cantus.Core.Interfaces;
 [TraceLog]
 public interface ISpotifyPlayerClient
 {
-    Task<PlaybackState?> GetCurrentPlaybackAsync(string accessToken, CancellationToken cancellationToken = default);
+    Task<PlaybackState?> GetCurrentPlaybackAsync([Redact] string accessToken, CancellationToken cancellationToken = default);
 
     Task<PlayerCommandResult> PausePlaybackAsync([Redact] string accessToken, CancellationToken cancellationToken = default);
 
