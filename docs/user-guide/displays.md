@@ -12,7 +12,7 @@ Use a Display for any screen other people can reach. Sign in with Spotify only o
 | :--- | :--- |
 | Show your current track, artwork, progress and synced lyrics | Play, pause, skip, seek, or change volume, shuffle or repeat |
 | Follow your playback live, with the same timing as your own devices | Change per-track sync offsets or pick different lyrics |
-| Adjust its own **Device Latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, log out, or see your Spotify sign-in |
+| Adjust its own **Device latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, log out, or see your Spotify sign-in |
 | Keep your playback updating while no other device is open | List, approve, rename or remove Displays |
 | Reconnect by itself after a restart or network drop | Watch anyone else's playback |
 

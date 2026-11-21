@@ -51,7 +51,7 @@ The <kbd>[</kbd> and <kbd>]</kbd> keys adjust the device-wide latency compensati
 3. If the lyrics highlight **too early** (before you hear the singer, common on Bluetooth/AirPlay):
    - Press <kbd>]</kbd> to increase the compensation; lyrics render **later**.
 
-The current value is shown as **Device Latency** in the mobile Settings view and as **Latency Compensation** in the diagnostics HUD, ranges `0` to `1000ms`, and persists per device/browser. A [paired Display](displays.md) can adjust its own latency compensation too, but not per-track offsets. There is no reset key: step back to the value you want.
+The current value is shown as **Device latency** in the mobile Settings view and as **Latency Compensation** in the diagnostics HUD, ranges `0` to `1000ms`, and persists per device/browser. A [paired Display](displays.md) can adjust its own latency compensation too, but not per-track offsets. There is no reset key: step back to the value you want.
 
 ---
 

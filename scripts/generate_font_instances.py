@@ -56,6 +56,15 @@ INSTANCES = [
     ("Fraunces[SOFT,WONK,opsz,wght].ttf", "Fraunces-SemiBold.ttf", {**FRAUNCES_AXES, "wght": 600}),
 ]
 
+# The instancer names the Fraunces instances "Fraunces 72pt" after the pinned
+# optical size. "72pt" is not a weight, width or slope term, so DirectWrite
+# (Windows head) would read the family as "Fraunces 72pt" and "#Fraunces" in
+# App.xaml would not match. These outputs get plain "Fraunces" names instead.
+RENAMED_STYLES = {
+    "Fraunces-Regular.ttf": ("Fraunces", "Regular"),
+    "Fraunces-SemiBold.ttf": ("Fraunces", "SemiBold"),
+}
+
 UNICODE_RANGES = [
     (0x0020, 0x007E),  # Basic Latin
     (0x00A0, 0x00FF),  # Latin-1 Supplement
@@ -83,12 +92,34 @@ def ensure_sources(source_dir: Path) -> None:
             raise SystemExit(f"{target}: SHA-256 {actual_hash} does not match {expected_hash}")
 
 
+def set_style_names(font: TTFont, family: str, style: str) -> None:
+    name_table = font["name"]
+    version = name_table.getDebugName(3).split(";")[:2]
+    postscript_name = f"{family}-{style}".replace(" ", "")
+    names = {
+        1: family if style == "Regular" else f"{family} {style}",
+        2: "Regular",
+        3: ";".join([*version, postscript_name]),
+        4: f"{family} {style}",
+        6: postscript_name,
+        16: family,
+        17: style,
+    }
+    for record in list(name_table.names):
+        if record.nameID in names:
+            name_table.removeNames(nameID=record.nameID, platformID=record.platformID)
+    for name_id, value in names.items():
+        name_table.setName(value, name_id, 3, 1, 0x409)
+
+
 def build_instance(source: Path, axes: dict, output: Path) -> None:
     font = TTFont(source)
     static = instancer.instantiateVariableFont(font, axes, updateFontNames=True)
     for table in ("DSIG", "STAT"):
         if table in static:
             del static[table]
+    if output.name in RENAMED_STYLES:
+        set_style_names(static, *RENAMED_STYLES[output.name])
 
     options = subset.Options()
     options.layout_features = ["*"]

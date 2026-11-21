@@ -13,13 +13,13 @@ public enum LayoutBreakpoint
 
     /// <summary>
     /// Medium screens (680px - 1079px): Tablets, foldable devices, split-screen desktop windows.
-    /// Adaptive two-column layout with medium album art and condensed telemetry.
+    /// Adaptive two-column layout with medium album art and a status dot and alert chip.
     /// </summary>
     Medium,
 
     /// <summary>
     /// Large screens (1080px - 1919px): Desktop monitors, full-screen laptops, wide web browsers.
-    /// Expansive dual-column layout with full telemetry pill bar, generous 332px track card, and high-fidelity lyrics stage.
+    /// Expansive dual-column layout with status dot, alert chip and labelled header actions, generous 332px track card, and high-fidelity lyrics stage.
     /// </summary>
     Large,
 
