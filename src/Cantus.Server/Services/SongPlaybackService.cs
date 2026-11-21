@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Core.Search;
 using Cantus.Infrastructure.Spotify;
 using Microsoft.Extensions.Logging;
 
@@ -45,6 +46,12 @@ public sealed partial class SongPlaybackService : ISongPlaybackService
         return trackId is not null && TrackIdPattern().IsMatch(trackId);
     }
 
+    public static bool HasValidNameLengths(string? title, string? artist)
+    {
+        return (title?.Length ?? 0) <= LyricMatchConstants.MAX_NAME_CHARACTERS
+            && (artist?.Length ?? 0) <= LyricMatchConstants.MAX_NAME_CHARACTERS;
+    }
+
     public async Task<SongPlayResult> PlayAsync(
         string ownerUserId,
         string accessToken,
@@ -60,6 +67,11 @@ public sealed partial class SongPlaybackService : ISongPlaybackService
         if (!byId && (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Artist)))
         {
             throw new ArgumentException("A track id, or a title and an artist, is required.", nameof(request));
+        }
+
+        if (!byId && !HasValidNameLengths(request.Title, request.Artist))
+        {
+            throw new ArgumentException("The title or artist is too long.", nameof(request));
         }
 
         if (_rateLimitGate.IsLimited)

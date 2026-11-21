@@ -307,6 +307,56 @@ public sealed class SongLookupServiceTests : IDisposable
         await ReceivedSearches(_netease, 1);
         await ReceivedSearches(_lrclib, 1);
         local.OnlineRecommended.Should().BeFalse();
+        local.Providers.Select(p => p.State).Should().AllBeEquivalentTo(SongLookupProviderState.RateLimited);
+        StatusOf(local, NeteaseLyricsProvider.PROVIDER_NAME).RetryAfter.Should().BeGreaterThan(TimeSpan.Zero);
+    }
+
+    [Fact]
+    public async Task Lookup_WithLocalScopeAndAcceptedMatchWhileTheBudgetIsSpent_ReportsProvidersSkipped()
+    {
+        _options.OnlineLookupsPerMinute = 1;
+        SongLookupService service = CreateService();
+        await service.LookupAsync(ONLINE_FRAGMENT, SongLookupScope.Auto, USER_ID);
+
+        SongLookupResult local = await service.LookupAsync(LOCAL_FRAGMENT, SongLookupScope.Local, USER_ID);
+
+        local.Outcome.Should().Be(SongMatchOutcome.Accepted);
+        local.Providers.Select(p => p.State).Should().AllBeEquivalentTo(SongLookupProviderState.Skipped);
+    }
+
+    [Fact]
+    public async Task Lookup_WithOnlineScopeAndNetEaseAbsent_AsksLrclibEvenWhenLocalIsAccepted()
+    {
+        SongLookupResult result = await CreateService(_lrclib)
+            .LookupAsync(LOCAL_FRAGMENT, SongLookupScope.Online, USER_ID);
+
+        result.Outcome.Should().Be(SongMatchOutcome.Accepted);
+        StatusOf(result, NeteaseLyricsProvider.PROVIDER_NAME).State.Should().Be(SongLookupProviderState.Disabled);
+        StatusOf(result, LrclibLyricsProvider.PROVIDER_NAME).State.Should().Be(SongLookupProviderState.Ok);
+        await ReceivedSearches(_lrclib, 1);
+    }
+
+    [Fact]
+    public async Task Lookup_WhenLrclibAnswersAfterTheDeadline_KeepsItsHitsWithoutCachingThem()
+    {
+        Search(_lrclib)
+            .SearchByFragmentAsync(Arg.Any<LyricsFragmentQuery>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                _timeProvider.Advance(TimeSpan.FromSeconds(SongLookupService.EXTERNAL_DEADLINE_SECONDS));
+                return (IReadOnlyList<LyricsFragmentHit>)
+                [
+                    Hit(LrclibLyricsProvider.PROVIDER_NAME, "Golden Bells", ONLINE_LYRICS),
+                ];
+            });
+        SongLookupService service = CreateService();
+
+        SongLookupResult first = await service.LookupAsync(ONLINE_FRAGMENT, SongLookupScope.Auto, USER_ID);
+        await service.LookupAsync(ONLINE_FRAGMENT, SongLookupScope.Auto, USER_ID);
+
+        StatusOf(first, LrclibLyricsProvider.PROVIDER_NAME).State.Should().Be(SongLookupProviderState.Ok);
+        first.Guesses[0].Source.Should().Be(LrclibLyricsProvider.PROVIDER_NAME);
+        await ReceivedSearches(_lrclib, 2);
     }
 
     [Fact]

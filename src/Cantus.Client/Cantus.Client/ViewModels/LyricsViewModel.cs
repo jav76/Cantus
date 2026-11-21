@@ -498,10 +498,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _timing = new PlaybackTiming(client, _preferences, () => _transport.PlaybackState?.CurrentTrack?.Id);
 
         _session = new SessionViewModel(client);
-        _session.SessionEnded += () => ClearPlayback(resetTransport: false);
-        _session.LoggedOut += () => ClearPlayback(resetTransport: true);
-
         _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
+
+        _session.SessionEnded += () => EndAccountState(resetTransport: false);
+        _session.LoggedOut += () => EndAccountState(resetTransport: true);
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
@@ -832,6 +832,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// drops the transport's playback state, so the empty stage asks the user
     /// to connect again.
     /// </summary>
+    /// <summary>The next account to sign in on this client must not see the previous owner's lookup.</summary>
+    private void EndAccountState(bool resetTransport)
+    {
+        ClearPlayback(resetTransport);
+        _lookup.Reset();
+    }
+
     private void ClearPlayback(bool resetTransport)
     {
         CurrentTitle = "No Track Playing";

@@ -197,6 +197,7 @@ public static partial class LyricTextNormalizer
             return string.Empty;
         }
 
+        title = CapNameLength(title);
         string core = TitleBracketSegment().Replace(
             title,
             match => TitleQualifier().IsMatch(match.Groups[1].Value) ? " " : match.Value);
@@ -225,7 +226,7 @@ public static partial class LyricTextNormalizer
             return string.Empty;
         }
 
-        foreach (string part in ArtistSeparator().Split(artist))
+        foreach (string part in ArtistSeparator().Split(CapNameLength(artist)))
         {
             string key = JoinTokens(Tokenize(part));
             if (key.Length > 0)
@@ -246,7 +247,7 @@ public static partial class LyricTextNormalizer
         }
 
         List<string> keys = new();
-        foreach (string part in ArtistSeparator().Split(artist))
+        foreach (string part in ArtistSeparator().Split(CapNameLength(artist)))
         {
             string key = JoinTokens(Tokenize(part));
             if (key.Length > 0 && !keys.Contains(key))
@@ -256,6 +257,26 @@ public static partial class LyricTextNormalizer
         }
 
         return keys;
+    }
+
+    /// <summary>
+    /// Keeps the name regexes linear: provider and request strings can be padded far
+    /// beyond any real title or artist.
+    /// </summary>
+    private static string CapNameLength(string name)
+    {
+        if (name.Length <= LyricMatchConstants.MAX_NAME_CHARACTERS)
+        {
+            return name;
+        }
+
+        int length = LyricMatchConstants.MAX_NAME_CHARACTERS;
+        if (char.IsHighSurrogate(name[length - 1]))
+        {
+            length--;
+        }
+
+        return name[..length];
     }
 
     /// <summary>True for a single Han, kana or Hangul character token.</summary>

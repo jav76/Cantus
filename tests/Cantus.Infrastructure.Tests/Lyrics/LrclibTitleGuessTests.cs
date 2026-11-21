@@ -180,6 +180,54 @@ public sealed class LrclibTitleGuessTests
     }
 
     [Fact]
+    public async Task SearchByFragmentAsync_CancelledDuringALaterRequest_KeepsEarlierHits()
+    {
+        using CancellationTokenSource deadline = new();
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = req =>
+            {
+                if (TrackName(req) == "real life")
+                {
+                    return Json(SEARCH_JSON);
+                }
+
+                deadline.Cancel();
+                throw new OperationCanceledException(deadline.Token);
+            }
+        };
+        LrclibLyricsProvider provider = CreateProvider(handler);
+
+        IReadOnlyList<LyricsFragmentHit> hits = await provider.SearchByFragmentAsync(
+            new LyricsFragmentQuery("is this the real life", ["real life", "this the real"]),
+            deadline.Token);
+
+        hits.Should().HaveCount(2);
+        handler.Requests.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task SearchByFragmentAsync_CancelledDuringTheFirstRequest_Throws()
+    {
+        using CancellationTokenSource deadline = new();
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ =>
+            {
+                deadline.Cancel();
+                throw new OperationCanceledException(deadline.Token);
+            }
+        };
+        LrclibLyricsProvider provider = CreateProvider(handler);
+
+        Func<Task> search = () => provider.SearchByFragmentAsync(
+            new LyricsFragmentQuery("is this the real life", ["real life", "this the real"]),
+            deadline.Token);
+
+        await search.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
     public async Task SearchByFragmentAsync_OversizedResponse_Throws()
     {
         string padding = new('x', ProviderResponseReader.MAX_LOOKUP_RESPONSE_BYTES);

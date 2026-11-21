@@ -117,6 +117,14 @@ public static class SongLookupEndpoints
             return Results.BadRequest(new { Message = "SpotifyTrackId, or Title and Artist, are required." });
         }
 
+        if (!byId && !SongPlaybackService.HasValidNameLengths(request.Title, request.Artist))
+        {
+            return Results.BadRequest(new
+            {
+                Message = $"Title and Artist must be at most {LyricMatchConstants.MAX_NAME_CHARACTERS} characters.",
+            });
+        }
+
         SongPlayRequest playRequest = new(
             action,
             byId ? request.SpotifyTrackId : null,

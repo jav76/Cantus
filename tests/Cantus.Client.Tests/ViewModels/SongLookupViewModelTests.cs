@@ -270,6 +270,35 @@ public sealed class SongLookupViewModelTests
     }
 
     [Fact]
+    public async Task Search_LocalAnswerWhileTheOnlineBudgetIsSpent_ShowsPausedWithoutTheSearchOnlineLink()
+    {
+        // Arrange
+        Mock<ISongLookupClient> client = new();
+        client
+            .Setup(c => c.SearchAsync(FRAGMENT, "local", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Success(Response(
+                "ambiguous",
+                onlineRecommended: false,
+                providers: new[]
+                {
+                    Provider("NetEase", "rateLimited", PROVIDER_RETRY_SECONDS),
+                    Provider("LRCLIB", "rateLimited", PROVIDER_RETRY_SECONDS),
+                },
+                guesses: new[] { Guess("Local Song", local: true) })));
+        SongLookupViewModel lookup = CreateLookup(client.Object);
+
+        // Act
+        await lookup.SearchAsync();
+
+        // Assert
+        lookup.State.Should().Be(SongLookupState.Results);
+        lookup.StatusText.Should().Contain("Online search is paused")
+            .And.Contain($"Try again in {PROVIDER_RETRY_SECONDS} seconds");
+        lookup.SearchOnlineVisibility.Should().Be(Visibility.Collapsed);
+        client.Verify(c => c.SearchAsync(FRAGMENT, "auto", It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Search_OnlineCallFails_KeepsTheLibraryGuesses()
     {
         // Arrange

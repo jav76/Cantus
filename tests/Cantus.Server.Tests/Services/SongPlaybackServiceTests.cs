@@ -1,5 +1,6 @@
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Core.Search;
 using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Services;
 using FluentAssertions;
@@ -239,6 +240,26 @@ public sealed class SongPlaybackServiceTests
             USER_ID,
             TOKEN,
             new SongPlayRequest(SongPlayAction.Play, trackId, title, artist));
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        _player.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PlayAsync_WithATitleOrArtistOverTheCap_ThrowsWithoutCallingSpotify(bool longTitle)
+    {
+        string tooLong = new('a', LyricMatchConstants.MAX_NAME_CHARACTERS + 1);
+
+        Func<Task> act = () => _service.PlayAsync(
+            USER_ID,
+            TOKEN,
+            new SongPlayRequest(
+                SongPlayAction.Play,
+                null,
+                longTitle ? tooLong : "Bohemian Rhapsody",
+                longTitle ? "Queen" : tooLong));
 
         await act.Should().ThrowAsync<ArgumentException>();
         _player.VerifyNoOtherCalls();

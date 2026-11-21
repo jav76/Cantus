@@ -41,9 +41,10 @@ public partial class LrclibLyricsProvider : ILyricsFragmentSearchProvider
                 requestsSent++;
                 records = await SearchByTrackNameAsync(guess, cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException && hits.Count > 0)
+            catch (Exception ex) when (hits.Count > 0)
             {
-                // Hits from an earlier guess still answer the search.
+                // Hits from an earlier guess still answer the search, also after a timeout.
+                // The caller decides whether a cancelled search is still wanted.
                 _logger.LogWarning(
                     ex,
                     "LRCLIB title-guess request {RequestNumber} failed; keeping {HitCount} earlier hits",

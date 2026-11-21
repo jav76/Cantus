@@ -102,10 +102,22 @@ public sealed class SongLookupService : ISongLookupService
             await SearchOnlineAsync(run, fragment, spotifyUserId, cancellationToken);
         }
 
-        bool onlineRecommended = scope == SongLookupScope.Local
+        bool onlineRecommended = false;
+        if (scope == SongLookupScope.Local
             && run.Outcome != SongMatchOutcome.Accepted
-            && run.Providers.Any(p => p.Provider is not null)
-            && _budget.GetRetryAfter(spotifyUserId) == TimeSpan.Zero;
+            && run.Providers.Any(p => p.Provider is not null))
+        {
+            TimeSpan budgetRetryAfter = _budget.GetRetryAfter(spotifyUserId);
+            onlineRecommended = budgetRetryAfter == TimeSpan.Zero;
+            if (!onlineRecommended)
+            {
+                // Reported as paused, so the client says why online search did not run.
+                foreach (ProviderSlot slot in run.Providers.Where(p => p.Provider is not null))
+                {
+                    slot.MarkRateLimited(budgetRetryAfter);
+                }
+            }
+        }
 
         SongLookupResult result = new(
             run.Outcome,
@@ -160,22 +172,23 @@ public sealed class SongLookupService : ISongLookupService
         string cacheKey = run.Fragment.ToSearchText();
         bool budgetSpent = false;
         int requestsSent = 0;
+        bool triedProvider = false;
 
-        for (int i = 0; i < run.Providers.Count; i++)
+        foreach (ProviderSlot slot in run.Providers)
         {
-            ProviderSlot slot = run.Providers[i];
             if (slot.Provider is null)
             {
                 continue;
             }
 
-            // Scope Online always asks the first provider; later ones only while
-            // the merged outcome is still not accepted, whatever became of the first.
-            if (i > 0 && run.Outcome == SongMatchOutcome.Accepted)
+            // Scope Online always tries the first enabled provider; later ones only
+            // while the merged outcome is still not accepted, whatever became of the first.
+            if (triedProvider && run.Outcome == SongMatchOutcome.Accepted)
             {
                 continue;
             }
 
+            triedProvider = true;
             if (_queryCache.TryGet(slot.Name, cacheKey, out IReadOnlyList<LyricsFragmentHit> cached))
             {
                 slot.State = SongLookupProviderState.Ok;
@@ -242,7 +255,9 @@ public sealed class SongLookupService : ISongLookupService
             if (hits is not null)
             {
                 slot.State = SongLookupProviderState.Ok;
-                if (cacheable)
+
+                // A provider cut short by the deadline returns what it found so far.
+                if (cacheable && !linked.IsCancellationRequested)
                 {
                     _queryCache.Store(slot.Name, cacheKey, hits);
                 }
@@ -263,7 +278,9 @@ public sealed class SongLookupService : ISongLookupService
         // request URL, and with it the fragment.
         try
         {
-            return await slot.Provider!.SearchByFragmentAsync(query, linkedToken);
+            IReadOnlyList<LyricsFragmentHit> hits = await slot.Provider!.SearchByFragmentAsync(query, linkedToken);
+            callerToken.ThrowIfCancellationRequested();
+            return hits;
         }
         catch (OperationCanceledException) when (callerToken.IsCancellationRequested)
         {

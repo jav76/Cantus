@@ -89,6 +89,12 @@ public static class LyricMatchConstants
     /// <summary>Fragments longer than this are rejected before normalization.</summary>
     public const int MAX_FRAGMENT_CHARACTERS = 200;
 
+    /// <summary>
+    /// Titles and artist names are compared on at most this many characters. A play
+    /// request with a longer title or artist is rejected.
+    /// </summary>
+    public const int MAX_NAME_CHARACTERS = 300;
+
     /// <summary>A matched window is reported as at most this many original lines.</summary>
     public const int MAX_MATCHED_LINES = 2;
 }

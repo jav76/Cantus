@@ -431,6 +431,26 @@ public sealed class SongLookupEndpointTests : IClassFixture<WebApplicationFactor
         VerifyNoServiceCalled();
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Play_WithATitleOrArtistOverTheCap_ReturnsBadRequestAndDoesNotPlay(bool longTitle)
+    {
+        HttpClient client = CreateFactory().CreateClient();
+        string tooLong = new('a', LyricMatchConstants.MAX_NAME_CHARACTERS + 1);
+        string json = JsonSerializer.Serialize(new
+        {
+            action = "play",
+            title = longTitle ? tooLong : "Bohemian Rhapsody",
+            artist = longTitle ? "Queen" : tooLong,
+        });
+
+        HttpResponseMessage response = await client.SendAsync(PostRaw(PLAY_PATH, json));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        VerifyNoServiceCalled();
+    }
+
     [Fact]
     public async Task Play_ById_PassesTheOwnersTokenAndReturnsSuccess()
     {

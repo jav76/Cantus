@@ -177,6 +177,25 @@ public class LyricTextNormalizerTests
     }
 
     [Fact]
+    public void ArtistKeys_WithAWhitespacePaddedName_ComparesOnlyTheCappedPrefix()
+    {
+        const int PADDING_CHARACTERS = 100_000;
+        string padded = "Artist A" + new string(' ', PADDING_CHARACTERS) + "& Artist B";
+
+        LyricTextNormalizer.ArtistKey(padded).Should().Be("artist a");
+        LyricTextNormalizer.ArtistKeys(padded).Should().Equal("artist a");
+        LyricTextNormalizer.TitleCore(padded).Should().Be("artist a");
+    }
+
+    [Fact]
+    public void ArtistKeys_AtTheCap_KeepsEveryCredit()
+    {
+        string name = "Artist A & " + new string('b', LyricMatchConstants.MAX_NAME_CHARACTERS - "Artist A & ".Length);
+
+        LyricTextNormalizer.ArtistKeys(name).Should().HaveCount(2);
+    }
+
+    [Fact]
     public void JoinTokens_DoesNotSpaceCjkCharacters()
     {
         LyricTextNormalizer.JoinTokens(["明", "月", "moon", "光"]).Should().Be("明月 moon 光");
