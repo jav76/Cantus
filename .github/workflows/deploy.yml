@@ -12,8 +12,7 @@ on:
         description: 'Release tag to deploy (e.g. v1.0.0)'
         required: true
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: deploy-development
@@ -30,6 +29,7 @@ jobs:
     # The environment's deployment rule only admits `v*` tags, so a dispatch or
     # call from a branch is rejected before the job reaches the runner.
     environment: production
+    permissions: {}
     env:
       COMPOSE_DIR: /opt/Docker/Development/Cantus
 
