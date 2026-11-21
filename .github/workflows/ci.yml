@@ -50,16 +50,20 @@ jobs:
           echo "Running solution code formatting & style inspection..."
           if ! dotnet format Cantus.slnx --no-restore --verify-no-changes --severity warn; then
             echo "::warning title=Formatting Advisory::Code formatting or style suggestions found. Run 'dotnet format' locally to apply automatic fixes."
-            echo "### ⚠️ Code Formatting & Style Advisory" >> $GITHUB_STEP_SUMMARY
-            echo "Formatting differences were detected against the solution ruleset. This check is advisory and will not block your build or pull request." >> $GITHUB_STEP_SUMMARY
-            echo "To apply suggested formatting automatically, run:" >> $GITHUB_STEP_SUMMARY
-            echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo 'dotnet format' >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            {
+              echo "### ⚠️ Code Formatting & Style Advisory"
+              echo "Formatting differences were detected against the solution ruleset. This check is advisory and will not block your build or pull request."
+              echo "To apply suggested formatting automatically, run:"
+              echo '```bash'
+              echo 'dotnet format'
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "::notice title=Code Formatting::All files conform to formatting and style rules."
-            echo "### ✅ Code Formatting & Style Passed" >> $GITHUB_STEP_SUMMARY
-            echo "No formatting or style discrepancies found." >> $GITHUB_STEP_SUMMARY
+            {
+              echo "### ✅ Code Formatting & Style Passed"
+              echo "No formatting or style discrepancies found."
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
   # ============================================================================
@@ -100,12 +104,15 @@ jobs:
         run: dotnet build Cantus.slnx --configuration Release --no-restore
 
       - name: Run Test Suites
+        shell: bash
+        env:
+          MATRIX_OS: ${{ matrix.os }}
         run: >
           dotnet test Cantus.slnx
           --configuration Release
           --no-build
           --verbosity normal
-          --logger "trx;LogFileName=test_results_${{ matrix.os }}.trx"
+          --logger "trx;LogFileName=test_results_${MATRIX_OS}.trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
 
@@ -158,17 +165,21 @@ jobs:
     steps:
       - name: Evaluate Status of All CI Checks
         shell: bash
+        env:
+          FORMAT_RESULT: ${{ needs.format-check.result }}
+          BUILD_RESULT: ${{ needs.build-and-test.result }}
+          DOCKER_RESULT: ${{ needs.docker-smoke-test.result }}
         run: |
           echo "=========================================="
           echo " CI Verification Summary"
           echo "=========================================="
-          echo " Code Style (Advisory): ${{ needs.format-check.result }}"
-          echo " Build & Test Matrix:   ${{ needs.build-and-test.result }}"
-          echo " Docker Smoke Test:     ${{ needs.docker-smoke-test.result }}"
+          echo " Code Style (Advisory): ${FORMAT_RESULT}"
+          echo " Build & Test Matrix:   ${BUILD_RESULT}"
+          echo " Docker Smoke Test:     ${DOCKER_RESULT}"
           echo "=========================================="
 
-          if [ "${{ needs.build-and-test.result }}" != "success" ] || \
-             [ "${{ needs.docker-smoke-test.result }}" != "success" ]; then
+          if [ "${BUILD_RESULT}" != "success" ] || \
+             [ "${DOCKER_RESULT}" != "success" ]; then
             echo "::error::One or more required CI checks (Build/Test or Docker) failed or were cancelled. PR cannot be merged."
             exit 1
           fi
