@@ -23,6 +23,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly PlaybackTransport _transport;
     private readonly PlaybackTiming _timing;
     private readonly SessionViewModel _session;
+    private readonly DisplayPairingViewModel _pairing;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
@@ -65,6 +66,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTransport Transport => _transport;
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
+    public DisplayPairingViewModel Pairing => _pairing;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
 
@@ -256,7 +258,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     /// with a track to seek within. Read by the stage's hover/press handlers.
     /// </summary>
     public bool CanSeekToLines =>
-        _transport.PlaybackState?.CurrentTrack is not null && HasSyncedLyrics && !IsStaticLyricsMode;
+        _transport.PlaybackState?.CurrentTrack is not null
+        && HasSyncedLyrics
+        && !IsStaticLyricsMode
+        && _pairing.CanControlPlayback;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
@@ -464,7 +469,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ISignalRPlaybackClient client,
         ThemeManager? themeManager = null,
         ResponsiveLayoutManager? layoutManager = null,
-        ILyricsPreferences? preferences = null)
+        ILyricsPreferences? preferences = null,
+        IDisplayPairingApi? pairingApi = null,
+        DisplayCredentialStore? displayCredentials = null,
+        TimeProvider? timeProvider = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -497,16 +505,34 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _session.SessionEnded += () => ClearPlayback(resetTransport: false);
         _session.LoggedOut += () => ClearPlayback(resetTransport: true);
 
+        _pairing = new DisplayPairingViewModel(
+            client,
+            pairingApi ?? new DisplayPairingApi(client),
+            displayCredentials ?? new DisplayCredentialStore(new LocalSettingsStore()),
+            timeProvider,
+            RunOnUIThread);
+        _pairing.DisplayEnded += () => ClearPlayback(resetTransport: true);
+
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 
-        _client.ConnectionStateChanged += state => RunOnUIThread(() => ConnectionStatus = state);
+        _client.ConnectionStateChanged += state => RunOnUIThread(() =>
+        {
+            ConnectionStatus = state;
+            _pairing.ApplyConnectionState(state);
+        });
         _client.PlaybackStateReceived += state => RunOnUIThread(() => OnPlaybackStateReceived(state));
         _client.LyricsReceived += lyrics => RunOnUIThread(() => OnLyricsReceived(lyrics));
         _client.TrackOffsetReceived += offset => RunOnUIThread(() => _timing.ApplyTrackOffset(offset));
-        _client.SessionsReceived += sessions => RunOnUIThread(() => _session.ApplySessions(sessions));
+        _client.SessionsReceived += sessions => RunOnUIThread(() =>
+        {
+            _pairing.ApplySessions(sessions);
+            _session.ApplySessions(sessions);
+        });
         _client.AuthSessionReceived += session => RunOnUIThread(() => _session.ApplyAuthSession(session));
         _client.SessionRevoked += userId => RunOnUIThread(() => _session.ApplySessionRevoked(userId));
         _client.DiagnosticsReceived += diag => RunOnUIThread(() => OnDiagnosticsReceived(diag));
+        _client.DisplayPaired += pairing => RunOnUIThread(() => _pairing.ApplyDisplayPaired(pairing));
+        _client.DisplayRevoked += displayId => RunOnUIThread(() => _pairing.ApplyDisplayRevoked(displayId));
 
         _ticker = new DispatcherTimer
         {
@@ -860,6 +886,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ConnectedClients = diag.ConnectedClients;
         ActivePollIntervalMs = diag.ActivePollIntervalMs;
         _session.ApplyDiagnostics(diag);
+        _pairing.ApplyDiagnostics(diag);
     }
 
     private void OnTick(object? sender, object e)

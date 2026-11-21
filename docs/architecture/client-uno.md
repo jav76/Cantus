@@ -13,7 +13,9 @@ flowchart TD
     subgraph Network Layer
         SignalR[SignalRPlaybackClient]
         Context[CantusJsonContext Source Generator]
+        PairingApi[DisplayPairingApi]
         SignalR -.-> Context
+        PairingApi -.-> Context
     end
 
     subgraph MVVM ViewModels
@@ -26,6 +28,8 @@ flowchart TD
         Anchor[OptimisticSeekAnchor]
         Timing[PlaybackTiming]
         Session[SessionViewModel]
+        Pairing[DisplayPairingViewModel]
+        Credentials[DisplayCredentialStore]
         LVM --> LLVM
         LVM --> Theme
         LVM --> Layout
@@ -33,6 +37,8 @@ flowchart TD
         LVM --> Transport
         LVM --> Timing
         LVM --> Session
+        LVM --> Pairing
+        Pairing --> Credentials
         Transport --> Anchor
         Timing --> Prefs
     end
@@ -45,11 +51,13 @@ flowchart TD
         MobileSettings[MobileSettingsView.xaml]
         MiniBar[MiniPlaybackBar.xaml]
         Hud[DiagnosticsHudDialog.xaml]
+        PairingView[DisplayPairingView.xaml]
         MainView --> Header
         MainView --> TrackCard
         MainView --> LyricsStage
         MainView --> MobileSettings
         MainView --> MiniBar
+        MainView --> PairingView
         Header --> Hud
     end
 
@@ -64,6 +72,10 @@ flowchart TD
     Session -->|sign-in state| Header
     Session --> TrackCard
     Session --> MobileSettings
+    PairingApi -->|pairing code| Pairing
+    Pairing -->|code, QR, owner-only visibility| PairingView
+    Pairing --> TrackCard
+    Pairing --> MobileSettings
 ```
 
 ---
@@ -78,30 +90,32 @@ flowchart TD
 
 ### 2. `LyricsViewModel`
 - The root view model. Owns the lyric line collection, the display clock tick, song metadata, lyrics display modes (static, auto-scroll, karaoke), instrumental breaks, and the theme toast.
-- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
+- Composes its parts and exposes each once: `Transport` (`PlaybackTransport`), `Timing` (`PlaybackTiming`), `Session` (`SessionViewModel`), `Pairing` (`DisplayPairingViewModel`), `Theme` (`ThemeManager`), and `Layout` (`ResponsiveLayoutManager`). It does not forward their members; views bind to them directly.
 - Keeps only state it computes itself: the ambient artwork backdrop (`AmbientBackgroundSource`) and the theme toast, whose placement (`ThemeToastPageVisibility`, `ThemeToastStageVisibility`) depends on the layout breakpoint.
 - Owns the client lifecycle entry points `MainPage` calls: `InitializeAsync`, `ReportVisibilityAsync`, and `RefreshPlaybackAsync`.
 - Drives the 60 FPS animation tick loop (`OnTick`), evaluating which line should be marked active based on the synchronized clock.
 - Manages scroll interaction state: `IsUserScrollingPaused`, `IsAutoScrollEnabled`, `ResumeAutoScroll()`, and the `AutoScrollResumed` event.
 - Seeks playback to a tapped synced line (`SeekToLineAsync`). It checks that seeking is possible, ends any manual-scroll pause, and hands the line timestamp to `PlaybackTransport`. When the transport applies or reverts the seek, it re-anchors the display clock and re-centers on the line.
 - Each tick asks `PlaybackTiming` for the clock target and the render position, and asks `PlaybackTransport` to hold the position at an unconfirmed seek.
-- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout also clears the transport's playback state.
+- Routes client events to the view model that owns them (track offsets to `PlaybackTiming`, Sessions and revokes to `SessionViewModel`, connection state, Session lists, `ReceiveDisplayPaired` and `ReceiveDisplayRevoked` to `DisplayPairingViewModel`). When the Session ends it clears the track card, lyrics, and theme; logout and a Display losing its token also clear the transport's playback state.
+- Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseGlyph`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Theme` and `Layout` as plain properties. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, and `Session` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
 - The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
 
-| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Theme` | `Layout` |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `MainPage` | Yes | | | | Yes | Yes |
-| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | Yes |
-| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | Yes |
-| `LyricsStageView` | Yes | | | | Yes | Yes |
-| `MobileSettingsView` | Yes | | Yes | Yes | Yes | |
-| `MobileTabBar` | Yes | | | | Yes | Yes |
-| `MiniPlaybackBar` | Yes | Yes | | | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | |
+| View | `ViewModel` | `Transport` | `Timing` | `Session` | `Pairing` | `Theme` | `Layout` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `MainPage` | Yes | | | | Yes | Yes | Yes |
+| `AdaptiveHeaderBar` | Yes | | | Yes | Yes | Yes | Yes |
+| `AdaptiveTrackCard` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| `LyricsStageView` | Yes | | | | | Yes | Yes |
+| `MobileSettingsView` | Yes | | Yes | Yes | Yes | Yes | |
+| `MobileTabBar` | Yes | | | | | Yes | Yes |
+| `MiniPlaybackBar` | Yes | Yes | | | Yes | Yes | |
+| `DisplayPairingView` | Yes | | | | Yes | Yes | Yes |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | |
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
@@ -128,6 +142,7 @@ flowchart TD
 ### 7. `LyricsPreferences` & `ISettingsStore`
 - Per-device preferences are read and written only through an injected `ILyricsPreferences`: auto-scroll and karaoke mode by `LyricsViewModel`, device latency compensation by `PlaybackTiming`. Each reads its values once at construction and writes on every change.
 - `LyricsPreferences` owns the storage keys (`cantus_autoscroll`, `cantus_karaoke`, `cantus_latency_ms`), the defaults (on, on, `200ms`), parsing of string-typed values, and clamping latency to `0-1000ms`.
+- `DisplayCredentialStore` keeps the Display token, id and name (`cantus_display_token`, `cantus_display_id`, `cantus_display_name`) through the same `ISettingsStore`, so a paired Display reconnects after a restart. `ISettingsStore` cannot remove keys, so clearing blanks them.
 - Raw storage sits behind `ISettingsStore`. `LocalSettingsStore` wraps `ApplicationData.Current.LocalSettings` and swallows storage failures; unit tests use an in-memory store.
 
 ### 8. `PlaybackTransport`
@@ -150,6 +165,18 @@ flowchart TD
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
 - `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
 - Display management attaches here.
+
+### 11. `DisplayPairingViewModel` & `DisplayPairingView`
+- This client's side of becoming a [Display](../reference/rest-api.md#display-endpoints). The owner side (approving, renaming, revoking) belongs to `SessionViewModel`.
+- States (`DisplayPairingState`): `Unpaired` (pairing screen closed), `RequestingCode` (waiting for the hub connection or the code), `ShowingCode`, `CodeExpired` (renewing), `RequestFailed` (retrying), and `Paired`.
+- `StartPairingAsync` opens the pairing screen. Once the hub connection is up it sends the connection id to `POST /api/displays/pairings` through `IDisplayPairingApi`. A code belongs to its connection, so every new `Connected` state requests a new one and any other state drops the shown code.
+- The shown code carries a QR (`QrCodeMatrix`, encoded with QRCoder and drawn as vector rectangles by `DisplayPairingView`) of the approval link `<ServerBaseUrl>/?pair=<CODE>` (`PAIR_QUERY_PARAMETER`). No client reads the link yet; the owner-side approval prompt is separate work. `CodeText` splits the code into two groups so it reads easily from a distance.
+- The server's `expiresAtUtc` is turned into a lifetime once, using the NTP clock offset, and clamped to `30s..1h`, so a wrong device clock cannot expire a code early or keep it forever. A one-second countdown (`ExpiresInText`) renews the code when it runs out. Failed requests show why (`StatusMessage`) and retry after 10 seconds, or 60 seconds when rate limited.
+- `CancelPairing` closes the screen and reconnects the hub, because the server drops a connection's pending code only when that connection closes.
+- `ApplyDisplayPaired` accepts any token sent to this connection while it is not already a Display, even for an earlier code or just after Cancel: the server sends it only to the connection that requested the code and has already created the Display, so dropping it would leave an orphan. It saves the token through `DisplayCredentialStore`, sets `Paired`, and reconnects with `ReconnectWithDisplayTokenAsync`. At startup a stored token sets `ISignalRPlaybackClient.DisplayToken` before the first connection.
+- `SignalRPlaybackClient.SelectConnectionCredential` picks what the access token factory sends: the Session token, else the Display token, else nothing (an anonymous connection that registers for the sign-in handoff). `ReconnectWithDisplayTokenAsync` with a token also discards any held Session token and its `session.txt`: pairing is offered only after the server returned no Sessions, so that Session is stale and would otherwise hide the Display token.
+- `ApplyDisplayRevoked` discards the token, raises `DisplayEnded`, reconnects without a credential and reopens the pairing screen with `REVOKED_MESSAGE`. A rejected token shows up as an empty `ReceiveSessions`, which the server never sends to an accepted Display. The server sends the same empty list when checking a credential fails, so the token is kept and retried (after 15 seconds, then 30), and discarded with `REJECTED_MESSAGE` only after `MAX_TOKEN_REJECTIONS` (3) empty lists in a row. `ApplyDiagnostics` ends the run: an accepted Display gets diagnostics with a non-zero authorized count. A non-empty Session list means an owner Session on the device won, so the Display token is dropped quietly.
+- `OwnerControlsVisibility` collapses every owner-only control on a Display: transport buttons and volume, the seek bars (not hit-testable), sync offset steppers, and account actions (Connect, Log Out). Device latency is a per-device preference that never reaches the server, so its controls and the <kbd>[</kbd> <kbd>]</kbd> shortcuts stay. `DisplayInfoVisibility` shows the Display's name instead. `PairingScreenVisibility` and `MainContentVisibility` swap the pairing screen and the main layout.
 
 ---
 

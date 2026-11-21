@@ -28,6 +28,7 @@
                   MinHeight="18"
                   VerticalAlignment="Center"
                   Margin="32,0"
+                  IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                   PointerReleased="OnProgressBarPointerReleased"
                   PointerEntered="OnSeekBarPointerEntered"
                   PointerMoved="OnSeekBarPointerMoved"
@@ -58,10 +59,10 @@
             </Grid>
 
             <!-- Timestamps -->
-            <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" VerticalAlignment="Center" Margin="0,0,16,0" />
 
             <!-- Transport Controls -->
-            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                 <Button Click="OnSkipPreviousClicked"
                         Background="#22FFFFFF"
                         Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"

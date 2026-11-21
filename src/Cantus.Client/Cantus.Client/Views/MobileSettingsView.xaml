@@ -15,7 +15,8 @@
                     BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                     BorderThickness="1"
                     CornerRadius="16"
-                    Padding="16,14">
+                    Padding="16,14"
+                    Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                 <StackPanel Spacing="10">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
@@ -95,12 +96,32 @@
                 </Grid>
             </Border>
 
+            <!-- Paired Display Card -->
+            <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    Padding="16,14"
+                    Visibility="{x:Bind Pairing.DisplayInfoVisibility, Mode=OneWay}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="DISPLAY" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE7F4;" FontSize="16" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Paired display (view only)" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Connected Spotify Account Card -->
             <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
                     BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                     BorderThickness="1"
                     CornerRadius="16"
-                    Padding="16,14">
+                    Padding="16,14"
+                    Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                 <StackPanel Spacing="10">
                     <TextBlock Text="SPOTIFY ACCOUNT" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                     
@@ -143,11 +164,27 @@
                             CornerRadius="10"
                             Padding="12,10"
                             Visibility="{x:Bind Session.NoSessionsVisibility, Mode=OneWay}">
-                        <Grid ColumnDefinitions="*,Auto">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="Not Connected" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                                 <TextBlock Text="Log in to view synchronized lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                             </StackPanel>
+                            <Button Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Click="OnPairAsDisplayClicked"
+                                    HorizontalAlignment="Stretch"
+                                    Background="#1AFFFFFF"
+                                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                    BorderThickness="1"
+                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="10,5"
+                                    ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE7F4;" FontSize="11" />
+                                    <TextBlock Text="Pair as display" FontSize="11" />
+                                </StackPanel>
+                            </Button>
                             <Button Grid.Column="1"
                                     Click="OnConnectSpotifyClicked"
                                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"

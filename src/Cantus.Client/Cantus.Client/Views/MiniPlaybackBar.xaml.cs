@@ -34,6 +34,19 @@ public sealed partial class MiniPlaybackBar : UserControl
         private set => SetValue(TransportProperty, value);
     }
 
+    public static readonly DependencyProperty PairingProperty =
+        DependencyProperty.Register(
+            nameof(Pairing),
+            typeof(DisplayPairingViewModel),
+            typeof(MiniPlaybackBar),
+            new PropertyMetadata(null));
+
+    public DisplayPairingViewModel? Pairing
+    {
+        get => (DisplayPairingViewModel?)GetValue(PairingProperty);
+        private set => SetValue(PairingProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -53,6 +66,7 @@ public sealed partial class MiniPlaybackBar : UserControl
         MiniPlaybackBar bar = (MiniPlaybackBar)d;
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         bar.Transport = viewModel?.Transport;
+        bar.Pairing = viewModel?.Pairing;
         bar.Theme = viewModel?.Theme;
     }
 

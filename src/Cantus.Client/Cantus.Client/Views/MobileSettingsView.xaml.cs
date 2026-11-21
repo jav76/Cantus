@@ -50,6 +50,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(SessionProperty, value);
     }
 
+    public static readonly DependencyProperty PairingProperty =
+        DependencyProperty.Register(
+            nameof(Pairing),
+            typeof(DisplayPairingViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public DisplayPairingViewModel? Pairing
+    {
+        get => (DisplayPairingViewModel?)GetValue(PairingProperty);
+        private set => SetValue(PairingProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -70,6 +83,7 @@ public sealed partial class MobileSettingsView : UserControl
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
         settings.Timing = viewModel?.Timing;
         settings.Session = viewModel?.Session;
+        settings.Pairing = viewModel?.Pairing;
         settings.Theme = viewModel?.Theme;
     }
 
@@ -138,6 +152,14 @@ public sealed partial class MobileSettingsView : UserControl
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error connecting to Spotify");
+        }
+    }
+
+    private async void OnPairAsDisplayClicked(object sender, RoutedEventArgs e)
+    {
+        if (Pairing is not null)
+        {
+            await Pairing.StartPairingAsync();
         }
     }
 

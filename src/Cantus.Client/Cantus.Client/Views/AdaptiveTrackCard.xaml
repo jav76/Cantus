@@ -60,6 +60,7 @@
                     <StackPanel Spacing="6">
                         <Grid Background="Transparent"
                               MinHeight="18"
+                              IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                               PointerReleased="OnProgressBarPointerReleased"
                               PointerEntered="OnSeekBarPointerEntered"
                               PointerMoved="OnSeekBarPointerMoved"
@@ -89,13 +90,13 @@
                             </Ellipse>
                         </Grid>
                         <Grid ColumnDefinitions="*,*">
-                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" HorizontalAlignment="Right" />
                         </Grid>
                     </StackPanel>
 
                     <!-- Playback Transport Controls -->
-                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="12">
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="12" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <Button Grid.Column="1"
                                 Click="OnShuffleClicked"
                                 Background="Transparent"
@@ -156,7 +157,7 @@
                     </Grid>
 
                     <!-- Volume -->
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <FontIcon Grid.Column="0"
                                   Glyph="&#xE767;"
                                   FontSize="14"
@@ -174,7 +175,7 @@
                                    Text="{x:Bind Transport.VolumeText, Mode=OneWay}"
                                    FontSize="12"
                                    Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
-                                   FontFamily="Consolas"
+                                   FontFamily="{StaticResource MonoFontFamily}"
                                    VerticalAlignment="Center"
                                    MinWidth="34"
                                    TextAlignment="Right" />
@@ -214,7 +215,7 @@
                     </Border>
 
                     <!-- Manual Sync Offset Adjuster -->
-                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                    <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                 <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
@@ -230,8 +231,22 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Paired Display Card -->
+                    <StackPanel Spacing="8" Visibility="{x:Bind Pairing.DisplayInfoVisibility, Mode=OneWay}">
+                        <TextBlock Text="DISPLAY" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE7F4;" FontSize="15" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="Paired display (view only)" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
                     <!-- Connected Spotify Account Card -->
-                    <StackPanel Spacing="8">
+                    <StackPanel Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <TextBlock Text="SPOTIFY ACCOUNT" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                         
                         <!-- Logged in state -->
@@ -271,11 +286,27 @@
                                 CornerRadius="10"
                                 Padding="12,10"
                                 Visibility="{x:Bind Session.NoSessionsVisibility, Mode=OneWay}">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock Text="Not Connected" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                                     <TextBlock Text="Log in to view lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                                 </StackPanel>
+                                <Button Grid.Row="1"
+                                        Grid.ColumnSpan="2"
+                                        Click="OnPairAsDisplayClicked"
+                                        HorizontalAlignment="Stretch"
+                                        Background="#1AFFFFFF"
+                                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                        BorderThickness="1"
+                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                        CornerRadius="6"
+                                        Padding="10,5"
+                                        ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE7F4;" FontSize="11" />
+                                        <TextBlock Text="Pair as display" FontSize="11" />
+                                    </StackPanel>
+                                </Button>
                                 <Button Grid.Column="1"
                                         Click="OnConnectSpotifyClicked"
                                         Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
@@ -337,12 +368,12 @@
 
                 <!-- Timestamps & Offset Tag -->
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" HorizontalAlignment="Right" />
                     <TextBlock Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="10" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Right" />
                 </StackPanel>
 
                 <!-- Compact Transport Controls -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                     <Button Click="OnSkipPreviousClicked"
                             Background="#20FFFFFF"
                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"

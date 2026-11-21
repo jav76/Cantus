@@ -93,6 +93,7 @@
 
                     <!-- Spotify SSO -->
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
@@ -167,6 +168,7 @@
                     </Button>
 
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="8"
@@ -194,6 +196,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <!-- Spotify SSO Mini -->
                     <Button Click="OnConnectSpotifyClicked"
+                            Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                             Foreground="White"
                             CornerRadius="6"
@@ -231,7 +234,7 @@
                                         <FontIcon Glyph="&#xE8A5;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutItem Text="Log Out" Click="OnLogoutClicked">
+                                <MenuFlyoutItem Text="Log Out" Click="OnLogoutClicked" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7E8;" />
                                     </MenuFlyoutItem.Icon>

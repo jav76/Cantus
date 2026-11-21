@@ -18,6 +18,8 @@ public sealed partial class MainPage : Page
 
     public ResponsiveLayoutManager Layout => ViewModel.Layout;
 
+    public DisplayPairingViewModel Pairing => ViewModel.Pairing;
+
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);

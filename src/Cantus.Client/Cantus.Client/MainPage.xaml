@@ -37,8 +37,9 @@
                 Background="#000000"
                 Opacity="0.62" />
 
-        <!-- Main Responsive Content Container -->
-        <Grid Padding="{x:Bind Layout.ContentPadding, Mode=OneWay}">
+        <!-- Main Responsive Content Container (replaced by the pairing screen while pairing) -->
+        <Grid Padding="{x:Bind Layout.ContentPadding, Mode=OneWay}"
+              Visibility="{x:Bind Pairing.MainContentVisibility, Mode=OneWay}">
             
             <!-- Standard / Large & Medium Desktop & Tablet Layout -->
             <Grid Visibility="{x:Bind GetStandardDesktopViewVisibility(Layout.CurrentBreakpoint), Mode=OneWay}"
@@ -115,6 +116,10 @@
                                       Margin="0,20,0,0" />
             </Grid>
         </Grid>
+
+        <!-- Display Pairing Screen -->
+        <views:DisplayPairingView Visibility="{x:Bind Pairing.PairingScreenVisibility, Mode=OneWay}"
+                                  ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
 
         <!-- Transient Theme-Mode Indicator Toast (page-level placement, Small breakpoint only;
              wider layouts show it inside the lyrics stage's top row instead) -->

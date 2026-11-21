@@ -167,6 +167,28 @@ public sealed class AuthorizedSessionPayload
         IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 }
 
+/// <summary>
+/// <c>ReceiveDisplayPaired</c>: the new Display token, sent once to the connection that
+/// requested the pairing.
+/// </summary>
+public sealed class DisplayPairedPayload
+{
+    [JsonPropertyName("pairingId")]
+    public string PairingId { get; set; } = string.Empty;
+
+    [JsonPropertyName("displayId")]
+    public string DisplayId { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = string.Empty;
+
+    public override string ToString() =>
+        $"DisplayPairedPayload {{ PairingId = {PairingId}, DisplayId = {DisplayId}, Name = {Name}, Token = [REDACTED] }}";
+}
+
 public sealed class ClockSyncResponsePayload
 {
     [JsonPropertyName("clientSendTimeMs")]
@@ -189,6 +211,9 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(AuthorizedSessionPayload))]
 [JsonSerializable(typeof(List<AuthorizedSessionPayload>))]
 [JsonSerializable(typeof(ClockSyncResponsePayload))]
+[JsonSerializable(typeof(DisplayPairedPayload))]
+[JsonSerializable(typeof(DisplayPairingRequestPayload))]
+[JsonSerializable(typeof(DisplayPairingCodePayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
@@ -214,6 +239,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public long ClockOffsetMs { get; private set; }
     public string TransportType { get; private set; } = "Unknown";
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
+    public string? ConnectionId => _connection?.ConnectionId;
 
     public event Action<string>? ConnectionStateChanged;
     public event Action<PlaybackStatePayload>? PlaybackStateReceived;
@@ -223,6 +249,8 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public event Action<AuthorizedSessionPayload>? AuthSessionReceived;
     public event Action<string>? SessionRevoked;
     public event Action<DiagnosticsPayload>? DiagnosticsReceived;
+    public event Action<DisplayPairedPayload>? DisplayPaired;
+    public event Action<string>? DisplayRevoked;
 
     internal void RaiseLyricsReceived(LyricsPayload payload)
     {
@@ -251,12 +279,38 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
     public string? SessionToken { get; set; }
 
+    public string? DisplayToken { get; set; }
+
+    /// <summary>Where the desktop heads persist the Session token. Null uses the per-user app data folder.</summary>
+    internal string? SessionFilePath { get; }
+
+    /// <summary>The token the next hub connection presents through the access token factory.</summary>
+    internal string? ConnectionCredential => SelectConnectionCredential(SessionToken, DisplayToken);
+
+    private bool HoldsCredential => ConnectionCredential is not null;
+
+    /// <summary>
+    /// A Session wins over a Display token, matching the server's credential order. Null means
+    /// the connection is anonymous and registers for the sign-in handoff instead.
+    /// </summary>
+    internal static string? SelectConnectionCredential(string? sessionToken, string? displayToken)
+    {
+        if (!string.IsNullOrWhiteSpace(sessionToken))
+        {
+            return sessionToken;
+        }
+
+        return string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+    }
+
     public SignalRPlaybackClient(
         string? serverUrl = null,
         string? sessionToken = null,
-        TimeSpan? reconnectInterval = null)
+        TimeSpan? reconnectInterval = null,
+        string? sessionFilePath = null)
     {
         _configuredServerUrl = serverUrl;
+        SessionFilePath = sessionFilePath;
         SessionToken = sessionToken ?? LoadPersistedSessionToken();
 
         // Web session handoff: a ?auth=<session-id> query parameter (the same value the
@@ -277,11 +331,16 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         }
     }
 
-    private static string GetSessionFilePath()
+    private string GetSessionFilePath()
     {
 #if __WASM__
         return string.Empty;
 #else
+        if (!string.IsNullOrWhiteSpace(SessionFilePath))
+        {
+            return SessionFilePath;
+        }
+
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string cantusDir = System.IO.Path.Combine(appData, "Cantus");
         System.IO.Directory.CreateDirectory(cantusDir);
@@ -289,7 +348,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static string? LoadPersistedSessionToken()
+    private string? LoadPersistedSessionToken()
     {
 #if __WASM__
         return null;
@@ -310,7 +369,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void SavePersistedSessionToken(string token)
+    private void SavePersistedSessionToken(string token)
     {
 #if !__WASM__
         try
@@ -324,7 +383,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 #endif
     }
 
-    private static void ClearPersistedSessionToken()
+    private void ClearPersistedSessionToken()
     {
 #if !__WASM__
         try
@@ -387,9 +446,9 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         _connection = new HubConnectionBuilder()
             .WithUrl(effectiveUrl, options =>
             {
-                if (!string.IsNullOrWhiteSpace(SessionToken))
+                if (HoldsCredential)
                 {
-                    options.AccessTokenProvider = () => Task.FromResult<string?>(SessionToken);
+                    options.AccessTokenProvider = () => Task.FromResult(ConnectionCredential);
                 }
             })
             .AddJsonProtocol(options =>
@@ -449,6 +508,19 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             DiagnosticsReceived?.Invoke(diag);
         });
 
+        _connection.On<DisplayPairedPayload>("ReceiveDisplayPaired", pairing =>
+        {
+            if (pairing is not null && !string.IsNullOrWhiteSpace(pairing.Token))
+            {
+                DisplayPaired?.Invoke(pairing);
+            }
+        });
+
+        _connection.On<string>("ReceiveDisplayRevoked", displayId =>
+        {
+            DisplayRevoked?.Invoke(displayId);
+        });
+
         _connection.Reconnecting += ex =>
         {
             ConnectionStateChanged?.Invoke("Reconnecting");
@@ -459,7 +531,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
-            if (string.IsNullOrWhiteSpace(SessionToken))
+            if (!HoldsCredential)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
             }
@@ -533,7 +605,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
 
-            if (string.IsNullOrWhiteSpace(SessionToken))
+            if (!HoldsCredential)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId, cancellationToken);
             }
@@ -762,6 +834,36 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         else
         {
             ClearPersistedSessionToken();
+        }
+
+        await _connectionLock.WaitAsync();
+        try
+        {
+            if (_connection is not null)
+            {
+                await _connection.StopAsync();
+                await _connection.DisposeAsync();
+                _connection = null;
+            }
+        }
+        finally
+        {
+            _connectionLock.Release();
+        }
+        await TryConnectAsync();
+    }
+
+    public async Task ReconnectWithDisplayTokenAsync(string? displayToken)
+    {
+        DisplayToken = string.IsNullOrWhiteSpace(displayToken) ? null : displayToken;
+
+        // Pairing is offered only after the server returned no Sessions, so a Session token
+        // still held here is stale. Kept, it would win the credential order and hide the
+        // Display token from the server on every connection.
+        if (DisplayToken is not null && !string.IsNullOrWhiteSpace(SessionToken))
+        {
+            ClearPersistedSessionToken();
+            SessionToken = null;
         }
 
         await _connectionLock.WaitAsync();
