@@ -71,8 +71,7 @@
                             <Viewbox StretchDirection="DownOnly" MaxWidth="640">
                                 <TextBlock Text="{x:Bind Pairing.CodeText, Mode=OneWay}"
                                            FontSize="104"
-                                           FontWeight="Bold"
-                                           FontFamily="Consolas"
+                                           FontFamily="{StaticResource MonoBoldFontFamily}"
                                            CharacterSpacing="80"
                                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                             </Viewbox>

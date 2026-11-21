@@ -90,8 +90,8 @@
                             </Ellipse>
                         </Grid>
                         <Grid ColumnDefinitions="*,*">
-                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="0" Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.TotalDurationText, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" HorizontalAlignment="Right" />
                         </Grid>
                     </StackPanel>
 
@@ -175,7 +175,7 @@
                                    Text="{x:Bind Transport.VolumeText, Mode=OneWay}"
                                    FontSize="12"
                                    Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
-                                   FontFamily="Consolas"
+                                   FontFamily="{StaticResource MonoFontFamily}"
                                    VerticalAlignment="Center"
                                    MinWidth="34"
                                    TextAlignment="Right" />
@@ -368,7 +368,7 @@
 
                 <!-- Timestamps & Offset Tag -->
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="2">
-                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="Consolas" HorizontalAlignment="Right" />
+                    <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" FontFamily="{StaticResource MonoFontFamily}" HorizontalAlignment="Right" />
                     <TextBlock Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="10" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Right" />
                 </StackPanel>
 
