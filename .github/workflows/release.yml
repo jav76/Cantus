@@ -11,9 +11,7 @@ on:
         required: true
         default: 'v1.0.0'
 
-permissions:
-  contents: write
-  packages: write
+permissions: {}
 
 jobs:
   # ============================================================================
@@ -22,6 +20,9 @@ jobs:
   prepare:
     name: Prepare Release Metadata
     runs-on: ubuntu-latest
+    # contents: write creates the draft release.
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.meta.outputs.VERSION }}
       tag: ${{ steps.meta.outputs.TAG }}
@@ -102,10 +103,16 @@ jobs:
     name: Publish Multi-Arch Docker Image (GHCR)
     needs: [prepare]
     runs-on: ubuntu-latest
+    # packages: write pushes the image to GHCR.
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Extract Docker Metadata
         id: meta
@@ -153,6 +160,7 @@ jobs:
     name: Build Desktop Client (${{ matrix.name }})
     needs: [prepare]
     runs-on: ${{ matrix.os }}
+    # contents: write uploads the packages to the draft release.
     permissions:
       contents: write
     strategy:
@@ -175,6 +183,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v4
@@ -261,6 +271,7 @@ jobs:
     name: Build Server Binary (${{ matrix.name }})
     needs: [prepare]
     runs-on: ${{ matrix.os }}
+    # contents: write uploads the packages to the draft release.
     permissions:
       contents: write
     strategy:
@@ -287,6 +298,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v4
@@ -374,12 +387,15 @@ jobs:
     name: Create GitHub Release
     needs: [prepare, publish-docker, build-desktop-clients, build-server-binaries]
     runs-on: ubuntu-latest
+    # contents: write uploads SHA256SUMS.txt and publishes the draft release.
     permissions:
       contents: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       # Only the small checksum fragments travel through artifact storage; the
       # packages themselves are already attached to the draft release.
@@ -422,6 +438,7 @@ jobs:
     name: Deploy to Development Stack
     needs: [prepare, publish-release]
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions: {}
     uses: ./.github/workflows/deploy.yml
     with:
       tag: ${{ needs.prepare.outputs.tag }}
