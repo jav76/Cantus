@@ -21,7 +21,7 @@ COPY src/Cantus.Generators/ src/Cantus.Generators/
 COPY src/Cantus.Core/ src/Cantus.Core/
 COPY src/Cantus.Client/ src/Cantus.Client/
 
-ARG APP_VERSION=1.0.0-dev
+ARG APP_VERSION=0.2.0-dev
 ARG COMMIT_SHA=""
 
 # Publish WASM Client
@@ -47,7 +47,7 @@ COPY src/Cantus.Core/ src/Cantus.Core/
 COPY src/Cantus.Infrastructure/ src/Cantus.Infrastructure/
 COPY src/Cantus.Server/ src/Cantus.Server/
 
-ARG APP_VERSION=1.0.0-dev
+ARG APP_VERSION=0.2.0-dev
 ARG COMMIT_SHA=""
 
 # Publish ASP.NET Core Web API / SignalR Host
