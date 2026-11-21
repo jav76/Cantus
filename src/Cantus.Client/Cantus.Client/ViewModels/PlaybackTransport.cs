@@ -23,6 +23,12 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     private const string REPEAT_CONTEXT = "context";
     private const string REPEAT_TRACK = "track";
 
+    internal const string MISSING_PERMISSIONS_TEXT =
+        "Spotify rejected the command. Log out and reconnect your account to grant playback control (Premium required).";
+    internal const string NO_ACTIVE_DEVICE_TEXT =
+        "No active Spotify device. Start playback in any Spotify app first.";
+    internal const string SPOTIFY_UNREACHABLE_TEXT = "Couldn't reach Spotify. Try again.";
+
     private readonly ISignalRPlaybackClient _client;
     private readonly ThemeManager _themeManager;
     private readonly DispatcherTimer _transportStatusTimer;
@@ -354,11 +360,9 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
     {
         string message = result switch
         {
-            PlayerCommandResult.MissingPermissions =>
-                "Spotify rejected the command. Log out and reconnect your account to grant playback control (Premium required).",
-            PlayerCommandResult.NoActiveDevice =>
-                "No active Spotify device. Start playback in any Spotify app first.",
-            PlayerCommandResult.Failed => "Couldn't reach Spotify. Try again.",
+            PlayerCommandResult.MissingPermissions => MISSING_PERMISSIONS_TEXT,
+            PlayerCommandResult.NoActiveDevice => NO_ACTIVE_DEVICE_TEXT,
+            PlayerCommandResult.Failed => SPOTIFY_UNREACHABLE_TEXT,
             _ => string.Empty
         };
 

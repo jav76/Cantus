@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Cantus.Client.Models;
@@ -23,6 +24,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly PlaybackTransport _transport;
     private readonly PlaybackTiming _timing;
     private readonly SessionViewModel _session;
+    private readonly SongLookupViewModel _lookup;
 
     private LyricsPayload? _lastLyrics;
     private int _activeLineIndex = -1;
@@ -65,6 +67,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTransport Transport => _transport;
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
+    public SongLookupViewModel Lookup => _lookup;
     public ThemeManager Theme => _themeManager;
     public ResponsiveLayoutManager Layout => _layoutManager;
 
@@ -464,7 +467,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ISignalRPlaybackClient client,
         ThemeManager? themeManager = null,
         ResponsiveLayoutManager? layoutManager = null,
-        ILyricsPreferences? preferences = null)
+        ILyricsPreferences? preferences = null,
+        ISongLookupClient? lookupClient = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -496,6 +500,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _session = new SessionViewModel(client);
         _session.SessionEnded += () => ClearPlayback(resetTransport: false);
         _session.LoggedOut += () => ClearPlayback(resetTransport: true);
+
+        _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
 
         LyricLines.CollectionChanged += OnLyricLinesCollectionChanged;
 

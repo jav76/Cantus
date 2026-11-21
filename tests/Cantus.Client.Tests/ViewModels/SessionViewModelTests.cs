@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -321,6 +322,43 @@ public sealed class SessionViewModelTests
         session.ActiveUserId.Should().Be("user-erin");
         session.IsAuthorized.Should().BeTrue();
         session.HasSessionsVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void OwnerActionsVisibility_IsCollapsedForADisplayAuthorizedOnlyByDiagnostics()
+    {
+        // Arrange - a paired Display gets diagnostics naming the owner but never ReceiveSessions
+        (_, SessionViewModel session) = CreateSession();
+
+        // Act
+        session.ApplyDiagnostics(new DiagnosticsPayload
+        {
+            AuthorizedSessions = 1,
+            ActiveUserName = "Alice",
+        });
+
+        // Assert
+        session.IsAuthorized.Should().BeTrue();
+        session.OwnerActionsVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void OwnerActionsVisibility_FollowsTheSessionList()
+    {
+        // Arrange
+        (_, SessionViewModel session) = CreateSession();
+        List<string?> raised = new();
+        session.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        // Act
+        session.ApplySessions(new List<AuthorizedSessionPayload> { new() { Id = "user-1", DisplayName = "Alice" } });
+        Visibility signedIn = session.OwnerActionsVisibility;
+        session.ApplySessionRevoked("user-1");
+
+        // Assert
+        signedIn.Should().Be(Visibility.Visible);
+        session.OwnerActionsVisibility.Should().Be(Visibility.Collapsed);
+        raised.Count(name => name == nameof(SessionViewModel.OwnerActionsVisibility)).Should().Be(2);
     }
 
     [Fact]

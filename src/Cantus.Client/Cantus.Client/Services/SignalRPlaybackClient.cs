@@ -189,6 +189,13 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(AuthorizedSessionPayload))]
 [JsonSerializable(typeof(List<AuthorizedSessionPayload>))]
 [JsonSerializable(typeof(ClockSyncResponsePayload))]
+[JsonSerializable(typeof(SongLookupSearchRequestPayload))]
+[JsonSerializable(typeof(SongLookupResponsePayload))]
+[JsonSerializable(typeof(SongGuessPayload))]
+[JsonSerializable(typeof(SongLookupProviderPayload))]
+[JsonSerializable(typeof(SongLookupPlayRequestPayload))]
+[JsonSerializable(typeof(SongLookupPlayResponsePayload))]
+[JsonSerializable(typeof(SongLookupErrorPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
