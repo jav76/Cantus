@@ -45,11 +45,11 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     Task<PlayerCommandResult> SeekPlaybackAsync(long positionMs);
     Task<PlayerCommandResult> SetShuffleAsync(bool enabled);
     Task<PlayerCommandResult> SetRepeatAsync(string repeatMode);
-    Task SubscribeToUserAsync(string? userId);
+    Task SubscribeToUserAsync([Redact] string? userId);
     Task ReportVisibilityAsync(bool isVisible);
     Task RefreshPlaybackAsync();
     Task LogoutAsync();
-    Task ReconnectWithTokenAsync(string? sessionToken);
+    Task ReconnectWithTokenAsync([Redact] string? sessionToken);
 
     /// <summary>
     /// Replaces the Display token (null drops it) and opens a new hub connection with it.

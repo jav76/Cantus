@@ -8,11 +8,11 @@ public interface ISpotifyAuthService
 {
     Uri GetAuthorizationUri(string state, string codeChallenge, string? redirectUri = null);
     Task<UserSession> ExchangeCodeAsync(
-        string code,
+        [Redact] string code,
         [Redact] string codeVerifier,
         string? redirectUri = null,
         CancellationToken cancellationToken = default);
-    Task<UserSession> RefreshTokenAsync(string userId, CancellationToken cancellationToken = default);
+    Task<UserSession> RefreshTokenAsync([Redact] string userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Resolves a request credential (cookie, query or header value) to a session. Matches the
@@ -27,7 +27,7 @@ public interface ISpotifyAuthService
     /// subscription. Matches the session id or the Spotify user id. Never pass a request
     /// credential here; use <see cref="GetSessionByIdAsync"/> instead.
     /// </summary>
-    Task<UserSession?> GetSessionForUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<UserSession?> GetSessionForUserAsync([Redact] string userId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<UserSession>> GetAllSessionsAsync(CancellationToken cancellationToken = default);
 
