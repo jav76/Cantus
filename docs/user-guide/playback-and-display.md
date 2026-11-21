@@ -87,13 +87,13 @@ Codes expire after 5 minutes by default. The screen requests a new one when the 
 
 A paired Display is view only. It hides the transport controls, seeking, sync offset steppers and account actions, and it shows which Display it is instead. Device latency is a setting of the screen itself, so a Display keeps the **Device Latency** controls and the <kbd>[</kbd> and <kbd>]</kbd> shortcuts to correct a TV's own lag.
 
-If the QR opens Cantus in a browser that is not signed in, the prompt asks you to sign in first. Signing in leaves the page, so once you are back, choose **Add display** and type the code shown on the screen.
+If the QR opens Cantus in a browser that is not signed in, the prompt asks you to sign in first. Choose **Connect Spotify** in the prompt. Cantus keeps the code on this device, and the prompt opens again with it once you are back and signed in. A kept code is dropped if you cancel the prompt or after 5 minutes, when the screen's code has expired anyway.
 
 #### Managing your Displays
 
 The **Displays** card lists every screen paired to your account with when it last connected. Use the pencil button to rename a Display and the trash button to remove it. Removing a Display disconnects it right away and leaves your own sign-in and your other Displays alone; the screen has to be paired again.
 
-The list refreshes after each change you make, when you sign in, and when you open the **Sync & Info** tab on mobile. Changes made on another device appear after that, or when you press the refresh button.
+The list updates by itself when a Display is paired, renamed or removed, from this device or another one, and when a Display connects. The last-seen times age as you watch, and the refresh button fetches the list again.
 
 If the owner revokes the Display, the screen discards its token at once and returns to the pairing screen with a message saying why. If the server stops accepting the token, the screen keeps it through a few retries (a server restart can refuse it briefly) and then does the same. Pair it again to keep showing lyrics.
 
