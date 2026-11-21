@@ -1,6 +1,6 @@
 # Contributing to Cantus
 
-Thank you for your interest in contributing to Cantus! We welcome contributions of all kinds—from reporting bugs and improving documentation to submitting bug fixes and proposing new features.
+Thank you for your interest in contributing to Cantus! We welcome contributions of all kinds, from reporting bugs and improving documentation to submitting bug fixes and proposing new features.
 
 ---
 
@@ -27,7 +27,7 @@ You can contribute to Cantus in several ways:
 
 To build and run Cantus locally, ensure you have the following installed:
 
-1. **.NET 10 SDK** (`v10.0.100` or higher):
+1. **.NET 10 SDK** (`10.0.100` or a later feature band, as pinned in `global.json`, which also pins `Uno.Sdk` `6.5.36`):
    ```bash
    dotnet --version
    ```
@@ -37,7 +37,7 @@ To build and run Cantus locally, ensure you have the following installed:
    ```
 3. **Spotify Developer Account** (Free):
    - Create a free developer application at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) to obtain a **Client ID**.
-   - Add `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback` to your Spotify App's **Redirect URIs**.
+   - Add `http://127.0.0.1:5000/api/auth/spotify/callback` to your Spotify App's **Redirect URIs**. Spotify rejects `http://localhost`, so open Cantus at `http://127.0.0.1:5000` when testing sign-in.
 4. **Docker** (Optional): For running containerized tests or smoke tests.
 
 ### Getting the Code
@@ -55,42 +55,51 @@ To build and run Cantus locally, ensure you have the following installed:
 
 ### Local Environment Configuration
 
-Copy the example environment configuration:
+For Docker Compose, copy the example environment file and add your Spotify Client ID:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` to include your Spotify Client ID:
-
 ```ini
 Spotify__ClientId=your_32_character_client_id
-CANTUS_HOST_URL=http://localhost:5000
+CANTUS_HOST_URL=http://127.0.0.1:5000
+```
+
+`dotnet run` does not read `.env`. For a local server run, export the same variables in your shell first. `ASPNETCORE_ENVIRONMENT=Development` keeps the database (`cantus.db`) in the working directory; without it the server runs as Production and uses `/app/data/cantus.db`:
+
+```bash
+export Spotify__ClientId=your_32_character_client_id
+export CANTUS_HOST_URL=http://127.0.0.1:5000
+export ASPNETCORE_ENVIRONMENT=Development
 ```
 
 ---
 
 ## Solution Structure & Architecture
 
-Cantus is structured following **Clean Architecture** across four primary solution projects in `Cantus.slnx`:
+Cantus follows **Clean Architecture**. `Cantus.slnx` holds five `src/` projects and four test projects:
 
 ```mermaid
 flowchart TB
-    Client["Cantus.Client (Uno Platform)<br/>Desktop (Skia/WinUI) & WebAssembly"]
-    Server["Cantus.Server (ASP.NET Core 10)<br/>SignalR PlaybackHub & REST APIs"]
-    Infra["Cantus.Infrastructure<br/>Spotify PKCE, LRCLIB, SQLite, Crypto"]
-    Core["Cantus.Core<br/>Domain Entities, LRC Parser, Engine Contracts"]
+    Client["Cantus.Client (Uno Platform)<br/>Skia desktop and WebAssembly"]
+    Server["Cantus.Server (ASP.NET Core 10)<br/>SignalR PlaybackHub and REST APIs"]
+    Infra["Cantus.Infrastructure<br/>Spotify PKCE, LRCLIB, NetEase, SQLite, Crypto"]
+    Core["Cantus.Core<br/>Domain models, LRC and YRC parsers, contracts"]
+    Gen["Cantus.Generators<br/>Trace-logging source generator"]
 
     Client --> Core
     Server --> Infra
     Server --> Core
     Infra --> Core
+    Gen -. "analyzer" .-> Core
 ```
 
-- **`src/Cantus.Core`**: Pure .NET standard domain models (`PlaybackState`, `SyncedLyrics`, `LyricLine`), `LrcParser`, and interface definitions. Zero external framework dependencies.
-- **`src/Cantus.Infrastructure`**: Implementation of Spotify Web API client, LRCLIB integration, SQLite caching (`CantusDbContext`), and Data Protection encryption.
+- **`src/Cantus.Core`**: Domain models (`PlaybackState`, `SyncedLyrics`, `LyricLine`), `LrcParser` and `YrcParser`, and interface definitions. Depends only on the `Microsoft.Extensions` DI and logging abstractions.
+- **`src/Cantus.Generators`**: Roslyn source generator for the `[TraceLog]` decorators (`TraceLogDecoratorGenerator`), referenced as an analyzer.
+- **`src/Cantus.Infrastructure`**: Spotify Web API client, LRCLIB and NetEase lyrics providers, SQLite persistence (`CantusDbContext`), and Data Protection encryption.
 - **`src/Cantus.Server`**: ASP.NET Core application hosting the SignalR `PlaybackHub`, background `ActiveUsersPlaybackMonitor`, and Minimal API endpoints.
-- **`src/Cantus.Client`**: Cross-platform MVVM client targeting Desktop (Linux Skia, Windows WinUI 3) and WebAssembly.
+- **`src/Cantus.Client`**: Cross-platform MVVM client targeting the Skia desktop head (`net10.0-desktop`: Linux, Windows, macOS) and WebAssembly (`net10.0-browserwasm`). On Windows hosts it also has a WinUI target (`net10.0-windows10.0.26100`).
 
 ---
 
@@ -110,7 +119,7 @@ Start the backend server on `http://localhost:5000`:
 dotnet run --project src/Cantus.Server
 ```
 
-To enable detailed debug or trace logs in the terminal:
+To enable detailed logs, pass `--log-configuration` (`-l`) with `none`, `debug` or `trace`, or set `CANTUS_LOG_CONFIGURATION`:
 
 ```bash
 dotnet run --project src/Cantus.Server -- --log-configuration debug
@@ -129,10 +138,12 @@ dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net
 To build and serve the WebAssembly client through the ASP.NET Core server:
 
 ```bash
-# Publish WASM assets
-dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-browserwasm -c Release -o ./src/Cantus.Server/wwwroot
+# Publish WASM assets, then copy the publish output's wwwroot into the server's web root
+dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-browserwasm -c Release -o ./wasm_dist
+mkdir -p src/Cantus.Server/wwwroot
+cp -r ./wasm_dist/wwwroot/* src/Cantus.Server/wwwroot/
 
-# Start server and navigate to http://localhost:5000
+# Start server and navigate to http://127.0.0.1:5000
 dotnet run --project src/Cantus.Server
 ```
 
@@ -150,11 +161,21 @@ dotnet test Cantus.slnx
 dotnet test Cantus.slnx --logger "console;verbosity=normal"
 ```
 
+CI runs the same suite in Release: `dotnet build Cantus.slnx --configuration Release`, then `dotnet test Cantus.slnx --configuration Release --no-build`.
+
 Unit and integration tests reside in `tests/`:
-- `tests/Cantus.Core.Tests`: LRC parser, time calculations, domain model logic.
-- `tests/Cantus.Infrastructure.Tests`: Caching layers, token encryption, SQLite persistence.
-- `tests/Cantus.Client.Tests`: MVVM ViewModels, auto-scrolling logic, theme manager, and responsive layout calculation.
-- `tests/Cantus.Server.Tests`: SignalR hub broadcasting, REST API endpoints, adaptive poller state transitions.
+- `tests/Cantus.Core.Tests`: LRC and YRC parsers, domain models, the trace-log source generator.
+- `tests/Cantus.Infrastructure.Tests`: Lyrics providers and caching, overrides, Spotify clients, token encryption, SQLite persistence, logging.
+- `tests/Cantus.Client.Tests`: View models, SignalR client and jitter filter, theme manager, color quantizer, responsive layout, local settings.
+- `tests/Cantus.Server.Tests`: SignalR hub, REST API endpoints, Display pairing and credentials, adaptive poller.
+
+### Previewing the Docs
+
+The docs site is MkDocs Material. Serve it locally on `http://localhost:8000`:
+
+```bash
+docker compose -f docker-compose.docs.yml up
+```
 
 ---
 
@@ -242,7 +263,7 @@ Before submitting your pull request, verify that:
 2. Navigate to [github.com/jav76/Cantus](https://github.com/jav76/Cantus) and click **Compare & pull request**.
 3. Fill out the PR template with a clear explanation of what changed, why, and how it was tested.
 4. If your PR resolves an existing issue, link it in the description (e.g. `Closes #12`).
-5. Automated CI checks will validate formatting, compilation, and test execution.
+5. CI builds and tests the solution, runs a Docker build smoke test, and reports formatting (`dotnet format --verify-no-changes`) as a non-blocking advisory.
 
 ---
 
@@ -256,4 +277,4 @@ If you find a bug or experience unexpected behavior:
    - Exact steps to reproduce the behavior.
    - Expected vs. actual behavior.
    - Relevant environment details (OS, browser/client type, Docker setup).
-   - Server or client logs (use `--log-configuration debug` or open the Diagnostics HUD by pressing <kbd>D</kbd> in the client).
+   - Server or client logs (use `--log-configuration debug`, or open the Diagnostics HUD from its button in the client's header bar).

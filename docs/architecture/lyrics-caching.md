@@ -10,28 +10,28 @@ When a track starts playing, Cantus traverses a multi-tiered caching pipeline, t
 
 ```mermaid
 flowchart TD
-    Start[Track Changed / New Track ID] --> QueryOverride{0. Owner Override?}
-    QueryOverride -->|Candidate| ReturnOverride[Return Override Lyrics As Stored]
-    QueryOverride -->|No Lyrics| ReturnNone[Empty Lyrics View]
-    QueryOverride -->|None: Automatic Matching| QueryLocal{1. Query SQLite Cache}
-    QueryLocal -->|Found Negative Cache| ReturnInstrumental[Flag as Instrumental / No Lyrics]
-    QueryLocal -->|Found, Word-Timed or Instrumental| ReturnLyrics[Return Parsed Lyric Lines]
-    QueryLocal -->|Found, No Word Timing| UpgradeDue{Upgrade Attempt Due?}
-    UpgradeDue -->|No| ReturnLyrics
-    UpgradeDue -->|Yes: Record Attempt| Upgrade[Query Word-Timing Providers]
-    Upgrade -->|Word-Timed Result| SavePositive
-    Upgrade -->|Anything Else| ReturnLyrics
+    Start["Track changed (new track ID)"] --> QueryOverride{"0. Owner override?"}
+    QueryOverride -->|"Candidate"| ReturnOverride["Return override lyrics as stored"]
+    QueryOverride -->|"No lyrics"| ReturnNone["Empty lyrics view"]
+    QueryOverride -->|"None, automatic matching"| QueryLocal{"1. Query SQLite cache"}
+    QueryLocal -->|"Negative entry (not found)"| ReturnNotFound["Return no lyrics"]
+    QueryLocal -->|"Found, word-timed or instrumental"| ReturnLyrics["Return parsed lyric lines"]
+    QueryLocal -->|"Found, no word timing"| UpgradeDue{"Upgrade attempt due?"}
+    UpgradeDue -->|"No"| ReturnLyrics
+    UpgradeDue -->|"Yes, record attempt"| Upgrade["Query word-timing providers"]
+    Upgrade -->|"Word-timed result"| SavePositive
+    Upgrade -->|"Anything else"| ReturnLyrics
 
-    QueryLocal -->|Cache Miss| QueryLRCLIB[2. Query LRCLIB]
-    QueryLRCLIB -->|Word-Timed or Instrumental| SavePositive[4. Save to SQLite Positive Cache]
-    QueryLRCLIB -->|Line-Level, Plain or Miss| QueryNetease[3. Query NetEase Fallback]
-    QueryNetease -->|Word-Timed Result| SavePositive
-    QueryNetease -->|No Word Timing: Keep First Result Found| SavePositive
-    QueryNetease -->|All Providers Answered: Not Found| SaveNegative[5. Save Negative Cache]
-    QueryNetease -->|Nothing Found, Any Provider Unreachable| SkipCache[No Cache Entry: Retry Next Poll]
+    QueryLocal -->|"Cache miss"| QueryLRCLIB["2. Query LRCLIB"]
+    QueryLRCLIB -->|"Word-timed or instrumental"| SavePositive["4. Save to SQLite positive cache"]
+    QueryLRCLIB -->|"Line-level, plain or miss"| QueryNetease["3. Query NetEase fallback"]
+    QueryNetease -->|"Word-timed result"| SavePositive
+    QueryNetease -->|"No word timing, keep first result found"| SavePositive
+    QueryNetease -->|"All providers answered not found"| SaveNegative["5. Save negative cache entry"]
+    QueryNetease -->|"Nothing found, a provider unreachable"| SkipCache["No cache entry, retry next poll"]
 
     SavePositive --> ReturnLyrics
-    SaveNegative --> ReturnInstrumental
+    SaveNegative --> ReturnNotFound
 ```
 
 ### Provider Fallback Chain
@@ -72,13 +72,12 @@ A cached entry without word timing (synced or plain, not instrumental) can be up
 ## Multi-Tier Cache Features
 
 ### 1. SQLite Local Positive Cache
-- **Duration**: Persistent local storage (auto-renewing on access).
-- **Storage**: Indexed by Spotify Track ID and Artist/Title. `RawSyncedLrc` holds the lines as LRC. Word-timed lyrics are also stored as JSON in `WordTimedLinesJson` (line and syllable start in milliseconds, syllable duration, and text exactly as sent, including a word's trailing space). LRC cannot hold syllable durations or millisecond times, so the JSON is read first and the LRC is only a fallback.
-- **Latency**: `< 1ms` retrieval from local disk.
-
-### 2. Negative Caching for Instrumental Tracks
-- **Problem**: Many classical, jazz, EDM, and post-rock tracks have no lyrics. Without caching this absence, the server would query LRCLIB on every track transition.
-- **Solution**: Cantus records a **Negative Cache** entry with a configurable 30-day TTL (configured via `LyricsCache:NegativeCacheDays` in `appsettings.json`; the setting is provider-agnostic and applies to the whole fallback chain). When the track plays again, Cantus immediately recognizes it as instrumental without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found". Transient provider failures are never cached.
+- **Duration**: No TTL. Found lyrics (including instrumental results) stay cached until replaced by an upgrade, a `refetch` or a "not found" answer.
+- **Storage**: `CachedLyrics` table, keyed by Spotify Track ID with an index on artist and title. `RawSyncedLrc` holds the lines as LRC. Word-timed lyrics are also stored as JSON in `WordTimedLinesJson` (line and syllable start in milliseconds, syllable duration, and text exactly as sent, including a word's trailing space). LRC cannot hold syllable durations or millisecond times, so the JSON is read first and the LRC is only a fallback.
+### 2. Negative Caching for Tracks Without Lyrics
+- **Problem**: Many tracks have no lyrics on any provider. Without caching this absence, the server would query every provider on every play.
+- **Solution**: Cantus writes a **negative cache** entry (`IsNotFound` in the same `CachedLyrics` row) with a configurable 30-day TTL (`LyricsCache:NegativeCacheDays` in `appsettings.json`; it applies to the whole fallback chain). While the entry is unexpired, the track returns no lyrics without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found". Transient provider failures are never cached.
+- **Instrumental tracks** are different: a provider that flags a track as instrumental produces a positive entry with `IsInstrumental` set, which has no TTL.
 
 ### 3. Owner Overrides
 - **Problem**: An automatic match can be wrong, and a track cached as "not found" stays that way for the whole negative-cache TTL.
@@ -89,14 +88,14 @@ A cached entry without word timing (synced or plain, not instrumental) can be up
 - **Live update**: After each change, every Session currently on the track, and its Displays, gets the new lyrics through `ReceiveLyrics`, and its in-memory playback snapshot is updated so the poller and newly connecting clients see them too. The snapshot update only applies to snapshots still on that track, and the poller keeps the snapshot's current lyrics when the track has not changed, so a poll that overlaps an override does not revert it.
 
 ### 4. LRCLIB Integration & Fuzzy Matching
-- **Primary Query**: Exact search by Track Name, Artist Name, Album Name, and Duration.
-- **Fuzzy Fallback**: If exact matching fails (common for remastered titles, "feat." artist tags, or deluxe editions), Cantus strips noise keywords (e.g. `(Remastered 2021)`, `[Deluxe Edition]`) and queries LRCLIB's fuzzy search endpoint.
+- **Primary Query**: `/api/get` with track name, artist name, album name (when known) and duration in seconds (when known).
+- **Search Fallback**: If the exact lookup returns 404, Cantus calls `/api/search?q={title} {artist}`. It picks the synced result closest in duration and rejects it if it is more than 5 seconds off. Without a synced result it takes the first plain or instrumental result. Titles are sent as Spotify reports them; no keywords are stripped.
 
 ---
 
 ## LRC Parsing & Timestamp Normalization
 
-Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates standard LRC text formats into typed timestamp objects:
+`LrcParser` (span-based) turns LRC text into `LyricLine` records with a start timestamp:
 
 ```text
 [00:12.45]First line of synchronized lyrics
@@ -105,9 +104,10 @@ Cantus implements a zero-allocation LRC parser (`LrcParser`) that translates sta
 ```
 
 ### Parser Features:
-- Handles both 2-digit (`[mm:ss.xx]`) and 3-digit (`[mm:ss.xxx]`) millisecond precision.
-- Normalizes out-of-order lyric lines.
-- Computes start and end durations for each line to trigger smooth visual highlighting and transition states.
+- Reads `[mm:ss]`, `[mm:ss.x]`, `[mm:ss.xx]` and `[mm:ss.xxx]` timestamps; non-timestamp tags such as `[ar:...]` are skipped.
+- A line with several timestamps (`[00:10.00][00:50.00]Chorus`) becomes one line per timestamp.
+- Sorts lines by timestamp, so out-of-order files work.
+- Enhanced LRC word tags (`<mm:ss.xx>word`) become syllables; each syllable's duration runs to the next syllable's start. Lines store only a start time.
 
 ### NetEase Word-by-Word Lyrics (`YrcParser`)
 

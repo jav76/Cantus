@@ -1,18 +1,22 @@
 # REST API Reference
 
-In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal API HTTP endpoints for authentication, session management, and system health checks.
+In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal API HTTP endpoints for authentication, lyrics, Displays and health checks.
+
+JSON bodies use camelCase property names in both directions (request property names are matched case-insensitively). Error responses for `400` and `404` carry `{ "message": "..." }`; `401` and `403` have no body.
+
+In the Development environment the server also serves its OpenAPI document at `/openapi/v1.json` and a Scalar API browser under `/scalar`.
 
 ---
 
 ## Authentication Endpoints
 
 ### Session credential
-Endpoints that act on the caller's Session read its credential from, in order: the `cantus_session_id` cookie, the `access_token`, `token` or `session_id` query parameter, or the `Authorization` header (`Bearer <id>` or the raw id).
+Endpoints that act on the caller's Session read its credential from these slots, in order: the `cantus_session_id` cookie, the `access_token`, `token` or `session_id` query parameter, or the `Authorization` header (`Bearer <id>` or the raw id). Only the first slot that holds a value is checked as a Session id.
 
 The credential is the Session id issued by the OAuth callback. The server matches it against that exact id only. A Spotify user id is not a credential: `/me` and `POST /api/lyrics/offset` return `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
 
 ### Display token
-A Display (a paired screen) holds a view-only Display token instead of a Session. It presents the token in the `cantus_display_token` cookie, the `display_token` query parameter, or the shared `access_token` query parameter or `Authorization: Bearer` header. When a request carries both a valid Session and a Display token, the Session wins. When no slot holds a valid Session, every slot is tried as a Display token, so a stale `cantus_session_id` cookie does not hide a Display token sent in `access_token` or `Authorization`.
+A Display (a paired screen) holds a view-only Display token instead of a Session. It presents the token in the `cantus_display_token` cookie, the `display_token` query parameter, or any of the Session credential slots (the SignalR client sends it as `access_token` or `Authorization: Bearer`). When a request carries both a valid Session and a Display token, the Session wins. When the first slot does not hold a valid Session, every slot is tried as a Display token, so a stale `cantus_session_id` cookie does not hide a Display token sent in `access_token` or `Authorization`.
 
 The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
 
@@ -21,89 +25,99 @@ A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `
 ---
 
 ### `GET /api/auth/spotify/login` (or `GET /api/auth/login`)
-Initiates the Spotify OAuth 2.0 PKCE authentication flow.
+Starts the Spotify OAuth 2.0 PKCE flow. No credential needed.
 
 - **Query Parameters**:
-  - `json` (`bool`, optional): If `true`, returns `{ "authorizationUrl": "..." }` in JSON instead of 302 redirect.
-  - `client_id` (`string`, optional): Ephemeral client handshake ID. When provided, the server notifies this specific client via SignalR (`ReceiveAuthSession` on group `client_{clientId}`) upon successful OAuth callback, allowing seamless desktop and remote display login.
-- **Response**: `302 Found` redirect to Spotify's `https://accounts.spotify.com/authorize` with generated `code_challenge`, `client_id`, and requested scopes.
+  - `json` (`bool`, optional): if `true`, returns `200 OK` with `{ "authorizationUrl": "..." }` instead of a redirect.
+  - `client_id` (`string`, optional): ephemeral client handshake id. After a successful callback the server sends [`ReceiveAuthSession`](signalr-api.md#receivesessions-receiveauthsession-and-receivesessionrevoked) to the hub group `client_{clientId}` (joined with `RegisterClientLogin`) and to the connection whose id is `clientId`, plus `ReceiveSessions` to that group.
+- **Response**: `302 Found` redirect to Spotify's `https://accounts.spotify.com/authorize` with the generated `code_challenge`, `client_id`, `state` and requested scopes. The state, PKCE verifier, redirect URI and `client_id` are kept in short-lived (10 minute) HTTP-only cookies for the callback.
 
 ---
 
 ### `GET /api/auth/spotify/callback` (or `GET /api/auth/callback`)
-Handles the redirect callback from Spotify following user consent.
+Handles Spotify's redirect after user consent.
 
 - **Query Parameters**:
   - `code` (`string`): Spotify authorization code.
-  - `state` (`string`): Anti-forgery validation state.
+  - `state` (`string`): anti-forgery state, checked against the login cookie.
+  - `error` (`string`, optional): set by Spotify when consent fails.
 - **Behavior**:
-  1. Validates PKCE challenge and exchanges code for access & refresh tokens.
-  2. Encrypts tokens via ASP.NET Core Data Protection.
-  3. Saves user session in SQLite database and updates active session registry.
-  4. Broadcasts session list update to all connected SignalR clients (including desktop app).
-- **Response**: `200 OK` HTML landing page with handoff to desktop client or web player.
+  1. Validates the state and exchanges the code (with the PKCE verifier) for access and refresh tokens.
+  2. Encrypts the tokens with ASP.NET Core Data Protection and saves the Session in SQLite.
+  3. Registers the Session in the in-memory playback registry, keeping any playback already tracked for it.
+  4. Sends `ReceiveSessions` to the Session's own hub group `user_{sessionId}`, and the `client_id` handoff events described above.
+  5. Sets the `cantus_session_id` cookie (HTTP-only, 30 days).
+- **Response `200 OK`**: HTML page that opens `cantus://auth?session_id=<id>` for the desktop app and links to the web player.
+- **Response `302 Found`** to `/?auth=error&message=...`: Spotify returned `error`, or the code exchange failed.
+- **Response `400 Bad Request`**: missing `code`, state mismatch, or missing PKCE verifier cookie.
 
 ---
 
 ### `GET /api/auth/sessions`
-Returns all currently authorized Spotify user account sessions stored on the server.
+Returns the caller's own Session as a one-item list.
 
 - **Response `200 OK`**:
 ```json
 [
   {
-    "userId": "spotify_user_12345",
+    "id": "<Session id>",
+    "spotifyUserId": "spotify_user_12345",
     "displayName": "Jane Doe",
-    "avatarUrl": "https://i.scdn.co/image/...",
-    "expiresAtUtc": "2026-08-26T04:30:00Z"
+    "email": "jane@example.com",
+    "profileImageUrl": "https://i.scdn.co/image/...",
+    "isCurrentlyPlaying": true,
+    "createdAtUtc": "2026-08-26T04:30:00+00:00",
+    "updatedAtUtc": "2026-08-26T04:30:00+00:00"
   }
 ]
 ```
+  An empty list when the caller has no valid credential.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
 ---
 
 ### `GET /api/auth/me`
-Returns current authenticated session information for the calling browser or client.
+Returns the caller's Session.
 
-- **Response `200 OK`**:
-```json
-{
-  "isAuthenticated": true,
-  "userId": "spotify_user_12345",
-  "displayName": "Jane Doe",
-  "avatarUrl": "https://i.scdn.co/image/...",
-  "sessionExpiresAtUtc": "2026-08-26T04:30:00Z"
-}
-```
+- **Response `200 OK`**: one Session object, shaped like an item of `GET /api/auth/sessions` (`isCurrentlyPlaying` is always `false` here).
+- **Response `401 Unauthorized`**: no valid credential.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
 ---
 
 ### `DELETE /api/auth/sessions/{userId}`
-Revokes an authorized Spotify account session and removes its encrypted tokens from SQLite. `{userId}` must be the caller's own Session id, matching the [session credential](#session-credential).
+Revokes a Session and removes its encrypted tokens from SQLite. `{userId}` must be the caller's own Session id, matching the [session credential](#session-credential).
 
-The owner's Displays are deleted with the Session. Each of their live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed, the same as [revoking a Display](#delete-apidisplaysdisplayid). Other owners' Displays are untouched.
+The owner's Displays are deleted with the Session. Each of their live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed, the same as [revoking a Display](#delete-apidisplaysdisplayid). Other owners' Displays are untouched. The Session's hub group then receives `ReceiveSessionRevoked` and an empty `ReceiveSessions`.
 
 - **Response `200 OK`**: `{ "message": "Session '<userId>' revoked." }`
+- **Response `401 Unauthorized`**: no credential.
+- **Response `403 Forbidden`**: the caller holds a Display token, or `{userId}` is not the caller's credential.
 - **Response `404 Not Found`**: no Session has that id.
 
 ---
 
 ### `POST /api/auth/logout`
-Clears current user session cookies and revokes the active session. Like [`DELETE /api/auth/sessions/{userId}`](#delete-apiauthsessionsuserid), it deletes the owner's Displays and closes their live hub connections after sending each one [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked).
+Revokes the caller's Session (if any) and deletes the `cantus_session_id` cookie. Like [`DELETE /api/auth/sessions/{userId}`](#delete-apiauthsessionsuserid), it deletes the owner's Displays, closes their live hub connections after sending each one [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked), and sends `ReceiveSessionRevoked` and an empty `ReceiveSessions` to the Session's hub group.
 
-- **Response `200 OK`**: `{ "message": "Logged out and session revoked." }`
+- **Response `200 OK`**: `{ "message": "Logged out and session revoked." }`, also when the caller had no credential.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
 ---
 
 ## Lyrics & Playback Endpoints
 
 ### `GET /api/lyrics/{trackId}`
-Retrieves cached synchronized lyrics for a specific Spotify track ID.
+Returns the stored lyrics for a Spotify track id. No credential needed.
 
 - **Response `200 OK`**:
 ```json
 {
   "trackId": "4cOdK2wGLETKBW3PvgPWqT",
+  "title": "Never Gonna Give You Up",
+  "artist": "Rick Astley",
+  "album": "Whenever You Need Somebody",
+  "isSynced": true,
   "isInstrumental": false,
   "lines": [
     {
@@ -120,16 +134,18 @@ Retrieves cached synchronized lyrics for a specific Spotify track ID.
       "text": "You know the rules and so do I",
       "syllables": null
     }
-  ]
+  ],
+  "plainLyrics": null
 }
 ```
+- **Response `404 Not Found`**: nothing is cached for the track, or it has a `noLyrics` override.
 
 `syllables` carries real per-word timing (absolute milliseconds; a word's trailing space stays in its `text`) and is `null` for lines with line-level timing only.
 
 ---
 
 ### `POST /api/lyrics/offset`
-Saves a manual timing offset adjustment for a track.
+Saves a manual timing offset for a track. The hub method [`SetTrackOffset`](signalr-api.md#settrackoffsettrackid-offsetms) does the same.
 
 - **Request Body**:
 ```json
@@ -139,7 +155,9 @@ Saves a manual timing offset adjustment for a track.
 }
 ```
 - Requires the caller's [session credential](#session-credential).
-- **Response `200 OK`**
+- **Behavior**: stores the offset (server-wide, per track) and sends `ReceiveTrackOffset` to the caller's Session connections and Displays.
+- **Response `200 OK`**: the saved request body.
+- **Response `400 Bad Request`**: `trackId` is missing or blank.
 - **Response `401 Unauthorized`**: no credential, or the credential does not match a Session id.
 - **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
@@ -175,12 +193,12 @@ Starts a pairing. No credential needed.
 {
   "pairingId": "3f1c9a0e5b7d4e2a9c6b8d0f1e2a3b4c",
   "code": "K7QH2MZP",
-  "expiresAtUtc": "2026-11-20T18:05:00Z"
+  "expiresAtUtc": "2026-11-20T18:05:00+00:00"
 }
 ```
 - **Response `400 Bad Request`**: `connectionId` is missing or is not a live PlaybackHub connection. Call this only after the connection has started.
 - **Response `429 Too Many Requests`**: rate limit reached.
-- **Response `503 Service Unavailable`**: too many pairings are waiting for approval (`DisplayPairing:MaxPendingPairings`).
+- **Response `503 Service Unavailable`**: too many pairings are waiting for approval (`DisplayPairing:MaxPendingPairings`). The body is a ProblemDetails object.
 
 ---
 
@@ -197,7 +215,7 @@ Approves a code and names the new Display. Requires the caller's [session creden
 {
   "id": "9b2e4c6a8d0f4b1e93a5c7e9f1b3d5a7",
   "name": "Living room TV",
-  "createdAtUtc": "2026-11-20T18:01:12Z",
+  "createdAtUtc": "2026-11-20T18:01:12+00:00",
   "lastSeenAtUtc": null
 }
 ```
@@ -245,7 +263,7 @@ Its token stops working at once. Each of its live hub connections receives [`Rec
 ### `GET /api/lyrics/{trackId}/candidates`
 Lists the lyrics every enabled provider has for the owner's current track, so a wrong automatic match can be replaced.
 
-- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Auth**: requires the caller's [session credential](#session-credential).
 - **Path Parameters**:
   - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session, since providers search by its title, artist and duration.
 - **Behavior**:
@@ -292,7 +310,7 @@ Lists the lyrics every enabled provider has for the owner's current track, so a 
 ### `POST /api/lyrics/{trackId}/override`
 Corrects the lyrics for the owner's current track. An override is stored per track and applies server-wide, like track offsets. It survives restarts, cache expiry and negative caching until it is cleared.
 
-- **Auth**: requires a Session (cookie, `Authorization: Bearer <session id>`, or `access_token` query parameter).
+- **Auth**: requires the caller's [session credential](#session-credential).
 - **Path Parameters**:
   - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session.
 - **Request Body**:
@@ -303,7 +321,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
   "candidateId": "3396226"
 }
 ```
-- **Actions**:
+- **Actions** (`action` is required and case-sensitive; `provider` is matched ignoring case):
 
 | `action` | Effect |
 | :--- | :--- |
@@ -313,11 +331,11 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 | `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. A line-only cached match can then get a word timing upgrade attempt (see [Lyrics Caching](../architecture/lyrics-caching.md#upgrading-line-only-entries)). |
 
 - **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
-- **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}` (`lines` is empty when the track has no lyrics).
-- **Response `400 Bad Request`**: unknown `action`, `candidate` without `provider` or `candidateId`, or `provider` is not an enabled provider.
+- **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}`. With no lyrics, `lines` is empty, `isSynced` is `false`, and `title`, `artist` and `album` come from the current track.
+- **Response `400 Bad Request`**: missing or unknown `action`, `candidate` without `provider` or `candidateId`, or `provider` is not an enabled provider.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
 - **Response `403 Forbidden`**: the caller holds a Display token. Nothing is changed and nothing is broadcast.
-- **Response `404 Not Found`**: `trackId` is not the calling Session's current track, or the provider has no lyrics for `candidateId`.
+- **Response `404 Not Found`**: `trackId` is not the calling Session's current track (or nothing is playing), or the provider has no lyrics for `candidateId`.
 - **Response `502 Bad Gateway`**: the provider could not be reached while loading the candidate, or a provider could not be reached during a `refetch`. Nothing is changed and nothing is broadcast.
 
 `GET /api/lyrics/{trackId}` also honors overrides: it returns the chosen candidate's lyrics, or `404` for a `noLyrics` override.
@@ -327,7 +345,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 ## Health & Monitoring Endpoints
 
 ### `GET /api/health`
-System liveness and readiness probe for Docker / Kubernetes orchestrators.
+Liveness and readiness probe for Docker or Kubernetes. No credential needed.
 
 - **Response `200 OK`**:
 ```json
@@ -335,6 +353,9 @@ System liveness and readiness probe for Docker / Kubernetes orchestrators.
   "status": "Healthy",
   "version": "1.0.0",
   "activeSessions": 1,
-  "database": "Connected"
+  "database": "Connected",
+  "commitSha": "7130010"
 }
 ```
+  `activeSessions` counts Sessions with playback tracked in memory. `version` and `commitSha` come from the build.
+- **Response `503 Service Unavailable`**: the database cannot be reached. Same shape, with `"status": "Degraded"` and `"database": "Disconnected"`.

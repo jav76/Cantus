@@ -9,9 +9,9 @@ When exposing Cantus to the internet or your local area network, running behind 
 Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse proxy must support:
 - **WebSocket Upgrade Headers**: `Upgrade $http_upgrade; Connection "upgrade";`
 - **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host`
-- **Extended Timeouts**: Setting proxy read timeouts to at least `300s` prevents premature WebSocket disconnects during track pauses.
+- **Idle Timeouts above 15 seconds**: the server sends a SignalR keep-alive every 15 seconds and clients give up after 30 seconds of silence, so any proxy idle timeout above 30 seconds is enough. The `300s` in the examples leaves plenty of headroom.
 
-> **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored — which typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
+> **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored. This typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
 >
 > ```yaml
 > # Trust a Docker bridge network
@@ -43,7 +43,7 @@ The QR code on a waiting screen encodes the address the screen loaded Cantus fro
 
 ## 1. Caddy (Recommended)
 
-Caddy automatically obtains and renews Let's Encrypt certificates and passes WebSocket headers by default:
+Caddy automatically obtains and renews Let's Encrypt certificates and passes WebSocket headers by default. When Caddy runs in another container (`cantus:5000`), trust its network with `ForwardedHeaders__KnownNetworks__0` (see above):
 
 ```caddy
 # /etc/caddy/Caddyfile
@@ -116,6 +116,8 @@ services:
     environment:
       - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=https://cantus.yourdomain.com
+      # Traefik runs in another container, so trust its network
+      - ForwardedHeaders__KnownNetworks__0=172.16.0.0/12
     volumes:
       - cantus_data:/app/data
     labels:

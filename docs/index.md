@@ -8,7 +8,7 @@ hide:
   <h1>Cantus</h1>
   <p class="tagline">
     Self-Hosted, Real-Time Synchronized Lyrics Display Platform.<br/>
-    Continuous Spotify tracking, sub-millisecond clock sync, and beautiful karaoke-style visual animations.
+    Continuous Spotify tracking, NTP-style clock sync, and karaoke-style word-by-word animation.
   </p>
   <div class="cantus-actions">
     <a href="user-guide/" class="cantus-btn cantus-btn-primary">
@@ -26,9 +26,9 @@ hide:
 <div class="cantus-grid">
   <div class="cantus-card">
     <div class="cantus-card-icon">⚡</div>
-    <h3>Sub-Millisecond Clock Sync</h3>
+    <h3>NTP-Style Clock Sync</h3>
     <p>
-      Continuous 4-timestamp NTP clock offset estimation and smooth interpolation filters network jitter to keep lyrics perfectly synchronized with your audio stream.
+      4-timestamp clock offset estimation every 5 seconds, filtered by round-trip time, plus a phase-locked interpolation loop keeps lyrics in step with your audio.
     </p>
     <a href="architecture/ntp-clock-sync/" class="card-link">Read about NTP Sync &rarr;</a>
   </div>
@@ -37,7 +37,7 @@ hide:
     <div class="cantus-card-icon">🧠</div>
     <h3>Adaptive Polling Engine</h3>
     <p>
-      Intelligently modulates Spotify polling frequency (4s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff, and 20s background throttling) and sleeps when zero viewers are connected to conserve API rate limits.
+      Intelligently modulates Spotify polling frequency (4s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff, and background throttling from 20s) and sleeps when zero viewers are connected to conserve API rate limits.
     </p>
     <a href="architecture/adaptive-polling/" class="card-link">Learn about Adaptive Polling &rarr;</a>
   </div>
@@ -46,7 +46,7 @@ hide:
     <div class="cantus-card-icon">🎵</div>
     <h3>Multi-Tier Lyrics Caching</h3>
     <p>
-      Instant local SQLite resolution, fallback to LRCLIB fuzzy matching, and negative caching for instrumental tracks with zero third-party tracking.
+      Local SQLite cache first, then LRCLIB with a NetEase fallback for word-by-word timing, plus negative caching for tracks no provider has.
     </p>
     <a href="architecture/lyrics-caching/" class="card-link">Explore Lyrics Caching &rarr;</a>
   </div>
@@ -64,7 +64,7 @@ hide:
     <div class="cantus-card-icon">🖥️</div>
     <h3>Cross-Platform Display</h3>
     <p>
-      Native desktop application on Linux (Skia/X11) and Windows alongside WebAssembly in modern desktop, tablet, and TV web browsers.
+      Native Skia desktop app for Linux, Windows and macOS, plus a WebAssembly web app for desktop, tablet, and TV browsers.
     </p>
     <a href="user-guide/playback-and-display/" class="card-link">View Display Modes &rarr;</a>
   </div>
@@ -91,18 +91,18 @@ sequenceDiagram
     participant Hub as SignalR PlaybackHub
     participant Poller as Adaptive Playback Engine
     participant Spotify as Spotify Web API
-    participant Cache as SQLite & LRCLIB
+    participant Cache as Lyrics cache and providers
 
-    Listener->>Client: Open Cantus / Connect
-    Client->>Hub: SubscribeToUser & NTP Clock Sync
-    Hub-->>Client: NTP Pong (Offset Estimation)
-    Poller->>Spotify: Poll Current Playback State
-    Spotify-->>Poller: Track ID, Progress, IsPlaying
-    Poller->>Cache: Query Synced Lyrics (LRC)
-    Cache-->>Poller: Parsed Line Timings
-    Poller->>Hub: Broadcast Playback State & Lyrics
-    Hub->>Client: Real-Time Stream (State + Lyrics)
-    Client->>Client: Smooth Scroll & Active Line Highlight
+    Listener->>Client: Open Cantus and connect
+    Client->>Hub: SubscribeToUser and SyncClock
+    Hub-->>Client: ClockSyncResponse (offset estimation)
+    Poller->>Spotify: Poll current playback state
+    Spotify-->>Poller: Track ID, progress, IsPlaying
+    Poller->>Cache: On track change, resolve lyrics (override, SQLite, LRCLIB, NetEase)
+    Cache-->>Poller: Parsed line and word timings
+    Poller->>Hub: Broadcast playback state and lyrics
+    Hub->>Client: Real-time stream (state and lyrics)
+    Client->>Client: Smooth scroll and active line highlight
 ```
 
 ---

@@ -7,7 +7,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Cantus is a self-hosted, real-time synchronized lyrics display platform. It connects with Spotify playback sessions to deliver sub-millisecond synchronized lyrics across web browsers, desktop operating systems, and dedicated kiosk displays.
+Cantus is a self-hosted, real-time synchronized lyrics display platform. It follows your Spotify playback and shows synchronized lyrics across web browsers, desktop operating systems, and dedicated kiosk displays.
 
 Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.jav26122.net).
 
@@ -15,9 +15,9 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 
 ## Features
 
-- **Sub-Millisecond Synchronization**: Four-timestamp NTP clock offset estimation and smooth position interpolation filter network jitter.
+- **Clock Synchronization**: Four-timestamp NTP-style clock offset estimation and smooth position interpolation filter network jitter.
 - **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (4.0s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff when paused/idle, and 20s background tab throttling) and halts polling when zero viewers are connected to conserve API quota.
-- **Multi-Tier Lyrics Resolution**: Direct local SQLite cache lookups with fallback to LRCLIB and negative caching for instrumental tracks.
+- **Multi-Tier Lyrics Resolution**: SQLite cache first, then LRCLIB, then the optional NetEase fallback, with negative caching for tracks no provider has. See [Lyrics Providers](#lyrics-providers).
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
 - **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time.
 - **Self-Hosted and Private**: Zero third-party telemetry. User tokens are encrypted at rest using ASP.NET Core Data Protection.
@@ -31,7 +31,7 @@ The system is structured following Clean Architecture principles across five sol
 | Layer | Project | Description |
 | :--- | :--- | :--- |
 | **Core Domain** | `src/Cantus.Core` | Domain models (`PlaybackState`, `LyricLine`), LRC parser, and engine contracts. |
-| **Infrastructure** | `src/Cantus.Infrastructure` | Spotify PKCE authentication, LRCLIB integration, SQLite caching, and token encryption. |
+| **Infrastructure** | `src/Cantus.Infrastructure` | Spotify PKCE authentication, LRCLIB and NetEase lyrics providers, SQLite caching, and token encryption. |
 | **Server Engine** | `src/Cantus.Server` | ASP.NET Core host, SignalR `PlaybackHub`, adaptive polling monitor, and REST APIs. |
 | **Client Presentation** | `src/Cantus.Client` | Uno Platform application targeting WebAssembly and Skia desktop runtimes. |
 | **Source Generators** | `src/Cantus.Generators` | Roslyn source generator for compile-time method tracing (`[TraceLog]`). |
@@ -72,7 +72,7 @@ services:
       - "5000:5000"
     environment:
       - Spotify__ClientId=your_spotify_client_id_here
-      - CANTUS_HOST_URL=http://localhost:5000
+      - CANTUS_HOST_URL=http://127.0.0.1:5000
       - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - cantus_data:/app/data
@@ -88,7 +88,7 @@ volumes:
 docker compose up -d
 ```
 
-Access the web interface at `http://localhost:5000` (or your configured `CANTUS_HOST_URL`).
+Access the web interface at `http://127.0.0.1:5000` (or your configured `CANTUS_HOST_URL`). Spotify rejects `http://localhost` redirect URIs, so use `127.0.0.1` for local access and HTTPS for any other address.
 
 ---
 
@@ -99,7 +99,7 @@ Cantus requires a registered Spotify Developer application to communicate with S
 1. Navigate to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
 2. Select **Create App** and specify an application name and description.
 3. In **Redirect URIs**, add the callback endpoints for your instance:
-   - Localhost: `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`
+   - Local: `http://127.0.0.1:5000/api/auth/spotify/callback` (Spotify does not accept `localhost`)
    - Production: `https://cantus.yourdomain.com/api/auth/spotify/callback`
 4. Select **Web API** under the requested APIs.
 5. Save the configuration and copy the generated **Client ID** into your environment configuration.
@@ -115,18 +115,30 @@ Cantus is configured via environment variables or `appsettings.json`:
 | Variable | Required | Default | Description |
 | :--- | :---: | :---: | :--- |
 | `Spotify__ClientId` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
-| `CANTUS_HOST_URL` | Yes | `http://localhost:5000` | Canonical external URL used for OAuth redirects and SignalR handshakes. |
+| `CANTUS_HOST_URL` | Recommended | Unset | Public URL used to build the Spotify OAuth callback. When unset, Cantus uses the request's address. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
-| `DATA_DIR` | No | `/app/data` | Path to persistent storage for SQLite database and encryption keys. |
+| `DATA_DIR` | No | `/app/data` if it exists | Parent directory of the Data Protection key ring (`keys/`). The database path is set by `ConnectionStrings__CantusDatabase`. |
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
+| `Netease__Enabled` | No | `true` | Enables the NetEase lyrics fallback. Set `false` to use LRCLIB only. |
 | `CANTUS_LOG_CONFIGURATION` | No | `none` | Log verbosity profile: `none`, `debug`, or `trace`. |
 | `PlaybackPoller__ActivePollIntervalMs` | No | `4000` | Baseline Spotify polling cadence (ms) during active playback. |
 
 ### Persistent Data Layout
 
 Mount `/app/data` to persistent storage to preserve user sessions and cached lyrics:
-- `/app/data/cantus.db`: SQLite database storing user sessions, track offsets, and cached LRC lyrics.
+- `/app/data/cantus.db`: SQLite database storing user sessions, paired Displays, track offsets, lyrics overrides, and cached lyrics.
 - `/app/data/keys/`: Cryptographic key ring used by ASP.NET Core Data Protection to encrypt tokens at rest.
+
+---
+
+## Lyrics Providers
+
+Cantus checks its SQLite cache first, then asks the providers in order:
+
+1. **LRCLIB** ([lrclib.net](https://lrclib.net)): the primary provider, always on.
+2. **NetEase Cloud Music**: the fallback. It is asked when LRCLIB has no lyrics or only line-timed ones, and its word-timed lyrics win when it has them. It uses an unofficial API.
+
+To use LRCLIB only, set `Netease__Enabled=false` (or `"Netease": { "Enabled": false }` in `appsettings.json`). See the [configuration reference](https://cantus.docs.jav26122.net/reference/configuration/) for all provider options.
 
 ---
 
@@ -156,8 +168,10 @@ dotnet test Cantus.slnx
 Start the ASP.NET Core backend server:
 
 ```bash
-dotnet run --project src/Cantus.Server/Cantus.Server.csproj
+ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/Cantus.Server/Cantus.Server.csproj
 ```
+
+Without `ASPNETCORE_ENVIRONMENT=Development` the server runs as Production and stores its database at `/app/data/cantus.db`.
 
 ### Running the Desktop Client
 
@@ -192,7 +206,7 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 2. Select **Connect Spotify** to complete the one-time PKCE authorization flow.
 3. Start playback on any Spotify device (phone, desktop, speaker, or web player).
 4. Lyrics scroll automatically in synchronization with active playback.
-5. Use manual offset adjustment controls (+50 ms / -50 ms) to calibrate track timing if necessary. Per-track offsets are persisted in the database.
+5. If lyrics run early or late, use the `SYNC OFFSET` buttons (±0.1 s / ±0.5 s) for the current track, or <kbd>[</kbd> / <kbd>]</kbd> to change this device's latency compensation by 50 ms. Per-track offsets are stored in the database.
 
 ---
 

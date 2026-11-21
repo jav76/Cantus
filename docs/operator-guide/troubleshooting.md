@@ -13,9 +13,10 @@ This guide provides solutions to common setup, authentication, and network issue
 ### Error: `redirect_uri: Not matching configuration` or `INVALID_CLIENT: Invalid redirect URI`
 - **Cause**: The callback URL that Cantus sent does not match the list of Redirect URIs in your Spotify Developer App settings.
 - **Solution**:
-  1. Check `CANTUS_HOST_URL` in your `.env` (e.g. `http://localhost:5000` or `https://cantus.yourdomain.com`).
-  2. In the Spotify Developer Dashboard under **Settings -> Redirect URIs**, ensure `${CANTUS_HOST_URL}/api/auth/spotify/callback` (e.g. `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`) is added.
-  3. Ensure there is no trailing slash on `CANTUS_HOST_URL` or redirect URI.
+  1. Check `CANTUS_HOST_URL` (e.g. `https://cantus.yourdomain.com`). The repository's `docker-compose.yml` defaults it to `http://localhost:5000`, which Spotify rejects.
+  2. In the Spotify Developer Dashboard under **Settings -> Redirect URIs**, ensure `${CANTUS_HOST_URL}/api/auth/spotify/callback` is added exactly.
+  3. When you open Cantus at `http://localhost:5000`, it sends a `localhost` callback whatever `CANTUS_HOST_URL` says, and Spotify rejects `localhost`. Open `http://127.0.0.1:5000` instead and register `http://127.0.0.1:5000/api/auth/spotify/callback`.
+  4. Behind a proxy with `CANTUS_HOST_URL` unset, an `http://` callback means the proxy is not trusted. See [Reverse Proxy](reverse-proxy.md).
 
 ---
 
@@ -37,21 +38,22 @@ This guide provides solutions to common setup, authentication, and network issue
 
 ## 3. Real-Time WebSocket / SignalR Issues
 
-### Symptom: Client shows "Reconnecting..." or drops every 60 seconds
+### Symptom: Client shows "Reconnecting..." or drops repeatedly
 - **Cause**: The reverse proxy is killing idle WebSocket connections or failing to send upgrade headers.
 - **Solution**:
   1. Verify that your proxy config includes `Upgrade $http_upgrade` and `Connection "upgrade"`.
-  2. Increase `proxy_read_timeout` and `proxy_send_timeout` to `300s` or higher.
+  2. Make sure the proxy idle timeout (`proxy_read_timeout` and `proxy_send_timeout` in nginx) is above 30 seconds. The server sends a keep-alive every 15 seconds.
   3. If using Cloudflare, verify that **WebSockets** is enabled in the Cloudflare Network dashboard.
 
 ---
 
 ## 4. Spotify API Rate Limiting (HTTP 429)
 
-### Symptom: Logs show `Spotify rate limit exceeded (429)`
+### Symptom: Logs show `Spotify API rate limit hit for user ...` or `Spotify rate limit hit. Retry after ...`
 - **Cause**: Too many requests within a short timeframe.
 - **Mitigation Built into Cantus**:
-  - Cantus employs an **Adaptive Polling Engine** that automatically backs off to 5s intervals when playback is paused, 10s when idle, and completely halts polling for an owner with no connected viewers.
+  - On a `429`, Cantus pauses Spotify polling for every owner (the limit applies to the whole Client ID) until Spotify's `Retry-After` time (60 seconds if none is given).
+  - The adaptive poller backs off when paused (5s, then 15s after 1 minute, 30s after 5 minutes) and when idle (10s, then 30s after 2 minutes, 60s after 10 minutes), slows to 20s when every viewer is hidden, and stops polling an owner with no connected viewers. Intervals are set under [`PlaybackPoller`](../reference/configuration.md#adaptive-playback-polling-playbackpoller).
 - **Operator Action**:
   - If sharing an instance among multiple active listeners, ensure non-active browser tabs are closed. Cantus will automatically spin down polling for owners with no connected viewers. A paired Display counts as a viewer, so remove Displays nobody watches.
 
@@ -61,8 +63,9 @@ This guide provides solutions to common setup, authentication, and network issue
 
 ### Symptom: Lyrics appear ahead or behind audio on specific machines
 - **Diagnostics**:
-  - Press <kbd>D</kbd> on the client to open the Diagnostics HUD and check **NTP Clock Offset**.
-  - If offset is `> 500ms`, the host OS clock on either the server or client is desynchronized.
+  - Open the Diagnostics HUD from the **Diagnostics** button in the client's header bar (or the **Diagnostics HUD** menu item) and check **RTT / NTP Skew**.
+  - The client corrects for the measured skew, but a skew of several hundred milliseconds or more suggests the server or client OS clock is not synchronized.
+  - If the clocks are fine, adjust the per-track offset instead (see [Timing & Latency Calibration](../user-guide/timing-and-calibration.md)).
 - **Solution**:
   - Ensure `systemd-timesyncd` or `chrony` NTP service is running on the host server:
     ```bash
@@ -80,22 +83,25 @@ The backend exposes a health endpoint:
 curl -i http://localhost:5000/api/health
 ```
 
-Expected JSON response:
+Expected JSON response (`200`). If the database cannot be reached, `status` is `Degraded`, `database` is `Disconnected` and the code is `503`:
 ```json
 {
   "status": "Healthy",
   "version": "1.0.0",
   "activeSessions": 1,
-  "database": "Connected"
+  "database": "Connected",
+  "commitSha": "..."
 }
 ```
 
 ### Inspecting Container Logs
 
-View live structured logs:
+View live logs:
 ```bash
 docker compose logs -f --tail=100 cantus
 ```
+
+The default `none` profile logs `Information` and above. For more detail, set `CANTUS_LOG_CONFIGURATION=debug` (or `trace`) and recreate the container. This also writes `/tmp/cantus/logs/cantus-server.log` inside the container and a `LogEntries` table in the database. See [Logging](../reference/configuration.md#logging-configurations-cli-parameters).
 
 ### Session ids in logs from older releases
 
