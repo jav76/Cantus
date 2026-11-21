@@ -39,7 +39,7 @@ Inside each layout, controls shrink before they overflow:
 - **Track card:** the album art shrinks to fit the card. A long device name is trimmed; hover it for the full name.
 - **Lyrics stage:** when the stage is narrower than 420px, the Karaoke, Autoscroll and Static/Live buttons become icon-only (hover for the tooltip). The theme toast shows at the top of the lyrics, not beside these buttons.
 - **Phones under 380px:** the mobile tab bar stacks each icon above its label, and the now-playing strip drops its timestamp and offset column.
-- **Kiosk mini bar:** long titles are trimmed. Below 700px the timestamp is hidden and **Exit Kiosk** becomes an icon, so it always stays on screen. Kiosk padding also shrinks on phone widths.
+- **Kiosk mini bar:** long titles are trimmed. Below 700px the timestamp is hidden and **Exit Kiosk** becomes an icon, so it always stays on screen. Below 480px the album art is hidden and the seek bar moves to its own row under the title. Kiosk padding also shrinks on phone widths.
 - **Diagnostics HUD:** drops its 420px minimum width on small screens.
 - **Desktop app:** the window cannot be made smaller than 360 x 560.
 

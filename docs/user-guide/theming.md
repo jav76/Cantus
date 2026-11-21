@@ -49,7 +49,7 @@ Pick a theme from either dropdown:
 | **OLED Monochrome** | True-black background with white accents. | OLED displays, burn-in avoidance. |
 | **Solarized Dark** | Classic Solarized base tones with blue accents. | Long reading sessions. |
 
-Every theme is dark, and the whole interface follows it: text boxes, menus, dropdowns, checkboxes, progress rings and dialogs (Find a song, Wrong lyrics?, Diagnostics) all switch colours with the theme, without a restart. Labels on accent-coloured buttons turn dark when the accent is light (for example the white accent of OLED Monochrome), so they stay readable.
+Every theme is dark, and the whole interface follows it: text boxes, menus, dropdowns, checkboxes, progress rings and dialogs (Find a song, Wrong lyrics?, Diagnostics) all switch colours with the theme, without a restart. Labels on accent-coloured buttons and the selected mobile tab turn dark when the accent is light (for example the white accent of OLED Monochrome). With Dynamic, they use whichever of dark or white contrasts more with the album accent, so amber, orange and lime accents get dark labels.
 
 ---
 
