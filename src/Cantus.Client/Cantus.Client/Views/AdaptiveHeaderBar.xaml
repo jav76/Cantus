@@ -6,10 +6,9 @@
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
-    <Border Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
-            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-            BorderThickness="1"
-            CornerRadius="16"
+    <!-- No card: a bottom hairline separates the header from the content -->
+    <Border BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+            BorderThickness="0,0,0,1"
             Padding="{x:Bind GetHeaderPadding(Layout.CurrentBreakpoint), Mode=OneWay}"
             Margin="0,0,0,16">
         <Grid>

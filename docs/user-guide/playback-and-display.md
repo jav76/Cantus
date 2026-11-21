@@ -17,8 +17,8 @@ flowchart TD
     RLM --> TV["Fullscreen / TV 10-Foot (Kiosk Toggle)"]
 
     Small --> S_View["Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip"]
-    Medium --> M_View["Streamlined Dual-Column + 230px Album Art + Compact Telemetry"]
-    Large --> L_View["Expansive Dual-Column + 332px Track Card + Full Diagnostics Pills"]
+    Medium --> M_View["Streamlined Dual-Column + 230px Album Art + Status Dot"]
+    Large --> L_View["Expansive Dual-Column + 332px Track Card + Status Dot"]
     TV --> TV_View["Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar"]
 ```
 

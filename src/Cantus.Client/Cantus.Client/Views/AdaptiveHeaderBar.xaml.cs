@@ -266,14 +266,18 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>
+    /// The header has no card, so it only keeps a gap above its hairline. With no side padding
+    /// the brand lines up with the sidebar's left edge and the buttons with the page's right edge.
+    /// </summary>
     public Thickness GetHeaderPadding(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
-            LayoutBreakpoint.Small => new Thickness(12, 8, 12, 8),
-            LayoutBreakpoint.Medium => new Thickness(14, 10, 14, 10),
-            _ => new Thickness(16, 12, 16, 12)
+            LayoutBreakpoint.Small => new Thickness(0, 0, 0, 8),
+            LayoutBreakpoint.Medium => new Thickness(0, 0, 0, 10),
+            _ => new Thickness(0, 0, 0, 12)
         };
     }
 
