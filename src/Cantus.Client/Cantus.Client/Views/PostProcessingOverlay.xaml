@@ -1,0 +1,15 @@
+<UserControl x:Class="Cantus.Client.Views.PostProcessingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="False">
+
+    <Grid x:Name="OverlayRoot">
+        <Border x:Name="VignetteLayer" />
+
+        <Canvas x:Name="GrainHost">
+            <Canvas.RenderTransform>
+                <TranslateTransform x:Name="GrainShift" />
+            </Canvas.RenderTransform>
+        </Canvas>
+    </Grid>
+</UserControl>

@@ -147,5 +147,8 @@
                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
             </StackPanel>
         </Border>
+
+        <!-- Post-processing effects (film grain and vignette): topmost, over every theme and kiosk mode -->
+        <views:PostProcessingOverlay Visibility="{x:Bind ViewModel.PostProcessingVisibility, Mode=OneWay}" />
     </Grid>
 </Page>
