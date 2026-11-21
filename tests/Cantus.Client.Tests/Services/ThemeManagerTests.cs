@@ -578,4 +578,109 @@ public sealed class ThemeManagerTests
         // Assert
         ThemeManager.ResourceBrushKeys.Keys.Should().NotContain(key => key.Contains("Button") && !key.StartsWith("TextBoxDeleteButton"));
     }
+
+    [Fact]
+    public void AvailableModes_ListsEveryModeInCycleOrder()
+    {
+        // Assert
+        ThemeManager.AvailableModes.Should().Equal(
+            ThemeMode.Dynamic,
+            ThemeMode.MidnightViolet,
+            ThemeMode.EmeraldSynth,
+            ThemeMode.CyberpunkSunset,
+            ThemeMode.NordicSlate,
+            ThemeMode.OLEDMonochrome,
+            ThemeMode.SolarizedDark);
+        ThemeManager.AvailableModes.Should().BeEquivalentTo(Enum.GetValues<ThemeMode>());
+    }
+
+    [Fact]
+    public void AvailableModeNames_MatchDisplayNamesIndexForIndex()
+    {
+        // Assert
+        ThemeManager.AvailableModeNames.Should().Equal(
+            "Dynamic Palette",
+            "Midnight Violet",
+            "Emerald Synth",
+            "Cyberpunk Sunset",
+            "Nordic Slate",
+            "OLED Monochrome",
+            "Solarized Dark");
+    }
+
+    [Fact]
+    public void CycleNextTheme_FromEachMode_MovesToTheNextAvailableModeAndWraps()
+    {
+        for (int i = 0; i < ThemeManager.AvailableModes.Count; i++)
+        {
+            // Arrange
+            ThemeManager tm = new();
+            tm.SetThemeMode(ThemeManager.AvailableModes[i]);
+
+            // Act
+            tm.CycleNextTheme();
+
+            // Assert
+            tm.CurrentMode.Should().Be(ThemeManager.AvailableModes[(i + 1) % ThemeManager.AvailableModes.Count]);
+        }
+    }
+
+    [Fact]
+    public void CurrentModeIndex_TracksCurrentMode()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.SetThemeMode(ThemeMode.NordicSlate);
+
+        // Assert
+        tm.CurrentModeIndex.Should().Be(4);
+    }
+
+    [Fact]
+    public void SettingCurrentModeIndex_SelectsThatMode()
+    {
+        // Arrange
+        ThemeManager tm = new();
+
+        // Act
+        tm.CurrentModeIndex = 6;
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.SolarizedDark);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(7)]
+    public void SettingCurrentModeIndex_OutOfRange_KeepsCurrentMode(int index)
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.EmeraldSynth);
+
+        // Act
+        tm.CurrentModeIndex = index;
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.EmeraldSynth);
+    }
+
+    [Fact]
+    public void ChangingMode_RaisesCurrentModeIndexChanged()
+    {
+        // Arrange
+        ThemeManager tm = new();
+        tm.SetThemeMode(ThemeMode.MidnightViolet);
+        List<string?> notified = [];
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        tm.CurrentModeIndex = 2;
+
+        // Assert
+        notified.Should().Contain(nameof(ThemeManager.CurrentMode));
+        notified.Should().Contain(nameof(ThemeManager.CurrentModeIndex));
+    }
 }

@@ -11,8 +11,10 @@ public sealed class LyricsPreferences : ILyricsPreferences
     private const string KEY_AUTOSCROLL = "cantus_autoscroll";
     private const string KEY_KARAOKE = "cantus_karaoke";
     private const string KEY_LATENCY = "cantus_latency_ms";
+    private const string KEY_POST_PROCESSING = "cantus_post_processing";
     private const bool DEFAULT_AUTOSCROLL_ENABLED = true;
     private const bool DEFAULT_KARAOKE_ENABLED = true;
+    private const bool DEFAULT_POST_PROCESSING_ENABLED = false;
 
     private readonly ISettingsStore _store;
 
@@ -31,6 +33,12 @@ public sealed class LyricsPreferences : ILyricsPreferences
     {
         get => ReadBool(KEY_KARAOKE, DEFAULT_KARAOKE_ENABLED);
         set => _store.SetValue(KEY_KARAOKE, value);
+    }
+
+    public bool IsPostProcessingEnabled
+    {
+        get => ReadBool(KEY_POST_PROCESSING, DEFAULT_POST_PROCESSING_ENABLED);
+        set => _store.SetValue(KEY_POST_PROCESSING, value);
     }
 
     public int LatencyCompensationMs

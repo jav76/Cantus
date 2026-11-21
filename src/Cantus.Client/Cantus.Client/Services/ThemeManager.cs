@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,6 +69,22 @@ public sealed class ThemeManager : INotifyPropertyChanged
     /// </summary>
     public string? AmbientArtworkUrl { get; private set; }
 
+    /// <summary>Every selectable mode, in the order the theme pickers list them and <see cref="CycleNextTheme"/> walks them.</summary>
+    public static IReadOnlyList<ThemeMode> AvailableModes { get; } =
+    [
+        ThemeMode.Dynamic,
+        ThemeMode.MidnightViolet,
+        ThemeMode.EmeraldSynth,
+        ThemeMode.CyberpunkSunset,
+        ThemeMode.NordicSlate,
+        ThemeMode.OLEDMonochrome,
+        ThemeMode.SolarizedDark,
+    ];
+
+    /// <summary>Display names of <see cref="AvailableModes"/>, index for index.</summary>
+    public static IReadOnlyList<string> AvailableModeNames { get; } =
+        AvailableModes.Select(mode => mode.GetDisplayName()).ToArray();
+
     public ThemeMode CurrentMode
     {
         get => _currentMode;
@@ -77,9 +94,39 @@ public sealed class ThemeManager : INotifyPropertyChanged
             {
                 _currentMode = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CurrentModeIndex));
                 ApplyTheme();
             }
         }
+    }
+
+    /// <summary>
+    /// Position of <see cref="CurrentMode"/> in <see cref="AvailableModes"/>,
+    /// for list pickers. Out-of-range writes (a cleared selection is -1) are ignored.
+    /// </summary>
+    public int CurrentModeIndex
+    {
+        get => IndexOfMode(_currentMode);
+        set
+        {
+            if (value >= 0 && value < AvailableModes.Count)
+            {
+                CurrentMode = AvailableModes[value];
+            }
+        }
+    }
+
+    private static int IndexOfMode(ThemeMode mode)
+    {
+        for (int i = 0; i < AvailableModes.Count; i++)
+        {
+            if (AvailableModes[i] == mode)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     public ColorPalette ActivePalette
@@ -438,19 +485,10 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
     public void CycleNextTheme()
     {
-        ThemeMode nextMode = CurrentMode switch
-        {
-            ThemeMode.Dynamic => ThemeMode.MidnightViolet,
-            ThemeMode.MidnightViolet => ThemeMode.EmeraldSynth,
-            ThemeMode.EmeraldSynth => ThemeMode.CyberpunkSunset,
-            ThemeMode.CyberpunkSunset => ThemeMode.NordicSlate,
-            ThemeMode.NordicSlate => ThemeMode.OLEDMonochrome,
-            ThemeMode.OLEDMonochrome => ThemeMode.SolarizedDark,
-            ThemeMode.SolarizedDark => ThemeMode.Dynamic,
-            _ => ThemeMode.MidnightViolet
-        };
-
-        CurrentMode = nextMode;
+        int index = IndexOfMode(CurrentMode);
+        CurrentMode = index < 0
+            ? ThemeMode.MidnightViolet
+            : AvailableModes[(index + 1) % AvailableModes.Count];
     }
 
     public void UpdateTrackMetadata(string? title, string? artist, string? albumArtUrl)

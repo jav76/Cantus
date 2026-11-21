@@ -66,6 +66,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private string _themeToastText = string.Empty;
     private bool _isThemeToastVisible;
     private bool _isKaraokeModeEnabled;
+    private bool _isPostProcessingEnabled;
 
     public ObservableCollection<LyricLineViewModel> LyricLines { get; } = new();
     public PlaybackTransport Transport => _transport;
@@ -422,6 +423,24 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     {
         IsKaraokeModeEnabled = !IsKaraokeModeEnabled;
     }
+
+    /// <summary>Per-device film grain and vignette overlay, drawn over every theme.</summary>
+    public bool IsPostProcessingEnabled
+    {
+        get => _isPostProcessingEnabled;
+        set
+        {
+            if (_isPostProcessingEnabled != value)
+            {
+                _isPostProcessingEnabled = value;
+                _preferences.IsPostProcessingEnabled = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PostProcessingVisibility));
+            }
+        }
+    }
+
+    public Visibility PostProcessingVisibility => IsPostProcessingEnabled ? Visibility.Visible : Visibility.Collapsed;
     public Visibility ResumeAutoScrollVisibility => (IsAutoScrollEnabled && IsUserScrollingPaused && HasSyncedLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
 
     public event Action<bool>? AutoScrollEnabledChanged;
@@ -491,6 +510,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
         _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
+        _isPostProcessingEnabled = _preferences.IsPostProcessingEnabled;
 
         try
         {

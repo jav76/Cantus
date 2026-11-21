@@ -10,6 +10,9 @@ public interface ILyricsPreferences
 
     bool IsKaraokeModeEnabled { get; set; }
 
+    /// <summary>Film grain and vignette over the whole app, in every theme. Off by default.</summary>
+    bool IsPostProcessingEnabled { get; set; }
+
     /// <summary>Device latency compensation, clamped to the supported range on read and write.</summary>
     int LatencyCompensationMs { get; set; }
 }
