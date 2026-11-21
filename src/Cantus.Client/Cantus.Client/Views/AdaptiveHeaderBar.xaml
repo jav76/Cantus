@@ -20,7 +20,7 @@
                 <!-- Brand Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <Border Width="38" Height="38" CornerRadius="10" Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}">
-                        <FontIcon Glyph="&#xE767;" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <views:CantusIcon Kind="Brand" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" Size="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Cantus" FontSize="20" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
@@ -75,7 +75,7 @@
                             Padding="12,8"
                             ToolTipService.ToolTip="Find a song by lyrics">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE721;" FontSize="15" />
+                            <views:CantusIcon Kind="Search" Size="17" />
                             <TextBlock Text="Find Song" FontSize="12" Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
                         </StackPanel>
                     </Button>
@@ -92,9 +92,9 @@
                             <MenuFlyout x:Name="LargeThemeMenu" Placement="BottomEdgeAlignedRight" Opening="OnThemeMenuOpening" />
                         </Button.Flyout>
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon Glyph="&#xE790;" FontSize="15" />
+                            <views:CantusIcon Kind="Palette" Size="17" />
                             <TextBlock Text="Theme" FontSize="12" Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
-                            <FontIcon Glyph="&#xE70D;" FontSize="8" />
+                            <views:CantusIcon Kind="ChevronDown" Size="11" />
                         </StackPanel>
                     </Button>
 
@@ -107,7 +107,7 @@
                             CornerRadius="8"
                             Padding="10,8"
                             ToolTipService.ToolTip="Open Diagnostics HUD">
-                        <FontIcon Glyph="&#xE9D9;" FontSize="15" />
+                        <views:CantusIcon Kind="Diagnostics" Size="17" />
                     </Button>
 
                     <!-- Fullscreen Kiosk Mode -->
@@ -119,7 +119,7 @@
                             CornerRadius="8"
                             Padding="10,8"
                             ToolTipService.ToolTip="Enter Fullscreen Kiosk Mode (F11 / K)">
-                        <FontIcon Glyph="&#xE740;" FontSize="15" />
+                        <views:CantusIcon Kind="EnterFullScreen" Size="17" />
                     </Button>
 
                     <!-- Spotify SSO -->
@@ -132,7 +132,7 @@
                             FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                             ToolTipService.ToolTip="{x:Bind Session.ConnectButtonText, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="16" />
+                            <views:CantusIcon Kind="{x:Bind Session.ConnectButtonIcon, Mode=OneWay}" Size="18" />
                             <TextBlock Text="{x:Bind Session.ConnectButtonText, Mode=OneWay}"
                                        FontSize="13"
                                        MaxWidth="{x:Bind Layout.HeaderAccountNameMaxWidth, Mode=OneWay}"
@@ -150,7 +150,7 @@
                 <!-- Brand Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <Border Width="34" Height="34" CornerRadius="8" Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}">
-                        <FontIcon Glyph="&#xE767;" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <views:CantusIcon Kind="Brand" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" Size="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="Cantus" FontSize="18" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
                     <!-- Connection status: details in the tooltip, problems also get the alert chip -->
@@ -197,7 +197,7 @@
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Find a song by lyrics">
-                        <FontIcon Glyph="&#xE721;" FontSize="14" />
+                        <views:CantusIcon Kind="Search" Size="16" />
                     </Button>
 
                     <!-- Padding is trimmed so the chevron keeps the button at its old width -->
@@ -212,8 +212,8 @@
                             <MenuFlyout x:Name="MediumThemeMenu" Placement="BottomEdgeAlignedRight" Opening="OnThemeMenuOpening" />
                         </Button.Flyout>
                         <StackPanel Orientation="Horizontal">
-                            <FontIcon Glyph="&#xE790;" FontSize="14" />
-                            <FontIcon Glyph="&#xE70D;" FontSize="7" VerticalAlignment="Center" />
+                            <views:CantusIcon Kind="Palette" Size="16" />
+                            <views:CantusIcon Kind="ChevronDown" Size="10" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
@@ -225,7 +225,7 @@
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Diagnostics">
-                        <FontIcon Glyph="&#xE9D9;" FontSize="14" />
+                        <views:CantusIcon Kind="Diagnostics" Size="16" />
                     </Button>
 
                     <Button Click="OnToggleKioskClicked"
@@ -236,7 +236,7 @@
                             CornerRadius="8"
                             Padding="8,6"
                             ToolTipService.ToolTip="Fullscreen (F11)">
-                        <FontIcon Glyph="&#xE740;" FontSize="14" />
+                        <views:CantusIcon Kind="EnterFullScreen" Size="16" />
                     </Button>
 
                     <Button Click="OnConnectSpotifyClicked"
@@ -247,7 +247,7 @@
                             Padding="10,6"
                             FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                             ToolTipService.ToolTip="{x:Bind Session.ConnectButtonText, Mode=OneWay}">
-                        <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="14" />
+                        <views:CantusIcon Kind="{x:Bind Session.ConnectButtonIcon, Mode=OneWay}" Size="16" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -259,7 +259,7 @@
                 <!-- Brand + Live Indicator -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Border Width="30" Height="30" CornerRadius="8" Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}">
-                        <FontIcon Glyph="&#xE767;" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <views:CantusIcon Kind="Brand" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" Size="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="Cantus" FontSize="17" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
                     <!-- Connection status: details in the tooltip -->
@@ -281,7 +281,7 @@
                             Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                             CornerRadius="6"
                             Padding="8,5">
-                        <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="13" />
+                        <views:CantusIcon Kind="{x:Bind Session.ConnectButtonIcon, Mode=OneWay}" Size="15" />
                     </Button>
 
                     <!-- Mobile Overflow Menu Button -->
@@ -297,38 +297,38 @@
                                                 Click="OnOpenSongLookupClicked"
                                                 Visibility="{x:Bind GetSongLookupVisibility(Pairing.OwnerControlsVisibility, Session.OwnerActionsVisibility), Mode=OneWay, FallbackValue=Collapsed}">
                                     <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE721;" />
+                                        <views:CantusIcon Kind="Search" Size="16" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSubItem x:Name="SmallThemeMenu" Text="Theme">
                                     <MenuFlyoutSubItem.Icon>
-                                        <FontIcon Glyph="&#xE790;" />
+                                        <views:CantusIcon Kind="Palette" Size="16" />
                                     </MenuFlyoutSubItem.Icon>
                                 </MenuFlyoutSubItem>
                                 <MenuFlyoutItem Text="Diagnostics HUD" Click="OnOpenDiagnosticsHudClicked">
                                     <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE9D9;" />
+                                        <views:CantusIcon Kind="Diagnostics" Size="16" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="Fullscreen Kiosk (F11)" Click="OnToggleKioskClicked">
                                     <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE740;" />
+                                        <views:CantusIcon Kind="EnterFullScreen" Size="16" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Text="Switch Mobile View" Click="OnCycleMobileViewClicked">
                                     <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE8A5;" />
+                                        <views:CantusIcon Kind="SwitchView" Size="16" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="Log Out" Click="OnLogoutClicked" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                                     <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE7E8;" />
+                                        <views:CantusIcon Kind="SignOut" Size="16" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                             </MenuFlyout>
                         </Button.Flyout>
-                        <FontIcon Glyph="&#xE700;" FontSize="14" />
+                        <views:CantusIcon Kind="Menu" Size="16" />
                     </Button>
                 </StackPanel>
             </Grid>

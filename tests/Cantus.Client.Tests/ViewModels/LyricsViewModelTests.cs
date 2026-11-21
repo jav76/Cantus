@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -121,6 +122,7 @@ public sealed class LyricsViewModelTests
         vm.SyncedLyricsVisibility.Should().Be(Visibility.Visible);
         vm.StaticLyricsVisibility.Should().Be(Visibility.Collapsed);
         vm.ModeToggleText.Should().Be("Static View");
+        vm.ModeToggleIcon.Should().Be(CantusIconKind.StaticLyrics);
 
         // Act
         vm.ToggleStaticLyricsMode();
@@ -130,6 +132,26 @@ public sealed class LyricsViewModelTests
         vm.SyncedLyricsVisibility.Should().Be(Visibility.Collapsed);
         vm.StaticLyricsVisibility.Should().Be(Visibility.Visible);
         vm.ModeToggleText.Should().Be("Live Synced");
+        vm.ModeToggleIcon.Should().Be(CantusIconKind.SyncedLyrics);
+    }
+
+    [Fact]
+    public void ToggleIcons_NotifySoBoundIconsSwap()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new();
+        LyricsViewModel vm = new(client);
+        vm.HasLyrics = true;
+        List<string?> changed = new();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        // Act
+        vm.ToggleStaticLyricsMode();
+        vm.ToggleAutoScroll();
+
+        // Assert
+        changed.Should().Contain(nameof(LyricsViewModel.ModeToggleIcon));
+        changed.Should().Contain(nameof(LyricsViewModel.AutoScrollToggleIcon));
     }
 
     [Fact]
@@ -356,7 +378,7 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void PlayPauseGlyph_TracksPlayingState()
+    public void PlayPauseIcon_TracksPlayingState()
     {
         // Arrange
         SignalRPlaybackClient client = new();
@@ -364,15 +386,15 @@ public sealed class LyricsViewModelTests
         List<string> changed = new();
         vm.Transport.PropertyChanged += (_, e) => changed.Add(e.PropertyName ?? string.Empty);
 
-        // Assert - paused shows the play glyph
-        vm.Transport.PlayPauseGlyph.Should().Be("\u25B6");
+        // Assert - paused shows the play icon
+        vm.Transport.PlayPauseIcon.Should().Be(CantusIconKind.Play);
 
         // Act
         vm.Transport.IsPlaying = true;
 
-        // Assert - playing shows the pause glyph, and the glyph notified
-        vm.Transport.PlayPauseGlyph.Should().Be("\u23F8");
-        changed.Should().Contain(nameof(PlaybackTransport.PlayPauseGlyph));
+        // Assert - playing shows the pause icon, and the icon notified
+        vm.Transport.PlayPauseIcon.Should().Be(CantusIconKind.Pause);
+        changed.Should().Contain(nameof(PlaybackTransport.PlayPauseIcon));
     }
 
     [Fact]
@@ -485,25 +507,25 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
-    public void RepeatGlyphAndButtonBrushes_TrackState()
+    public void RepeatIconAndButtonBrushes_TrackState()
     {
         // Arrange
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client);
 
-        // Off: repeat-all glyph, muted brushes
-        vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
+        // Off: repeat icon, muted brushes
+        vm.Transport.RepeatIcon.Should().Be(CantusIconKind.Repeat);
         vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.Theme.TextMutedBrush);
         vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.Theme.TextMutedBrush);
 
-        // Context: still the repeat-all glyph, accent brush
+        // Context: still the repeat icon, accent brush
         vm.Transport.RepeatMode = "context";
-        vm.Transport.RepeatGlyph.Should().Be("\uE8EE");
+        vm.Transport.RepeatIcon.Should().Be(CantusIconKind.Repeat);
         vm.Transport.RepeatButtonForeground.Should().BeSameAs(vm.Theme.PrimaryAccentBrush);
 
-        // Track: repeat-one glyph
+        // Track: repeat-once icon
         vm.Transport.RepeatMode = "track";
-        vm.Transport.RepeatGlyph.Should().Be("\uE8ED");
+        vm.Transport.RepeatIcon.Should().Be(CantusIconKind.RepeatOnce);
 
         vm.Transport.IsShuffled = true;
         vm.Transport.ShuffleButtonForeground.Should().BeSameAs(vm.Theme.PrimaryAccentBrush);
@@ -751,6 +773,7 @@ public sealed class LyricsViewModelTests
         // Assert default
         vm.IsAutoScrollEnabled.Should().BeTrue();
         vm.AutoScrollToggleText.Should().Be("Autoscroll");
+        vm.AutoScrollToggleIcon.Should().Be(CantusIconKind.Check);
 
         // Act
         vm.ToggleAutoScroll();
@@ -758,6 +781,7 @@ public sealed class LyricsViewModelTests
         // Assert toggled
         vm.IsAutoScrollEnabled.Should().BeFalse();
         vm.AutoScrollToggleText.Should().Be("Free Scroll");
+        vm.AutoScrollToggleIcon.Should().Be(CantusIconKind.Close);
 
         // Act again
         vm.ToggleAutoScroll();

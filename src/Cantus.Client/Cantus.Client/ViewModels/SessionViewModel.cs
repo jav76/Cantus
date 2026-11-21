@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
 using Microsoft.UI.Xaml;
@@ -22,8 +23,6 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 {
     public const string SPOTIFY_LOGIN_PATH = "/api/auth/spotify/login";
     private const string NO_ACTIVE_USER_NAME = "None";
-    private const string CONNECTED_GLYPH = "";
-    private const string CONNECT_GLYPH = "";
 
     private readonly ISignalRPlaybackClient _client;
 
@@ -110,7 +109,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         ? (HasActiveUserName ? $"Connected: {ActiveUserName}" : "Connected")
         : "Connect Spotify";
 
-    public string ConnectButtonGlyph => IsAuthorized ? CONNECTED_GLYPH : CONNECT_GLYPH;
+    public CantusIconKind ConnectButtonIcon => IsAuthorized ? CantusIconKind.SpotifyConnected : CantusIconKind.SpotifyConnect;
 
     public Visibility NoSessionsVisibility =>
         AuthorizedSessionsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -274,7 +273,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(IsAuthorized));
         OnPropertyChanged(nameof(ConnectButtonText));
-        OnPropertyChanged(nameof(ConnectButtonGlyph));
+        OnPropertyChanged(nameof(ConnectButtonIcon));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

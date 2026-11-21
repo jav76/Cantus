@@ -1,6 +1,7 @@
 <UserControl x:Class="Cantus.Client.Views.MobileTabBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:Cantus.Client.Views"
              xmlns:local="using:Cantus.Client"
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
@@ -21,7 +22,7 @@
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
                 <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xEC4F;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
+                    <views:CantusIcon Kind="MusicNote" Size="17" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
                     <TextBlock Text="Lyrics" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.Lyrics), Mode=OneWay}" />
                 </StackPanel>
             </Button>
@@ -35,7 +36,7 @@
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
                 <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xE8D6;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
+                    <views:CantusIcon Kind="NowPlaying" Size="17" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
                     <TextBlock Text="Track" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.NowPlaying), Mode=OneWay}" />
                 </StackPanel>
             </Button>
@@ -49,7 +50,7 @@
                     HorizontalAlignment="Stretch"
                     Padding="6,8">
                 <StackPanel Orientation="{x:Bind GetTabContentOrientation(Layout.IsNarrowPhone), Mode=OneWay}" Spacing="{x:Bind GetTabContentSpacing(Layout.IsNarrowPhone), Mode=OneWay}" HorizontalAlignment="Center">
-                    <FontIcon Glyph="&#xE713;" FontSize="15" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
+                    <views:CantusIcon Kind="Settings" Size="17" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
                     <TextBlock Text="Sync &amp; Info" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" HorizontalAlignment="Center" Foreground="{x:Bind GetTabForeground(Layout.MobileView, models:MobileViewMode.SyncAndSettings), Mode=OneWay}" />
                 </StackPanel>
             </Button>

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Cantus.Core.Models;
@@ -16,8 +17,6 @@ namespace Cantus.Client.Tests.ViewModels;
 public sealed class SessionViewModelTests
 {
     private const string NO_USER_NAME = "None";
-    private const string CONNECTED_GLYPH = "";
-    private const string CONNECT_GLYPH = "";
 
     [Fact]
     public void NewSession_IsSignedOut()
@@ -33,7 +32,7 @@ public sealed class SessionViewModelTests
         session.ActiveUserName.Should().Be(NO_USER_NAME);
         session.IsAuthorized.Should().BeFalse();
         session.ConnectButtonText.Should().Be("Connect Spotify");
-        session.ConnectButtonGlyph.Should().Be(CONNECT_GLYPH);
+        session.ConnectButtonIcon.Should().Be(CantusIconKind.SpotifyConnect);
         session.NoSessionsVisibility.Should().Be(Visibility.Visible);
         session.HasSessionsVisibility.Should().Be(Visibility.Collapsed);
     }
@@ -59,7 +58,7 @@ public sealed class SessionViewModelTests
         session.ActiveUserName.Should().Be("Alice");
         session.IsAuthorized.Should().BeTrue();
         session.ConnectButtonText.Should().Be("Connected: Alice");
-        session.ConnectButtonGlyph.Should().Be(CONNECTED_GLYPH);
+        session.ConnectButtonIcon.Should().Be(CantusIconKind.SpotifyConnected);
         session.NoSessionsVisibility.Should().Be(Visibility.Collapsed);
         session.HasSessionsVisibility.Should().Be(Visibility.Visible);
         client.Verify(c => c.SubscribeToUserAsync("user-1"), Times.Once);
@@ -301,7 +300,7 @@ public sealed class SessionViewModelTests
             nameof(SessionViewModel.ActiveUserId),
             nameof(SessionViewModel.IsAuthorized),
             nameof(SessionViewModel.ConnectButtonText),
-            nameof(SessionViewModel.ConnectButtonGlyph),
+            nameof(SessionViewModel.ConnectButtonIcon),
         });
     }
 
@@ -383,7 +382,7 @@ public sealed class SessionViewModelTests
             nameof(SessionViewModel.HasSessionsVisibility),
             nameof(SessionViewModel.IsAuthorized),
             nameof(SessionViewModel.ConnectButtonText),
-            nameof(SessionViewModel.ConnectButtonGlyph),
+            nameof(SessionViewModel.ConnectButtonIcon),
         });
         session.ConnectButtonText.Should().Be("Connected");
     }
@@ -410,7 +409,7 @@ public sealed class SessionViewModelTests
             nameof(SessionViewModel.HasSessionsVisibility),
             nameof(SessionViewModel.IsAuthorized),
             nameof(SessionViewModel.ConnectButtonText),
-            nameof(SessionViewModel.ConnectButtonGlyph),
+            nameof(SessionViewModel.ConnectButtonIcon),
         });
     }
 

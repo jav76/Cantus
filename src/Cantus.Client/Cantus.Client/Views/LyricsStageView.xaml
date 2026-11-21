@@ -29,7 +29,7 @@
                             Visibility="{x:Bind ViewModel.KaraokeToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle the karaoke line-progress underline">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE720;" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <views:CantusIcon Kind="Karaoke" Size="14" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                             <TextBlock Text="Karaoke" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
@@ -44,7 +44,7 @@
                             Visibility="{x:Bind ViewModel.AutoScrollToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle dynamic centered lyrics scrolling (Autoscroll)">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="{x:Bind ViewModel.AutoScrollToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <views:CantusIcon Kind="{x:Bind ViewModel.AutoScrollToggleIcon, Mode=OneWay}" Size="14" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                             <TextBlock Text="{x:Bind ViewModel.AutoScrollToggleText, Mode=OneWay}" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
@@ -59,7 +59,7 @@
                             Visibility="{x:Bind ViewModel.ModeToggleVisibility, Mode=OneWay}"
                             ToolTipService.ToolTip="Toggle between Live Synced and Static Plain Lyrics">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="{x:Bind ViewModel.ModeToggleGlyph, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <views:CantusIcon Kind="{x:Bind ViewModel.ModeToggleIcon, Mode=OneWay}" Size="14" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                             <TextBlock Text="{x:Bind ViewModel.ModeToggleText, Mode=OneWay}" FontSize="11" Visibility="{x:Bind ModeLabelVisibility, Mode=OneWay}" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Button>
@@ -73,10 +73,10 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Spacing="16">
-                    <FontIcon Glyph="&#xEC4F;"
-                              FontSize="{x:Bind GetEmptyIconSize(Layout.CurrentBreakpoint), Mode=OneWay}"
-                              Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
-                              HorizontalAlignment="Center" />
+                    <views:CantusIcon Kind="MusicNote"
+                                      Size="{x:Bind GetEmptyIconSize(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                      Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                                      HorizontalAlignment="Center" />
                     <TextBlock Text="{x:Bind ViewModel.EmptyStateTitle, Mode=OneWay}"
                                FontSize="{x:Bind GetEmptyTitleSize(Layout.CurrentBreakpoint), Mode=OneWay}"
                                FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
@@ -196,7 +196,7 @@
                         CornerRadius="20"
                         Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
+                        <views:CantusIcon Kind="ResumeAutoScroll" Size="15" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
                         <TextBlock Text="Resume Autoscroll" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
                     </StackPanel>
                 </Button>
@@ -214,9 +214,9 @@
                         Padding="16,9"
                         IsHitTestVisible="False">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE790;"
-                                  FontSize="14"
-                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                        <views:CantusIcon Kind="Palette"
+                                          Size="16"
+                                          Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                         <TextBlock Text="{x:Bind ViewModel.ThemeToastText, Mode=OneWay}"
                                    FontSize="13"
                                    FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
