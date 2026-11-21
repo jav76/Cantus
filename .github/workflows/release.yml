@@ -21,7 +21,7 @@ jobs:
   # ============================================================================
   prepare:
     name: Prepare Release Metadata
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.VERSION }}
       tag: ${{ steps.meta.outputs.TAG }}
@@ -92,7 +92,7 @@ jobs:
   publish-docker:
     name: Publish Multi-Arch Docker Image (GHCR)
     needs: [prepare]
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
@@ -153,7 +153,7 @@ jobs:
           - os: windows-latest
             rid: win-x64
             name: Windows-x64
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-x64
             name: Linux-x64
           - os: macos-latest
@@ -258,11 +258,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-x64
             name: Linux-x64
             archive_ext: tar.gz
-          - os: [self-hosted, cantus]
+          - os: ubuntu-latest
             rid: linux-arm64
             name: Linux-arm64
             archive_ext: tar.gz
@@ -364,7 +364,7 @@ jobs:
   publish-release:
     name: Create GitHub Release
     needs: [prepare, publish-docker, build-desktop-clients, build-server-binaries]
-    runs-on: [self-hosted, cantus]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
