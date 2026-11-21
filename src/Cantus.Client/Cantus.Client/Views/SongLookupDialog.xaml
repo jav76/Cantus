@@ -3,6 +3,7 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                xmlns:vm="using:Cantus.Client.ViewModels"
                Title="Find a song by lyrics"
+               TitleTemplate="{StaticResource CantusDialogTitleTemplate}"
                CloseButtonText="Close"
                Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
                Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
@@ -32,7 +33,7 @@
                     Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                     CornerRadius="8"
                     Padding="14,6"
-                    FontWeight="SemiBold">
+                    FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE721;" FontSize="14" />
                     <TextBlock Text="Search" FontSize="13" />
@@ -93,7 +94,7 @@
                             <StackPanel Spacing="6">
                                 <TextBlock Text="{x:Bind Title}"
                                            FontSize="15"
-                                           FontWeight="SemiBold"
+                                           FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind ArtistAlbumText}" FontSize="13" Opacity="0.85" TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind MatchedLinesText}"

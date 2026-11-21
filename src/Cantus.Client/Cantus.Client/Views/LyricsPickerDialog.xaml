@@ -3,6 +3,7 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                xmlns:vm="using:Cantus.Client.ViewModels"
                Title="Wrong lyrics?"
+               TitleTemplate="{StaticResource CantusDialogTitleTemplate}"
                CloseButtonText="Cancel"
                DefaultButton="Close"
                Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
@@ -81,7 +82,7 @@
                                     <TextBlock Grid.Column="0"
                                                Text="{x:Bind Title}"
                                                FontSize="14"
-                                               FontWeight="SemiBold"
+                                               FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                                Foreground="{StaticResource CantusTextPrimaryBrush}"
                                                TextTrimming="CharacterEllipsis" />
                                     <Border Grid.Column="1"

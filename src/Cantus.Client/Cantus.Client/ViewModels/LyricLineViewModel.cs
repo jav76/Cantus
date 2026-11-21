@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Cantus.Client.Models;
-using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using Windows.UI.Text;
 
 namespace Cantus.Client.ViewModels;
 
@@ -25,7 +23,7 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     private double _inactiveFontSize = 22.0;
     private double _pastFontSize = 20.0;
     private double _fontSize = 22.0;
-    private FontWeight _fontWeight = FontWeights.Normal;
+    private bool _usesActiveFont;
     private double _opacity = 0.75;
     private bool _isKaraokeEnabled = true;
     private readonly ScaleTransform? _lineProgressTransform;
@@ -168,15 +166,17 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
         }
     }
 
-    public FontWeight FontWeight
+    /// <summary>The display font for the line's state; the weight comes from the family, so FontWeight stays Normal.</summary>
+    public FontFamily FontFamily => _usesActiveFont ? LyricFonts.Active : LyricFonts.Inactive;
+
+    private bool UsesActiveFont
     {
-        get => _fontWeight;
-        private set
+        set
         {
-            if (_fontWeight.Weight != value.Weight)
+            if (_usesActiveFont != value)
             {
-                _fontWeight = value;
-                OnPropertyChanged();
+                _usesActiveFont = value;
+                OnPropertyChanged(nameof(FontFamily));
             }
         }
     }
@@ -255,22 +255,29 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
         if (IsActive)
         {
             FontSize = _activeFontSize;
-            FontWeight = FontWeights.Bold;
+            UsesActiveFont = true;
             Opacity = 1.0;
         }
         else if (IsPast)
         {
             FontSize = _pastFontSize;
-            FontWeight = FontWeights.Normal;
+            UsesActiveFont = false;
             Opacity = 0.45;
         }
         else
         {
             FontSize = _inactiveFontSize;
-            FontWeight = FontWeights.Medium;
+            UsesActiveFont = false;
             Opacity = 0.75;
         }
         OnPropertyChanged(nameof(LineBrush));
+    }
+
+    // Kept apart from the brushes above so reading a font never creates them (headless tests cannot).
+    private static class LyricFonts
+    {
+        public static readonly FontFamily Active = new(CantusTypography.GetLyricLineSource(isActive: true));
+        public static readonly FontFamily Inactive = new(CantusTypography.GetLyricLineSource(isActive: false));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

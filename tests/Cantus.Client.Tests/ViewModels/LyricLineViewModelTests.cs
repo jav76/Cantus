@@ -13,6 +13,20 @@ namespace Cantus.Client.Tests.ViewModels;
 public sealed class LyricLineViewModelTests
 {
     [Fact]
+    public void FontFamily_OnlyTheActiveLineUsesTheSemiBoldDisplayFont()
+    {
+        LyricLineViewModel line = new() { TimestampMs = 0, Text = "sing along" };
+        line.FontFamily.Source.Should().Be(CantusTypography.DISPLAY_REGULAR_SOURCE);
+
+        line.IsActive = true;
+        line.FontFamily.Source.Should().Be(CantusTypography.DISPLAY_SEMIBOLD_SOURCE);
+
+        line.IsActive = false;
+        line.IsPast = true;
+        line.FontFamily.Source.Should().Be(CantusTypography.DISPLAY_REGULAR_SOURCE);
+    }
+
+    [Fact]
     public void UpdateLineProgress_TracksElapsedFractionOfLineDuration()
     {
         // Arrange - a 4-second line starting at 10s

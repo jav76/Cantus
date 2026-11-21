@@ -24,7 +24,7 @@
                         <TextBlock Grid.Column="1"
                                    Text="{x:Bind Displays.PromptTitle, Mode=OneWay}"
                                    FontSize="18"
-                                   FontWeight="Bold"
+                                   FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
                                    VerticalAlignment="Center"
                                    TextWrapping="Wrap"
                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
@@ -46,7 +46,7 @@
                                 Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="8"
                                 Padding="12,6"
-                                FontWeight="SemiBold">
+                                FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE8D6;" FontSize="12" />
                                 <TextBlock Text="Connect Spotify" FontSize="12" />
@@ -55,10 +55,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6" Visibility="{x:Bind Displays.CodeFieldVisibility, Mode=OneWay}">
-                        <TextBlock Text="CODE"
-                                   FontSize="11"
-                                   FontWeight="Bold"
-                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Code" Style="{StaticResource CantusSectionLabelStyle}" />
                         <TextBox x:Name="CodeBox"
                                  Text="{x:Bind Displays.PromptCode, Mode=OneWay}"
                                  TextChanged="OnCodeChanged"
@@ -68,10 +65,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6" Visibility="{x:Bind Displays.NameFieldVisibility, Mode=OneWay}">
-                        <TextBlock Text="DISPLAY NAME"
-                                   FontSize="11"
-                                   FontWeight="Bold"
-                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Display name" Style="{StaticResource CantusSectionLabelStyle}" />
                         <TextBox x:Name="NameBox"
                                  Text="{x:Bind Displays.PromptName, Mode=OneWay}"
                                  TextChanged="OnNameChanged"
@@ -117,7 +111,7 @@
                                 CornerRadius="8"
                                 Padding="16,8"
                                 FontSize="13"
-                                FontWeight="SemiBold" />
+                                FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" />
                     </Grid>
                 </StackPanel>
             </Border>

@@ -208,7 +208,7 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 2. Select **Connect Spotify** to complete the one-time PKCE authorization flow.
 3. Start playback on any Spotify device (phone, desktop, speaker, or web player).
 4. Lyrics scroll automatically in synchronization with active playback.
-5. If lyrics run early or late, use the `SYNC OFFSET` buttons (±0.1 s / ±0.5 s) for the current track, or <kbd>[</kbd> / <kbd>]</kbd> to change this device's latency compensation by 50 ms. Per-track offsets are stored in the database.
+5. If lyrics run early or late, use the **Sync offset** buttons (±0.1 s / ±0.5 s) for the current track, or <kbd>[</kbd> / <kbd>]</kbd> to change this device's latency compensation by 50 ms. Per-track offsets are stored in the database.
 6. Select **Find Song** in the header to look up a song by a lyric line you remember, then play or queue it.
 
 ---

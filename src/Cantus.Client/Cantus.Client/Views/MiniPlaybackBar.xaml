@@ -30,7 +30,7 @@
 
             <!-- Mini Track Info -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}" FontSize="17" FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </StackPanel>
 

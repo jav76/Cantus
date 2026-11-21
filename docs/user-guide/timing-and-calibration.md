@@ -33,7 +33,7 @@ flowchart LR
 
 ### Adjusting Per-Track Timing via UI Steppers
 
-In the **Track Card** (desktop and tablet) or the **Sync & Info** tab (mobile), use the `SYNC OFFSET` stepper buttons:
+In the **Track Card** (desktop and tablet) or the **Sync & Info** tab (mobile), use the **Sync offset** stepper buttons:
 
 - **`+0.1s` / `+0.5s`**: Nudges lyrics **earlier** if the text is highlighting after you hear the singer.
 - **`-0.5s` / `-0.1s`**: Nudges lyrics **later** if the text is highlighting before you hear the singer.
@@ -73,4 +73,4 @@ rendered position = interpolated playback position − device latency compensati
 ```
 
 - **Device latency compensation** (keyboard <kbd>[</kbd>/<kbd>]</kbd>, settings steppers) calibrates your audio output chain once per device: it applies to every track and persists locally.
-- **Per-track offsets** (the `SYNC OFFSET` steppers) handle song-specific quirks (unusual mastering, mistimed community lyrics) and stack on top of the device calibration, persisted server-side per Spotify track ID.
+- **Per-track offsets** (the **Sync offset** steppers) handle song-specific quirks (unusual mastering, mistimed community lyrics) and stack on top of the device calibration, persisted server-side per Spotify track ID.

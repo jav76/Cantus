@@ -18,7 +18,7 @@
                     <StackPanel Spacing="8" HorizontalAlignment="Center">
                         <TextBlock Text="Pair this screen as a display"
                                    FontSize="{x:Bind GetTitleFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
-                                   FontWeight="Bold"
+                                   FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
@@ -43,7 +43,7 @@
                             <TextBlock Grid.Column="1"
                                        Text="{x:Bind Pairing.StatusMessage, Mode=OneWay}"
                                        FontSize="15"
-                                       FontWeight="SemiBold"
+                                       FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                        TextWrapping="Wrap"
                                        VerticalAlignment="Center"
                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
@@ -64,11 +64,10 @@
                         </Viewbox>
 
                         <StackPanel Spacing="12" VerticalAlignment="Center">
-                            <TextBlock Text="CODE"
-                                       FontSize="13"
-                                       FontWeight="Bold"
+                            <TextBlock Text="Code"
+                                       FontSize="15"
                                        HorizontalAlignment="Center"
-                                       Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                                       Style="{StaticResource CantusSectionLabelStyle}" />
                             <Viewbox StretchDirection="DownOnly" MaxWidth="640">
                                 <TextBlock Text="{x:Bind Pairing.CodeText, Mode=OneWay}"
                                            FontSize="104"
@@ -78,7 +77,7 @@
                             </Viewbox>
                             <TextBlock Text="{x:Bind Pairing.ServerBaseUrl, Mode=OneWay}"
                                        FontSize="18"
-                                       FontWeight="SemiBold"
+                                       FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                        HorizontalAlignment="Center"
                                        TextWrapping="Wrap"
                                        IsTextSelectionEnabled="True"

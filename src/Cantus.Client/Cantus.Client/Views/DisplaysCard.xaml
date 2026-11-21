@@ -7,11 +7,9 @@
     <StackPanel Spacing="8" Visibility="{x:Bind Displays.SectionVisibility, Mode=OneWay}">
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
             <TextBlock Grid.Column="0"
-                       Text="DISPLAYS"
-                       FontSize="11"
-                       FontWeight="Bold"
+                       Text="Displays"
                        VerticalAlignment="Center"
-                       Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                       Style="{StaticResource CantusSectionLabelStyle}" />
             <Button Grid.Column="1"
                     Click="OnRefreshClicked"
                     Background="#1AFFFFFF"
@@ -30,7 +28,7 @@
                     ToolTipService.ToolTip="Approve the code a screen shows">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE710;" FontSize="11" />
-                    <TextBlock Text="Add display" FontSize="11" FontWeight="SemiBold" />
+                    <TextBlock Text="Add display" FontSize="11" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" />
                 </StackPanel>
             </Button>
         </Grid>
@@ -76,7 +74,7 @@
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                            FontSize="13"
-                                           FontWeight="SemiBold"
+                                           FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                            TextTrimming="CharacterEllipsis"
                                            Foreground="{StaticResource CantusTextPrimaryBrush}" />
                                 <TextBlock Text="{x:Bind LastSeenText, Mode=OneWay}"

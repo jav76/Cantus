@@ -6,6 +6,7 @@
       xmlns:vm="using:Cantus.Client.ViewModels"
       xmlns:models="using:Cantus.Client.Models"
       Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+      FontFamily="{StaticResource CantusTextFontFamily}"
       SizeChanged="OnPageSizeChanged">
 
     <Grid>
@@ -144,7 +145,7 @@
                           Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                 <TextBlock Text="{x:Bind ViewModel.ThemeToastText, Mode=OneWay}"
                            FontSize="13"
-                           FontWeight="SemiBold"
+                           FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
             </StackPanel>
         </Border>

@@ -20,6 +20,8 @@
     <!-- Package Description -->
     <Description>Cantus - Real-Time Spotify Synced Lyrics Platform</Description>
 
+    <!-- Figtree (Assets/Fonts) is the default text font, set in App's static constructor. -->
+    <UnoDefaultFont>None</UnoDefaultFont>
     <UnoFeatures>
       Material;
       Toolkit;

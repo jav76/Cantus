@@ -45,12 +45,12 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
                                    FontSize="{x:Bind GetTitleFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
-                                   FontWeight="Bold"
+                                   FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                                    TextWrapping="Wrap" />
                         <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
                                    FontSize="{x:Bind GetArtistFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
-                                   FontWeight="Medium"
+                                   FontFamily="{StaticResource CantusTextMediumFontFamily}"
                                    Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
                                    TextWrapping="NoWrap"
                                    TextTrimming="CharacterEllipsis" />
@@ -204,7 +204,7 @@
                             Visibility="{x:Bind GetInstrumentalVisibility(ViewModel.IsInstrumentalBreak), Mode=OneWay}">
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                             <FontIcon Glyph="&#xEC4F;" FontSize="14" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
-                            <TextBlock Text="{x:Bind ViewModel.InstrumentalBreakText, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.InstrumentalBreakText, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
 
@@ -220,7 +220,7 @@
                                        TextWrapping="NoWrap"
                                        TextTrimming="CharacterEllipsis"
                                        ToolTipService.ToolTip="{x:Bind ViewModel.DeviceName, Mode=OneWay}" />
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind GetPlaybackStatus(Transport.IsPlaying), Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Bind GetPlaybackStatus(Transport.IsPlaying), Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
                         </Grid>
                     </Border>
 
@@ -228,8 +228,8 @@
                     <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14,10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Text="SYNC OFFSET" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="0" Text="Sync offset" VerticalAlignment="Center" Style="{StaticResource CantusSectionLabelStyle}" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind Timing.OffsetText, Mode=OneWay}" FontSize="12" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
                             </Grid>
                             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
                                 <Button Grid.Column="0" Content="-0.5s" Click="OnNudgeMinus500Clicked" Background="#20FFFFFF" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" CornerRadius="6" HorizontalAlignment="Stretch" Padding="2,6" FontSize="11" />
@@ -243,12 +243,12 @@
 
                     <!-- Paired Display Card -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.DisplayInfoVisibility, Mode=OneWay}">
-                        <TextBlock Text="DISPLAY" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Display" Style="{StaticResource CantusSectionLabelStyle}" />
                         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="12,10">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE7F4;" FontSize="15" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" VerticalAlignment="Center" />
                                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{x:Bind Pairing.DisplayName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="Paired display (view only)" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                                 </StackPanel>
                             </StackPanel>
@@ -273,7 +273,7 @@
 
                     <!-- Connected Spotify Account Card -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
-                        <TextBlock Text="SPOTIFY ACCOUNT" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Spotify account" Style="{StaticResource CantusSectionLabelStyle}" />
                         
                         <!-- Logged in state -->
                         <Border Background="#15FFFFFF"
@@ -287,7 +287,7 @@
                                     <FontIcon Glyph="&#xE77B;" FontSize="15" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center" />
                                         <TextBlock Text="Active Account" FontSize="11" Foreground="#10B981" />
@@ -314,7 +314,7 @@
                                 Visibility="{x:Bind Session.NoSessionsVisibility, Mode=OneWay}">
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="Not Connected" FontSize="13" FontWeight="SemiBold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                                    <TextBlock Text="Not Connected" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                                     <TextBlock Text="Log in to view lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                                 </StackPanel>
                                 <Button Grid.Row="1"
@@ -339,7 +339,7 @@
                                         Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                         CornerRadius="6"
                                         Padding="10,5"
-                                        FontWeight="SemiBold">
+                                        FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE8D6;" FontSize="11" />
                                         <TextBlock Text="Connect" FontSize="11" />
@@ -377,8 +377,8 @@
                 <!-- Track Details + Progress -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                     <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
-                               FontSize="14"
-                               FontWeight="Bold"
+                               FontSize="15"
+                               FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
                                Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                                TextWrapping="NoWrap"
                                TextTrimming="CharacterEllipsis" />

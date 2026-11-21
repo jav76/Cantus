@@ -8,12 +8,40 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <um:MaterialTheme />
+                <!-- Material's type scale (buttons, text boxes, menus, dialogs) is built from these three keys. -->
+                <um:MaterialTheme>
+                    <um:MaterialTheme.FontOverrideDictionary>
+                        <ResourceDictionary>
+                            <FontFamily x:Key="MaterialLightFontFamily">ms-appx:///Assets/Fonts/Figtree-Regular.ttf#Figtree</FontFamily>
+                            <FontFamily x:Key="MaterialRegularFontFamily">ms-appx:///Assets/Fonts/Figtree-Regular.ttf#Figtree</FontFamily>
+                            <FontFamily x:Key="MaterialMediumFontFamily">ms-appx:///Assets/Fonts/Figtree-Medium.ttf#Figtree</FontFamily>
+                        </ResourceDictionary>
+                    </um:MaterialTheme.FontOverrideDictionary>
+                </um:MaterialTheme>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Bundled because Consolas is missing on WASM and Linux. The Bold file is its own family: set no FontWeight on it, or renderers add a synthetic bold. -->
             <FontFamily x:Key="MonoFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Regular.ttf#Noto Sans Mono</FontFamily>
             <FontFamily x:Key="MonoBoldFontFamily">ms-appx:///Assets/Fonts/NotoSansMono-Bold.ttf#Noto Sans Mono</FontFamily>
+
+            <!-- One family per weight: pick the weight with the family and leave FontWeight at Normal.
+                 The WASM DOM renderer registers each file as its own CSS font face of weight 400, so a FontWeight
+                 of SemiBold or more adds a synthetic bold (a variable font is clamped to 400 the same way).
+                 Skia ignores FontWeight on a single file, except Figtree-Regular, whose .manifest maps weights
+                 to the other Figtree files. Sources live in Models/CantusTypography.cs for code-behind. -->
+            <FontFamily x:Key="CantusTextFontFamily">ms-appx:///Assets/Fonts/Figtree-Regular.ttf#Figtree</FontFamily>
+            <FontFamily x:Key="CantusTextMediumFontFamily">ms-appx:///Assets/Fonts/Figtree-Medium.ttf#Figtree</FontFamily>
+            <FontFamily x:Key="CantusTextSemiBoldFontFamily">ms-appx:///Assets/Fonts/Figtree-SemiBold.ttf#Figtree</FontFamily>
+            <FontFamily x:Key="CantusDisplayFontFamily">ms-appx:///Assets/Fonts/Fraunces-Regular.ttf#Fraunces</FontFamily>
+            <FontFamily x:Key="CantusDisplaySemiBoldFontFamily">ms-appx:///Assets/Fonts/Fraunces-SemiBold.ttf#Fraunces</FontFamily>
+
+            <!-- Material's implicit TextBlock style uses the Body Medium tokens, which are Medium weight; Cantus body text is Regular. -->
+            <StaticResource x:Key="BodyLargeFontFamily" ResourceKey="CantusTextFontFamily" />
+            <StaticResource x:Key="BodyMediumFontFamily" ResourceKey="CantusTextFontFamily" />
+            <StaticResource x:Key="BodySmallFontFamily" ResourceKey="CantusTextFontFamily" />
+            <x:String x:Key="BodyLargeFontWeight">Normal</x:String>
+            <x:String x:Key="BodyMediumFontWeight">Normal</x:String>
+            <x:String x:Key="BodySmallFontWeight">Normal</x:String>
 
             <!-- Placeholders: App.OnLaunched swaps these for ThemeManager's live brushes (ThemeManager.ApplyToResources), along with the Material lightweight-styling keys. -->
             <SolidColorBrush x:Key="CantusBackgroundBrush" Color="#0C0D14" />
@@ -31,6 +59,8 @@
                  draws hover, press and keyboard focus from the active palette. Padding is the whole inner gap: Material's
                  extra 8 px content margin is dropped, so narrow button rows (sync offset) keep their labels readable. -->
             <Style TargetType="Button" BasedOn="{StaticResource MaterialBaseButtonStyle}">
+                <Setter Property="FontFamily" Value="{StaticResource CantusTextMediumFontFamily}" />
+                <Setter Property="FontWeight" Value="Normal" />
                 <Setter Property="Background" Value="#1AFFFFFF" />
                 <Setter Property="Foreground" Value="{ThemeResource CantusTextPrimaryBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CantusCardBorderBrush}" />
@@ -98,6 +128,22 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <!-- Small sentence-case heading above a group of settings or details. -->
+            <Style x:Key="CantusSectionLabelStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource CantusTextMediumFontFamily}" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Foreground" Value="{ThemeResource CantusTextMutedBrush}" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+
+            <DataTemplate x:Key="CantusDialogTitleTemplate">
+                <TextBlock Text="{Binding}"
+                           FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
+                           FontSize="22"
+                           TextWrapping="Wrap" />
+            </DataTemplate>
 
             <SolidColorBrush x:Key="BrandPrimaryBrush" Color="#8B5CF6" />
             <SolidColorBrush x:Key="BrandDarkBackgroundBrush" Color="#0C0D14" />

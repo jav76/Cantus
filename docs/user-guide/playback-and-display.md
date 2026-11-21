@@ -122,7 +122,7 @@ When the Cantus window is focused, and focus is not in a text field, these keys 
 | <kbd>T</kbd> | **Cycle Theme** | Switches to the next theme. To pick one directly, use the **Theme** menu in the header. See [Theming](theming.md). |
 | <kbd>M</kbd> | **Cycle Mobile Tab** | On small layouts only: moves between the Lyrics, Track and Sync & Info tabs. |
 
-The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track `SYNC OFFSET`. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the `SYNC OFFSET` **Reset** button for the track offset.
+The <kbd>[</kbd> and <kbd>]</kbd> keys change the device-wide latency compensation (`0` to `1000ms`, default `200ms`), not the per-track **Sync offset**. They also work on a [paired Display](displays.md). See [Timing & Latency Offset Adjustment](timing-and-calibration.md) for how the two adjustments combine. There is no keyboard shortcut to reset either value: use the **Reset** button under **Sync offset** for the track offset.
 
 ---
 
