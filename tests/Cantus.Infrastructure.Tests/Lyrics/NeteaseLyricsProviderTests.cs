@@ -1,10 +1,12 @@
 using System.Net;
 using System.Text;
+using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Lyrics;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using Xunit;
 
 namespace Cantus.Infrastructure.Tests.Lyrics;
@@ -771,5 +773,98 @@ public class NeteaseLyricsProviderTests
         SyncedLyrics lyrics = result.Lyrics!;
         lyrics.HasWordTiming.Should().BeFalse();
         lyrics.Lines.Select(l => l.Text).Should().Equal("First line", "Second line");
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_PureMusic_ReportsInstrumentalLyrics()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("pure-music.json"));
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        result.IsDefinitive.Should().BeTrue();
+        result.Lyrics.Should().NotBeNull("pureMusic marks an instrumental track, not a missing one");
+        result.Lyrics!.IsInstrumental.Should().BeTrue();
+        result.Lyrics.IsSynced.Should().BeFalse();
+        result.Lyrics.Lines.Should().BeEmpty();
+        result.Lyrics.TrackId.Should().Be(MatchingTrack.Id);
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_PureMusicWithPlaceholderLrc_ReportsInstrumentalLyrics()
+    {
+        MockHttpMessageHandler handler = LyricHandler("""
+            {
+                "pureMusic": true,
+                "lrc": { "version": 1, "lyric": "[00:00.000]placeholder notice\n" },
+                "code": 200
+            }
+            """);
+
+        LyricsFetchResult result = await CreateProvider(handler).FetchLyricsAsync(MatchingTrack);
+
+        result.Lyrics!.IsInstrumental.Should().BeTrue("a notice line in lrc is not a sung lyric");
+        result.Lyrics.Lines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_PureMusicFromNetease_IsCachedAsInstrumental()
+    {
+        ILyricsCacheRepository repository = Substitute.For<ILyricsCacheRepository>();
+        repository.GetCachedLyricsAsync(MatchingTrack.Id, Arg.Any<CancellationToken>())
+            .Returns((SyncedLyrics?)null);
+        NeteaseLyricsProvider provider = CreateProvider(LyricHandler(LoadFixture("pure-music.json")));
+        CachedLyricsService service = new(
+            repository,
+            new ILyricsFetchProvider[] { provider },
+            Options.Create(new LyricsCacheOptions()),
+            NullLogger<CachedLyricsService>.Instance);
+
+        SyncedLyrics? result = await service.GetLyricsAsync(MatchingTrack);
+
+        result.Should().NotBeNull();
+        result!.IsInstrumental.Should().BeTrue();
+        await repository.Received(1).SaveLyricsAsync(
+            Arg.Is<SyncedLyrics>(l => l.IsInstrumental && l.TrackId == MatchingTrack.Id),
+            Arg.Any<TimeSpan?>(),
+            Arg.Any<CancellationToken>());
+        await repository.DidNotReceive().MarkNotFoundAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<int>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetCandidatesAsync_PureMusic_ReturnsInstrumentalCandidate()
+    {
+        MockHttpMessageHandler handler = LyricHandler(LoadFixture("pure-music.json"));
+
+        IReadOnlyList<LyricsCandidate> candidates = await CreateProvider(handler).GetCandidatesAsync(MatchingTrack);
+
+        LyricsCandidate candidate = candidates.Should().ContainSingle().Subject;
+        candidate.ProviderCandidateId.Should().Be("111");
+        candidate.IsInstrumental.Should().BeTrue();
+        candidate.IsSynced.Should().BeFalse();
+        candidate.Preview.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCandidateLyricsAsync_PureMusic_ReturnsInstrumentalLyrics()
+    {
+        MockHttpMessageHandler handler = new()
+        {
+            ResponseHandler = _ => Json(LoadFixture("pure-music.json"))
+        };
+
+        SyncedLyrics? lyrics = await CreateProvider(handler).GetCandidateLyricsAsync(MatchingTrack, "111");
+
+        lyrics.Should().NotBeNull();
+        lyrics!.IsInstrumental.Should().BeTrue();
+        lyrics.Lines.Should().BeEmpty();
+        lyrics.TrackId.Should().Be(MatchingTrack.Id);
     }
 }

@@ -250,7 +250,7 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
             throw new HttpRequestException($"NetEase lyric lookup returned payload code {lyric?.Code}.");
         }
 
-        if (lyric.NoLyric)
+        if (lyric.IsInstrumental)
         {
             return ToCandidate(song, isSynced: false, isInstrumental: true, preview: []);
         }
@@ -397,7 +397,7 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
     private LyricsFetchResult MapLyric(NeteaseLyricResponseDto lyric, TrackInfo track, long songId)
     {
-        if (lyric.NoLyric)
+        if (lyric.IsInstrumental)
         {
             return LyricsFetchResult.Found(new SyncedLyrics
             {
@@ -548,6 +548,14 @@ public partial class NeteaseLyricsProvider : ILyricsFetchProvider
 
         [JsonPropertyName("nolyric")]
         public bool NoLyric { get; set; }
+
+        // Instrumental tracks carry pureMusic with an empty lrc (or a notice
+        // line that is not a sung lyric) and no nolyric flag.
+        [JsonPropertyName("pureMusic")]
+        public bool PureMusic { get; set; }
+
+        [JsonIgnore]
+        public bool IsInstrumental => NoLyric || PureMusic;
 
         [JsonPropertyName("uncollected")]
         public bool Uncollected { get; set; }
