@@ -81,14 +81,17 @@ Returns current authenticated session information for the calling browser or cli
 ### `DELETE /api/auth/sessions/{userId}`
 Revokes an authorized Spotify account session and removes its encrypted tokens from SQLite. `{userId}` must be the caller's own Session id, matching the [session credential](#session-credential).
 
-- **Response `204 No Content`**
+The owner's Displays are deleted with the Session. Each of their live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed, the same as [revoking a Display](#delete-apidisplaysdisplayid). Other owners' Displays are untouched.
+
+- **Response `200 OK`**: `{ "message": "Session '<userId>' revoked." }`
+- **Response `404 Not Found`**: no Session has that id.
 
 ---
 
 ### `POST /api/auth/logout`
-Clears current user session cookies and revokes the active session.
+Clears current user session cookies and revokes the active session. Like [`DELETE /api/auth/sessions/{userId}`](#delete-apiauthsessionsuserid), it deletes the owner's Displays and closes their live hub connections after sending each one [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked).
 
-- **Response `200 OK`**: `{ "message": "Logged out successfully" }`
+- **Response `200 OK`**: `{ "message": "Logged out and session revoked." }`
 
 ---
 

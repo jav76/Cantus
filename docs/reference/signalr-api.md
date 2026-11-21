@@ -33,7 +33,7 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 
 Every playback broadcast goes to both groups. Displays get the same payloads with `activeUserId` set to `null`, because the owner's Session id is itself a credential. A Display connection counts as a viewer of its owner for [adaptive polling](../architecture/adaptive-polling.md).
 
-Because the credential is resolved only at connect, the server tracks each Display's open connections. [Revoking a Display](rest-api.md#delete-apidisplaysdisplayid) sends `ReceiveDisplayRevoked` to them and then closes them. A connection whose token was validated just before a revocation is closed as soon as it finishes connecting.
+Because the credential is resolved only at connect, the server tracks each Display's open connections. [Revoking a Display](rest-api.md#delete-apidisplaysdisplayid), or ending its owner's Session through [logout](rest-api.md#post-apiauthlogout) or [Session revoke](rest-api.md#delete-apiauthsessionsuserid), sends `ReceiveDisplayRevoked` to them and then closes them. A connection whose token was validated just before a revocation is closed as soon as it finishes connecting.
 
 ---
 
@@ -198,4 +198,4 @@ Sent only to the connection that requested a pairing, once an owner approves its
 ```
 
 ### `ReceiveDisplayRevoked`
-Sent to each open connection of a Display right before the server closes it, because the owner revoked it. The payload is the Display id (`string`). The token no longer works, so the client should discard it and offer to pair again instead of reconnecting with it.
+Sent to each open connection of a Display right before the server closes it, because the owner revoked it or ended their Session. The payload is the Display id (`string`). The token no longer works, so the client should discard it and offer to pair again instead of reconnecting with it.
