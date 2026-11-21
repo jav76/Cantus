@@ -124,6 +124,48 @@ public sealed class ArtworkBlurTests
     }
 
     [Fact]
+    public void Downscale_TransparentPixels_DoNotTintTheColor()
+    {
+        // Arrange: opaque white beside fully transparent black.
+        RgbaImage source = new(2, 1, [255, 255, 255, 255, 0, 0, 0, 0]);
+
+        // Act
+        RgbaImage scaled = ArtworkBlur.Downscale(source, 1);
+
+        // Assert
+        scaled.Pixels.Should().Equal(255, 255, 255, 128);
+    }
+
+    [Fact]
+    public void BoxBlur_TransparentPixels_DoNotDarkenTheOpaqueArt()
+    {
+        // Arrange: left half opaque white, right half transparent black.
+        RgbaImage source = CreateHalfTransparent(16, 16);
+
+        // Act
+        RgbaImage blurred = ArtworkBlur.BoxBlur(source, BLUR_RADIUS, BLUR_PASSES);
+
+        // Assert: every visible pixel stays white; only alpha fades.
+        bool sawPartialAlpha = false;
+        for (int p = 0; p < blurred.Width * blurred.Height; p++)
+        {
+            int i = p * RgbaImage.BYTES_PER_PIXEL;
+            byte alpha = blurred.Pixels[i + 3];
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            sawPartialAlpha |= alpha < 255;
+            blurred.Pixels[i].Should().Be(255);
+            blurred.Pixels[i + 1].Should().Be(255);
+            blurred.Pixels[i + 2].Should().Be(255);
+        }
+
+        sawPartialAlpha.Should().BeTrue();
+    }
+
+    [Fact]
     public void RgbaImage_RejectsAMismatchedBuffer()
     {
         // Act
@@ -145,6 +187,24 @@ public sealed class ArtworkBlurTests
                 pixels[i] = light ? (byte)230 : (byte)20;
                 pixels[i + 1] = light ? (byte)120 : (byte)60;
                 pixels[i + 2] = light ? (byte)10 : (byte)200;
+                pixels[i + 3] = 255;
+            }
+        }
+
+        return new RgbaImage(width, height, pixels);
+    }
+
+    private static RgbaImage CreateHalfTransparent(int width, int height)
+    {
+        byte[] pixels = new byte[width * height * RgbaImage.BYTES_PER_PIXEL];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width / 2; x++)
+            {
+                int i = (y * width + x) * RgbaImage.BYTES_PER_PIXEL;
+                pixels[i] = 255;
+                pixels[i + 1] = 255;
+                pixels[i + 2] = 255;
                 pixels[i + 3] = 255;
             }
         }

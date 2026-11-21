@@ -32,7 +32,11 @@ public static class ArtworkBlur
             Math.Max(1, (int)Math.Round(height * scale)));
     }
 
-    /// <summary>Area-average downscale, so every source pixel contributes and no detail aliases.</summary>
+    /// <summary>
+    /// Area-average downscale, so every source pixel contributes and no detail
+    /// aliases. Colour is weighted by alpha, so the arbitrary RGB stored under
+    /// transparent pixels does not tint the result.
+    /// </summary>
     public static RgbaImage Downscale(RgbaImage source, int maxLongSide)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -61,18 +65,23 @@ public static class ArtworkBlur
                     for (int sx = x0; sx < x1; sx++)
                     {
                         int i = rowStart + sx * RgbaImage.BYTES_PER_PIXEL;
-                        r += src[i];
-                        g += src[i + 1];
-                        b += src[i + 2];
-                        a += src[i + 3];
+                        int alpha = src[i + 3];
+                        r += src[i] * alpha;
+                        g += src[i + 1] * alpha;
+                        b += src[i + 2] * alpha;
+                        a += alpha;
                     }
                 }
 
                 long count = (long)(x1 - x0) * (y1 - y0);
                 int o = (y * width + x) * RgbaImage.BYTES_PER_PIXEL;
-                dst[o] = (byte)((r + count / 2) / count);
-                dst[o + 1] = (byte)((g + count / 2) / count);
-                dst[o + 2] = (byte)((b + count / 2) / count);
+                if (a > 0)
+                {
+                    dst[o] = (byte)((r + a / 2) / a);
+                    dst[o + 1] = (byte)((g + a / 2) / a);
+                    dst[o + 2] = (byte)((b + a / 2) / a);
+                }
+
                 dst[o + 3] = (byte)((a + count / 2) / count);
             }
         }
@@ -82,7 +91,9 @@ public static class ArtworkBlur
 
     /// <summary>
     /// Separable box blur repeated <paramref name="passes"/> times; three passes
-    /// are close to a Gaussian. Edges clamp, so the borders do not darken.
+    /// are close to a Gaussian. Edges clamp, so the borders do not darken. The
+    /// blur runs on premultiplied alpha, so transparent pixels do not bleed
+    /// their hidden colour into the opaque art.
     /// </summary>
     public static RgbaImage BoxBlur(RgbaImage source, int radius, int passes)
     {
@@ -90,29 +101,68 @@ public static class ArtworkBlur
         ArgumentOutOfRangeException.ThrowIfNegative(radius);
         ArgumentOutOfRangeException.ThrowIfNegative(passes);
 
-        byte[] current = (byte[])source.Pixels.Clone();
         if (radius == 0 || passes == 0)
         {
-            return new RgbaImage(source.Width, source.Height, current);
+            return new RgbaImage(source.Width, source.Height, (byte[])source.Pixels.Clone());
         }
 
-        byte[] scratch = new byte[current.Length];
+        int[] current = Premultiply(source.Pixels);
+        int[] scratch = new int[current.Length];
         for (int pass = 0; pass < passes; pass++)
         {
             BlurAxis(current, scratch, source.Width, source.Height, radius, horizontal: true);
             BlurAxis(scratch, current, source.Width, source.Height, radius, horizontal: false);
         }
 
-        return new RgbaImage(source.Width, source.Height, current);
+        return new RgbaImage(source.Width, source.Height, Unpremultiply(current));
     }
 
-    private static void BlurAxis(byte[] src, byte[] dst, int width, int height, int radius, bool horizontal)
+    // Every channel, alpha included, is scaled to 0..255*255 so one blur
+    // handles all four and the colour keeps full precision under low alpha.
+    private static int[] Premultiply(byte[] pixels)
+    {
+        int[] result = new int[pixels.Length];
+        for (int i = 0; i < pixels.Length; i += RgbaImage.BYTES_PER_PIXEL)
+        {
+            int alpha = pixels[i + 3];
+            result[i] = pixels[i] * alpha;
+            result[i + 1] = pixels[i + 1] * alpha;
+            result[i + 2] = pixels[i + 2] * alpha;
+            result[i + 3] = alpha * byte.MaxValue;
+        }
+
+        return result;
+    }
+
+    private static byte[] Unpremultiply(int[] premultiplied)
+    {
+        byte[] result = new byte[premultiplied.Length];
+        for (int i = 0; i < premultiplied.Length; i += RgbaImage.BYTES_PER_PIXEL)
+        {
+            int alpha = premultiplied[i + 3];
+            result[i + 3] = (byte)((alpha + byte.MaxValue / 2) / byte.MaxValue);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            for (int c = 0; c < 3; c++)
+            {
+                long scaled = ((long)premultiplied[i + c] * byte.MaxValue + alpha / 2) / alpha;
+                result[i + c] = (byte)Math.Min(byte.MaxValue, scaled);
+            }
+        }
+
+        return result;
+    }
+
+    private static void BlurAxis(int[] src, int[] dst, int width, int height, int radius, bool horizontal)
     {
         int lineCount = horizontal ? height : width;
         int lineLength = horizontal ? width : height;
         int step = (horizontal ? 1 : width) * RgbaImage.BYTES_PER_PIXEL;
         int windowSize = radius * 2 + 1;
-        int[] sums = new int[RgbaImage.BYTES_PER_PIXEL];
+        long[] sums = new long[RgbaImage.BYTES_PER_PIXEL];
 
         for (int line = 0; line < lineCount; line++)
         {
@@ -132,7 +182,7 @@ public static class ArtworkBlur
                 int o = lineStart + p * step;
                 for (int c = 0; c < RgbaImage.BYTES_PER_PIXEL; c++)
                 {
-                    dst[o + c] = (byte)((sums[c] + windowSize / 2) / windowSize);
+                    dst[o + c] = (int)((sums[c] + windowSize / 2) / windowSize);
                 }
 
                 int leaving = lineStart + Math.Clamp(p - radius, 0, lineLength - 1) * step;
