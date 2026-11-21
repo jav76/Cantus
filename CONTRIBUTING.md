@@ -34,8 +34,8 @@ dotnet format Cantus.slnx
 
 ### 4. Running Locally
 ```bash
-# Start ASP.NET Core backend server
-dotnet run --project src/Cantus.Server
+# Start ASP.NET Core backend server (Development keeps the database in the working directory)
+ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/Cantus.Server
 
 # Run Desktop Client
 dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop

@@ -21,14 +21,14 @@ To allow Cantus to securely communicate with the Spotify Web API and track playb
 
 Cantus uses OAuth 2.0 Authorization Code Flow with **PKCE** (Proof Key for Code Exchange). Spotify requires exact URI matching for callback redirects.
 
-Add your callback URLs to the **Redirect URIs** list in your app settings:
+Add your callback URLs to the **Redirect URIs** list in your app settings. Cantus always sends `<base URL>/api/auth/spotify/callback`, where the base URL is the browser's address when you open Cantus on `localhost` or `127.0.0.1`, otherwise `CANTUS_HOST_URL`, otherwise the address the request arrived at:
 
 | Environment | Redirect URI |
 | :--- | :--- |
-| **Localhost (Default)** | `http://localhost:5000/api/auth/spotify/callback` |
-| **Loopback IP** | `http://127.0.0.1:5000/api/auth/spotify/callback` |
-| **Local Network / LAN** | `http://192.168.1.100:5000/api/auth/spotify/callback` |
+| **Same machine (loopback)** | `http://127.0.0.1:5000/api/auth/spotify/callback` |
 | **Production Domain (HTTPS)** | `https://cantus.yourdomain.com/api/auth/spotify/callback` |
+
+Spotify only accepts `http://` on loopback IPs (`127.0.0.1` or `[::1]`). It rejects `http://localhost` and plain `http://` LAN addresses such as `http://192.168.1.100:5000`, so open Cantus at `http://127.0.0.1:5000` locally and put LAN or internet access behind HTTPS ([Reverse Proxy](reverse-proxy.md)).
 
 ```mermaid
 flowchart LR
@@ -40,7 +40,7 @@ flowchart LR
 ```
 
 !!! warning "Strict Redirect URI Matching"
-    The redirect URI configured in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/spotify/callback` (or `/api/auth/callback`), including protocol (`http://` vs `https://`) and port. You can add multiple redirect URIs in the Spotify dashboard (e.g. both `http://localhost:5000/api/auth/spotify/callback` and `http://127.0.0.1:5000/api/auth/spotify/callback`).
+    The redirect URI in your Spotify Developer Dashboard must **exactly match** `${CANTUS_HOST_URL}/api/auth/spotify/callback`, including protocol (`http://` vs `https://`) and port. A trailing slash on `CANTUS_HOST_URL` is removed. You can add several redirect URIs in the dashboard (e.g. both `http://127.0.0.1:5000/api/auth/spotify/callback` and your HTTPS domain). `Spotify__RedirectUri` overrides the callback only when `CANTUS_HOST_URL` is unset (see [Configuration](../reference/configuration.md#spotify-authentication)).
 
 ---
 
@@ -48,13 +48,13 @@ flowchart LR
 
 1. In your Spotify Developer App dashboard, click **Settings**.
 2. Locate the **Client ID** (a 32-character hexadecimal string).
-3. Copy this value into your `.env` file:
+3. Set it as `Spotify__ClientId`, either in the compose `environment:` list or in a `.env` file next to the repository's `docker-compose.yml`:
    ```ini
    Spotify__ClientId=abcdef0123456789abcdef0123456789
    ```
 
 !!! note "PKCE Flow Security"
-    Because Cantus uses the **PKCE** extension, a Client Secret is **not** required or used, ensuring your client secret is never exposed or logged.
+    Because Cantus uses the **PKCE** extension, a Client Secret is **not** required or used. `Spotify__ClientSecret` is accepted but ignored.
 
 ---
 
