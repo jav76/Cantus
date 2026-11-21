@@ -75,7 +75,7 @@
                 </Button>
                 <Button Click="OnTogglePlayPauseClicked"
                         Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                        Foreground="White"
+                        Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                         CornerRadius="18"
                         Width="36"
                         Height="36"

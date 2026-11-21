@@ -24,7 +24,7 @@
             <Button Grid.Column="2"
                     Click="OnApproveClicked"
                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                    Foreground="White"
+                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                     CornerRadius="6"
                     Padding="10,5"
                     ToolTipService.ToolTip="Approve the code a screen shows">
@@ -62,7 +62,7 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:DisplayItemViewModel">
                     <Border Background="#15FFFFFF"
-                            BorderBrush="#22FFFFFF"
+                            BorderBrush="{StaticResource CantusCardBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="10"
                             Padding="12,8"
@@ -72,22 +72,22 @@
                                       Glyph="&#xE7F4;"
                                       FontSize="16"
                                       VerticalAlignment="Center"
-                                      Foreground="#CBD5E1" />
+                                      Foreground="{StaticResource CantusTextSecondaryBrush}" />
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                            FontSize="13"
                                            FontWeight="SemiBold"
                                            TextTrimming="CharacterEllipsis"
-                                           Foreground="#F8FAFC" />
+                                           Foreground="{StaticResource CantusTextPrimaryBrush}" />
                                 <TextBlock Text="{x:Bind LastSeenText, Mode=OneWay}"
                                            FontSize="11"
                                            TextTrimming="CharacterEllipsis"
-                                           Foreground="#94A3B8" />
+                                           Foreground="{StaticResource CantusTextMutedBrush}" />
                             </StackPanel>
                             <Button Grid.Column="2"
                                     Click="OnRenameClicked"
                                     Background="#1AFFFFFF"
-                                    Foreground="#CBD5E1"
+                                    Foreground="{StaticResource CantusTextSecondaryBrush}"
                                     CornerRadius="6"
                                     Padding="8,6"
                                     VerticalAlignment="Center"

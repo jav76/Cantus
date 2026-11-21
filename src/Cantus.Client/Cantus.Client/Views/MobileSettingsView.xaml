@@ -214,7 +214,7 @@
                             <Button Grid.Column="1"
                                     Click="OnConnectSpotifyClicked"
                                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                    Foreground="White"
+                                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                     CornerRadius="6"
                                     Padding="12,6"
                                     FontWeight="SemiBold">

@@ -123,7 +123,7 @@
                         <Button Grid.Column="3"
                                 Click="OnTogglePlayPauseClicked"
                                 Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="White"
+                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="24"
                                 Width="48"
                                 Height="48"
@@ -326,7 +326,7 @@
                                 <Button Grid.Column="1"
                                         Click="OnConnectSpotifyClicked"
                                         Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                        Foreground="White"
+                                        Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                         CornerRadius="6"
                                         Padding="10,5"
                                         FontWeight="SemiBold">
@@ -405,7 +405,7 @@
                     </Button>
                     <Button Click="OnTogglePlayPauseClicked"
                             Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                            Foreground="White"
+                            Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                             CornerRadius="18"
                             Width="36"
                             Height="36"

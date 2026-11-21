@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -14,6 +15,8 @@ namespace Cantus.Client.Views;
 public sealed partial class LyricsPickerDialog : ContentDialog
 {
     public LyricsPickerViewModel Picker { get; }
+
+    public ThemeManager Theme { get; } = ThemeManager.Instance;
 
     public LyricsPickerDialog(LyricsPickerViewModel picker)
     {

@@ -441,6 +441,22 @@ public sealed class SongLookupViewModelTests
         unverified.MatchText.Should().Be("found online (NetEase), not verified");
     }
 
+    [Theory]
+    [InlineData("A Night at the Opera", "Artist / A Night at the Opera")]
+    [InlineData(null, "Artist")]
+    [InlineData("  ", "Artist")]
+    public void GuessCard_ArtistAlbumText_OmitsAMissingAlbum(string? album, string expected)
+    {
+        // Arrange
+        Mock<ISongLookupClient> client = new();
+
+        // Act
+        SongGuessViewModel guess = new(Guess("A", local: true) with { Album = album }, client.Object);
+
+        // Assert
+        guess.ArtistAlbumText.Should().Be(expected);
+    }
+
     [Fact]
     public async Task GuessPlay_LocalGuess_PlaysById()
     {

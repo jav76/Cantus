@@ -38,10 +38,9 @@ public sealed class SongGuessViewModel : INotifyPropertyChanged
 
     public string Artist => Guess.Artist;
 
-    public string Album => Guess.Album ?? string.Empty;
-
-    public Visibility AlbumVisibility =>
-        string.IsNullOrWhiteSpace(Guess.Album) ? Visibility.Collapsed : Visibility.Visible;
+    /// <summary>"Artist / Album", or just the artist when the album is unknown.</summary>
+    public string ArtistAlbumText =>
+        string.IsNullOrWhiteSpace(Guess.Album) ? Guess.Artist : $"{Guess.Artist} / {Guess.Album}";
 
     public string MatchedLinesText => string.Join("\n", Guess.MatchedLines);
 

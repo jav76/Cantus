@@ -41,7 +41,7 @@
                         <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
                         <Button Click="OnConnectSpotifyClicked"
                                 Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="White"
+                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="8"
                                 Padding="12,6"
                                 FontWeight="SemiBold">
@@ -111,7 +111,7 @@
                                 Content="{x:Bind Displays.ConfirmText, Mode=OneWay}"
                                 IsEnabled="{x:Bind Displays.CanConfirm, Mode=OneWay}"
                                 Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="White"
+                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                                 CornerRadius="8"
                                 Padding="16,8"
                                 FontSize="13"

@@ -20,6 +20,8 @@
             <TextBox x:Name="FragmentBox"
                      Grid.Column="0"
                      MaxLength="200"
+                     Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                     Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                      PlaceholderText="e.g. is this the real life, is this just fantasy"
                      Text="{x:Bind Lookup.Fragment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      KeyDown="OnFragmentKeyDown" />
@@ -27,7 +29,7 @@
                     Click="OnSearchClicked"
                     IsEnabled="{x:Bind Lookup.CanSearch, Mode=OneWay}"
                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                    Foreground="White"
+                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                     CornerRadius="8"
                     Padding="14,6"
                     FontWeight="SemiBold">
@@ -45,6 +47,7 @@
                           Height="18"
                           IsActive="{x:Bind Lookup.IsSearching, Mode=OneWay}"
                           Visibility="{x:Bind Lookup.SearchingVisibility, Mode=OneWay}"
+                          Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
                           VerticalAlignment="Center" />
             <TextBlock Grid.Column="1"
                        Text="{x:Bind Lookup.StatusText, Mode=OneWay}"
@@ -82,7 +85,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:SongGuessViewModel">
                         <Border Background="#15FFFFFF"
-                                BorderBrush="#22FFFFFF"
+                                BorderBrush="{StaticResource CantusCardBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12"
@@ -92,11 +95,7 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            TextWrapping="Wrap" />
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="{x:Bind Artist}" FontSize="13" Opacity="0.85" TextWrapping="Wrap" />
-                                    <TextBlock Text="/" FontSize="13" Opacity="0.5" Visibility="{x:Bind AlbumVisibility}" />
-                                    <TextBlock Text="{x:Bind Album}" FontSize="13" Opacity="0.7" Visibility="{x:Bind AlbumVisibility}" TextWrapping="Wrap" />
-                                </StackPanel>
+                                <TextBlock Text="{x:Bind ArtistAlbumText}" FontSize="13" Opacity="0.85" TextWrapping="Wrap" />
                                 <TextBlock Text="{x:Bind MatchedLinesText}"
                                            Visibility="{x:Bind MatchedLinesVisibility}"
                                            FontSize="13"
@@ -118,8 +117,8 @@
                                             Padding="10,4"
                                             ToolTipService.ToolTip="Play now on your active Spotify device">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon Glyph="&#xE768;" FontSize="12" />
-                                            <TextBlock Text="Play" FontSize="12" />
+                                            <FontIcon Glyph="&#xE768;" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                            <TextBlock Text="Play" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
                                         </StackPanel>
                                     </Button>
                                     <Button Grid.Column="2"
@@ -130,8 +129,8 @@
                                             Padding="10,4"
                                             ToolTipService.ToolTip="Add to your Spotify queue">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                            <TextBlock Text="Queue" FontSize="12" />
+                                            <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
+                                            <TextBlock Text="Queue" FontSize="12" Foreground="{StaticResource CantusTextPrimaryBrush}" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>

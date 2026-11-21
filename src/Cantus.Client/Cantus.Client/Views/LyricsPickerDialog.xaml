@@ -5,18 +5,19 @@
                Title="Wrong lyrics?"
                CloseButtonText="Cancel"
                DefaultButton="Close"
-               Background="#1E1E2D"
+               Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                CornerRadius="16">
 
     <StackPanel Spacing="12" MaxWidth="520" Margin="0,8,0,0">
         <TextBlock Text="{x:Bind Picker.TrackText, Mode=OneWay}"
                    FontSize="13"
-                   Foreground="#94A3B8"
+                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
                    TextTrimming="CharacterEllipsis" />
 
         <!-- Override already in effect -->
-        <Border Background="#1A8B5CF6"
-                BorderBrush="#408B5CF6"
+        <Border Background="{x:Bind Theme.GlowBrush, Mode=OneWay}"
+                BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="12,10"
@@ -25,14 +26,14 @@
                 <TextBlock Grid.Column="0"
                            Text="{x:Bind Picker.ActiveOverrideText, Mode=OneWay}"
                            FontSize="12"
-                           Foreground="#F8FAFC"
+                           Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                            TextWrapping="Wrap"
                            VerticalAlignment="Center" />
                 <Button Grid.Column="1"
                         Click="OnClearOverrideClicked"
                         IsEnabled="{x:Bind Picker.CanChoose, Mode=OneWay}"
                         Background="#20FFFFFF"
-                        Foreground="#F8FAFC"
+                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                         CornerRadius="6"
                         Padding="10,5"
                         FontSize="12"
@@ -44,8 +45,8 @@
         <StackPanel Orientation="Horizontal"
                     Spacing="10"
                     Visibility="{x:Bind Picker.LoadingVisibility, Mode=OneWay}">
-            <ProgressRing IsActive="{x:Bind Picker.IsLoading, Mode=OneWay}" Width="18" Height="18" />
-            <TextBlock Text="Searching the lyrics providers..." FontSize="13" Foreground="#94A3B8" VerticalAlignment="Center" />
+            <ProgressRing IsActive="{x:Bind Picker.IsLoading, Mode=OneWay}" Width="18" Height="18" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+            <TextBlock Text="Searching the lyrics providers..." FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" VerticalAlignment="Center" />
         </StackPanel>
 
         <TextBlock Text="{x:Bind Picker.StatusText, Mode=OneWay}"
@@ -57,7 +58,7 @@
         <TextBlock Text="{x:Bind Picker.UnavailableText, Mode=OneWay}"
                    Visibility="{x:Bind Picker.UnavailableVisibility, Mode=OneWay}"
                    FontSize="12"
-                   Foreground="#94A3B8"
+                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
                    TextWrapping="Wrap" />
 
         <!-- Candidates -->
@@ -70,7 +71,7 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Stretch"
                                 Background="#15FFFFFF"
-                                BorderBrush="#22FFFFFF"
+                                BorderBrush="{StaticResource CantusCardBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 Padding="12,10"
@@ -81,7 +82,7 @@
                                                Text="{x:Bind Title}"
                                                FontSize="14"
                                                FontWeight="SemiBold"
-                                               Foreground="#F8FAFC"
+                                               Foreground="{StaticResource CantusTextPrimaryBrush}"
                                                TextTrimming="CharacterEllipsis" />
                                     <Border Grid.Column="1"
                                             Background="#3310B981"
@@ -91,18 +92,18 @@
                                         <TextBlock Text="In use" FontSize="11" Foreground="#10B981" />
                                     </Border>
                                     <Border Grid.Column="2" Background="#20FFFFFF" CornerRadius="4" Padding="6,1">
-                                        <TextBlock Text="{x:Bind Provider}" FontSize="11" Foreground="#CBD5E1" />
+                                        <TextBlock Text="{x:Bind Provider}" FontSize="11" Foreground="{StaticResource CantusTextSecondaryBrush}" />
                                     </Border>
                                 </Grid>
                                 <TextBlock Text="{x:Bind DetailText}"
                                            FontSize="12"
-                                           Foreground="#94A3B8"
+                                           Foreground="{StaticResource CantusTextMutedBrush}"
                                            TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{x:Bind PreviewText}"
                                            Visibility="{x:Bind PreviewVisibility}"
                                            FontSize="12"
                                            FontStyle="Italic"
-                                           Foreground="#CBD5E1"
+                                           Foreground="{StaticResource CantusTextSecondaryBrush}"
                                            TextWrapping="Wrap"
                                            MaxLines="2" />
                             </StackPanel>
@@ -119,7 +120,7 @@
                     IsEnabled="{x:Bind Picker.CanChoose, Mode=OneWay}"
                     HorizontalAlignment="Stretch"
                     Background="#20FFFFFF"
-                    Foreground="#F8FAFC"
+                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                     CornerRadius="8"
                     Padding="8,8">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
@@ -132,7 +133,7 @@
                     IsEnabled="{x:Bind Picker.CanChoose, Mode=OneWay}"
                     HorizontalAlignment="Stretch"
                     Background="#20FFFFFF"
-                    Foreground="#F8FAFC"
+                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
                     CornerRadius="8"
                     Padding="8,8">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">

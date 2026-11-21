@@ -213,13 +213,13 @@
                         VerticalAlignment="Bottom"
                         Margin="0,0,0,16"
                         Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                        Foreground="White"
+                        Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                         BorderThickness="0"
                         CornerRadius="20"
                         Padding="14,8">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="White" />
-                        <TextBlock Text="Resume Autoscroll" FontSize="12" FontWeight="SemiBold" Foreground="White" />
+                        <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
+                        <TextBlock Text="Resume Autoscroll" FontSize="12" FontWeight="SemiBold" Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}" />
                     </StackPanel>
                 </Button>
             </Grid>
