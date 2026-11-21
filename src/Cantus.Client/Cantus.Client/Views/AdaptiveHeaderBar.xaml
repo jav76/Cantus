@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Cantus.Client"
+             xmlns:views="using:Cantus.Client.Views"
              xmlns:vm="using:Cantus.Client.ViewModels"
              xmlns:models="using:Cantus.Client.Models">
 
@@ -23,12 +24,15 @@
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Cantus" FontSize="20" FontWeight="Bold" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
-                        <TextBlock Text="Real-Time Synced Lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                        <TextBlock Text="Real-Time Synced Lyrics"
+                                   FontSize="11"
+                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                                   Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Diagnostics Telemetry Pills -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Diagnostics Telemetry Pills: listed highest priority first; the ones that do not fit are hidden -->
+                <views:PriorityStackPanel Grid.Column="1" Spacing="8" Margin="12,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <!-- Connection Status -->
                     <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -48,7 +52,7 @@
                     <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="12" Padding="10,4">
                         <TextBlock Text="{x:Bind ViewModel.PollerStatus, Mode=OneWay}" FontSize="12" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
                     </Border>
-                </StackPanel>
+                </views:PriorityStackPanel>
 
                 <!-- Action Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -64,7 +68,7 @@
                             ToolTipService.ToolTip="Find a song by lyrics">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE721;" FontSize="15" />
-                            <TextBlock Text="Find Song" FontSize="12" />
+                            <TextBlock Text="Find Song" FontSize="12" Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
                         </StackPanel>
                     </Button>
 
@@ -81,7 +85,7 @@
                         </Button.Flyout>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE790;" FontSize="15" />
-                            <TextBlock Text="Theme" FontSize="12" />
+                            <TextBlock Text="Theme" FontSize="12" Visibility="{x:Bind GetLabelVisibility(Layout.ShowFullHeaderLabels), Mode=OneWay}" />
                             <FontIcon Glyph="&#xE70D;" FontSize="8" />
                         </StackPanel>
                     </Button>
@@ -117,10 +121,15 @@
                             Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="14,8"
-                            FontWeight="SemiBold">
+                            FontWeight="SemiBold"
+                            ToolTipService.ToolTip="{x:Bind Session.ConnectButtonText, Mode=OneWay}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="16" />
-                            <TextBlock Text="{x:Bind Session.ConnectButtonText, Mode=OneWay}" FontSize="13" />
+                            <TextBlock Text="{x:Bind Session.ConnectButtonText, Mode=OneWay}"
+                                       FontSize="13"
+                                       MaxWidth="{x:Bind Layout.HeaderAccountNameMaxWidth, Mode=OneWay}"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -210,7 +219,8 @@
                             Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
                             CornerRadius="8"
                             Padding="10,6"
-                            FontWeight="SemiBold">
+                            FontWeight="SemiBold"
+                            ToolTipService.ToolTip="{x:Bind Session.ConnectButtonText, Mode=OneWay}">
                         <FontIcon Glyph="{x:Bind Session.ConnectButtonGlyph, Mode=OneWay}" FontSize="14" />
                     </Button>
                 </StackPanel>

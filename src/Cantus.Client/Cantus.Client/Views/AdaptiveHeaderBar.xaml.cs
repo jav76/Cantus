@@ -243,6 +243,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
+    public Visibility GetLabelVisibility(bool showLabels)
+        => showLabels ? Visibility.Visible : Visibility.Collapsed;
+
     public Visibility GetLargeHeaderVisibility(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
