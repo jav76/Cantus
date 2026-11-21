@@ -30,7 +30,7 @@ The full list of rejected endpoints and hub methods is in the [REST API referenc
 ## Token Storage
 
 - A Display token is 256 random bits, generated when the owner approves a code. It is sent once, to the waiting screen's hub connection, and never appears in an HTTP response.
-- The server stores only a SHA-256 hash of the token in the `Displays` table of the SQLite database. A copy of the database or a backup does not contain working tokens.
+- The server stores only a SHA-256 hash of the token in the `Displays` table of the SQLite database. A copy of the database or a backup does not contain working Display tokens. It does hold each owner's Session id in plain text, which is a full owner credential (it can approve pairing codes and mint new Display tokens), so keep backups as private as the live database.
 - The token does not use the Data Protection key ring. Rotating or losing `/app/data/keys/` does not affect Displays.
 - The screen keeps the token in browser storage (web app) or local settings (desktop app). Anyone who can read that device's storage can copy the token and watch the owner's playback from anywhere that can reach your server, until the Display is revoked.
 - Several connections may use the same token at once. Revoking the Display closes all of them.
