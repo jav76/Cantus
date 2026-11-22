@@ -33,8 +33,9 @@ flowchart LR
 
 Explore the sections below to get the most out of your Cantus setup:
 
-1. [**Playback & Display Modes**](playback-and-display.md): Fullscreen mode, TV/kiosk setup, responsive layouts, and keyboard shortcuts.
-2. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
-3. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
-4. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
-5. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.
+1. [**Connect Spotify**](connect-spotify.md): Sign in, and create your own Spotify app when the server's has no room for you.
+2. [**Playback & Display Modes**](playback-and-display.md): Fullscreen mode, TV/kiosk setup, responsive layouts, and keyboard shortcuts.
+3. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
+4. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
+5. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
+6. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.

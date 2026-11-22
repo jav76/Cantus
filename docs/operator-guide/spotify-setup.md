@@ -58,8 +58,32 @@ flowchart LR
 
 ---
 
-## 4. User Quotas & Spotify Developer Mode
+## 4. User Quotas & Spotify Development Mode
 
-By default, newly created Spotify applications operate in **Development Mode**:
-- You can authenticate up to 25 specific Spotify user accounts.
-- To allow family members or friends to use your self-hosted instance, go to your app settings, click **User Management**, and add their Spotify account email addresses.
+New Spotify apps run in **Development Mode**, and Spotify's rules for it (since February 2026) are:
+
+- **Up to 5 users** per app. Each must be added by name and Spotify email under **User Management** in the app's settings. Anyone else can open the Spotify consent screen, but the sign-in then fails with "Your account is not on this app's user list".
+- **The app owner needs Spotify Premium**, or the app stops working for everyone.
+- **Extended Quota Mode** (more users) is only open to registered organisations with at least 250,000 monthly active users, so a self-hosted server cannot get it.
+
+To serve more than 5 people, let them sign in with their own Spotify app (next section).
+
+---
+
+## 5. Users' Own Spotify Apps
+
+A user can sign in with a Spotify app they create themselves, by pasting its Client ID into the **Connect Spotify** screen. That user then counts against their own app's limit, not yours. PKCE means a Client ID is not a secret, so Cantus stores it in plain text with their Session and on their device.
+
+`Spotify__AllowUserClientIds` controls it:
+
+| `Spotify__ClientId` | `Spotify__AllowUserClientIds` | Own apps |
+| :--- | :--- | :--- |
+| unset | unset | **Allowed** (the only way to sign in) |
+| set | unset | Off: only your allowlisted users can sign in |
+| either | `true` | Allowed |
+| either | `false` | Off |
+
+!!! warning "Who can sign in"
+    With own apps allowed, Spotify's allowlist no longer limits who can sign in to your server: anyone who can reach it and has a Spotify app can. Each signed-in user adds Spotify polling and lyrics lookups. On a server reachable from the internet, keep own apps off unless you want open sign-up.
+
+Every user's own app needs the same redirect URI as yours, `<base URL>/api/auth/spotify/callback`. The Connect Spotify screen shows it with a copy button and warns when Spotify will refuse it (plain `http://` on anything but `127.0.0.1`). The user steps are in [Connect Spotify](../user-guide/connect-spotify.md).

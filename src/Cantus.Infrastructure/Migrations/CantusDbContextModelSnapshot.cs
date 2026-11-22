@@ -278,6 +278,10 @@ namespace Cantus.Infrastructure.Migrations
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SpotifyClientId")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SpotifyUserId")
                         .IsRequired()
                         .HasColumnType("TEXT");

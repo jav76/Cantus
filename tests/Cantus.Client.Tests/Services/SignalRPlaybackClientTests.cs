@@ -172,4 +172,13 @@ public sealed class SignalRPlaybackClientTests
             File.Delete(sessionFile);
         }
     }
+
+    [Theory]
+    [InlineData("success", true)]
+    [InlineData("ERROR", true)]
+    [InlineData("3f2a9c0d1e4b4f6a8b7c9d0e1f2a3b4c", false)]
+    public void IsReservedAuthQueryValue_RejectsSignInOutcomesAsSessionTokens(string value, bool expected)
+    {
+        SignalRPlaybackClient.IsReservedAuthQueryValue(value).Should().Be(expected);
+    }
 }

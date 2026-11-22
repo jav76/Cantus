@@ -14,3 +14,6 @@ _Avoid_: query, search term, snippet
 
 **Guess**: One ranked song a lookup returns for a Fragment, from the server's library or an online lyrics provider, with a match score. Versions of the same song are grouped into one Guess.
 _Avoid_: result, match, hit, candidate (that term means a lyrics override candidate)
+
+**Own Spotify app**: A Spotify Developer app a user creates and signs in with by its Client ID, instead of the server's app. It has its own 5-user limit.
+_Avoid_: API key, user key, BYO key

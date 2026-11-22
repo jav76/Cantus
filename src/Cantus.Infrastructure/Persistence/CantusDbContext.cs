@@ -29,6 +29,7 @@ public class CantusDbContext : DbContext
             entity.HasIndex(e => e.SpotifyUserId).IsUnique();
             entity.Property(e => e.DisplayName).HasMaxLength(256);
             entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.SpotifyClientId).HasMaxLength(32);
         });
 
         modelBuilder.Entity<CachedLyricsEntity>(entity =>

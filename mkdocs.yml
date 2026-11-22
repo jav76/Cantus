@@ -84,6 +84,7 @@ nav:
   - Home: index.md
   - User Guide:
       - Overview: user-guide/index.md
+      - Connect Spotify: user-guide/connect-spotify.md
       - Playback & Display: user-guide/playback-and-display.md
       - Pairing & Managing Displays: user-guide/displays.md
       - Timing & Latency Calibration: user-guide/timing-and-calibration.md
