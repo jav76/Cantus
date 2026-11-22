@@ -5,6 +5,7 @@ using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.System;
@@ -91,7 +92,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         header.Layout = viewModel?.Layout;
         if (header._isLoaded)
         {
-            header.SubscribeToThemeState(viewModel);
+            header.SubscribeToViewModel(viewModel);
         }
     }
 
@@ -111,13 +112,13 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         Loaded += (s, e) =>
         {
             _isLoaded = true;
-            SubscribeToThemeState(ViewModel);
+            SubscribeToViewModel(ViewModel);
             SyncThemeMenus();
         };
         Unloaded += (s, e) =>
         {
             _isLoaded = false;
-            SubscribeToThemeState(null);
+            SubscribeToViewModel(null);
         };
     }
 
@@ -136,10 +137,11 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         SyncThemeMenus();
     }
 
-    private void SubscribeToThemeState(LyricsViewModel? viewModel)
+    private void SubscribeToViewModel(LyricsViewModel? viewModel)
     {
         if (_subscribedViewModel is not null)
         {
+            _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _subscribedViewModel.Effects.PropertyChanged -= OnEffectsChanged;
             _subscribedViewModel.Theme.PropertyChanged -= OnThemeStateChanged;
         }
@@ -148,8 +150,70 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
         if (viewModel is not null)
         {
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.Effects.PropertyChanged += OnEffectsChanged;
             viewModel.Theme.PropertyChanged += OnThemeStateChanged;
+        }
+
+        ApplyStatusTooltip();
+        ApplyAlertChips();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(LyricsViewModel.RttMs):
+                ApplyStatusTooltip();
+                break;
+            case nameof(LyricsViewModel.ConnectionStatus):
+            case nameof(LyricsViewModel.PollerStatus):
+            case null:
+            case "":
+                ApplyStatusTooltip();
+                ApplyAlertChips();
+                break;
+        }
+    }
+
+    // Set from code rather than x:Bind: when one function binding with FallbackValue shares ViewModel.*
+    // parameter paths with function bindings without one, the WinUI XAML compiler emits calls to
+    // UpdateFallback_M_* methods it never generates (CS1061 on the Windows head only).
+    private void ApplyStatusTooltip()
+    {
+        LyricsViewModel? viewModel = _subscribedViewModel;
+        string? tooltip = viewModel is null
+            ? null
+            : HeaderStatus.GetTooltip(viewModel.ConnectionStatus, viewModel.RttMs, viewModel.PollerStatus);
+
+        foreach (Border indicator in new[] { LargeStatusIndicator, MediumStatusIndicator, SmallStatusIndicator })
+        {
+            ToolTipService.SetToolTip(indicator, tooltip);
+            AutomationProperties.SetName(indicator, tooltip ?? string.Empty);
+        }
+
+        ToolTipService.SetToolTip(LargeAlertChip, tooltip);
+        ToolTipService.SetToolTip(MediumAlertChip, tooltip);
+    }
+
+    private void ApplyAlertChips()
+    {
+        LyricsViewModel? viewModel = _subscribedViewModel;
+        string? alertText = viewModel is null
+            ? null
+            : HeaderStatus.GetAlertText(viewModel.ConnectionStatus, viewModel.PollerStatus);
+        Visibility visibility = alertText is null ? Visibility.Collapsed : Visibility.Visible;
+
+        LargeAlertChip.Visibility = visibility;
+        MediumAlertChip.Visibility = visibility;
+        LargeAlertText.Text = alertText ?? string.Empty;
+        MediumAlertText.Text = alertText ?? string.Empty;
+
+        if (viewModel is not null)
+        {
+            StatusTone tone = HeaderStatus.GetAlertTone(viewModel.ConnectionStatus);
+            LargeAlertDot.Fill = CreateToneBrush(tone);
+            MediumAlertDot.Fill = CreateToneBrush(tone);
         }
     }
 
@@ -285,25 +349,13 @@ public sealed partial class AdaptiveHeaderBar : UserControl
     private static readonly Color WarningColor = Color.FromArgb(255, 245, 158, 11);
     private static readonly Color ErrorColor = Color.FromArgb(255, 239, 68, 68);
 
-    public SolidColorBrush GetStatusColor(string? status) => status switch
+    public SolidColorBrush GetStatusColor(string? status)
+        => CreateToneBrush(HeaderStatus.GetStatusTone(status));
+
+    private static SolidColorBrush CreateToneBrush(StatusTone tone) => tone switch
     {
-        HeaderStatus.CONNECTED => new SolidColorBrush(HealthyColor),
-        "Reconnecting" => new SolidColorBrush(WarningColor),
+        StatusTone.Healthy => new SolidColorBrush(HealthyColor),
+        StatusTone.Warning => new SolidColorBrush(WarningColor),
         _ => new SolidColorBrush(ErrorColor)
     };
-
-    public string GetStatusTooltip(string? connectionStatus, long rttMs, string? pollerStatus)
-        => HeaderStatus.GetTooltip(connectionStatus, rttMs, pollerStatus);
-
-    public string GetAlertText(string? connectionStatus, string? pollerStatus)
-        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) ?? string.Empty;
-
-    public Visibility GetAlertVisibility(string? connectionStatus, string? pollerStatus)
-        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) is null ? Visibility.Collapsed : Visibility.Visible;
-
-    /// <summary>A rate-limited poller is a warning; a connection problem keeps its status colour.</summary>
-    public SolidColorBrush GetAlertColor(string? connectionStatus, string? pollerStatus)
-        => HeaderStatus.IsConnected(connectionStatus)
-            ? new SolidColorBrush(WarningColor)
-            : GetStatusColor(connectionStatus);
 }
