@@ -6,6 +6,13 @@
 [![Docker](https://img.shields.io/badge/GHCR-cantus-blue?logo=docker)](https://github.com/jav76/Cantus/pkgs/container/cantus)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Quality Gate Status](https://jav76.github.io/Cantus/badges/quality_gate.svg)](https://jav76.github.io/Cantus/)
+[![Reliability Rating](https://jav76.github.io/Cantus/badges/reliability.svg)](https://jav76.github.io/Cantus/)
+[![Security Rating](https://jav76.github.io/Cantus/badges/security.svg)](https://jav76.github.io/Cantus/)
+[![Maintainability Rating](https://jav76.github.io/Cantus/badges/maintainability.svg)](https://jav76.github.io/Cantus/)
+[![Coverage](https://jav76.github.io/Cantus/badges/coverage.svg)](https://jav76.github.io/Cantus/)
+[![Lines of Code](https://jav76.github.io/Cantus/badges/ncloc.svg)](https://jav76.github.io/Cantus/)
+[![Technical Debt](https://jav76.github.io/Cantus/badges/tech_debt.svg)](https://jav76.github.io/Cantus/)
 
 Cantus is a self-hosted, real-time synchronized lyrics display platform. It follows your Spotify playback and shows synchronized lyrics across web browsers, desktop operating systems, and dedicated kiosk displays.
 

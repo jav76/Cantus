@@ -1,0 +1,134 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          persist-credentials: false
+
+      # Ephemeral Tailscale ingress to internal SonarQube (sonarqube.local.jav26122.net).
+      # Prerequisites: Tailscale ACL tag `tag:ci`, OAuth secrets `TS_OAUTH_CLIENT_ID` /
+      # `TS_OAUTH_SECRET`, subnet router + split-DNS, and `SONAR_HOST_URL=https://sonarqube.local.jav26122.net`.
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          java-version: 21
+          distribution: 'zulu' # Alternative distribution options are available.
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Uno WebAssembly Workload
+        shell: bash
+        run: dotnet workload install wasm-tools
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache SonarQube scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ runner.temp }}/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+
+      - name: Install SonarQube scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/scanner"
+          dotnet tool update dotnet-sonarscanner --tool-path "$RUNNER_TEMP/scanner"
+
+      - name: Build, test with coverage, and analyze
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/scanner/dotnet-sonarscanner" begin \
+            /k:"Cantus" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="$SONAR_HOST_URL" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.xml"
+          dotnet build Cantus.slnx -c Release
+          dotnet test Cantus.slnx -c Release --no-build --collect:"Code Coverage;Format=Xml" --results-directory TestResults
+          "$RUNNER_TEMP/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
+
+      - name: Export SonarQube results to SARIF, Pages bundle, and step summary
+        shell: bash
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_BADGE_TOKEN: ${{ secrets.SONAR_BADGE_TOKEN }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/sonar_export.py \
+            --host-url "$SONAR_HOST_URL" \
+            --token "$SONAR_TOKEN" \
+            --sarif-out sonar-results.sarif \
+            --pages-dir gh-pages-out \
+            --summary-out sonar-summary.md \
+            --repo-url "$REPO_URL"
+          if [ -f sonar-summary.md ]; then
+            cat sonar-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload SonarQube artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sonarqube-report
+          path: |
+            sonar-results.sarif
+            gh-pages-out/
+          if-no-files-found: warn
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3
+        with:
+          sarif_file: sonar-results.sarif
+          category: sonarqube
+
+      - name: Publish static report and badges to GitHub Pages
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: gh-pages-out
