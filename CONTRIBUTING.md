@@ -1,6 +1,6 @@
 # Contributing to Cantus
 
-Thank you for your interest in contributing to Cantus! 
+Thank you for your interest in contributing to Cantus!
 
 For the comprehensive, full-length guide on project architecture, debugging, and local environment setup, please visit the [Official Contributing Guide](https://cantus.docs.jav26122.net/contributing/).
 

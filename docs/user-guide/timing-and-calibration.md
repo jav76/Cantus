@@ -47,11 +47,11 @@ The <kbd>[</kbd> and <kbd>]</kbd> keys adjust the device-wide latency compensati
 
 1. Listen to the vocals while watching the highlighted line on screen.
 2. If the lyrics highlight **too late** (after you hear the singer, common on wired output):
-   - Press <kbd>[</kbd> to reduce the compensation; lyrics render **earlier**.
+    - Press <kbd>[</kbd> to reduce the compensation; lyrics render **earlier**.
 3. If the lyrics highlight **too early** (before you hear the singer, common on Bluetooth/AirPlay):
-   - Press <kbd>]</kbd> to increase the compensation; lyrics render **later**.
+    - Press <kbd>]</kbd> to increase the compensation; lyrics render **later**.
 
-The current value is shown as **Device latency** in the mobile Settings view and as **Latency Compensation** in the diagnostics HUD, ranges `0` to `1000ms`, and persists per device/browser. A [paired Display](displays.md) can adjust its own latency compensation too, but not per-track offsets. There is no reset key: step back to the value you want.
+The current value is shown as **Device latency** on the **Sync & Info** tab (small layouts), which also has **-50ms (earlier)** and **+50ms (later)** buttons, and as **Latency Compensation** in the diagnostics HUD. Tablet and desktop layouts have the keys only. The value ranges `0` to `1000ms`, and persists per device/browser. A [paired Display](displays.md) can adjust its own latency compensation too, but not per-track offsets. There is no reset key: step back to the value you want.
 
 ---
 
@@ -59,6 +59,7 @@ The current value is shown as **Device latency** in the mobile Settings view and
 
 Cantus automatically stores your adjusted offset in its SQLite database keyed by the Spotify **Track ID**:
 
+- The offset belongs to the track, not to your account: everyone on the same server gets it for that song.
 - When the same song plays again in the future, Cantus instantly applies your custom offset.
 - Track-level offsets do not affect other songs that may have different mastering or timing alignments.
 
@@ -68,9 +69,9 @@ Cantus automatically stores your adjusted offset in its SQLite database keyed by
 
 The effective render position is:
 
-```
+```text
 rendered position = interpolated playback position − device latency compensation + per-track offset
 ```
 
-- **Device latency compensation** (keyboard <kbd>[</kbd>/<kbd>]</kbd>, settings steppers) calibrates your audio output chain once per device: it applies to every track and persists locally.
+- **Device latency compensation** (keyboard <kbd>[</kbd>/<kbd>]</kbd>, **Sync & Info** buttons) calibrates your audio output chain once per device: it applies to every track and persists locally.
 - **Per-track offsets** (the **Sync offset** steppers) handle song-specific quirks (unusual mastering, mistimed community lyrics) and stack on top of the device calibration, persisted server-side per Spotify track ID.

@@ -49,9 +49,9 @@ For one track, sources rank as follows:
 
 1. **Owner override** (see [Owner Overrides](#3-owner-overrides)). It always wins, whatever it holds: a chosen candidate is served as stored even when it is line-level and a provider has word timing, and a "no lyrics" override serves nothing. The caches and providers are not consulted while it is active.
 2. **Automatic matching**, used only when there is no override. Provider results rank as follows:
-   1. **Word-timed** (at least one line has syllables). The walk stops at the first one.
-   2. **Instrumental**. The walk stops here too, since no word timing can follow.
-   3. **Line-level synced or plain**: the first one found is kept, but the walk continues so a later provider can replace it with a word-timed result. If none does, the first result is saved, exactly as before word timing existed.
+    1. **Word-timed** (at least one line has syllables). The walk stops at the first one.
+    2. **Instrumental**. The walk stops here too, since no word timing can follow.
+    3. **Line-level synced or plain**: the first one found is kept, but the walk continues so a later provider can replace it with a word-timed result. If none does, the first result is saved, exactly as before word timing existed.
 
 The same ranking applies on a cache miss and on an owner `refetch`. A line-level result is still saved when a later provider is unreachable; the upgrade policy below gives it another chance.
 
@@ -74,6 +74,7 @@ A cached entry without word timing (synced or plain, not instrumental) can be up
 ### 1. SQLite Local Positive Cache
 - **Duration**: No TTL. Found lyrics (including instrumental results) stay cached until replaced by an upgrade, a `refetch` or a "not found" answer.
 - **Storage**: `CachedLyrics` table, keyed by Spotify Track ID with an index on artist and title. `RawSyncedLrc` holds the lines as LRC. Word-timed lyrics are also stored as JSON in `WordTimedLinesJson` (line and syllable start in milliseconds, syllable duration, and text exactly as sent, including a word's trailing space). LRC cannot hold syllable durations or millisecond times, so the JSON is read first and the LRC is only a fallback.
+
 ### 2. Negative Caching for Tracks Without Lyrics
 - **Problem**: Many tracks have no lyrics on any provider. Without caching this absence, the server would query every provider on every play.
 - **Solution**: Cantus writes a **negative cache** entry (`IsNotFound` in the same `CachedLyrics` row) with a configurable 30-day TTL (`LyricsCache:NegativeCacheDays` in `appsettings.json`; it applies to the whole fallback chain). While the entry is unexpired, the track returns no lyrics without network queries. A negative entry is only written when every provider in the chain authoritatively reported "not found". Transient provider failures are never cached.
@@ -92,7 +93,7 @@ A cached entry without word timing (synced or plain, not instrumental) can be up
 - **Search Fallback**: If the exact lookup returns 404, Cantus calls `/api/search?q={title} {artist}`. It picks the synced result closest in duration and rejects it if it is more than 5 seconds off. Without a synced result it takes the first plain or instrumental result. Titles are sent as Spotify reports them; no keywords are stripped.
 
 ### 5. Outbound Provider Rate Gate
-Every LRCLIB and NetEase request, for now-playing lyrics and for song lookups alike, passes through `ProviderRateGate` (a `DelegatingHandler` on each provider's `HttpClient`):
+Every LRCLIB and NetEase request, for now-playing lyrics and for song lookups alike, passes through `ProviderRateGateHandler` (a `DelegatingHandler` on each provider's `HttpClient`), backed by the singleton `ProviderRateGate`:
 
 - **Lookup budget**: lookup requests draw from a small per-provider budget per rolling minute (`SongLookup:LrclibRequestsPerMinute`, default 10; `SongLookup:NeteaseRequestsPerMinute`, default 6). Now-playing requests are never refused by a budget.
 - **Cooldowns**: a `429`, or a `503` with `Retry-After`, on a now-playing request or on any LRCLIB request pauses all traffic to that provider. `Retry-After` is honoured, clamped to 1 to 300 seconds, with 60 seconds when it is missing. A throttle or payload rejection on a NetEase lookup request pauses lookups only, so its unofficial search endpoint cannot take down the now-playing fallback. A normal `404` never starts a cooldown.
@@ -106,14 +107,14 @@ Every LRCLIB and NetEase request, for now-playing lyrics and for song lookups al
 
 ```mermaid
 flowchart TD
-    Fragment[Fragment + scope] --> Index[Score every song in the in-memory index]
+    Fragment["Fragment and scope"] --> Index["Score every song in the in-memory index"]
     Index --> Decide1{Accepted?}
-    Decide1 -->|Yes, or scope local| Return[Ranked guesses + provider status]
-    Decide1 -->|No, scope auto| Netease[NetEase lyric search: 1 request]
-    Decide1 -->|Any result, scope online| Netease
+    Decide1 -->|"Yes, or scope local"| Return["Ranked guesses and provider status"]
+    Decide1 -->|"No, scope auto"| Netease["NetEase lyric search (1 request)"]
+    Decide1 -->|"Any result, scope online"| Netease
     Netease --> Decide2{Accepted?}
     Decide2 -->|Yes| Return
-    Decide2 -->|No| Lrclib[LRCLIB title search: up to 2 requests]
+    Decide2 -->|No| Lrclib["LRCLIB title search (up to 2 requests)"]
     Lrclib --> Return
 ```
 

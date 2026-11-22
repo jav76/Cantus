@@ -7,9 +7,10 @@ When exposing Cantus to the internet or your local area network, running behind 
 ## Reverse Proxy Requirements
 
 Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse proxy must support:
+
 - **WebSocket Upgrade Headers**: `Upgrade $http_upgrade; Connection "upgrade";`
-- **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host`
-- **Idle Timeouts above 15 seconds**: the server sends a SignalR keep-alive every 15 seconds and clients give up after 30 seconds of silence, so any proxy idle timeout above 30 seconds is enough. The `300s` in the examples leaves plenty of headroom.
+- **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host` (or `X-Forwarded-Host`, which Cantus also honours from a trusted proxy)
+- **Idle Timeouts above 30 seconds**: the server sends a SignalR keep-alive every 15 seconds and clients give up after 30 seconds of silence, so any proxy idle timeout above 30 seconds is enough. The `300s` in the examples leaves plenty of headroom.
 
 > **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored. This typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
 >
@@ -133,6 +134,7 @@ services:
 ## 4. Cloudflare Proxied Domains & SSL
 
 If routing through Cloudflare CDN:
+
 1. In the Cloudflare Dashboard, navigate to **Network** and ensure **WebSockets** is toggled **ON**.
 2. Under **SSL/TLS**, set encryption mode to **Full (Strict)**.
 3. Configure `CANTUS_HOST_URL=https://cantus.yourdomain.com` in your environment.

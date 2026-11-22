@@ -153,22 +153,10 @@ docs/local/*
 *.key
 
 # ----------------------------------------------------------------------
-# Knowledge Graphs & Codebase Understanding (Understand-Anything / Graphify)
+# Knowledge Graphs & Codebase Understanding (local analysis outputs)
 # ----------------------------------------------------------------------
-# Understand-Anything local caches & intermediate processing batches
-.ua/intermediate/
-.ua/.trash*/
-.ua/cache/
-.ua/temp/
-.ua/*.tmp
-
-# Legacy Understand-Anything directory paths
-.understand-anything/intermediate/
-.understand-anything/.trash*/
-.understand-anything/cache/
-.understand-anything/temp/
-
-# Graphify analysis outputs
+.ua/
+.understand-anything/
 graphify-out/
 
 # ----------------------------------------------------------------------
