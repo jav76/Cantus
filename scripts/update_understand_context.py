@@ -427,6 +427,16 @@ def update_knowledge_graph(all_files: List[Path], commit_hash: str, timestamp: s
     return kg
 
 
+SPOTIFY_AUTH_SERVICE_PATH = "src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs"
+PLAYBACK_SESSION_REGISTRY_PATH = "src/Cantus.Server/Services/PlaybackSessionRegistry.cs"
+ACTIVE_USERS_MONITOR_PATH = "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs"
+SQLITE_LYRICS_CACHE_PATH = "src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs"
+PLAYBACK_HUB_PATH = "src/Cantus.Server/Hubs/PlaybackHub.cs"
+STEP_TRACK_VISIBILITY = "step:adaptive-playback-polling:track-client-visibility"
+STEP_ON_DEMAND_REFRESH = "step:adaptive-playback-polling:on-demand-playback-refresh"
+STEP_MANUAL_SCROLL_RESUME = "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume"
+
+
 def update_domain_graph(commit_hash: str, timestamp: str) -> Dict[str, Any]:
     dg_path = UA_DIR / "domain-graph.json"
     dg = json.loads(dg_path.read_text(encoding="utf-8"))
@@ -437,59 +447,59 @@ def update_domain_graph(commit_hash: str, timestamp: str) -> Dict[str, Any]:
     # Exact step line calibrations based on current source implementations
     step_calibrations = {
         "step:spotify-pkce-login:generate-pkce-challenge": ("src/Cantus.Server/Services/PkceHelper.cs", [8, 28]),
-        "step:spotify-pkce-login:redirect-spotify-auth": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [33, 48]),
-        "step:spotify-pkce-login:exchange-auth-code": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [50, 120]),
+        "step:spotify-pkce-login:redirect-spotify-auth": (SPOTIFY_AUTH_SERVICE_PATH, [33, 48]),
+        "step:spotify-pkce-login:exchange-auth-code": (SPOTIFY_AUTH_SERVICE_PATH, [50, 120]),
         "step:spotify-pkce-login:persist-encrypted-session": ("src/Cantus.Infrastructure/Security/DataProtectionTokenEncryptionService.cs", [15, 34]),
-        "step:token-refresh-lifecycle:check-token-expiration": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [122, 175]),
-        "step:token-refresh-lifecycle:refresh-tokens-via-spotify": ("src/Cantus.Infrastructure/Spotify/SpotifyAuthService.cs", [122, 175]),
+        "step:token-refresh-lifecycle:check-token-expiration": (SPOTIFY_AUTH_SERVICE_PATH, [122, 175]),
+        "step:token-refresh-lifecycle:refresh-tokens-via-spotify": (SPOTIFY_AUTH_SERVICE_PATH, [122, 175]),
         "step:token-refresh-lifecycle:update-stored-session": ("src/Cantus.Infrastructure/Persistence/CantusDbContext.cs", [1, 65]),
-        "step:adaptive-playback-polling:evaluate-active-listeners": ("src/Cantus.Server/Services/PlaybackSessionRegistry.cs", [80, 118]),
-        "step:adaptive-playback-polling:track-client-visibility": ("src/Cantus.Server/Services/PlaybackSessionRegistry.cs", [75, 96]),
+        "step:adaptive-playback-polling:evaluate-active-listeners": (PLAYBACK_SESSION_REGISTRY_PATH, [80, 118]),
+        STEP_TRACK_VISIBILITY: (PLAYBACK_SESSION_REGISTRY_PATH, [75, 96]),
         "step:adaptive-playback-polling:query-spotify-playback": ("src/Cantus.Infrastructure/Spotify/SpotifyPlayerClient.cs", [17, 99]),
-        "step:adaptive-playback-polling:detect-state-transitions": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [305, 500]),
-        "step:adaptive-playback-polling:on-demand-playback-refresh": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [70, 78]),
-        "step:adaptive-playback-polling:broadcast-playback-update": ("src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs", [370, 426]),
-        "step:fetch-and-cache-lyrics:check-sqlite-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [23, 72]),
+        "step:adaptive-playback-polling:detect-state-transitions": (ACTIVE_USERS_MONITOR_PATH, [305, 500]),
+        STEP_ON_DEMAND_REFRESH: (ACTIVE_USERS_MONITOR_PATH, [70, 78]),
+        "step:adaptive-playback-polling:broadcast-playback-update": (ACTIVE_USERS_MONITOR_PATH, [370, 426]),
+        "step:fetch-and-cache-lyrics:check-sqlite-cache": (SQLITE_LYRICS_CACHE_PATH, [23, 72]),
         "step:fetch-and-cache-lyrics:fetch-external-lrclib": ("src/Cantus.Infrastructure/Lyrics/LrclibLyricsProvider.cs", [44, 150]),
         "step:fetch-and-cache-lyrics:parse-lrc-timestamps": ("src/Cantus.Core/Parsers/LrcParser.cs", [8, 175]),
-        "step:fetch-and-cache-lyrics:save-lyrics-cache": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [95, 194]),
-        "step:track-latency-offset-adjustment:receive-offset-nudge": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [234, 267]),
-        "step:track-latency-offset-adjustment:persist-track-offset": ("src/Cantus.Infrastructure/Lyrics/SqliteLyricsCacheRepository.cs", [196, 227]),
-        "step:track-latency-offset-adjustment:broadcast-offset-sync": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [262, 266]),
+        "step:fetch-and-cache-lyrics:save-lyrics-cache": (SQLITE_LYRICS_CACHE_PATH, [95, 194]),
+        "step:track-latency-offset-adjustment:receive-offset-nudge": (PLAYBACK_HUB_PATH, [234, 267]),
+        "step:track-latency-offset-adjustment:persist-track-offset": (SQLITE_LYRICS_CACHE_PATH, [196, 227]),
+        "step:track-latency-offset-adjustment:broadcast-offset-sync": (PLAYBACK_HUB_PATH, [262, 266]),
         "step:ntp-clock-synchronization:send-ntp-ping": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [537, 563]),
-        "step:ntp-clock-synchronization:server-ntp-timestamp": ("src/Cantus.Server/Hubs/PlaybackHub.cs", [152, 161]),
+        "step:ntp-clock-synchronization:server-ntp-timestamp": (PLAYBACK_HUB_PATH, [152, 161]),
         "step:ntp-clock-synchronization:compute-skew-and-rtt": ("src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs", [565, 615]),
         "step:real-time-lyrics-scrolling:interpolate-playback-clock": ("src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs", [1384, 1456]),
         "step:real-time-lyrics-scrolling:calculate-active-lyric-line": ("src/Cantus.Core/Models/SyncedLyrics.cs", [14, 46]),
         "step:real-time-lyrics-scrolling:update-ui-and-theme": ("src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs", [869, 950]),
-        "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume": ("src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs", [37, 105]),
+        STEP_MANUAL_SCROLL_RESUME: ("src/Cantus.Client/Cantus.Client/Views/LyricsStageView.xaml.cs", [37, 105]),
     }
 
     # Add missing domain step nodes if not present
     existing_node_ids = {n["id"] for n in dg.get("nodes", [])}
     new_step_nodes = [
         {
-            "id": "step:adaptive-playback-polling:track-client-visibility",
+            "id": STEP_TRACK_VISIBILITY,
             "type": "step",
             "name": "Track Client Tab Visibility",
             "summary": "Maintains client connection visibility state and slows polling to background cadence when all connections are hidden.",
             "tags": ["visibility", "signalr", "optimization"],
             "complexity": "simple",
-            "filePath": "src/Cantus.Server/Services/PlaybackSessionRegistry.cs",
+            "filePath": PLAYBACK_SESSION_REGISTRY_PATH,
             "lineRange": [75, 96]
         },
         {
-            "id": "step:adaptive-playback-polling:on-demand-playback-refresh",
+            "id": STEP_ON_DEMAND_REFRESH,
             "type": "step",
             "name": "On-Demand Playback Refresh",
             "summary": "Handles instant playback poll wake-up requests triggered by user focus, resumption, or client interaction.",
             "tags": ["polling", "signalr", "low-latency"],
             "complexity": "simple",
-            "filePath": "src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs",
+            "filePath": ACTIVE_USERS_MONITOR_PATH,
             "lineRange": [70, 78]
         },
         {
-            "id": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+            "id": STEP_MANUAL_SCROLL_RESUME,
             "type": "step",
             "name": "Manual Scroll Detection & Auto-Resume",
             "summary": "Detects user pointer/wheel scrolling to temporarily pause auto-scroll and resumes tracking after 3 seconds of inactivity or user click.",
@@ -509,21 +519,21 @@ def update_domain_graph(commit_hash: str, timestamp: str) -> Dict[str, Any]:
     new_edges = [
         {
             "source": "flow:adaptive-playback-polling",
-            "target": "step:adaptive-playback-polling:track-client-visibility",
+            "target": STEP_TRACK_VISIBILITY,
             "type": "flow_step",
             "direction": "forward",
             "weight": 0.35
         },
         {
             "source": "flow:adaptive-playback-polling",
-            "target": "step:adaptive-playback-polling:on-demand-playback-refresh",
+            "target": STEP_ON_DEMAND_REFRESH,
             "type": "flow_step",
             "direction": "forward",
             "weight": 0.85
         },
         {
             "source": "flow:real-time-lyrics-scrolling",
-            "target": "step:real-time-lyrics-scrolling:manual-scroll-detection-and-resume",
+            "target": STEP_MANUAL_SCROLL_RESUME,
             "type": "flow_step",
             "direction": "forward",
             "weight": 0.95

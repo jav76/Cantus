@@ -252,12 +252,12 @@ public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvide
                 : 0)
             .FirstOrDefault();
 
-        if (candidate is not null && targetDurationSec > 0 && candidate.Duration.HasValue)
+        if (candidate is not null
+            && targetDurationSec > 0
+            && candidate.Duration.HasValue
+            && Math.Abs(candidate.Duration.Value - targetDurationSec) > 5)
         {
-            if (Math.Abs(candidate.Duration.Value - targetDurationSec) > 5)
-            {
-                return null;
-            }
+            return null;
         }
 
         return candidate ?? results.FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.PlainLyrics) || r.Instrumental);

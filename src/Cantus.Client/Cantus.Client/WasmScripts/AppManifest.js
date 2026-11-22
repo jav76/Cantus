@@ -1,4 +1,4 @@
-var UnoAppManifest = {
+globalThis.UnoAppManifest = {
     splashScreenImage: "",
     splashScreenColor: "transparent",
     displayName: "Cantus"

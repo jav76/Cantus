@@ -79,18 +79,10 @@ public static class AuthEndpoints
         SpotifyOptions options = spotifyOptions.Value;
         string redirectUri = hostUrlResolver.ResolveSpotifyRedirectUri(context);
 
-        string? userClientId = null;
-        if (!string.IsNullOrWhiteSpace(requestedUserClientId))
+        IResult? clientIdFailure = TryValidateUserClientId(requestedUserClientId, redirectUri, options, out string? userClientId);
+        if (clientIdFailure is not null)
         {
-            if (!options.UserClientIdsAllowed)
-            {
-                return FailurePage(SpotifyAuthFailure.UserClientIdsDisabled, redirectUri, options, StatusCodes.Status403Forbidden);
-            }
-
-            if (!SpotifyClientIdFormat.TryNormalize(requestedUserClientId, out userClientId))
-            {
-                return FailurePage(SpotifyAuthFailure.InvalidClientId, redirectUri, options, StatusCodes.Status400BadRequest);
-            }
+            return clientIdFailure;
         }
 
         string state = Guid.NewGuid().ToString("N");
@@ -110,7 +102,7 @@ public static class AuthEndpoints
         CookieOptions cookieOptions = new()
         {
             HttpOnly = true,
-            Secure = context.Request.IsHttps,
+            Secure = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddMinutes(10)
         };
@@ -243,18 +235,10 @@ public static class AuthEndpoints
             return FailurePage(SpotifyAuthFailure.SignInExpired, null, options, StatusCodes.Status400BadRequest);
         }
 
-        string? userClientId = null;
-        if (!string.IsNullOrWhiteSpace(userClientIdCookie))
+        IResult? clientIdFailure = TryValidateUserClientId(userClientIdCookie, null, options, out string? userClientId);
+        if (clientIdFailure is not null)
         {
-            if (!options.UserClientIdsAllowed)
-            {
-                return FailurePage(SpotifyAuthFailure.UserClientIdsDisabled, null, options, StatusCodes.Status403Forbidden);
-            }
-
-            if (!SpotifyClientIdFormat.TryNormalize(userClientIdCookie, out userClientId))
-            {
-                return FailurePage(SpotifyAuthFailure.InvalidClientId, null, options, StatusCodes.Status400BadRequest);
-            }
+            return clientIdFailure;
         }
 
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri)
@@ -283,19 +267,12 @@ public static class AuthEndpoints
             bool isPlaying = existingSnapshot?.PlaybackState?.IsPlaying ?? false;
             AuthorizedSessionDto dto = session.ToDto(isPlaying);
 
-            if (!string.IsNullOrWhiteSpace(clientId))
-            {
-                await hubContext.Clients.Group($"client_{clientId}").ReceiveAuthSession(dto);
-                await hubContext.Clients.Client(clientId).ReceiveAuthSession(dto);
-                await hubContext.Clients.Group($"client_{clientId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
-            }
-
-            await hubContext.Clients.Group($"user_{session.Id}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
+            await BroadcastSessionAsync(hubContext, clientId, session.Id, dto);
 
             context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = context.Request.IsHttps,
+                Secure = true,
                 SameSite = SameSiteMode.Lax,
                 Expires = DateTimeOffset.UtcNow.AddDays(30)
             });
@@ -471,5 +448,46 @@ public static class AuthEndpoints
         }
 
         return true;
+    }
+
+    private static IResult? TryValidateUserClientId(
+        string? rawClientId,
+        string? redirectUri,
+        SpotifyOptions options,
+        out string? userClientId)
+    {
+        userClientId = null;
+        if (string.IsNullOrWhiteSpace(rawClientId))
+        {
+            return null;
+        }
+
+        if (!options.UserClientIdsAllowed)
+        {
+            return FailurePage(SpotifyAuthFailure.UserClientIdsDisabled, redirectUri, options, StatusCodes.Status403Forbidden);
+        }
+
+        if (!SpotifyClientIdFormat.TryNormalize(rawClientId, out userClientId))
+        {
+            return FailurePage(SpotifyAuthFailure.InvalidClientId, redirectUri, options, StatusCodes.Status400BadRequest);
+        }
+
+        return null;
+    }
+
+    private static async Task BroadcastSessionAsync(
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        string? clientId,
+        string sessionId,
+        AuthorizedSessionDto dto)
+    {
+        if (!string.IsNullOrWhiteSpace(clientId))
+        {
+            await hubContext.Clients.Group($"client_{clientId}").ReceiveAuthSession(dto);
+            await hubContext.Clients.Client(clientId).ReceiveAuthSession(dto);
+            await hubContext.Clients.Group($"client_{clientId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
+        }
+
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(new List<AuthorizedSessionDto> { dto });
     }
 }

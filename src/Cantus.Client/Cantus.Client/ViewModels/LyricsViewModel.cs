@@ -855,22 +855,33 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         for (int i = 0; i < present.Count; i++)
         {
             LyricSyllablePayload syllable = present[i];
-            long durationMs = syllable.DurationMs;
-            if (durationMs <= 0)
-            {
-                bool isLast = i + 1 == present.Count;
-                long? untilMs = isLast ? lineFillEndMs : present[i + 1].TimestampMs;
-                durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
-                if (isLast && durationMs == 0)
-                {
-                    durationMs = EstimateWordSungMs(syllable.Text);
-                }
-            }
-
+            long durationMs = ResolveSyllableDurationMs(present, i, lineFillEndMs);
             result.Add(new SyllableTiming(syllable.TimestampMs, durationMs, syllable.Text ?? string.Empty));
         }
 
         return result.Count > 0 ? result : null;
+    }
+
+    private static long ResolveSyllableDurationMs(
+        List<LyricSyllablePayload> present,
+        int index,
+        long? lineFillEndMs)
+    {
+        LyricSyllablePayload syllable = present[index];
+        if (syllable.DurationMs > 0)
+        {
+            return syllable.DurationMs;
+        }
+
+        bool isLast = index + 1 == present.Count;
+        long? untilMs = isLast ? lineFillEndMs : present[index + 1].TimestampMs;
+        long durationMs = untilMs.HasValue ? Math.Max(untilMs.Value - syllable.TimestampMs, 0) : 0;
+        if (isLast && durationMs == 0)
+        {
+            return EstimateWordSungMs(syllable.Text);
+        }
+
+        return durationMs;
     }
 
     private static long EstimateWordSungMs(string? text)
@@ -1060,33 +1071,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (durationMs <= 0) durationMs = 1;
 
         long localNow = _transport.GetServerNowMs();
-
-        if (state.IsPlaying)
-        {
-            long dt = _lastTickTimestampMs > 0 ? Math.Clamp(localNow - _lastTickTimestampMs, 1, 100) : 16;
-            _lastTickTimestampMs = localNow;
-
-            long targetMs = ComputeTargetProgressMs(state, localNow);
-
-            // Monotonic Phase-Locked Loop (PLL) tracking
-            long error = targetMs - _interpolatedProgressMs;
-            if (Math.Abs(error) > 1500)
-            {
-                _interpolatedProgressMs = targetMs;
-            }
-            else
-            {
-                // Slew rate adjustment: steer smoothly up to +/- 5% to lock phase without jumping
-                double slewAdjustment = Math.Clamp(error / 500.0, -0.05, 0.05);
-                double deltaProgress = dt * (1.0 + slewAdjustment);
-                _interpolatedProgressMs += (long)Math.Round(deltaProgress);
-            }
-        }
-        else
-        {
-            _interpolatedProgressMs = ComputeTargetProgressMs(state, localNow);
-            _lastTickTimestampMs = localNow;
-        }
+        UpdateInterpolatedProgress(state, localNow);
 
         long currentWithOffset = _transport.HoldAtSeekFloor(
             _timing.ComputeRenderPositionMs(_interpolatedProgressMs, durationMs));
@@ -1095,26 +1080,58 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ProgressText = FormatTime(currentWithOffset);
         TotalDurationText = FormatTime(durationMs);
 
-        if (LyricLines.Count > 0)
+        UpdateActiveLyricLine(currentWithOffset);
+    }
+
+    private void UpdateInterpolatedProgress(PlaybackStatePayload state, long localNow)
+    {
+        if (!state.IsPlaying)
         {
-            int idx = FindActiveLineIndex(currentWithOffset);
-            if (idx != ActiveLineIndex)
-            {
-                ActiveLineIndex = idx;
-                ActiveLineChanged?.Invoke(idx);
-            }
-
-            if (_isKaraokeModeEnabled && idx >= 0 && idx < LyricLines.Count)
-            {
-                LyricLines[idx].UpdateLineProgress(currentWithOffset);
-            }
-
-            EvaluateInstrumentalBreak(idx, currentWithOffset);
+            _interpolatedProgressMs = ComputeTargetProgressMs(state, localNow);
+            _lastTickTimestampMs = localNow;
+            return;
         }
-        else
+
+        long dt = _lastTickTimestampMs > 0 ? Math.Clamp(localNow - _lastTickTimestampMs, 1, 100) : 16;
+        _lastTickTimestampMs = localNow;
+
+        long targetMs = ComputeTargetProgressMs(state, localNow);
+
+        // Monotonic Phase-Locked Loop (PLL) tracking
+        long error = targetMs - _interpolatedProgressMs;
+        if (Math.Abs(error) > 1500)
+        {
+            _interpolatedProgressMs = targetMs;
+            return;
+        }
+
+        // Slew rate adjustment: steer smoothly up to +/- 5% to lock phase without jumping
+        double slewAdjustment = Math.Clamp(error / 500.0, -0.05, 0.05);
+        double deltaProgress = dt * (1.0 + slewAdjustment);
+        _interpolatedProgressMs += (long)Math.Round(deltaProgress);
+    }
+
+    private void UpdateActiveLyricLine(long currentWithOffset)
+    {
+        if (LyricLines.Count == 0)
         {
             IsInstrumentalBreak = false;
+            return;
         }
+
+        int idx = FindActiveLineIndex(currentWithOffset);
+        if (idx != ActiveLineIndex)
+        {
+            ActiveLineIndex = idx;
+            ActiveLineChanged?.Invoke(idx);
+        }
+
+        if (_isKaraokeModeEnabled && idx >= 0 && idx < LyricLines.Count)
+        {
+            LyricLines[idx].UpdateLineProgress(currentWithOffset);
+        }
+
+        EvaluateInstrumentalBreak(idx, currentWithOffset);
     }
 
     private void EvaluateInstrumentalBreak(int activeIdx, long currentMs)

@@ -237,24 +237,9 @@ public sealed class CachedLyricsService : ILyricsProvider
 
         foreach (ILyricsFetchProvider provider in providers)
         {
-            LyricsFetchResult fetchResult;
-            try
+            LyricsFetchResult? fetchResult = await TryFetchFromProviderAsync(provider, track, cancellationToken);
+            if (fetchResult is null)
             {
-                fetchResult = await provider.FetchLyricsAsync(track, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                // A provider must never take down the chain: treat an
-                // unexpected throw as that provider being unavailable.
-                _logger.LogWarning(
-                    ex,
-                    "Lyrics provider {Provider} threw for track {TrackId}; treating as unavailable.",
-                    provider.ProviderName,
-                    track.Id);
                 allProvidersDefinitive = false;
                 continue;
             }
@@ -288,5 +273,31 @@ public sealed class CachedLyricsService : ILyricsProvider
         }
 
         return (found, allProvidersDefinitive);
+    }
+
+    private async Task<LyricsFetchResult?> TryFetchFromProviderAsync(
+        ILyricsFetchProvider provider,
+        TrackInfo track,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await provider.FetchLyricsAsync(track, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // A provider must never take down the chain: treat an
+            // unexpected throw as that provider being unavailable.
+            _logger.LogWarning(
+                ex,
+                "Lyrics provider {Provider} threw for track {TrackId}; treating as unavailable.",
+                provider.ProviderName,
+                track.Id);
+            return null;
+        }
     }
 }

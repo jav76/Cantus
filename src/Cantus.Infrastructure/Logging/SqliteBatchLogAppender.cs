@@ -33,7 +33,7 @@ public class SqliteBatchLogAppender : AppenderSkeleton
             SingleReader = true
         });
         _cts = new();
-        _workerTask = Task.Run(ProcessQueueAsync);
+        _workerTask = Task.Run(ProcessQueueAsync, _cts.Token);
     }
 
     protected override void Append(LoggingEvent loggingEvent)
@@ -68,19 +68,7 @@ public class SqliteBatchLogAppender : AppenderSkeleton
         {
             try
             {
-                if (await _channel.Reader.WaitToReadAsync(_cts.Token))
-                {
-                    while (_channel.Reader.TryRead(out LogEntryEntity? item) && batch.Count < 200)
-                    {
-                        batch.Add(item);
-                    }
-
-                    if (batch.Count > 0)
-                    {
-                        WriteBatchToDatabase(batch);
-                        batch.Clear();
-                    }
-                }
+                await ReadAndWriteBatchAsync(batch);
             }
             catch (OperationCanceledException)
             {
@@ -92,21 +80,47 @@ public class SqliteBatchLogAppender : AppenderSkeleton
             }
         }
 
+        FlushRemainingBatch(batch);
+    }
+
+    private async Task ReadAndWriteBatchAsync(List<LogEntryEntity> batch)
+    {
+        if (!await _channel.Reader.WaitToReadAsync(_cts.Token))
+        {
+            return;
+        }
+
+        while (_channel.Reader.TryRead(out LogEntryEntity? item) && batch.Count < 200)
+        {
+            batch.Add(item);
+        }
+
+        if (batch.Count > 0)
+        {
+            WriteBatchToDatabase(batch);
+            batch.Clear();
+        }
+    }
+
+    private void FlushRemainingBatch(List<LogEntryEntity> batch)
+    {
         // Drain remaining items on shutdown
         while (_channel.Reader.TryRead(out LogEntryEntity? remaining))
         {
             batch.Add(remaining);
         }
 
-        if (batch.Count > 0)
+        if (batch.Count == 0)
         {
-            try
-            {
-                WriteBatchToDatabase(batch);
-            }
-            catch
-            {
-            }
+            return;
+        }
+
+        try
+        {
+            WriteBatchToDatabase(batch);
+        }
+        catch
+        {
         }
     }
 
@@ -161,10 +175,14 @@ public class SqliteBatchLogAppender : AppenderSkeleton
         _channel.Writer.Complete();
         try
         {
-            _workerTask.Wait(TimeSpan.FromSeconds(3));
+            _workerTask.Wait(TimeSpan.FromSeconds(3), CancellationToken.None);
         }
         catch
         {
+        }
+        finally
+        {
+            _cts.Dispose();
         }
         base.OnClose();
     }

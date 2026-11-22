@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.Net;
-using System.Text.RegularExpressions;
 using Cantus.Core.Logging;
 using Cantus.Infrastructure;
 using Cantus.Infrastructure.Logging;
@@ -14,6 +13,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -210,10 +210,10 @@ using (IServiceScope scope = app.Services.CreateScope())
 {
     IConfiguration config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     string dbConnStr = config.GetConnectionString("CantusDatabase") ?? "Data Source=cantus.db";
-    Match match = Regex.Match(dbConnStr, @"Data Source=([^;]+)", RegexOptions.IgnoreCase);
-    if (match.Success)
+    SqliteConnectionStringBuilder connBuilder = new(dbConnStr);
+    string dbPath = connBuilder.DataSource;
+    if (!string.IsNullOrWhiteSpace(dbPath) && !dbPath.Equals(":memory:", StringComparison.OrdinalIgnoreCase))
     {
-        string dbPath = match.Groups[1].Value.Trim();
         string? dbDir = Path.GetDirectoryName(dbPath);
         if (!string.IsNullOrEmpty(dbDir) && !Directory.Exists(dbDir))
         {

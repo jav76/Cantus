@@ -1,9 +1,7 @@
-using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Cantus.Server.Tests.Services;
@@ -20,8 +18,7 @@ public sealed class HostUrlResolverTests
             })
             .Build();
 
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         string result = resolver.ResolveBaseUrl();
 
@@ -38,8 +35,7 @@ public sealed class HostUrlResolverTests
             })
             .Build();
 
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         string result = resolver.ResolveBaseUrl();
 
@@ -50,8 +46,7 @@ public sealed class HostUrlResolverTests
     public void ResolveBaseUrl_WhenNoEnvVar_DerivesFromHttpContext()
     {
         IConfiguration config = new ConfigurationBuilder().Build();
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         DefaultHttpContext context = new();
         context.Request.Scheme = "https";
@@ -66,8 +61,7 @@ public sealed class HostUrlResolverTests
     public void ResolveBaseUrl_WhenNoEnvVarAndNoContext_ReturnsLocalhostDefault()
     {
         IConfiguration config = new ConfigurationBuilder().Build();
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         string result = resolver.ResolveBaseUrl();
 
@@ -84,8 +78,7 @@ public sealed class HostUrlResolverTests
             })
             .Build();
 
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         string result = resolver.ResolveSpotifyRedirectUri();
 
@@ -96,8 +89,7 @@ public sealed class HostUrlResolverTests
     public void ResolveSpotifyRedirectUri_WhenLocalhostRequestContext_DerivesLocalhostCallback()
     {
         IConfiguration config = new ConfigurationBuilder().Build();
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         DefaultHttpContext context = new();
         context.Request.Scheme = "http";
@@ -112,8 +104,7 @@ public sealed class HostUrlResolverTests
     public void ResolveSpotifyRedirectUri_WhenLoopbackIpContext_DerivesLoopbackCallback()
     {
         IConfiguration config = new ConfigurationBuilder().Build();
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         DefaultHttpContext context = new();
         context.Request.Scheme = "http";
@@ -134,8 +125,7 @@ public sealed class HostUrlResolverTests
             })
             .Build();
 
-        IOptions<SpotifyOptions> options = Options.Create(new SpotifyOptions());
-        HostUrlResolver resolver = new(config, options);
+        HostUrlResolver resolver = new(config);
 
         string result = resolver.ResolveSpotifyRedirectUri();
 
