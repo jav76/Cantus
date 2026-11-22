@@ -3,19 +3,16 @@ using System.ComponentModel;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Windows.System;
 using Windows.UI;
 
 namespace Cantus.Client.Views;
 
 public sealed partial class AdaptiveHeaderBar : UserControl
 {
-    private static readonly ILogger<AdaptiveHeaderBar> _logger = ClientLoggingManager.CreateLogger<AdaptiveHeaderBar>();
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.Register(
             nameof(ViewModel),
@@ -274,25 +271,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            string loginPath = Session?.SpotifyLoginPath ?? SessionViewModel.SPOTIFY_LOGIN_PATH;
-#if __WASM__
-            string origin = WasmInterop.GetCurrentOrigin();
-            string loginUrl = !string.IsNullOrWhiteSpace(origin)
-                ? $"{origin}{loginPath}"
-                : loginPath;
-            WasmInterop.NavigateTo(loginUrl);
-#else
-            string baseUrl = Session?.ServerBaseUrl ?? "http://127.0.0.1:5000";
-            Uri uri = new($"{baseUrl}{loginPath}");
-            await Launcher.LaunchUriAsync(uri);
-#endif
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error connecting to Spotify");
-        }
+        await SpotifySignIn.StartAsync(Session, XamlRoot);
     }
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)

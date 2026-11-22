@@ -6,11 +6,27 @@ namespace Cantus.Core.Interfaces;
 [TraceLog]
 public interface ISpotifyAuthService
 {
-    Uri GetAuthorizationUri(string state, string codeChallenge, string? redirectUri = null);
+    /// <summary>
+    /// Builds the Spotify authorize URL. <paramref name="userClientId"/> is the user's own
+    /// Spotify app; null uses the server's. Throws <see cref="Models.SpotifyNotConfiguredException"/>
+    /// when neither is set.
+    /// </summary>
+    Uri GetAuthorizationUri(
+        string state,
+        string codeChallenge,
+        string? redirectUri = null,
+        string? userClientId = null);
+
+    /// <summary>
+    /// Exchanges the callback code for tokens and stores the Session. Pass the same
+    /// <paramref name="userClientId"/> the authorize URL was built with: it is saved on the
+    /// Session so later refreshes use the app that issued the tokens.
+    /// </summary>
     Task<UserSession> ExchangeCodeAsync(
         [Redact] string code,
         [Redact] string codeVerifier,
         string? redirectUri = null,
+        string? userClientId = null,
         CancellationToken cancellationToken = default);
     Task<UserSession> RefreshTokenAsync([Redact] string userId, CancellationToken cancellationToken = default);
 

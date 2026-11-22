@@ -243,6 +243,7 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(SongLookupPlayRequestPayload))]
 [JsonSerializable(typeof(SongLookupPlayResponsePayload))]
 [JsonSerializable(typeof(SongLookupErrorPayload))]
+[JsonSerializable(typeof(SpotifySetupInfoPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
@@ -346,7 +347,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         if (string.IsNullOrWhiteSpace(SessionToken))
         {
             string authQueryToken = WasmInterop.GetAuthQueryParameter();
-            if (!string.IsNullOrWhiteSpace(authQueryToken))
+            if (!string.IsNullOrWhiteSpace(authQueryToken) && !IsReservedAuthQueryValue(authQueryToken))
             {
                 SessionToken = authQueryToken;
             }
@@ -356,6 +357,14 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             ReconnectInterval = reconnectInterval.Value;
         }
     }
+
+    /// <summary>
+    /// <c>?auth=success</c> and <c>?auth=error</c> are sign-in outcomes that older server pages
+    /// link to, never a session id, so they must not be sent as a credential.
+    /// </summary>
+    internal static bool IsReservedAuthQueryValue(string value) =>
+        value.Equals("success", StringComparison.OrdinalIgnoreCase)
+        || value.Equals("error", StringComparison.OrdinalIgnoreCase);
 
     private string GetSessionFilePath()
     {

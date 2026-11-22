@@ -35,7 +35,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         HttpClient client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
         _mockAuthService
-            .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>()))
             .Returns(new Uri("https://accounts.spotify.com/authorize?test=1"));
 
         HttpResponseMessage response = await client.GetAsync("/api/auth/spotify/login?json=true");
@@ -52,7 +52,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         HttpClient client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
         _mockAuthService
-            .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .Setup(a => a.GetAuthorizationUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>()))
             .Returns(new Uri("https://accounts.spotify.com/authorize?test=alias"));
 
         HttpResponseMessage response = await client.GetAsync("/api/auth/login?json=true");
@@ -182,7 +182,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         registry.UpdateUserState("sess-relink", "Test User", playbackState, lyrics, 250);
 
         _mockAuthService
-            .Setup(a => a.ExchangeCodeAsync("auth-code", "verifier-1", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.ExchangeCodeAsync("auth-code", "verifier-1", It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UserSession
             {
                 Id = "sess-relink",

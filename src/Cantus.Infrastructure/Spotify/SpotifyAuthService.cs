@@ -21,25 +21,32 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     private readonly ITokenEncryptionService _encryptionService;
     private readonly SpotifyOptions _options;
     private readonly ILogger<SpotifyAuthService> _logger;
+    private readonly ISpotifyTokenClient _tokenClient;
 
     public SpotifyAuthService(
         CantusDbContext dbContext,
         ITokenEncryptionService encryptionService,
         IOptions<SpotifyOptions> options,
-        ILogger<SpotifyAuthService> logger)
+        ILogger<SpotifyAuthService> logger,
+        ISpotifyTokenClient? tokenClient = null)
     {
         _dbContext = dbContext;
         _encryptionService = encryptionService;
         _options = options.Value;
         _logger = logger;
+        _tokenClient = tokenClient ?? new SpotifyTokenClient();
     }
 
-    public Uri GetAuthorizationUri(string state, string codeChallenge, string? redirectUri = null)
+    public Uri GetAuthorizationUri(
+        string state,
+        string codeChallenge,
+        string? redirectUri = null,
+        string? userClientId = null)
     {
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri) ? redirectUri : _options.RedirectUri;
         LoginRequest loginRequest = new(
             new Uri(effectiveRedirectUri),
-            _options.ClientId,
+            ResolveClientId(userClientId),
             LoginRequest.ResponseType.Code)
         {
             CodeChallenge = codeChallenge,
@@ -55,15 +62,16 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         string code,
         string codeVerifier,
         string? redirectUri = null,
+        string? userClientId = null,
         CancellationToken cancellationToken = default)
     {
         string effectiveRedirectUri = !string.IsNullOrWhiteSpace(redirectUri) ? redirectUri : _options.RedirectUri;
-        OAuthClient oauth = new();
-        PKCETokenRequest tokenRequest = new(_options.ClientId, code, new Uri(effectiveRedirectUri), codeVerifier);
-        PKCETokenResponse tokenResponse = await oauth.RequestToken(tokenRequest, cancellationToken);
+        string clientId = ResolveClientId(userClientId);
+        string? storedClientId = string.IsNullOrWhiteSpace(userClientId) ? null : clientId;
+        PKCETokenRequest tokenRequest = new(clientId, code, new Uri(effectiveRedirectUri), codeVerifier);
+        PKCETokenResponse tokenResponse = await _tokenClient.RequestTokenAsync(tokenRequest, cancellationToken);
 
-        SpotifyClient spotify = new(tokenResponse.AccessToken);
-        PrivateUser me = await spotify.UserProfile.Current(cancellationToken);
+        PrivateUser me = await _tokenClient.GetCurrentUserAsync(tokenResponse.AccessToken, cancellationToken);
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
         DateTimeOffset expiresAt = now.AddSeconds(tokenResponse.ExpiresIn);
@@ -85,6 +93,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
                 ProfileImageUrl = me.Images?.FirstOrDefault()?.Url,
                 EncryptedAccessToken = encAccessToken,
                 EncryptedRefreshToken = encRefreshToken,
+                SpotifyClientId = storedClientId,
                 ExpiresAtUtc = expiresAt,
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now
@@ -98,6 +107,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             sessionEntity.ProfileImageUrl = me.Images?.FirstOrDefault()?.Url;
             sessionEntity.EncryptedAccessToken = encAccessToken;
             sessionEntity.EncryptedRefreshToken = encRefreshToken;
+            sessionEntity.SpotifyClientId = storedClientId;
             sessionEntity.ExpiresAtUtc = expiresAt;
             sessionEntity.UpdatedAtUtc = now;
         }
@@ -136,9 +146,8 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         }
 
         string rawRefreshToken = _encryptionService.Decrypt(sessionEntity.EncryptedRefreshToken);
-        OAuthClient oauth = new();
-        PKCETokenRefreshRequest refreshRequest = new(_options.ClientId, rawRefreshToken);
-        PKCETokenResponse refreshResponse = await oauth.RequestToken(refreshRequest, cancellationToken);
+        PKCETokenRefreshRequest refreshRequest = new(ResolveClientId(sessionEntity.SpotifyClientId), rawRefreshToken);
+        PKCETokenResponse refreshResponse = await _tokenClient.RefreshTokenAsync(refreshRequest, cancellationToken);
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
         sessionEntity.EncryptedAccessToken = _encryptionService.Encrypt(refreshResponse.AccessToken);
@@ -311,6 +320,17 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         _dbContext.UserSessions.Remove(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    private string ResolveClientId(string? userClientId)
+    {
+        string clientId = string.IsNullOrWhiteSpace(userClientId) ? _options.ClientId : userClientId;
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            throw new SpotifyNotConfiguredException();
+        }
+
+        return clientId;
     }
 
     public static void ClearCache()

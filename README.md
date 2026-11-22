@@ -107,6 +107,8 @@ Cantus requires a registered Spotify Developer application to communicate with S
 
 Because Cantus uses the OAuth 2.0 PKCE (Proof Key for Code Exchange) flow, a Client Secret is not required for client authentication.
 
+Spotify limits an app in Development Mode to 5 users, and its owner needs Premium. Users beyond that can sign in with their own Spotify app from the **Connect Spotify** screen; see [Users' own Spotify apps](docs/operator-guide/spotify-setup.md#5-users-own-spotify-apps).
+
 ---
 
 ## Configuration Reference
@@ -115,7 +117,8 @@ Cantus is configured via environment variables or `appsettings.json`:
 
 | Variable | Required | Default | Description |
 | :--- | :---: | :---: | :--- |
-| `Spotify__ClientId` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
+| `Spotify__ClientId` | Recommended | None | 32-character Client ID of the server's Spotify app. When unset, users sign in with their own Spotify app. |
+| `Spotify__AllowUserClientIds` | No | Unset | Lets users sign in with their own Spotify app. Unset means only when `Spotify__ClientId` is unset. |
 | `CANTUS_HOST_URL` | Recommended | Unset | Public URL used to build the Spotify OAuth callback. When unset, Cantus uses the request's address. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
 | `DATA_DIR` | No | `/app/data` if it exists | Parent directory of the Data Protection key ring (`keys/`). The database path is set by `ConnectionStrings__CantusDatabase`. |

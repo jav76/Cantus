@@ -9,6 +9,12 @@ public sealed class UserSessionEntity
     public string? ProfileImageUrl { get; set; }
     public required string EncryptedAccessToken { get; set; }
     public required string EncryptedRefreshToken { get; set; }
+
+    /// <summary>
+    /// The user's own Spotify app that issued the tokens, or null for the server's app.
+    /// Refreshing must use the same Client ID that issued the refresh token.
+    /// </summary>
+    public string? SpotifyClientId { get; set; }
     public DateTimeOffset ExpiresAtUtc { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
