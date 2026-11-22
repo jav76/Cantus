@@ -11,6 +11,8 @@ Cantus is a self-hosted, real-time synchronized lyrics display platform. It foll
 
 Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.jav26122.net).
 
+![Cantus displaying real-time synchronized lyrics with dynamic album-art theming and an instrumental interlude countdown](docs/screenshots/Cantus_screenshot1.png)
+
 ---
 
 ## Features
@@ -19,22 +21,23 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 - **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (4.0s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff when paused/idle, and 20s background tab throttling) and halts polling when zero viewers are connected to conserve API quota.
 - **Multi-Tier Lyrics Resolution**: SQLite cache first, then LRCLIB, then the optional NetEase fallback, with negative caching for tracks no provider has. See [Lyrics Providers](#lyrics-providers).
 - **Find a Song by Lyrics**: Type a line you half remember. Cantus fuzzy-searches the lyrics it already has, falls back to NetEase and LRCLIB lyric search within rate limits, and lets you play or queue the best guess on Spotify.
+- **Playback Controls**: Play/pause, skip, seek, shuffle, repeat, and volume from any display (Spotify Premium required).
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
-- **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time.
+- **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time, alongside fixed themes.
 - **Self-Hosted and Private**: Zero third-party telemetry. User tokens are encrypted at rest using ASP.NET Core Data Protection.
 
 ---
 
 ## Architecture
 
-The system is structured following Clean Architecture principles across five solution projects:
+The solution follows Clean Architecture principles across five projects:
 
 | Layer | Project | Description |
 | :--- | :--- | :--- |
-| **Core Domain** | `src/Cantus.Core` | Domain models (`PlaybackState`, `LyricLine`), LRC parser, and engine contracts. |
-| **Infrastructure** | `src/Cantus.Infrastructure` | Spotify PKCE authentication, LRCLIB and NetEase lyrics providers, SQLite caching, and token encryption. |
+| **Core Domain** | `src/Cantus.Core` | Domain models (`PlaybackState`, `LyricLine`), LRC parser, and service contracts. |
+| **Infrastructure** | `src/Cantus.Infrastructure` | Spotify PKCE authentication and player API, LRCLIB and NetEase lyrics providers, SQLite caching, and token encryption. |
 | **Server Engine** | `src/Cantus.Server` | ASP.NET Core host, SignalR `PlaybackHub`, adaptive polling monitor, and REST APIs. |
-| **Client Presentation** | `src/Cantus.Client` | Uno Platform application targeting WebAssembly and Skia desktop runtimes. |
+| **Client Presentation** | `src/Cantus.Client` | Uno Platform application targeting WebAssembly and the Skia desktop runtime. |
 | **Source Generators** | `src/Cantus.Generators` | Roslyn source generator for compile-time method tracing (`[TraceLog]`). |
 
 ---
@@ -47,17 +50,15 @@ The system is structured following Clean Architecture principles across five sol
 
 ### Local Development
 - .NET 10 SDK (version 10.0.100 or later)
-- Uno Platform WebAssembly workload:
+- WebAssembly workload, used to build the web client:
   ```bash
   dotnet workload install wasm-tools
   ```
-- Spotify Developer Account (for API client credentials)
+- A Spotify Developer app (free) for its Client ID
 
 ---
 
 ## Quickstart with Docker
-
-The fastest method to deploy Cantus is using Docker Compose.
 
 ### 1. Create Compose Configuration
 
@@ -89,13 +90,15 @@ volumes:
 docker compose up -d
 ```
 
-Access the web interface at `http://127.0.0.1:5000` (or your configured `CANTUS_HOST_URL`). Spotify rejects `http://localhost` redirect URIs, so use `127.0.0.1` for local access and HTTPS for any other address.
+Access the web interface at `http://127.0.0.1:5000` (or your configured `CANTUS_HOST_URL`). Spotify rejects `http://localhost` redirect URIs, so use `127.0.0.1` for local access and HTTPS for any other address. See the [Self-Hosting Guide](https://cantus.docs.jav26122.net/operator-guide/self-hosting/) for remote and reverse-proxy setups.
+
+Standalone server binaries for Linux, macOS, and Windows are also attached to each [release](https://github.com/jav76/Cantus/releases).
 
 ---
 
 ## Spotify Developer Setup
 
-Cantus requires a registered Spotify Developer application to communicate with Spotify Web APIs.
+Cantus needs a registered Spotify Developer app to call the Spotify Web API.
 
 1. Navigate to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
 2. Select **Create App** and specify an application name and description.
@@ -103,33 +106,36 @@ Cantus requires a registered Spotify Developer application to communicate with S
    - Local: `http://127.0.0.1:5000/api/auth/spotify/callback` (Spotify does not accept `localhost`)
    - Production: `https://cantus.yourdomain.com/api/auth/spotify/callback`
 4. Select **Web API** under the requested APIs.
-5. Save the configuration and copy the generated **Client ID** into your environment configuration.
+5. Save the configuration and copy the generated **Client ID** into `Spotify__ClientId`.
 
-Because Cantus uses the OAuth 2.0 PKCE (Proof Key for Code Exchange) flow, a Client Secret is not required for client authentication.
+Cantus uses the OAuth 2.0 PKCE flow, so no Client Secret is needed. Spotify apps in development mode allow up to 5 users, and the app owner needs Spotify Premium. Details: [Spotify App Setup](https://cantus.docs.jav26122.net/operator-guide/spotify-setup/).
 
 ---
 
 ## Configuration Reference
 
-Cantus is configured via environment variables or `appsettings.json`:
+Cantus is configured through environment variables or `appsettings.json`. The most common settings:
 
 | Variable | Required | Default | Description |
 | :--- | :---: | :---: | :--- |
-| `Spotify__ClientId` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. |
+| `Spotify__ClientId` | Yes | None | 32-character Client ID from your Spotify Developer Dashboard. (`SPOTIFY_CLIENT_ID` is not read.) |
 | `CANTUS_HOST_URL` | Recommended | Unset | Public URL used to build the Spotify OAuth callback. When unset, Cantus uses the request's address. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
 | `DATA_DIR` | No | `/app/data` if it exists | Parent directory of the Data Protection key ring (`keys/`). The database path is set by `ConnectionStrings__CantusDatabase`. |
+| `ConnectionStrings__CantusDatabase` | No | `Data Source=/app/data/cantus.db` (container) | SQLite connection string. |
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
 | `Netease__Enabled` | No | `true` | Enables the NetEase lyrics fallback. Set `false` to use LRCLIB only. |
 | `CANTUS_LOG_CONFIGURATION` | No | `none` | Log verbosity profile: `none`, `debug`, or `trace`. |
 | `SongLookup__ExternalSearchEnabled` | No | `true` | Lets song lookups send lyric fragments to NetEase and LRCLIB. Set `false` to search only the local lyrics library. |
 | `PlaybackPoller__ActivePollIntervalMs` | No | `4000` | Baseline Spotify polling cadence (ms) during active playback. |
 
+See the [Configuration Reference](https://cantus.docs.jav26122.net/reference/configuration/) for every option.
+
 ### Persistent Data Layout
 
 Mount `/app/data` to persistent storage to preserve user sessions and cached lyrics:
 - `/app/data/cantus.db`: SQLite database storing user sessions, paired Displays, track offsets, lyrics overrides, and cached lyrics.
-- `/app/data/keys/`: Cryptographic key ring used by ASP.NET Core Data Protection to encrypt tokens at rest.
+- `/app/data/keys/`: Cryptographic key ring used by ASP.NET Core Data Protection to encrypt tokens at rest. Back it up with the database.
 
 ---
 
@@ -148,8 +154,6 @@ To use LRCLIB only, set `Netease__Enabled=false` (or `"Netease": { "Enabled": fa
 
 ### Solution Build
 
-Clone the repository and compile all projects:
-
 ```bash
 git clone https://github.com/jav76/Cantus.git
 cd Cantus
@@ -159,41 +163,36 @@ dotnet build Cantus.slnx
 
 ### Running Test Suites
 
-Execute all unit and integration test suites:
-
 ```bash
 dotnet test Cantus.slnx
 ```
 
 ### Running the Server Locally
 
-Start the ASP.NET Core backend server:
-
 ```bash
+export Spotify__ClientId=your_spotify_client_id_here
 ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/Cantus.Server/Cantus.Server.csproj
 ```
 
-Without `ASPNETCORE_ENVIRONMENT=Development` the server runs as Production and stores its database at `/app/data/cantus.db`.
+Then open `http://127.0.0.1:5000`. Without `ASPNETCORE_ENVIRONMENT=Development`, the server runs as Production and stores its database at `/app/data/cantus.db`.
 
 ### Running the Desktop Client
-
-Launch the Uno Platform Skia desktop client:
 
 ```bash
 dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop
 ```
 
-### Publishing WebAssembly Client
+It connects to `http://127.0.0.1:5000`; add `-- --server-url <address>` to use another server.
 
-Compile the Uno Platform WebAssembly frontend:
+### Publishing the WebAssembly Client
 
 ```bash
 dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-browserwasm -c Release -o ./wasm_dist
 ```
 
-### Packaging Linux AppImage
+The site is in `./wasm_dist/wwwroot`. Copy its contents into `src/Cantus.Server/wwwroot` to serve it from a local server.
 
-Build the standalone Linux AppImage package:
+### Packaging Linux AppImage
 
 ```bash
 dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop -r linux-x64 -c Release -p:PublishSingleFile=true --self-contained true -o ./publish
@@ -205,7 +204,7 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 ## Usage
 
 1. Open Cantus in a web browser or launch the desktop client.
-2. Select **Connect Spotify** to complete the one-time PKCE authorization flow.
+2. Select **Connect Spotify** to complete the one-time PKCE sign-in.
 3. Start playback on any Spotify device (phone, desktop, speaker, or web player).
 4. Lyrics scroll automatically in synchronization with active playback.
 5. If lyrics run early or late, use the **Sync offset** buttons (±0.1 s / ±0.5 s) for the current track, or <kbd>[</kbd> / <kbd>]</kbd> to change this device's latency compensation by 50 ms. Per-track offsets are stored in the database.
@@ -215,12 +214,13 @@ dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-d
 
 ## Documentation
 
-Comprehensive guides, system architecture diagrams, and API specifications are available at:
+Guides, architecture deep dives, and API references are available at:
 
 [https://cantus.docs.jav26122.net](https://cantus.docs.jav26122.net)
 
 - [User Guide](https://cantus.docs.jav26122.net/user-guide/)
 - [Operator Guide & Self-Hosting](https://cantus.docs.jav26122.net/operator-guide/self-hosting/)
+- [Authentication & Sessions](https://cantus.docs.jav26122.net/architecture/authentication/)
 - [NTP Clock Synchronization Architecture](https://cantus.docs.jav26122.net/architecture/ntp-clock-sync/)
 - [Adaptive Polling Engine Architecture](https://cantus.docs.jav26122.net/architecture/adaptive-polling/)
 - [SignalR PlaybackHub Protocol Reference](https://cantus.docs.jav26122.net/reference/signalr-api/)
@@ -228,9 +228,21 @@ Comprehensive guides, system architecture diagrams, and API specifications are a
 
 ---
 
+## Screenshots
+
+| Karaoke Word-Level Sync | Fixed Dark Theme |
+| :---: | :---: |
+| ![Cantus karaoke mode highlighting active lyric progress with dynamic album-art theming](docs/screenshots/Cantus_screenshot2.png) | ![Cantus displaying synchronized lyrics with a fixed monochrome dark theme](docs/screenshots/Cantus_screenshot3.png) |
+
+| Dynamic Album-Art Theming | Full-Screen Kiosk Mode |
+| :---: | :---: |
+| ![Cantus adapting its palette and ambient backdrop to the active album artwork](docs/screenshots/Cantus_screenshot4.png) | ![Cantus in full-screen kiosk mode with synchronized lyrics and a compact bottom playback bar](docs/screenshots/Cantus_screenshot5.png) |
+
+---
+
 ## Contributing
 
-We welcome community contributions! Please review our [Contributing Guide](CONTRIBUTING.md) and [Development Documentation](https://cantus.docs.jav26122.net/contributing/) for details on getting started, coding standards, and submitting pull requests.
+Community contributions are welcome! See the [Contributing Guide](CONTRIBUTING.md) and the [Development Documentation](https://cantus.docs.jav26122.net/contributing/) for setup, coding standards, and the pull request process.
 
 ---
 
