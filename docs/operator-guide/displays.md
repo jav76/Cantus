@@ -59,7 +59,7 @@ When the owner removes a Display:
 
 The owner's Session, its connections and the owner's other Displays are not touched. The client discards the token and shows its pairing screen again.
 
-When the owner logs out instead, every Display of that Session is deleted, but open Display connections are not closed at that moment. Their token is refused the next time they connect, and the client returns to its pairing screen after a few refused attempts.
+When the owner logs out, or their Session is revoked, every Display of that Session is deleted the same way: each open Display connection gets `ReceiveDisplayRevoked` and is closed at once, and the client returns to its pairing screen.
 
 ---
 

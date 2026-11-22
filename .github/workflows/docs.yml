@@ -9,14 +9,12 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - '.ua/**'
       - 'scripts/generate_docs.py'
       - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - '.ua/**'
       - 'scripts/generate_docs.py'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
@@ -48,7 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
 
-      - name: Deterministic Knowledge Documentation Generation
+      - name: Check Required Documentation Pages
         run: |
           python scripts/generate_docs.py
 

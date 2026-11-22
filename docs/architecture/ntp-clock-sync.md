@@ -9,6 +9,7 @@ Synchronized lyrics need timing within tens of milliseconds. Device clocks drift
 Each playback snapshot carries Spotify's progress plus the server timestamp it was taken at. The client projects the current position as `progress + (serverNow - timestamp)`, which only works if the client knows the server's clock.
 
 Without clock synchronization:
+
 - Client clock skew shifts every projected position (lyrics run early or late).
 - Variable network round-trip latency adds jitter when playback updates arrive.
 
@@ -24,11 +25,11 @@ sequenceDiagram
     actor Client as Uno Client
     actor Server as SignalR PlaybackHub
 
-    Note over Client: "t1 = client send time"
+    Note over Client: t1 = client send time
     Client->>Server: SyncClock(t1)
-    Note over Server: "t2 = server receive time, t3 = server send time"
-    Server-->>Client: "ClockSyncResponse(t1, t2, t3)"
-    Note over Client: "t4 = client receive time"
+    Note over Server: t2 = server receive time, t3 = server send time
+    Server-->>Client: ClockSyncResponse(t1, t2, t3)
+    Note over Client: t4 = client receive time
 ```
 
 1. **Client send ($t_1$)**: the client reads its clock and calls `SyncClock(t1)` on the hub.
@@ -45,11 +46,11 @@ From the four timestamps the client computes:
 
 1. **Round-trip delay ($\delta$)**, clamped to at least 0:
 
-    $$\delta = (t_4 - t_1) - (t_3 - t_2)$$
+     $$\delta = (t_4 - t_1) - (t_3 - t_2)$$
 
 2. **Clock offset ($\theta$)**: how far the server clock is ahead of the client clock.
 
-    $$\theta = \frac{(t_2 - t_1) + (t_3 - t_4)}{2}$$
+     $$\theta = \frac{(t_2 - t_1) + (t_3 - t_4)}{2}$$
 
 The offset is computed in whole milliseconds and truncated toward zero.
 
@@ -75,7 +76,7 @@ The offset is computed in whole milliseconds and truncated toward zero.
 `LyricsViewModel` runs a 16 ms `DispatcherTimer` (about 60 FPS). Each tick:
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Last playback snapshot: progress and server timestamp"] --> B["Server now = client clock + offset"]
     B --> C["Target = progress + elapsed - latency compensation"]
     C --> D["Phase-locked loop steers the displayed position"]

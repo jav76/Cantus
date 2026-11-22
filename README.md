@@ -115,9 +115,9 @@ Cantus needs a registered Spotify Developer app to call the Spotify Web API.
 4. Select **Web API** under the requested APIs.
 5. Save the configuration and copy the generated **Client ID** into `Spotify__ClientId`.
 
-Cantus uses the OAuth 2.0 PKCE flow, so no Client Secret is needed. Spotify apps in development mode allow up to 5 users, and the app owner needs Spotify Premium. Details: [Spotify App Setup](https://cantus.docs.jav26122.net/operator-guide/spotify-setup/).
+Cantus uses the OAuth 2.0 PKCE flow, so no Client Secret is needed. Details: [Spotify App Setup](https://cantus.docs.jav26122.net/operator-guide/spotify-setup/).
 
-Spotify limits an app in Development Mode to 5 users, and its owner needs Premium. Users beyond that can sign in with their own Spotify app from the **Connect Spotify** screen; see [Users' own Spotify apps](docs/operator-guide/spotify-setup.md#5-users-own-spotify-apps).
+Spotify limits an app in Development Mode to 5 users, and its owner needs Premium. Users beyond that can sign in with their own Spotify app from the **Connect Spotify** screen; see [Users' own Spotify apps](https://cantus.docs.jav26122.net/operator-guide/spotify-setup/#5-users-own-spotify-apps).
 
 ---
 
@@ -230,10 +230,12 @@ Guides, architecture deep dives, and API references are available at:
 
 - [User Guide](https://cantus.docs.jav26122.net/user-guide/)
 - [Operator Guide & Self-Hosting](https://cantus.docs.jav26122.net/operator-guide/self-hosting/)
-- [Authentication & Sessions](https://cantus.docs.jav26122.net/architecture/authentication/)
+- [Architecture Overview](https://cantus.docs.jav26122.net/architecture/overview/)
 - [NTP Clock Synchronization Architecture](https://cantus.docs.jav26122.net/architecture/ntp-clock-sync/)
 - [Adaptive Polling Engine Architecture](https://cantus.docs.jav26122.net/architecture/adaptive-polling/)
 - [SignalR PlaybackHub Protocol Reference](https://cantus.docs.jav26122.net/reference/signalr-api/)
+- [REST API Reference](https://cantus.docs.jav26122.net/reference/rest-api/)
+- [Configuration Reference](https://cantus.docs.jav26122.net/reference/configuration/)
 - [Contributing Guide](https://cantus.docs.jav26122.net/contributing/) (or see [CONTRIBUTING.md](CONTRIBUTING.md))
 
 ---

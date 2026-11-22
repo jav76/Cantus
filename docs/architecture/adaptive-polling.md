@@ -4,7 +4,7 @@ Spotify does not provide an outgoing WebSocket webhook for user playback changes
 
 The engine dynamically schedules per-user polling intervals based on player activity, remaining track duration, browser tab visibility, and client interaction.
 
-The cadence rules below live in `PollingCadencePolicy`, a pure type with no I/O or timers: given an owner's playback state, visibility and how long they have been paused or idle, or the remaining rate-limit cooldown, it returns the next delay. `ActiveUsersPlaybackMonitor` runs the loop, calls Spotify, tracks when each owner was last paused or idle, and keeps `_nextPollUtc` and `_rateLimitUntilUtc`. `PollingCadencePolicyTests` has one case per cadence in the table.
+The cadence rules below live in `PollingCadencePolicy`, a pure type with no I/O or timers: given an owner's playback state, visibility and how long they have been paused or idle, or the remaining rate-limit cooldown, it returns the next delay. `ActiveUsersPlaybackMonitor` runs the loop, calls Spotify, tracks when each owner was last paused or idle, and keeps `_nextPollUtc`. The rate-limit cooldown lives in the shared `SpotifyRateLimitGate`. `PollingCadencePolicyTests` has one case per cadence in the table.
 
 ---
 
@@ -78,6 +78,7 @@ stateDiagram-v2
 A major challenge with polling-based Spotify synchronization is catching track transitions without wasting requests during long tracks.
 
 Cantus solves this with **Horizon Acceleration**:
+
 1. When a song has more than 15 seconds remaining, Cantus polls every `4,000ms` (`ActivePollIntervalMs`). The client's phase-locked loop interpolates the position at about 60 FPS between updates (see [NTP Clock Synchronization](ntp-clock-sync.md)).
 2. When remaining duration is `15,000ms` or less (`ApproachingEndThresholdMs`), the interval tightens to `2,500ms` (`ApproachingEndPollIntervalMs`).
 3. When remaining duration is `5,000ms` or less (`ImminentEndThresholdMs`), the interval tightens to `1,200ms` (`ImminentEndPollIntervalMs`).
@@ -102,11 +103,12 @@ In the WebAssembly client, `MainPage` checks `WasmInterop.IsDocumentVisible()` (
 ## On-Demand Playback Refresh
 
 Rather than waiting for the next polling cycle when resuming playback:
+
 1. When the tab becomes visible again, the client invokes `RefreshPlayback()` on the SignalR hub.
 2. The server calls `IPlaybackSessionRegistry.RequestUserActivity(userId)`, and the poller resets `_nextPollUtc[userId]` so that owner is due immediately.
 3. The poller cancels its internal delay via `_wakeCts.Cancel()`, so the loop wakes and polls Spotify right away.
 
-A successful transport command (`SendPlayerCommand`: pause, resume, next, previous) also requests an immediate poll, then two follow-up polls 400 ms and a further 1,100 ms later, since Spotify can return the old state right after a command.
+Any successful player command (`SendPlayerCommand`, `SeekPlayback`, `SetPlayerVolume`, `SetShuffle`, `SetRepeat`) also requests an immediate poll, then two follow-up polls 400 ms and a further 1,100 ms later, since Spotify can return the old state right after a command.
 
 A Display connection goes through `RequestDisplayActivity(userId)` instead, which forwards at most one refresh per owner every 5 seconds (`DISPLAY_ACTIVITY_MIN_INTERVAL_MS`). A view-only screen on shared hardware cannot drive the owner's Spotify quota toward a server-wide 429. Owner Session refreshes are not throttled.
 
@@ -117,15 +119,17 @@ A Display connection goes through `RequestDisplayActivity(userId)` instead, whic
 The back-off is shared: `SpotifyRateLimitGate` (a singleton) holds one pause for every Spotify caller, namely the poller, transport commands from the hub (pause, seek, volume, ...), song lookup track search, and play or queue.
 
 If Spotify responds with `APITooManyRequestsException` (HTTP 429) to any of them:
+
 1. The caller reports `RetryAfter` from the exception to the gate (defaulting to 60 seconds if it is not set). A shorter report never ends an active pause early.
 2. The poller skips its Spotify calls for every owner until the pause expires. Song lookup search, play and queue check the gate first and answer `rateLimited` without calling Spotify. Hub transport commands are still sent; a rejected one reports `Failed`.
 3. Sends runtime diagnostics to each polled owner's viewers via `ReceiveDiagnostics`, repeated on each loop pass (at most every 10 seconds) while the cooldown lasts:
-   ```json
-   {
-     "pollerStatus": "Rate Limited (00:45)",
-     "activePollIntervalMs": 10000
-   }
-   ```
+    ```json
+    {
+      "pollerStatus": "Rate Limited (00:45)",
+      "activePollIntervalMs": 10000
+    }
+    ```
+
 4. The client shows the status text (for example `Rate Limited (00:45)`) in the header bar and the diagnostics HUD.
 5. Polling resumes automatically once the retry window elapses.
 
@@ -138,6 +142,7 @@ A 429 on a transport command therefore pauses the poller too, where before it on
 ## Zero-Viewer Sleep Optimization
 
 When you close the browser tab or turn off your kiosk display:
+
 1. The client disconnects or changes its subscription in SignalR.
 2. `PlaybackSessionRegistry` removes the connection. The poller only polls owners with at least one subscribed connection (`GetActiveUserIdsWithConnectedClients`).
 3. An owner with no connections drops out of that set, and the poller discards their schedule and backoff state. With no connections at all, the loop just checks once a second for a new one.
@@ -150,8 +155,9 @@ A connection holding a Display token counts as a viewer of its owner, the same a
 ## Token Renewal Coordination
 
 The adaptive poller supervises Spotify access token expiration:
+
 - Spotify access tokens expire after the token response's `ExpiresIn` (60 minutes).
 - `SpotifyAuthService.GetSessionForUserAsync` refreshes a token that expires within 2 minutes (`TOKEN_REFRESH_WINDOW_MINUTES`) before the poll uses it.
 - If a playback call still returns `401 Unauthorized`, the poller calls `SpotifyAuthService.RefreshTokenAsync`, which exchanges the encrypted refresh token stored in SQLite for a new access token, and retries the call once.
-- A 429 during refresh starts the rate-limit cooldown above. Any other refresh failure is logged as an error and the owner is retried on the next scheduled poll, without dropping client connections.
+- A 429 during refresh starts the rate-limit cooldown above. Any other refresh failure is logged as an error. The owner is then treated as idle (snapshot cleared, idle cadence) until a poll succeeds, without dropping client connections.
 

@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
 """
 scripts/generate_docs.py
-Hybrid Documentation Engine for Cantus.
-Validates architectural layers and business domain knowledge against .ua/ graphs,
-ensuring documentation integrity during CI/CD builds without generating raw machine dumps.
+Checks that every core documentation page exists before the MkDocs build.
 """
 
-import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-UA_DIR = ROOT_DIR / ".ua"
 DOCS_DIR = ROOT_DIR / "docs"
-
-
-def load_json(path: Path) -> Dict[str, Any]:
-    if not path.exists():
-        print(f"[WARN] Knowledge graph file not found at: {path}")
-        return {}
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 def validate_documentation_integrity():
@@ -29,6 +16,9 @@ def validate_documentation_integrity():
     required_pages = [
         DOCS_DIR / "index.md",
         DOCS_DIR / "user-guide" / "index.md",
+        DOCS_DIR / "user-guide" / "connect-spotify.md",
+        DOCS_DIR / "user-guide" / "displays.md",
+        DOCS_DIR / "user-guide" / "song-lookup.md",
         DOCS_DIR / "user-guide" / "playback-and-display.md",
         DOCS_DIR / "user-guide" / "timing-and-calibration.md",
         DOCS_DIR / "user-guide" / "theming.md",
@@ -36,6 +26,7 @@ def validate_documentation_integrity():
         DOCS_DIR / "operator-guide" / "self-hosting.md",
         DOCS_DIR / "operator-guide" / "spotify-setup.md",
         DOCS_DIR / "operator-guide" / "reverse-proxy.md",
+        DOCS_DIR / "operator-guide" / "displays.md",
         DOCS_DIR / "operator-guide" / "troubleshooting.md",
         DOCS_DIR / "architecture" / "overview.md",
         DOCS_DIR / "architecture" / "ntp-clock-sync.md",
@@ -59,29 +50,8 @@ def validate_documentation_integrity():
     return True
 
 
-def verify_knowledge_graphs():
-    """Verify knowledge graphs and report layer & domain counts."""
-    kg_path = UA_DIR / "knowledge-graph.json"
-    dg_path = UA_DIR / "domain-graph.json"
-
-    if kg_path.exists():
-        kg = load_json(kg_path)
-        layers = len(kg.get("layers", []))
-        nodes = len(kg.get("nodes", []))
-        edges = len(kg.get("edges", []))
-        print(f"[INFO] Knowledge Graph: {layers} layers, {nodes} nodes, {edges} edges validated.")
-
-    if dg_path.exists():
-        dg = load_json(dg_path)
-        domains = len([n for n in dg.get("nodes", []) if n.get("type") == "domain"])
-        flows = len([n for n in dg.get("nodes", []) if n.get("type") == "flow"])
-        steps = len([n for n in dg.get("nodes", []) if n.get("type") == "step"])
-        print(f"[INFO] Domain Graph: {domains} domains, {flows} flows, {steps} steps validated.")
-
-
 def main():
-    print("Running Cantus Hybrid Documentation Validator...")
-    verify_knowledge_graphs()
+    print("Checking Cantus documentation pages...")
 
     if not validate_documentation_integrity():
         sys.exit(1)

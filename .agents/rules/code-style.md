@@ -88,7 +88,7 @@ Adhere to the following conventions when authoring, modifying, or refactoring C#
 
 ## 7. Naming, Modifiers & Qualification
 - **Private Fields**: Prefix private and internal instance fields with an underscore and use `_camelCase` (e.g. `private readonly ILyricsProvider _lyricsProvider;`).
-- **Constants & Magic Numbers**: Constants (`const`) must use `CAPS_CASE` / `SCREAMING_SNAKE_CASE` (e.g. `public const string SECTION_NAME = "Spotify";`, `private const int MAX_NTP_SAMPLES = 5;`). Avoid magic numbers throughout the codebase unless the meaning is immediately obvious from its context (e.g., standard math or index boundaries like `0`, `1`, or basic doubling/halving). Any non-obvious numeric values—including algorithmic weights, lightness/saturation thresholds, opacity/alpha values, bit shifts, buffer sizes, timeouts, and scaling factors—must be declared as descriptive, all-caps `const` fields.
+- **Constants & Magic Numbers**: Constants (`const`) must use `CAPS_CASE` / `SCREAMING_SNAKE_CASE` (e.g. `public const string SECTION_NAME = "Spotify";`, `private const int MAX_NTP_SAMPLES = 5;`). Avoid magic numbers throughout the codebase unless the meaning is immediately obvious from its context (e.g., standard math or index boundaries like `0`, `1`, or basic doubling/halving). Any non-obvious numeric values (including algorithmic weights, lightness/saturation thresholds, opacity/alpha values, bit shifts, buffer sizes, timeouts, and scaling factors) must be declared as descriptive, all-caps `const` fields.
 - **No `this.` Qualifier**: Avoid `this.` or `Me.` qualification unless strictly necessary to disambiguate shadowed identifiers.
 - **Explicit Accessibility**: Always explicitly declare accessibility modifiers (`private`, `public`, `protected`, `internal`) on all types and members.
 - **`readonly` Modifier**: Apply `readonly` to all fields and properties that are assigned only during declaration or in the constructor.
@@ -106,7 +106,7 @@ Adhere to the following conventions when authoring, modifying, or refactoring C#
 - **Log Level Guidelines**:
   - `Trace`: Granular method entry/exit parameters, timing, and internal state. Generated automatically on decorated interfaces via `[TraceLog]`.
   - `Debug`: Cache hits/misses, background poller ticks, detailed operational diagnostics.
-  - `Information`: Milestone business events (user authenticated, room joined, session connected). Keep concise and informative.
+  - `Information`: Milestone business events (user authenticated, Display paired, Session connected). Keep concise and informative.
   - `Warning`: Recoverable issues, retry attempts, transient external API / network errors.
   - `Error`: Unhandled failures, route exceptions (handled globally by `GlobalExceptionHandler`), critical sync breaks.
 - **Method Tracing via `[TraceLog]`**:
@@ -116,10 +116,10 @@ Adhere to the following conventions when authoring, modifying, or refactoring C#
   - Never use string interpolation (`$"..."`) within `ILogger` calls. Use semantic message templates with named placeholders:
     ```csharp
     // Correct
-    _logger.LogInformation("User {UserId} joined room {RoomCode}", userId, roomCode);
+    _logger.LogInformation("Display {DisplayId} paired to connection {ConnectionId}", displayId, connectionId);
 
     // Avoid
-    _logger.LogInformation($"User {userId} joined room {roomCode}");
+    _logger.LogInformation($"Display {displayId} paired to connection {connectionId}");
     ```
 - **CLI Logging Control**:
   - Desktop client and server support `--log-configuration <none|debug|trace>` (or `-l <level>`) and `CANTUS_LOG_CONFIGURATION` environment variable.

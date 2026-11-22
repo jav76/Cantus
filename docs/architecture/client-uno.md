@@ -6,119 +6,99 @@ The Cantus client is built with **Uno Platform**, so one C# and XAML codebase ru
 
 ## Client MVVM Pattern
 
-The client architecture cleanly isolates presentation logic from real-time network communications:
+The client keeps network code, view models and views apart. Three small diagrams show it: how data arrives, how the view models are composed, and how the views nest. The view table under [`LyricsViewModel`](#2-lyricsviewmodel) lists which composed part each view binds to.
+
+### Data flow
+
+Each network service feeds one view model. `SignalRPlaybackClient` holds the hub connection, and the other five call the REST API. All of them serialize through the `CantusJsonContext` source generator.
 
 ```mermaid
-flowchart TD
-    subgraph Network Layer
-        SignalR[SignalRPlaybackClient]
-        Context[CantusJsonContext Source Generator]
-        PairingApi[DisplayPairingApi]
-        DisplaysApi[DisplayManagementApi]
-        Correction[LyricsCorrectionService]
-        SignalR -.-> Context
-        PairingApi -.-> Context
-        DisplaysApi -.-> Context
-        Correction -.-> Context
-        LookupClient[SongLookupClient REST]
-        LookupClient -.-> Context
+flowchart LR
+    Server[("Cantus Server")]
+
+    subgraph Net["Network services"]
+        SignalR["SignalRPlaybackClient"]
+        PairingApi["DisplayPairingApi"]
+        DisplaysApi["DisplayManagementApi"]
+        Correction["LyricsCorrectionService"]
+        LookupClient["SongLookupClient"]
+        SetupApi["SpotifySetupApi"]
     end
 
-    subgraph MVVM ViewModels
-        LVM[LyricsViewModel]
-        LLVM[LyricLineViewModel Collection]
-        Theme[ThemeManager]
-        Layout[ResponsiveLayoutManager]
-        Prefs[LyricsPreferences]
-        Transport[PlaybackTransport]
-        Anchor[OptimisticSeekAnchor]
-        Timing[PlaybackTiming]
-        Session[SessionViewModel]
-        Displays[DisplaysViewModel]
-        Pairing[DisplayPairingViewModel]
-        Credentials[DisplayCredentialStore]
-        Picker[LyricsPickerViewModel]
-        Lookup[SongLookupViewModel]
-        Guess[SongGuessViewModel Collection]
-        FxVM[VisualEffectsViewModel]
-        LVM --> LLVM
-        LVM --> Theme
-        LVM --> Layout
-        LVM --> Prefs
-        LVM --> Transport
-        LVM --> Timing
-        LVM --> Session
-        LVM --> Pairing
-        Session --> Displays
-        Pairing --> Credentials
-        LVM --> Picker
-        Picker --> Session
-        Picker --> Pairing
-        Picker --> Correction
-        LVM --> Lookup
-        Lookup --> Guess
-        Transport --> Anchor
-        Timing --> Prefs
-        LVM --> FxVM
-        FxVM --> Prefs
+    subgraph VMs["View models"]
+        LVM["LyricsViewModel (root)"]
+        Pairing["DisplayPairingViewModel"]
+        Displays["DisplaysViewModel"]
+        Picker["LyricsPickerViewModel"]
+        Lookup["SongLookupViewModel"]
+        Setup["SpotifySetupViewModel"]
     end
 
-    subgraph XAML Views
-        MainView[MainPage.xaml]
-        Header[AdaptiveHeaderBar.xaml]
-        TrackCard[AdaptiveTrackCard.xaml]
-        LyricsStage[LyricsStageView.xaml]
-        MobileSettings[MobileSettingsView.xaml]
-        MiniBar[MiniPlaybackBar.xaml]
-        Hud[DiagnosticsHudDialog.xaml]
-        PairingView[DisplayPairingView.xaml]
-        PromptView[DisplayPromptView.xaml]
-        DisplaysCard[DisplaysCard.xaml]
-        PickerDialog[LyricsPickerDialog.xaml]
-        Find[SongLookupDialog.xaml]
-        Effects[PostProcessingOverlay.xaml]
-        MainView --> Header
-        MainView --> TrackCard
-        MainView --> LyricsStage
-        MainView --> MobileSettings
-        MainView --> MiniBar
-        MainView --> PairingView
-        MainView --> PromptView
-        MainView --> Effects
-        TrackCard --> DisplaysCard
-        MobileSettings --> DisplaysCard
-        Header --> Hud
-        TrackCard --> PickerDialog
-        MobileSettings --> PickerDialog
-        Header --> Find
-    end
-
-    SignalR -->|"PlaybackState, Lyrics, NTP, Sessions"| LVM
-    LVM -->|"lyrics, track, toast"| MainView
-    Theme -->|"brushes and colors"| MainView
-    Layout -->|"breakpoint, sizes, mobile tab"| MainView
-    Transport -->|"controls and status"| TrackCard
-    Transport --> MiniBar
-    Timing -->|"offset and latency"| TrackCard
-    Timing --> MobileSettings
-    Session -->|"sign-in state"| Header
-    Session --> TrackCard
-    Session --> MobileSettings
+    Server <-->|"SignalR hub"| SignalR
+    SignalR -->|"playback, lyrics, clock sync, Sessions"| LVM
     PairingApi -->|"pairing code"| Pairing
-    Pairing -->|"code, QR, owner-only visibility"| PairingView
-    Pairing --> TrackCard
-    Pairing --> MobileSettings
     DisplaysApi -->|"approve, list, rename, revoke"| Displays
-    Displays -->|"Displays list"| DisplaysCard
-    Displays -->|"approval, rename and remove prompt"| PromptView
-    Picker -->|"candidates and choices"| PickerDialog
-    Correction -->|"REST candidates and override"| Server[("Cantus Server")]
-    Session -->|owner actions| Header
-    LookupClient -->|search / play| Lookup
-    Lookup -->|state, guesses| Find
-    FxVM -->|"layer visibility"| Effects
-    FxVM -->|"effect toggles"| Header
-    FxVM --> MobileSettings
+    Correction -->|"candidates and override"| Picker
+    LookupClient -->|"search and play"| Lookup
+    SetupApi -->|"sign-in setup"| Setup
+```
+
+### View model composition
+
+`LyricsViewModel` is the root. It creates every other part, and views reach them through it. Dotted lines are shared helpers.
+
+```mermaid
+flowchart LR
+    LVM["LyricsViewModel"]
+
+    LVM --> Lines["LyricLineViewModel collection"]
+    LVM --> Transport["PlaybackTransport"]
+    Transport --> Anchor["OptimisticSeekAnchor"]
+    LVM --> Timing["PlaybackTiming"]
+    LVM --> Session["SessionViewModel"]
+    Session --> Displays["DisplaysViewModel"]
+    Session --> Setup["SpotifySetupViewModel"]
+    LVM --> Pairing["DisplayPairingViewModel"]
+    Pairing --> Credentials["DisplayCredentialStore"]
+    LVM --> Picker["LyricsPickerViewModel"]
+    LVM --> Lookup["SongLookupViewModel"]
+    Lookup --> Guess["SongGuessViewModel collection"]
+    LVM --> FxVM["VisualEffectsViewModel"]
+    LVM --> Theme["ThemeManager"]
+    LVM --> Layout["ResponsiveLayoutManager"]
+
+    Prefs["LyricsPreferences"]
+    Timing -.-> Prefs
+    FxVM -.-> Prefs
+    LVM -.-> Prefs
+```
+
+### View tree
+
+`MainPage` hosts the views and picks which ones show for the current layout. Dotted lines are dialogs opened on demand.
+
+```mermaid
+flowchart LR
+    Main["MainPage"]
+
+    Main --> Header["AdaptiveHeaderBar"]
+    Main --> TrackCard["AdaptiveTrackCard"]
+    Main --> Stage["LyricsStageView"]
+    Main --> MobileSettings["MobileSettingsView"]
+    Main --> TabBar["MobileTabBar"]
+    Main --> MiniBar["MiniPlaybackBar"]
+    Main --> PairingView["DisplayPairingView"]
+    Main --> PromptView["DisplayPromptView"]
+    Main --> Effects["PostProcessingOverlay"]
+
+    TrackCard --> DisplaysCard["DisplaysCard"]
+    MobileSettings --> DisplaysCard
+
+    Header -.-> Hud["DiagnosticsHudDialog"]
+    Header -.-> Find["SongLookupDialog"]
+    Header -.-> SetupDialog["SpotifySetupDialog"]
+    TrackCard -.-> PickerDialog["LyricsPickerDialog"]
+    MobileSettings -.-> PickerDialog
 ```
 
 ---
@@ -145,9 +125,9 @@ flowchart TD
 - Tap-to-seek (`CanSeekToLines`) is off on a paired Display.
 
 #### View Binding
-- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, or `Layout` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseIcon`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme` and `Layout` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, `Session`, `Theme`, and `Layout` as plain properties.
+- Every view binds through a `ViewModel` property set to the root. Views that need a composed part also expose it as a `Transport`, `Timing`, `Session`, `Pairing`, `LyricsPicker`, `Theme`, `Layout`, or `Effects` dependency property, filled from `ViewModel` when it is set, so `{x:Bind}` paths stay one level deep (`Transport.PlayPauseIcon`, `Timing.OffsetText`, `Session.ConnectButtonText`, `Theme.TextPrimaryBrush`, `Layout.CurrentBreakpoint`). `MainPage` exposes `Pairing`, `Displays` (`Session.Displays`), `Theme`, `Layout` and `Effects` as plain properties. `DisplaysCard` and `DisplayPromptView` take `Displays` from `ViewModel.Session.Displays`, and so does `MobileSettingsView`. `DiagnosticsHudDialog` takes the root in its constructor and sets `Transport`, `Timing`, `Session`, `Theme`, and `Layout` as plain properties.
 - Button handlers call the composed part directly (`Transport.TogglePlayPauseAsync`, `Timing.NudgeOffsetAsync`, `Session.LogoutAsync`, `Layout.ToggleKioskMode`, `Layout.CycleMobileView`). `MainPage` sends the latency keyboard shortcuts to `ViewModel.Timing` and the kiosk and mobile tab shortcuts to `ViewModel.Layout`.
-- The Connect Spotify buttons build the sign-in link from `Session.SpotifyLoginPath`, which carries this client's id, and `Session.ServerBaseUrl` on desktop.
+- The Connect Spotify buttons call `SpotifySignIn.StartAsync`. It loads `Session.SpotifySetup`, shows `SpotifySetupDialog` when the user has to bring their own Spotify app, and takes the sign-in path from `SpotifySetupViewModel.PrepareLoginPath()`. Desktop opens it against `Session.ServerBaseUrl` in the system browser; WebAssembly navigates the page (`WasmInterop.NavigateTo`).
 
 | View | `ViewModel` | `Transport` | `Timing` | `Session` | `Pairing` | `Displays` | `LyricsPicker` | `Theme` | `Layout` |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -157,11 +137,11 @@ flowchart TD
 | `LyricsStageView` | Yes | | | | | | | Yes | Yes |
 | `MobileSettingsView` | Yes | | Yes | Yes | Yes | Yes | Yes | Yes | |
 | `MobileTabBar` | Yes | | | | | | | Yes | Yes |
-| `MiniPlaybackBar` | Yes | Yes | | | Yes | | | Yes | |
+| `MiniPlaybackBar` | Yes | Yes | | | Yes | | | Yes | Yes |
 | `DisplayPairingView` | Yes | | | | Yes | | | Yes | Yes |
 | `DisplaysCard` | Yes | | | | | Yes | | Yes | |
 | `DisplayPromptView` | Yes | | | | | Yes | | Yes | |
-| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | Yes | |
+| `DiagnosticsHudDialog` | Yes | Yes | Yes | Yes | | | | Yes | Yes |
 | `LyricsPickerDialog` | | | | | | | Yes | Yes | |
 | `SongLookupDialog` | | | | | | | | Yes | |
 
@@ -169,24 +149,25 @@ flowchart TD
 
 ### 3. `LyricsStageView` & Auto-Scroll Controller
 - Implements intelligent auto-scroll with manual override detection:
-  - **Programmatic Scroll Filtering**: Uses a 450ms debounce flag (`_isProgrammaticScroll`) to distinguish internal centering adjustments from user-driven mouse wheel, touch, or drag events.
-  - **Manual Pause & Auto-Resume**: When manual scrolling is detected, pauses auto-scrolling and starts a 3-second `DispatcherTimer` (`_autoResumeTimer`). When the timer expires or the user clicks the floating resume button, it calls `ResumeAutoScroll()` and smooth-scrolls back to the active line.
-  - **Tap-to-Seek**: Tapping or clicking a synced line calls `SeekToLineAsync` and re-centers on it. Drags never count as taps (the gesture recognizer drops them, and a list that moved more than 10px under the press is treated as a scroll); a press on a line does not pause auto-scroll by itself, but the platform cancelling it for a pan does. Lines show a hover tint and hand cursor for mouse/pen and a pressed tint for touch, only while seeking is possible (never for static lyrics).
-  - **Dynamic Viewport Padding**: Computes top and bottom padding at runtime based on container height so that both the first and final lines of any track can be aligned to the vertical center.
+    - **Programmatic Scroll Filtering**: Uses a 450ms debounce flag (`_isProgrammaticScroll`) to distinguish internal centering adjustments from user-driven mouse wheel, touch, or drag events.
+    - **Manual Pause & Auto-Resume**: When manual scrolling is detected, pauses auto-scrolling and starts a 3-second `DispatcherTimer` (`_autoResumeTimer`). When the timer expires or the user clicks the floating resume button, it calls `ResumeAutoScroll()` and smooth-scrolls back to the active line.
+    - **Tap-to-Seek**: Tapping or clicking a synced line calls `SeekToLineAsync` and re-centers on it. Drags never count as taps (the gesture recognizer drops them, and a list that moved more than 10px under the press is treated as a scroll); a press on a line does not pause auto-scroll by itself, but the platform cancelling it for a pan does. Lines show a hover tint and hand cursor for mouse/pen and a pressed tint for touch, only while seeking is possible (never for static lyrics).
+    - **Dynamic Viewport Padding**: Computes top and bottom padding at runtime based on container height so that both the first and final lines of any track can be aligned to the vertical center.
 
 ### 4. `WasmInterop` Browser Hooks
 - C# wrappers over `window.CantusInterop` (defined in `WasmScripts/index.html`) for Uno WebAssembly. On desktop heads they return defaults.
-  - `IsDocumentVisible` returns `!document.hidden`. `MainPage` polls it every 2 seconds and, on a change, calls `LyricsViewModel.ReportVisibilityAsync` (and `RefreshPlaybackAsync` when visible again), which lets the server slow polling for hidden tabs.
-  - Reads the page's query string (`GetLocationSearch`) and drops one parameter from the address without a reload (`RemoveQueryParameter`), for the `?pair=` approval link.
+    - `IsDocumentVisible` returns `!document.hidden`. `MainPage` polls it every 2 seconds and, on a change, calls `LyricsViewModel.ReportVisibilityAsync` (and `RefreshPlaybackAsync` when visible again), which lets the server slow polling for hidden tabs.
+    - Reads the page's query string (`GetLocationSearch`) and drops one parameter from the address without a reload (`RemoveQueryParameter`), for the `?pair=` approval link and the `?connect=spotify` sign-in link.
+    - Sign-in helpers: `GetCurrentOrigin` and `NavigateTo` start the Spotify sign-in, and `GetAuthQueryParameter` and `CleanAuthQuery` read and clear its result.
 
 ### 5. `LyricLineViewModel`
 - Represents an individual lyric line with observable properties for:
-  - `IsActive`: Whether this line is currently being sung.
-  - `IsPast`: Whether this line has already finished.
-  - `LineBrush`, `FontSize`, `FontFamily`, and `Opacity`: Visual styling dynamically driven by theme and active state. The active line uses Fraunces SemiBold and every other line Fraunces Regular (`CantusTypography.GetLyricLineSource`); the weight comes from the font file, so the line never sets `FontWeight`.
+    - `IsActive`: Whether this line is currently being sung.
+    - `IsPast`: Whether this line has already finished.
+    - `LineBrush`, `FontSize`, `FontFamily`, and `Opacity`: Visual styling dynamically driven by theme and active state. The active line uses Fraunces SemiBold and every other line Fraunces Regular (`CantusTypography.GetLyricLineSource`); the weight comes from the font file, so the line never sets `FontWeight`.
 - Drives the karaoke underline of the active line (`UpdateLineProgress`, `LineProgressFraction`), which has two modes:
-  - **Word timing** (`HasWordTiming`): the line carries `Syllables` from the lyrics payload. A `SyllableFillTimeline` fills each syllable's visible characters over its real start and duration, and holds still between syllables, so rests and held notes show as they are sung. A word's trailing space is not sung time: the fill crosses it when the next syllable starts. Character positions are found in the displayed line `Text` (enhanced LRC sends trimmed words and keeps the spaces only there), falling back to the joined syllable texts when a syllable is not in it. Width is approximated by character count (exact for CJK lines, where each character is its own syllable). The underline also shows on the final line, since its last syllable gives a real end.
-  - **Elapsed time** (no syllables, or none with visible text): the underline fills over `DurationMs`, the gap to the next line capped by `LyricsViewModel.ComputeLineFillDurationMs` when it is break-length. The final line has no duration and shows no underline.
+    - **Word timing** (`HasWordTiming`): the line carries `Syllables` from the lyrics payload. A `SyllableFillTimeline` fills each syllable's visible characters over its real start and duration, and holds still between syllables, so rests and held notes show as they are sung. A word's trailing space is not sung time: the fill crosses it when the next syllable starts. Character positions are found in the displayed line `Text` (enhanced LRC sends trimmed words and keeps the spaces only there), falling back to the joined syllable texts when a syllable is not in it. Width is approximated by character count (exact for CJK lines, where each character is its own syllable). The underline also shows on the final line, since its last syllable gives a real end.
+    - **Elapsed time** (no syllables, or none with visible text): the underline fills over `DurationMs`, the gap to the next line capped by `LyricsViewModel.ComputeLineFillDurationMs` when it is break-length. The final line has no duration and shows no underline.
 - `LyricsViewModel` maps syllables off the wire. A syllable without a duration (enhanced LRC word tags carry only starts) runs until the next syllable starts, and the last one until the line's fill end. When there is no fill end (the final line) or it is not after the last syllable's start, the last syllable gets a short text-length estimate so it still fills instead of snapping full.
 
 ### 6. `ThemeManager` & `ResponsiveLayoutManager`
@@ -196,42 +177,42 @@ flowchart TD
 - **Theme menus.** The Large and Medium header Theme buttons open a `MenuFlyout`, and the Small overflow menu has a **Theme** `MenuFlyoutSubItem`. `ThemeMenuItems.Populate` fills all three from `AvailableModes`: one `RadioMenuFlyoutItem` per mode, a separator, then one `ToggleMenuFlyoutItem` per `VisualEffectsViewModel.AvailableEffects` entry (Film grain, Vignette, Scanlines, Blur album background (Dynamic theme)), tagged with its `VisualEffect`. Each menu has its own radio `GroupName` (group names are app-wide). `AdaptiveHeaderBar` re-checks the items with `ThemeMenuItems.Sync` when a menu opens, when `CurrentMode` changes and on any `Effects` property change, so the three menus stay in step with each other and the mobile checkboxes. The theme toast comes from the `CurrentMode` setter, so every picker shows it.
 - `OnPrimaryAccentBrush` is the text and icon colour for accent backgrounds (accent buttons, checkbox marks, the selected mobile tab). For the preset themes it is near-black when the accent's relative luminance is above 0.5 (OLED Monochrome's white accent), white otherwise. In `Dynamic` mode it picks near-black or white by the higher WCAG contrast ratio (`GetContrastRatio`), which switches to near-black at a luminance of about 0.18. `MenuSurfaceBrush` is the opaque card colour used for menus and dropdowns.
 - **App resources.** `App.xaml` sets `RequestedTheme="Dark"` (every palette is dark) and declares placeholder `Cantus*Brush` resources (`CantusTextPrimaryBrush`, `CantusTextSecondaryBrush`, `CantusTextMutedBrush`, `CantusBackgroundBrush`, `CantusSurfaceCardBrush`, `CantusMenuSurfaceBrush`, `CantusCardBorderBrush`, `CantusPrimaryAccentBrush`, `CantusOnPrimaryAccentBrush`). `App.OnLaunched` calls `ThemeManager.ApplyToResources` before `MainPage` exists, which replaces them with the live brushes.
-  - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox (including its `ComboBoxBackground*` state keys, mapped to `SurfaceCard`) and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
-  - Button keys are not mapped. Instead `App.xaml` has an implicit `Button` style (based on `MaterialBaseButtonStyle`, so the 40px minimum size and fonts stay) with its own template. It keeps each button's own `Background` in every state, where the Material template swapped in its own primary colour on hover, press and focus. Hover and press show a faint `CantusTextPrimaryBrush` layer (8% and 16%), keyboard focus a 2px `CantusPrimaryAccentBrush` ring, and Disabled dims the button. `Padding` is the whole inner gap: Material's extra 8px `ButtonContentMargin` is dropped so narrow rows such as the sync offset buttons keep their labels.
-  - On the WASM head, Uno's DOM renderer does not pass a TextBox's `Foreground` to the native `<input>`, which kept the browser's black text. `WasmScripts/index.html` sets `input, textarea { color: inherit; }` so typed text takes the themed colour of its parent.
-  - Inside a `DataTemplate`, where `x:Bind Theme` is out of reach, use `{StaticResource CantusTextPrimaryBrush}` and the other `Cantus*` keys. They resolve to the live brushes, so they follow theme changes too.
+    - The same call maps the Uno.Material 6.1.1 lightweight-styling keys (`ThemeManager.ResourceBrushKeys`) for the Outlined TextBox, ComboBox (including its `ComboBoxBackground*` state keys, mapped to `SurfaceCard`) and its items, CheckBox and ProgressRing, plus `OnSurfaceBrush`, `OnSurfaceVariantBrush` and `SurfaceBrush`, which the MenuFlyout presenter and item templates read directly. So these controls follow the palette in every visual state.
+    - Button keys are not mapped. Instead `App.xaml` has an implicit `Button` style (based on `MaterialBaseButtonStyle`, so the 40px minimum size and fonts stay) with its own template. It keeps each button's own `Background` in every state, where the Material template swapped in its own primary colour on hover, press and focus. Hover and press show a faint `CantusTextPrimaryBrush` layer (8% and 16%), keyboard focus a 2px `CantusPrimaryAccentBrush` ring, and Disabled dims the button. `Padding` is the whole inner gap: Material's extra 8px `ButtonContentMargin` is dropped so narrow rows such as the sync offset buttons keep their labels.
+    - On the WASM head, Uno's DOM renderer does not pass a TextBox's `Foreground` to the native `<input>`, which kept the browser's black text. `WasmScripts/index.html` sets `input, textarea { color: inherit; }` so typed text takes the themed colour of its parent.
+    - Inside a `DataTemplate`, where `x:Bind Theme` is out of reach, use `{StaticResource CantusTextPrimaryBrush}` and the other `Cantus*` keys. They resolve to the live brushes, so they follow theme changes too.
 - `ResponsiveLayoutManager` classifies viewports into `Small`, `Medium`, `Large`, and `FullscreenTv` breakpoints (`LayoutBreakpoint`). It owns kiosk mode (`IsKioskMode`, `ToggleKioskMode`) and the mobile tab (`MobileView`, `CycleMobileView`), and raises a property change for every size that depends on them.
-  - **Sidebar.** `ShowSidebar` is true for Large and Medium, and `SidePanelWidth` is 290 for Medium in both orientations. Medium portrait used to get a 0px sidebar, which hid the track card and its controls.
-  - **Width rules inside a breakpoint.** These are raised on every width change, not only on a breakpoint change: `ShowFullHeaderLabels` (width >= `FULL_HEADER_LABELS_MIN_WIDTH`, 1200: Large header Find Song and Theme labels and the brand subtitle), `IsNarrowPhone` (Small and under 380: mobile tab bar stacks icon over label, the now-playing strip drops its timestamp column), `IsKioskBarCompact` (under 700: kiosk bar hides the timestamp and the Exit Kiosk label), `IsKioskBarStacked` (under 480: kiosk bar hides the album art, tightens its padding and moves the seek bar to its own row, set from `MiniPlaybackBar` code-behind) and `ContentPadding` (kiosk padding drops to 12 on phone widths). `HeaderAccountNameMaxWidth` (160) caps the Large header account name, and `DiagnosticsHudMinWidth` is 420, or 0 on Small.
-  - `ShouldShowStageModeLabels(stageWidth)` is a static rule (420px) that `LyricsStageView` applies to its own top bar width from `SizeChanged`, through its `ModeLabelVisibility` property.
-  - `MIN_WINDOW_WIDTH` x `MIN_WINDOW_HEIGHT` (360 x 560) is set on the desktop window's `OverlappedPresenter` (`PreferredMinimumWidth`/`Height`) in `App.OnLaunched`. The WASM head has no minimum, so phones narrower than 360px still work.
+    - **Sidebar.** `ShowSidebar` is true for Large and Medium, and `SidePanelWidth` is 290 for Medium in both orientations. Medium portrait used to get a 0px sidebar, which hid the track card and its controls.
+    - **Width rules inside a breakpoint.** These are raised on every width change, not only on a breakpoint change: `ShowFullHeaderLabels` (width >= `FULL_HEADER_LABELS_MIN_WIDTH`, 1200: Large header Find Song and Theme labels and the brand subtitle), `IsNarrowPhone` (Small and under 380: mobile tab bar stacks icon over label, the now-playing strip drops its timestamp column), `IsKioskBarCompact` (under 700: kiosk bar hides the timestamp and the Exit Kiosk label), `IsKioskBarStacked` (under 480: kiosk bar hides the album art, tightens its padding and moves the seek bar to its own row, set from `MiniPlaybackBar` code-behind) and `ContentPadding` (kiosk padding drops to 12 on phone widths). `HeaderAccountNameMaxWidth` (160) caps the Large header account name, and `DiagnosticsHudMinWidth` is 420, or 0 on Small.
+    - `ShouldShowStageModeLabels(stageWidth)` is a static rule (420px) that `LyricsStageView` applies to its own top bar width from `SizeChanged`, through its `ModeLabelVisibility` property.
+    - `MIN_WINDOW_WIDTH` x `MIN_WINDOW_HEIGHT` (360 x 560) is set on the desktop window's `OverlappedPresenter` (`PreferredMinimumWidth`/`Height`) in `App.OnLaunched`. The WASM head has no minimum, so phones narrower than 360px still work.
 - **Header status.** Every header layout shows one status dot next to the brand (`GetStatusColor` over `HeaderStatus.GetStatusTone`: green when `Connected`, amber when `Reconnecting`, red otherwise) whose tooltip and accessible name list the connection status, RTT and poller status (`HeaderStatus.GetTooltip`). RTT, clock skew and poller cadence live in the Diagnostics HUD. The Large and Medium layouts also show one alert chip in the middle column, only while `HeaderStatus.GetAlertText` returns text: the connection status when it is not `Connected` (including the initial `Connecting...`), otherwise the poller status when it starts with `Rate Limited`. The chip dot is amber for a rate limit and keeps the status colour otherwise (`HeaderStatus.GetAlertTone`). The chip sits in a star column and trims its text, so it never pushes the action buttons out.
-  - Only the dot colour is an `x:Bind`. The tooltips, accessible names and the whole chip are set in code-behind (`ApplyStatusTooltip`, `ApplyAlertChips`) from `LyricsViewModel.PropertyChanged`, subscribed while the header is loaded. The chip starts `Collapsed`. The WinUI XAML compiler on the Windows head failed (CS1061 on `UpdateFallback_M_*`) when a function binding with `FallbackValue` shared parameter paths with function bindings without one, so keep `FallbackValue` off function bindings over `ViewModel.*` here.
+    - Only the dot colour is an `x:Bind`. The tooltips, accessible names and the whole chip are set in code-behind (`ApplyStatusTooltip`, `ApplyAlertChips`) from `LyricsViewModel.PropertyChanged`, subscribed while the header is loaded. The chip starts `Collapsed`. The WinUI XAML compiler on the Windows head failed (CS1061 on `UpdateFallback_M_*`) when a function binding with `FallbackValue` shared parameter paths with function bindings without one, so keep `FallbackValue` off function bindings over `ViewModel.*` here.
 - **Surfaces.** Few boxes, so the page reads as a player rather than a dashboard:
-  - **Header:** no card. A `CardBorderBrush` bottom border is its only edge, and `GetHeaderPadding` keeps only the gap above it, so the brand lines up with the sidebar and the buttons with the page's right edge.
-  - **Lyrics stage:** no card, border or corner radius. `LyricsStageView` keeps only its padding (`GetStagePadding`), so the lyrics sit on the page backdrop. Only the floating pills (instrumental countdown, theme toast) keep a `SurfaceCardBrush` fill.
-  - **Sidebar:** `AdaptiveTrackCard` is the one card. Inside it, the device row, sync offset, paired display, Spotify account and Displays list are plain sections with a `CantusSectionLabelStyle` heading and no box of their own. One `CantusHairlineStyle` divider (1px, `CantusCardBorderBrush`) splits the player from the settings below it. `DisplaysCard` rows are plain rows too.
-  - **Mobile Sync & Info:** `MobileSettingsView` is one card with a hairline before every section but the first. Sync offset comes first for an owner and Device latency for a Display, so Device latency's hairline follows `Pairing.OwnerControlsVisibility`.
-  - The mobile now-playing strip and the kiosk bar stay single cards with nothing boxed inside.
+    - **Header:** no card. A `CardBorderBrush` bottom border is its only edge, and `GetHeaderPadding` keeps only the gap above it, so the brand lines up with the sidebar and the buttons with the page's right edge.
+    - **Lyrics stage:** no card, border or corner radius. `LyricsStageView` keeps only its padding (`GetStagePadding`), so the lyrics sit on the page backdrop. Only the floating pills (instrumental countdown, theme toast) keep a `SurfaceCardBrush` fill.
+    - **Sidebar:** `AdaptiveTrackCard` is the one card. Inside it, the device row, sync offset, paired display, Spotify account and Displays list are plain sections with a `CantusSectionLabelStyle` heading and no box of their own. One `CantusHairlineStyle` divider (1px, `CantusCardBorderBrush`) splits the player from the settings below it. `DisplaysCard` rows are plain rows too.
+    - **Mobile Sync & Info:** `MobileSettingsView` is one card with a hairline before every section but the first. Sync offset comes first for an owner and Device latency for a Display, so Device latency's hairline follows `Pairing.OwnerControlsVisibility`.
+    - The mobile now-playing strip and the kiosk bar stay single cards with nothing boxed inside.
 - **Overflow handling.** The track card's album art has `MaxWidth` = `AlbumArtSize` and stretches, so it never widens the card's `ScrollViewer` content past the viewport (Large art was 2px wider than the card). Its height is kept square in `SizeChanged` through `SquareArtSizing.GetNextHeight`, which only grows the art when the vertical scrollbar is already shown or the taller art still fits. This stops a resize loop where a scrollbar that takes layout space keeps appearing and disappearing. Rows with long text (device name, kiosk title, Diagnostics HUD values, pairing status) use a `Grid` star column with `CharacterEllipsis` or wrapping instead of a horizontal `StackPanel`, which measures its children at infinite width.
 - **Visual effects.** `VisualEffectsViewModel` (`LyricsViewModel.Effects`) owns four per-device booleans: `IsFilmGrainEnabled`, `IsVignetteEnabled`, `IsScanlinesEnabled` and `IsBackgroundBlurEnabled`. It reads them from `ILyricsPreferences` once, and each setter writes through and notifies only on a real change. `IsEnabled(VisualEffect)` and `SetEnabled` serve the menus. `FilmGrainVisibility`, `VignetteVisibility` and `ScanlinesVisibility` drive the overlay layers, and `AnyOverlayEffectVisibility` collapses the whole overlay when none is on.
 - **Post-processing overlay.** `PostProcessingOverlay` is the last child of the `MainPage` root `Grid`, so it covers every layout, theme and kiosk mode, and it is `IsHitTestVisible="False"`. It takes `Effects` as a dependency property and binds each layer's `Visibility` to it. Layers, bottom to top:
-  - **Scanlines:** a `StackPanel` of 1px black `Rectangle`s, one every 4px, at 22% opacity. Lines stretch to the width on their own; `ScanlineLayout.GetLineCount` sets the count, and the list changes only when a resize changes the count. No assets.
-  - **Vignette:** a `RadialGradientBrush` that stays clear to 60% of the radius and darkens towards the edges.
-  - **Film grain:** three 256px noise tiles (`Assets/PostProcessing/grain_N.png`, about 23 KB each, made by `scripts/generate_grain_tiles.py`). PNGs under `Assets` are plain content, so Uno.Resizetizer does not touch them. Each tile has its own grid layer of `Image` elements one tile larger than the window (`FilmGrainLayout.GetTileCount`).
-  - **Per frame (42 ms, about 24 fps):** the overlay shows the next layer and shifts the grid by a random whole-pixel offset (`FilmGrainLayout.GetJitterOffset`). That is one transform and two opacity changes, which is cheap on the WASM DOM renderer (CSS) and on desktop Skia. Nothing is re-rasterised.
-  - **Lifetime:** the tiles load the first time film grain is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and the grain layer is visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
+    - **Scanlines:** a `StackPanel` of 1px black `Rectangle`s, one every 4px, at 22% opacity. Lines stretch to the width on their own; `ScanlineLayout.GetLineCount` sets the count, and the list changes only when a resize changes the count. No assets.
+    - **Vignette:** a `RadialGradientBrush` that stays clear to 60% of the radius and darkens towards the edges.
+    - **Film grain:** three 256px noise tiles (`Assets/PostProcessing/grain_N.png`, about 23 KB each, made by `scripts/generate_grain_tiles.py`). PNGs under `Assets` are plain content, so Uno.Resizetizer does not touch them. Each tile has its own grid layer of `Image` elements one tile larger than the window (`FilmGrainLayout.GetTileCount`).
+    - **Per frame (42 ms, about 24 fps):** the overlay shows the next layer and shifts the grid by a random whole-pixel offset (`FilmGrainLayout.GetJitterOffset`). That is one transform and two opacity changes, which is cheap on the WASM DOM renderer (CSS) and on desktop Skia. Nothing is re-rasterised.
+    - **Lifetime:** the tiles load the first time film grain is shown, and grids are rebuilt only when the window crosses a tile boundary. The frame timer runs only while the overlay is loaded and the grain layer is visible. The tunables are `UPPER_SNAKE` constants in `PostProcessingOverlay.xaml.cs`.
 - **Background blur (Dynamic theme).** The blur runs in managed code, so the WASM DOM renderer and desktop Skia show the same image:
-  - **Pixels:** when `AlbumArtColorService` decodes artwork for swatches (StbImageSharp), it also keeps an 80px-long-side thumbnail (`ArtworkBlur.Downscale`, alpha-weighted area average). `GetBlurredArtworkPngAsync` blurs that thumbnail with three box-blur passes of radius 4 (`ArtworkBlur.BoxBlur`, close to a Gaussian, on premultiplied alpha so transparent pixels do not tint the art) and encodes it with `PngEncoder` (RGBA, one zlib `IDAT`, CRC-32). It downloads only when no thumbnail is cached. Swatches and thumbnails are cached for 16 URLs and blurred PNGs for 8 (`BoundedUrlCache`, oldest out first).
-  - **Display:** `AmbientBackdrop<ImageSource>` picks what `MainPage` shows from `ThemeManager.AmbientArtworkUrl` and `Effects.IsBackgroundBlurEnabled`. The sharp `BitmapImage` shows at once, and a blurred one, loaded with `BitmapImage.SetSourceAsync` from the PNG stream, replaces it when ready. The `ImageBrush` (`UniformToFill`) upscales it smoothly.
-  - **Staleness:** a blur result is used only if its artwork URL is still current and blur is still on. A new track or turning blur off cancels the pending blur and shows the sharp art straight away. A failed or empty blur keeps the sharp art and logs at Debug or Warning.
-  - **Scrim:** `AmbientScrimOpacity` is `AMBIENT_SCRIM_OPACITY` (0.88) over sharp art and `BLURRED_AMBIENT_SCRIM_OPACITY` (0.86) over blurred art, since the blur already removes busy detail. The lyrics stage has no card, so the scrim alone has to keep lyrics readable on a bright cover. The values are at least the old darkness behind the lyrics: over a white cover, the 0.62 / 0.55 scrim plus the stage card's fill (80% alpha, HSL lightness 0.09) was as dark as a plain black scrim of 0.871 / 0.857 in every channel, for any background hue. `LyricsViewModelTests` checks this, so lowering the scrim fails a test.
+    - **Pixels:** when `AlbumArtColorService` decodes artwork for swatches (StbImageSharp), it also keeps an 80px-long-side thumbnail (`ArtworkBlur.Downscale`, alpha-weighted area average). `GetBlurredArtworkPngAsync` blurs that thumbnail with three box-blur passes of radius 4 (`ArtworkBlur.BoxBlur`, close to a Gaussian, on premultiplied alpha so transparent pixels do not tint the art) and encodes it with `PngEncoder` (RGBA, one zlib `IDAT`, CRC-32). It downloads only when no thumbnail is cached. Swatches and thumbnails are cached for 16 URLs and blurred PNGs for 8 (`BoundedUrlCache`, oldest out first).
+    - **Display:** `AmbientBackdrop<ImageSource>` picks what `MainPage` shows from `ThemeManager.AmbientArtworkUrl` and `Effects.IsBackgroundBlurEnabled`. The sharp `BitmapImage` shows at once, and a blurred one, loaded with `BitmapImage.SetSourceAsync` from the PNG stream, replaces it when ready. The `ImageBrush` (`UniformToFill`) upscales it smoothly.
+    - **Staleness:** a blur result is used only if its artwork URL is still current and blur is still on. A new track or turning blur off cancels the pending blur and shows the sharp art straight away. A failed or empty blur keeps the sharp art and logs at Debug or Warning.
+    - **Scrim:** `AmbientScrimOpacity` is `AMBIENT_SCRIM_OPACITY` (0.88) over sharp art and `BLURRED_AMBIENT_SCRIM_OPACITY` (0.86) over blurred art, since the blur already removes busy detail. The lyrics stage has no card, so the scrim alone has to keep lyrics readable on a bright cover. The values are at least the old darkness behind the lyrics: over a white cover, the 0.62 / 0.55 scrim plus the stage card's fill (80% alpha, HSL lightness 0.09) was as dark as a plain black scrim of 0.871 / 0.857 in every channel, for any background hue. `LyricsViewModelTests` checks this, so lowering the scrim fails a test.
 
 ### Fonts
 - **Families.** Fraunces is the display face: lyric lines, the track title (track card, mobile strip, kiosk bar), the brand, page and empty-state headlines, and dialog titles (`CantusDialogTitleTemplate`, set as each `ContentDialog`'s `TitleTemplate`). Figtree is everything else. Noto Sans Mono stays for timestamps and the pairing code.
 - **One file per weight.** `Assets/Fonts` holds static instances: Figtree Regular, Medium and SemiBold, Fraunces Regular and SemiBold (optical size 72, `SOFT` 0, `WONK` 1). `App.xaml` exposes them as `CantusTextFontFamily`, `CantusTextMediumFontFamily`, `CantusTextSemiBoldFontFamily`, `CantusDisplayFontFamily` and `CantusDisplaySemiBoldFontFamily`. Pick a weight with the family and leave `FontWeight` at `Normal`:
-  - The WASM DOM renderer registers each `ms-appx` font file as its own CSS font face with the default weight of 400, so a `FontWeight` of 600 or more gets a synthetic bold. A variable font is clamped to 400 the same way, which is why the variable sources are not shipped.
-  - Skia ignores `FontWeight` on a single font file unless a `<file>.manifest` maps weights to files. `Figtree-Regular.ttf.manifest` does this for Figtree, so a stray `FontWeight` on default text still picks a real file on desktop.
+    - The WASM DOM renderer registers each `ms-appx` font file as its own CSS font face with the default weight of 400, so a `FontWeight` of 600 or more gets a synthetic bold. A variable font is clamped to 400 the same way, which is why the variable sources are not shipped.
+    - Skia ignores `FontWeight` on a single font file unless a `<file>.manifest` maps weights to files. `Figtree-Regular.ttf.manifest` does this for Figtree, so a stray `FontWeight` on default text still picks a real file on desktop.
 - **App-wide default.** `UnoDefaultFont` is `None` (no Open Sans package), and `App`'s static constructor sets `FeatureConfiguration.Font.DefaultTextFontFamily` to Figtree Regular before any `TextBlock` exists. `MainPage` sets the same family for the Windows head. Material's implicit `TextBlock` style is Body Medium, so `App.xaml` points the `Body*FontFamily` keys at Figtree Regular with `Normal` weight, and `MaterialTheme.FontOverrideDictionary` points `MaterialRegularFontFamily`, `MaterialLightFontFamily` and `MaterialMediumFontFamily` at Figtree, so Material controls never load Roboto. The implicit `Button` style uses Figtree Medium.
 - **Section labels.** Headings above a group of settings or details use `CantusSectionLabelStyle` (Figtree Medium, 13px, muted, sentence case such as "Sync offset" or "Spotify account").
 - **Subsetting.** `scripts/generate_font_instances.py` builds the files from a pinned google/fonts commit with fontTools (instancer, then subset to Latin, Latin-1, Latin Extended-A and common punctuation). It renames the Fraunces instances from `Fraunces 72pt` to plain `Fraunces`, because the Windows head matches the `#Fraunces` fragment against a family name that keeps `72pt`. Other scripts, CJK included, fall back to system fonts on both renderers. The five files total about 188 KB (about 110 KB gzipped), and the browser only fetches the ones a page uses. They replace the variable Open Sans (530 KB) and Material's Roboto Regular and Medium (about 335 KB) the WASM head used to fetch. The OFL licences sit next to them (`OFL-Figtree.txt`, `OFL-Fraunces.txt`).
@@ -242,15 +223,15 @@ flowchart TD
 - **Generated paths.** `scripts/generate_icons.py` downloads the SVGs from a pinned phosphor-icons/core commit (SHA-256 checked) and writes `Icons/CantusIcons.g.cs`: the enum plus `CantusIconPaths`, one space-separated path per icon in Phosphor's 256 x 256 box. To add or swap an icon, edit `ICONS` and `PHOSPHOR_SHA256` in the script and run it. `Icons/LICENSE-Phosphor.txt` sits next to it and ships with the app as content.
 - **Drawing.** `Views/CantusIcon` is a `PathIcon` with `Kind` and `Size` (default 16):
 
-  ```xml
-  <views:CantusIcon Kind="Search" Size="16" />
-  <views:CantusIcon Kind="{x:Bind Transport.PlayPauseIcon, Mode=OneWay}" Size="20" />
-  ```
+    ```xml
+    <views:CantusIcon Kind="Search" Size="16" />
+    <views:CantusIcon Kind="{x:Bind Transport.PlayPauseIcon, Mode=OneWay}" Size="20" />
+    ```
 
-  - It sets `Width` and `Height` to `Size` and `Data` to the path scaled to that size (`CantusIconGeometry.GetPathMarkup`, cached per kind and size). The geometry is scaled rather than transformed because `PathIcon` draws `Data` at its native size on both renderers. The markup starts with `F1` because Phosphor relies on SVG's nonzero fill, while XAML path markup defaults to even-odd.
-  - It fills with the inherited `Foreground`, so icons follow the button, menu item or theme brush around them, including `OnPrimaryAccentBrush` on accent buttons.
-  - Being an `IconElement`, it also works in `MenuFlyoutItem.Icon` (use `Size="16"` there).
-  - View models expose a `CantusIconKind` (`Transport.PlayPauseIcon`, `Transport.RepeatIcon`, `Session.ConnectButtonIcon`, `ModeToggleIcon`, `AutoScrollToggleIcon`) and raise a change with the state it follows, so bound icons swap with it.
+    - It sets `Width` and `Height` to `Size` and `Data` to the path scaled to that size (`CantusIconGeometry.GetPathMarkup`, cached per kind and size). The geometry is scaled rather than transformed because `PathIcon` draws `Data` at its native size on both renderers. The markup starts with `F1` because Phosphor relies on SVG's nonzero fill, while XAML path markup defaults to even-odd.
+    - It fills with the inherited `Foreground`, so icons follow the button, menu item or theme brush around them, including `OnPrimaryAccentBrush` on accent buttons.
+    - Being an `IconElement`, it also works in `MenuFlyoutItem.Icon` (use `Size="16"` there).
+    - View models expose a `CantusIconKind` (`Transport.PlayPauseIcon`, `Transport.RepeatIcon`, `Session.ConnectButtonIcon`, `ModeToggleIcon`, `AutoScrollToggleIcon`) and raise a change with the state it follows, so bound icons swap with it.
 - **Sizing.** Phosphor keeps 24 units of padding on each side of the 256 box, so the drawn shape is about 80% of `Size`. Icons next to 11-13px labels use `Size` 13-15, header and transport buttons 16-17. Icon-only buttons keep Material's 40px minimum.
 
 ### 7. `LyricsPreferences` & `ISettingsStore`
@@ -264,7 +245,7 @@ flowchart TD
 - Debounces volume changes: slider ticks only record the value, and the one the slider rests on for `300ms` is sent.
 - Owns the effective playback state. `ApplyServerState` takes each poll, reconciles it with any unconfirmed seek, and returns the state the display clock follows.
 - Line seeks (`SeekToLineAsync`) target the line timestamp minus the per-track offset, without latency compensation (a seek flushes in-flight audio, so adding it would clip the line). The jump is optimistic and raises `SeekApplied` before Spotify answers. `HoldAtSeekFloor` keeps the tapped line active until the latency-compensated estimate catches up. Polls still reporting the pre-seek position are ignored until one confirms the seek (or 4 seconds pass). A rejected seek restores the last poll, raises `SeekReverted`, and reports through the transport status line.
-- The seek anchor itself (pending seek, display floor, seek generation, poll reconciliation) lives in an internal `OptimisticSeekAnchor` owned by the transport. Callers go through `PlaybackTransport` members; `LyricsViewModel` only shares its static `ProjectProgressMs` position estimate.
+- The seek anchor itself (pending seek, display floor, seek generation, poll reconciliation) lives in an internal `OptimisticSeekAnchor` owned by the transport. Callers go through `PlaybackTransport` members; `LyricsViewModel` only calls the static `OptimisticSeekAnchor.ProjectProgressMs` position estimate.
 
 ### 9. `PlaybackTiming`
 - Implements the render-position formula from [Timing & Calibration](../user-guide/timing-and-calibration.md): `playback position - device latency compensation + per-track offset`.
@@ -277,8 +258,9 @@ flowchart TD
 - Owns sign-in state: the authorized Sessions list (`Sessions`, `CurrentUserSession`, `AuthorizedSessionsCount`), the active user (`ActiveUserName`, `ActiveUserId`), and the derived `IsAuthorized`, connect button text and icon (`ConnectButtonIcon`), and session visibilities.
 - `ApplySessions` takes the server's Session list: the first Session becomes active and its playback is subscribed to. `ApplyAuthSession` replaces the list with a newly signed-in Session and subscribes to it. `ApplySessionRevoked` signs out when the revoked user is the active one (or none is named). `ApplyActiveUser` and `ApplyDiagnostics` take the active user and Session count from playback polls and diagnostics.
 - `SubscribeToUserAsync` and `LogoutAsync` call the client. An empty Session list or a revoke raises `SessionEnded`; logout raises `LoggedOut`. `LyricsViewModel` handles both to clear playback state.
-- `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `ServerBaseUrl` is the server origin the desktop heads open it against.
+- `SpotifyLoginPath` is the server-relative sign-in path (`/api/auth/spotify/login`), with `?client_id=` added when the client has an id. `BuildSpotifyLoginPath(ownClientId)` also adds `spotify_client_id=` for a user's own Spotify app. `ServerBaseUrl` is the server origin the desktop heads open it against.
 - `OwnerActionsVisibility` shows owner-only actions such as Find Song. It is keyed on `CurrentUserSession`, not `IsAuthorized`, because a paired Display is authorized but normally never receives the Session list. Views also check `Pairing.OwnerControlsVisibility` for a Display paired after a sign-in.
+- Composes `SpotifySetup` (`SpotifySetupViewModel`, with `SpotifySetupApi` and `OwnSpotifyAppStore`), the own-Spotify-app sign-in setup.
 - Composes `Displays` (`DisplaysViewModel`), the owner's Display management. A Session list or a completed sign-in turns it on and loads the list; signing out, a revoke or an empty Session list turns it off and empties the list.
 
 ### 11. `DisplayPairingViewModel` & `DisplayPairingView`
@@ -324,7 +306,7 @@ flowchart TD
 | Platform Target | Target Framework | UI Backend | Packaging (release workflow) |
 | :--- | :--- | :--- | :--- |
 | **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries). |
-| **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`). |
+| **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`) for `linux-x64`. `linux-arm64` is build-from-source. |
 | **Windows Desktop** | `net10.0-desktop` (`win-x64`) | Skia (Win32) | `.zip` and Inno Setup installer (`packaging/windows`). |
 | **macOS Desktop** | `net10.0-desktop` (`osx-x64`, `osx-arm64`) | Skia (macOS) | `.tar.gz`. |
 

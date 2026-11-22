@@ -28,30 +28,33 @@ You can contribute to Cantus in several ways:
 To build and run Cantus locally, ensure you have the following installed:
 
 1. **.NET 10 SDK** (`10.0.100` or a later feature band, as pinned in `global.json`, which also pins `Uno.Sdk` `6.5.36`):
-   ```bash
-   dotnet --version
-   ```
+    ```bash
+    dotnet --version
+    ```
+
 2. **Uno Platform WebAssembly Workload** (if developing for the Web client):
-   ```bash
-   dotnet workload install wasm-tools
-   ```
+    ```bash
+    dotnet workload install wasm-tools
+    ```
+
 3. **Spotify Developer Account** (Free):
-   - Create a free developer application at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) to obtain a **Client ID**.
-   - Add `http://127.0.0.1:5000/api/auth/spotify/callback` to your Spotify App's **Redirect URIs**. Spotify rejects `http://localhost`, so open Cantus at `http://127.0.0.1:5000` when testing sign-in.
+    - Create a free developer application at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) to obtain a **Client ID**.
+    - Add `http://127.0.0.1:5000/api/auth/spotify/callback` to your Spotify App's **Redirect URIs**. Spotify rejects `http://localhost`, so open Cantus at `http://127.0.0.1:5000` when testing sign-in.
 4. **Docker** (Optional): For running containerized tests or smoke tests.
 
 ### Getting the Code
 
 1. Fork the [Cantus repository](https://github.com/jav76/Cantus) on GitHub.
 2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/<your-username>/Cantus.git
-   cd Cantus
-   ```
+    ```bash
+    git clone https://github.com/<your-username>/Cantus.git
+    cd Cantus
+    ```
+
 3. Create a descriptive feature branch:
-   ```bash
-   git checkout -b feature/my-new-feature
-   ```
+    ```bash
+    git checkout -b feature/my-new-feature
+    ```
 
 ### Local Environment Configuration
 
@@ -113,7 +116,7 @@ dotnet build Cantus.slnx
 
 ### 2. Run the ASP.NET Core Server
 
-Start the backend server on `http://localhost:5000`:
+Start the backend server on `http://127.0.0.1:5000`:
 
 ```bash
 dotnet run --project src/Cantus.Server
@@ -164,6 +167,7 @@ dotnet test Cantus.slnx --logger "console;verbosity=normal"
 CI runs the same suite in Release: `dotnet build Cantus.slnx --configuration Release`, then `dotnet test Cantus.slnx --configuration Release --no-build`.
 
 Unit and integration tests reside in `tests/`:
+
 - `tests/Cantus.Core.Tests`: LRC and YRC parsers, domain models, the trace-log source generator.
 - `tests/Cantus.Infrastructure.Tests`: Lyrics providers and caching, overrides, Spotify clients, token encryption, SQLite persistence, logging.
 - `tests/Cantus.Client.Tests`: View models, SignalR client and jitter filter, theme manager, color quantizer, responsive layout, local settings.
@@ -257,11 +261,12 @@ Before submitting your pull request, verify that:
 ### Opening the PR
 
 1. Push your branch to your GitHub fork:
-   ```bash
-   git push origin feature/my-new-feature
-   ```
+    ```bash
+    git push origin feature/my-new-feature
+    ```
+
 2. Navigate to [github.com/jav76/Cantus](https://github.com/jav76/Cantus) and click **Compare & pull request**.
-3. Fill out the PR template with a clear explanation of what changed, why, and how it was tested.
+3. Describe the change with a clear explanation of what changed, why, and how it was tested.
 4. If your PR resolves an existing issue, link it in the description (e.g. `Closes #12`).
 5. CI builds and tests the solution, runs a Docker build smoke test, and reports formatting (`dotnet format --verify-no-changes`) as a non-blocking advisory.
 
@@ -273,8 +278,8 @@ If you find a bug or experience unexpected behavior:
 
 1. Check existing [GitHub Issues](https://github.com/jav76/Cantus/issues) to see if the issue has already been reported.
 2. Open a new issue with:
-   - A clear, descriptive title.
-   - Exact steps to reproduce the behavior.
-   - Expected vs. actual behavior.
-   - Relevant environment details (OS, browser/client type, Docker setup).
-   - Server or client logs (use `--log-configuration debug`, or open the Diagnostics HUD from its button in the client's header bar).
+    - A clear, descriptive title.
+    - Exact steps to reproduce the behavior.
+    - Expected vs. actual behavior.
+    - Relevant environment details (OS, browser/client type, Docker setup).
+    - Server or client logs (use `--log-configuration debug`, or open the Diagnostics HUD from its button in the client's header bar).
