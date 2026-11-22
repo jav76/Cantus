@@ -56,4 +56,25 @@ public sealed class HeaderStatusTests
         HeaderStatus.GetTooltip("Connected", 42, "Active (Playing)")
             .Should().Be("Connection: Connected\nRTT: 42 ms\nPoller: Active (Playing)");
     }
+
+    [Theory]
+    [InlineData("Connected", StatusTone.Healthy)]
+    [InlineData("Reconnecting", StatusTone.Warning)]
+    [InlineData("Connecting...", StatusTone.Error)]
+    [InlineData("Disconnected", StatusTone.Error)]
+    [InlineData(null, StatusTone.Error)]
+    public void GetStatusTone_FollowsConnectionStatus(string? connectionStatus, StatusTone expected)
+    {
+        HeaderStatus.GetStatusTone(connectionStatus).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("Connected", StatusTone.Warning)]
+    [InlineData("Reconnecting", StatusTone.Warning)]
+    [InlineData("Disconnected", StatusTone.Error)]
+    [InlineData(null, StatusTone.Error)]
+    public void GetAlertTone_RateLimitIsWarningAndConnectionProblemKeepsStatusTone(string? connectionStatus, StatusTone expected)
+    {
+        HeaderStatus.GetAlertTone(connectionStatus).Should().Be(expected);
+    }
 }
