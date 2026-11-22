@@ -3,6 +3,7 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                xmlns:vm="using:Cantus.Client.ViewModels"
                Title="Cantus Diagnostic Telemetry"
+               TitleTemplate="{StaticResource CantusDialogTitleTemplate}"
                PrimaryButtonText="Close"
                DefaultButton="Primary"
                Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
@@ -14,16 +15,16 @@
         <!-- SignalR Engine & Network -->
         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14">
             <StackPanel Spacing="8">
-                <TextBlock Text="SIGNALR &amp; NETWORK ENGINE" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                <TextBlock Text="SignalR &amp; network engine" Style="{StaticResource CantusSectionLabelStyle}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Status:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" Foreground="#10B981" FontWeight="Bold" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" Foreground="#10B981" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" FontSize="13" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Transport:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.TransportType, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="RTT / NTP Skew:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetLatencySkewText(ViewModel.RttMs, ViewModel.ClockSkewMs), Mode=OneWay}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind GetLatencySkewText(ViewModel.RttMs, ViewModel.ClockSkewMs), Mode=OneWay}" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" FontSize="13" />
 
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Latency Compensation:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind Timing.CalibrationText, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
@@ -34,7 +35,7 @@
         <!-- Server Adaptive Poller -->
         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14">
             <StackPanel Spacing="8">
-                <TextBlock Text="SERVER POLLER &amp; SESSIONS" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                <TextBlock Text="Server poller &amp; sessions" Style="{StaticResource CantusSectionLabelStyle}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Poller Cadence:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind GetPollerCadenceText(ViewModel.PollerStatus, ViewModel.ActivePollIntervalMs), Mode=OneWay}" />
@@ -51,10 +52,10 @@
         <!-- Active Spotify Device -->
         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14">
             <StackPanel Spacing="8">
-                <TextBlock Text="SPOTIFY DEVICE &amp; STREAM" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                <TextBlock Text="Spotify device &amp; stream" Style="{StaticResource CantusSectionLabelStyle}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Active User:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Session.ActiveUserName, Mode=OneWay}" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Session.ActiveUserName, Mode=OneWay}" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Device:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ViewModel.DeviceName, Mode=OneWay}" />
@@ -68,13 +69,13 @@
         <!-- Build & Runtime Info -->
         <Border Background="#15FFFFFF" BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}" BorderThickness="1" CornerRadius="10" Padding="14">
             <StackPanel Spacing="8">
-                <TextBlock Text="BUILD &amp; RUNTIME INFO" FontSize="11" FontWeight="Bold" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+                <TextBlock Text="Build &amp; runtime info" Style="{StaticResource CantusSectionLabelStyle}" />
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="App Version:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" FontSize="13" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Commit SHA:" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" FontSize="13" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.CommitSha, Mode=OneWay}" Foreground="{x:Bind Theme.SecondaryAccentBrush, Mode=OneWay}" FontWeight="SemiBold" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.CommitSha, Mode=OneWay}" Foreground="{x:Bind Theme.SecondaryAccentBrush, Mode=OneWay}" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" FontSize="13" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                 </Grid>
             </StackPanel>
         </Border>

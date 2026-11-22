@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
 using Cantus.Core.Models;
@@ -269,7 +270,7 @@ public sealed class PlaybackTransportTests
         // Assert
         client.Verify(c => c.SendPlayerCommandAsync("pause"), Times.Once);
         transport.IsPlaying.Should().BeFalse();
-        transport.PlayPauseGlyph.Should().Be("▶");
+        transport.PlayPauseIcon.Should().Be(CantusIconKind.Play);
 
         // Act - resume is rejected
         client.Setup(c => c.SendPlayerCommandAsync("resume")).ReturnsAsync(PlayerCommandResult.MissingPermissions);
@@ -387,27 +388,27 @@ public sealed class PlaybackTransportTests
         // Assert
         changed.Should().Contain(new[]
         {
-            nameof(PlaybackTransport.PlayPauseGlyph),
+            nameof(PlaybackTransport.PlayPauseIcon),
             nameof(PlaybackTransport.ShuffleButtonForeground),
-            nameof(PlaybackTransport.RepeatGlyph),
+            nameof(PlaybackTransport.RepeatIcon),
             nameof(PlaybackTransport.RepeatButtonForeground),
             nameof(PlaybackTransport.VolumeSliderValue),
             nameof(PlaybackTransport.VolumeText),
         });
         transport.ShuffleButtonForeground.Should().BeSameAs(theme.PrimaryAccentBrush);
         transport.RepeatButtonForeground.Should().BeSameAs(theme.PrimaryAccentBrush);
-        transport.RepeatGlyph.Should().Be("\uE8ED");
+        transport.RepeatIcon.Should().Be(CantusIconKind.RepeatOnce);
     }
 
     [Theory]
-    [InlineData(false, "off", "\u25B6", "\uE8EE")]
-    [InlineData(true, "context", "\u23F8", "\uE8EE")]
-    [InlineData(true, "track", "\u23F8", "\uE8ED")]
-    public void Glyphs_MapStateToTheirCodePoints(
+    [InlineData(false, "off", CantusIconKind.Play, CantusIconKind.Repeat)]
+    [InlineData(true, "context", CantusIconKind.Pause, CantusIconKind.Repeat)]
+    [InlineData(true, "track", CantusIconKind.Pause, CantusIconKind.RepeatOnce)]
+    public void Icons_MapStateToTheirKinds(
         bool isPlaying,
         string repeatMode,
-        string expectedPlayPause,
-        string expectedRepeat)
+        CantusIconKind expectedPlayPause,
+        CantusIconKind expectedRepeat)
     {
         // Arrange
         (_, PlaybackTransport transport) = CreateTransport();
@@ -417,8 +418,8 @@ public sealed class PlaybackTransportTests
         transport.RepeatMode = repeatMode;
 
         // Assert
-        transport.PlayPauseGlyph.Should().Be(expectedPlayPause);
-        transport.RepeatGlyph.Should().Be(expectedRepeat);
+        transport.PlayPauseIcon.Should().Be(expectedPlayPause);
+        transport.RepeatIcon.Should().Be(expectedRepeat);
     }
 
     private static (Mock<ISignalRPlaybackClient> Client, PlaybackTransport Transport) CreateTransport()

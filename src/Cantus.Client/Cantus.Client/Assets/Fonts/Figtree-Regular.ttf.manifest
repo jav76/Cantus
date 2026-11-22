@@ -1,0 +1,22 @@
+{
+  "fonts": [
+    {
+      "font_style": "Normal",
+      "font_weight": 400,
+      "font_stretch": "Normal",
+      "family_name": "ms-appx:///Assets/Fonts/Figtree-Regular.ttf"
+    },
+    {
+      "font_style": "Normal",
+      "font_weight": 500,
+      "font_stretch": "Normal",
+      "family_name": "ms-appx:///Assets/Fonts/Figtree-Medium.ttf"
+    },
+    {
+      "font_style": "Normal",
+      "font_weight": 600,
+      "font_stretch": "Normal",
+      "family_name": "ms-appx:///Assets/Fonts/Figtree-SemiBold.ttf"
+    }
+  ]
+}

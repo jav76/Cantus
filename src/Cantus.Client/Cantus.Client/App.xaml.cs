@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Core.Logging;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,14 @@ namespace Cantus.Client;
 
 public partial class App : Application
 {
+#if HAS_UNO
+    // Runs when Program.Main first touches App, before Uno reads the default font into TextBlock's metadata.
+    static App()
+    {
+        Uno.UI.FeatureConfiguration.Font.DefaultTextFontFamily = CantusTypography.TEXT_REGULAR_SOURCE;
+    }
+#endif
+
     public App()
     {
         if (!ClientLoggingManager.IsInitialized)

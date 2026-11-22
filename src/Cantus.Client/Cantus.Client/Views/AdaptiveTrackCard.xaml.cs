@@ -378,8 +378,8 @@ public sealed partial class AdaptiveTrackCard : UserControl
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
-            LayoutBreakpoint.Medium => 18.0,
-            _ => 22.0
+            LayoutBreakpoint.Medium => 20.0,
+            _ => 24.0
         };
     }
 

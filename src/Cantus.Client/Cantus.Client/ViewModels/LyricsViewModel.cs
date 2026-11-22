@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
@@ -59,8 +60,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private bool _isStaticLyricsMode;
     private bool _isAutoScrollEnabled;
     private bool _isUserScrollingPaused;
-    private const double AMBIENT_SCRIM_OPACITY = 0.62;
-    private const double BLURRED_AMBIENT_SCRIM_OPACITY = 0.55;
+    // Lyrics sit on the backdrop with no card, so the scrim alone must be at least as dark as the
+    // old 0.62 / 0.55 scrim plus the 80% card fill was over a white cover (0.871 / 0.857).
+    internal const double AMBIENT_SCRIM_OPACITY = 0.88;
+    internal const double BLURRED_AMBIENT_SCRIM_OPACITY = 0.86;
     private readonly AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource> _ambientBackdrop;
     private readonly VisualEffectsViewModel _effects;
     private const int THEME_TOAST_DURATION_MS = 2000;
@@ -334,7 +337,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(SyncedLyricsVisibility));
                 OnPropertyChanged(nameof(StaticLyricsVisibility));
                 OnPropertyChanged(nameof(ModeToggleText));
-                OnPropertyChanged(nameof(ModeToggleGlyph));
+                OnPropertyChanged(nameof(ModeToggleIcon));
                 OnPropertyChanged(nameof(StaticLyricsText));
                 OnPropertyChanged(nameof(AutoScrollToggleVisibility));
                 OnPropertyChanged(nameof(InstrumentalBreakVisibility));
@@ -357,7 +360,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public Visibility ModeToggleVisibility => (HasSyncedLyrics && HasLyrics) ? Visibility.Visible : Visibility.Collapsed;
     public string ModeToggleText => IsStaticLyricsMode ? "Live Synced" : "Static View";
-    public string ModeToggleGlyph => IsStaticLyricsMode ? "\uE895" : "\uE8C4";
+    public CantusIconKind ModeToggleIcon => IsStaticLyricsMode ? CantusIconKind.SyncedLyrics : CantusIconKind.StaticLyrics;
 
     public bool IsAutoScrollEnabled
     {
@@ -374,7 +377,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
                 }
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(AutoScrollToggleText));
-                OnPropertyChanged(nameof(AutoScrollToggleGlyph));
+                OnPropertyChanged(nameof(AutoScrollToggleIcon));
                 OnPropertyChanged(nameof(AutoScrollToggleVisibility));
                 OnPropertyChanged(nameof(ResumeAutoScrollVisibility));
                 AutoScrollEnabledChanged?.Invoke(value);
@@ -399,7 +402,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     internal long InterpolatedProgressMs => _interpolatedProgressMs;
 
     public string AutoScrollToggleText => IsAutoScrollEnabled ? "Autoscroll" : "Free Scroll";
-    public string AutoScrollToggleGlyph => IsAutoScrollEnabled ? "\uE73E" : "\uE711";
+    public CantusIconKind AutoScrollToggleIcon => IsAutoScrollEnabled ? CantusIconKind.Check : CantusIconKind.Close;
     public Visibility AutoScrollToggleVisibility => (HasSyncedLyrics && HasLyrics && !IsStaticLyricsMode) ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsKaraokeModeEnabled

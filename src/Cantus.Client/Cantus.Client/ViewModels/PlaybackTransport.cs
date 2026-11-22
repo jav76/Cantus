@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Cantus.Client.Icons;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
@@ -84,12 +85,12 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
             {
                 _isPlaying = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(PlayPauseGlyph));
+                OnPropertyChanged(nameof(PlayPauseIcon));
             }
         }
     }
 
-    public string PlayPauseGlyph => IsPlaying ? "\u23F8" : "\u25B6";
+    public CantusIconKind PlayPauseIcon => IsPlaying ? CantusIconKind.Pause : CantusIconKind.Play;
 
     public bool IsShuffled
     {
@@ -115,13 +116,13 @@ public sealed class PlaybackTransport : INotifyPropertyChanged
             {
                 _repeatMode = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(RepeatGlyph));
+                OnPropertyChanged(nameof(RepeatIcon));
                 OnPropertyChanged(nameof(RepeatButtonForeground));
             }
         }
     }
 
-    public string RepeatGlyph => _repeatMode == REPEAT_TRACK ? "\uE8ED" : "\uE8EE";
+    public CantusIconKind RepeatIcon => _repeatMode == REPEAT_TRACK ? CantusIconKind.RepeatOnce : CantusIconKind.Repeat;
 
     public Microsoft.UI.Xaml.Media.SolidColorBrush ShuffleButtonForeground =>
         _isShuffled ? _themeManager.PrimaryAccentBrush : _themeManager.TextMutedBrush;

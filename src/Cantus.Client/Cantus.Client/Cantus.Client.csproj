@@ -20,6 +20,8 @@
     <!-- Package Description -->
     <Description>Cantus - Real-Time Spotify Synced Lyrics Platform</Description>
 
+    <!-- Figtree (Assets/Fonts) is the default text font, set in App's static constructor. -->
+    <UnoDefaultFont>None</UnoDefaultFont>
     <UnoFeatures>
       Material;
       Toolkit;
@@ -42,6 +44,11 @@
     <InternalsVisibleTo Include="Cantus.Client.Tests" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <!-- The icon paths are compiled in (Icons/CantusIcons.g.cs); their licence ships as a file like the font licences. -->
+    <Content Include="Icons\LICENSE-Phosphor.txt" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <EmbeddedResource Include="WasmScripts\AppManifest.js" />

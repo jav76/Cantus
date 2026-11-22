@@ -266,28 +266,44 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         return bp == LayoutBreakpoint.Small ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>
+    /// The header has no card, so it only keeps a gap above its hairline. With no side padding
+    /// the brand lines up with the sidebar's left edge and the buttons with the page's right edge.
+    /// </summary>
     public Thickness GetHeaderPadding(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
         return bp switch
         {
-            LayoutBreakpoint.Small => new Thickness(12, 8, 12, 8),
-            LayoutBreakpoint.Medium => new Thickness(14, 10, 14, 10),
-            _ => new Thickness(16, 12, 16, 12)
+            LayoutBreakpoint.Small => new Thickness(0, 0, 0, 8),
+            LayoutBreakpoint.Medium => new Thickness(0, 0, 0, 10),
+            _ => new Thickness(0, 0, 0, 12)
         };
     }
 
+    private static readonly Color HealthyColor = Color.FromArgb(255, 16, 185, 129);
+    private static readonly Color WarningColor = Color.FromArgb(255, 245, 158, 11);
+    private static readonly Color ErrorColor = Color.FromArgb(255, 239, 68, 68);
+
     public SolidColorBrush GetStatusColor(string? status) => status switch
     {
-        "Connected" => new SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
-        "Reconnecting" => new SolidColorBrush(Color.FromArgb(255, 245, 158, 11)),
-        _ => new SolidColorBrush(Color.FromArgb(255, 239, 68, 68))
+        HeaderStatus.CONNECTED => new SolidColorBrush(HealthyColor),
+        "Reconnecting" => new SolidColorBrush(WarningColor),
+        _ => new SolidColorBrush(ErrorColor)
     };
 
-    public string GetRttText(long? rtt = null) => $"RTT: {rtt.GetValueOrDefault()}ms";
-    public string GetSkewText(long? skew = null)
-    {
-        long s = skew.GetValueOrDefault();
-        return $"Skew: {(s >= 0 ? "+" : "")}{s}ms";
-    }
+    public string GetStatusTooltip(string? connectionStatus, long rttMs, string? pollerStatus)
+        => HeaderStatus.GetTooltip(connectionStatus, rttMs, pollerStatus);
+
+    public string GetAlertText(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) ?? string.Empty;
+
+    public Visibility GetAlertVisibility(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.GetAlertText(connectionStatus, pollerStatus) is null ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>A rate-limited poller is a warning; a connection problem keeps its status colour.</summary>
+    public SolidColorBrush GetAlertColor(string? connectionStatus, string? pollerStatus)
+        => HeaderStatus.IsConnected(connectionStatus)
+            ? new SolidColorBrush(WarningColor)
+            : GetStatusColor(connectionStatus);
 }

@@ -39,8 +39,8 @@ public static class ColorExtractionHelper
     private const float LIGHTNESS_PENALTY_FACTOR = 2f;
 
     private const float BACKGROUND_LIGHTNESS = 0.05f;
-    private const float SURFACE_CARD_SATURATION = 0.28f;
-    private const float SURFACE_CARD_LIGHTNESS = 0.09f;
+    internal const float SURFACE_CARD_SATURATION = 0.28f;
+    internal const float SURFACE_CARD_LIGHTNESS = 0.09f;
 
     internal const byte OPAQUE_ALPHA = 255;
     internal const byte SURFACE_CARD_ALPHA = 204;

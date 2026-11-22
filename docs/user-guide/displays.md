@@ -12,7 +12,7 @@ Use a Display for any screen other people can reach. Sign in with Spotify only o
 | :--- | :--- |
 | Show your current track, artwork, progress and synced lyrics | Play, pause, skip, seek, or change volume, shuffle or repeat |
 | Follow your playback live, with the same timing as your own devices | Change per-track sync offsets or pick different lyrics |
-| Adjust its own **Device Latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, log out, or see your Spotify sign-in |
+| Adjust its own **Device latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, log out, or see your Spotify sign-in |
 | Keep your playback updating while no other device is open | List, approve, rename or remove Displays |
 | Reconnect by itself after a restart or network drop | Watch anyone else's playback |
 
@@ -27,7 +27,7 @@ You need two devices: the screen you want to pair, and a phone or computer signe
 ### 1. Show a code on the screen
 
 1. On the screen, open your Cantus address, for example `http://<your-server-ip>:5000`.
-2. In the Spotify account card, choose **Pair as display**. On mobile layouts the card is under the **Sync & Info** tab.
+2. In the **Spotify account** section, choose **Pair as display**. On mobile layouts it is under the **Sync & Info** tab.
 3. The screen shows a short code in large type, a QR code, the server address and how long the code is valid.
 
 Open the screen at the same address your phone uses (for example your public HTTPS address). The QR code and the address under the code are built from it.
@@ -44,7 +44,7 @@ Approve it from your signed-in phone or computer in one of two ways.
 
 === "Type the code"
 
-    1. In the **Displays** card, choose **Add display**. The card is under the Spotify account card, and under the **Sync & Info** tab on mobile layouts.
+    1. In the **Displays** section, choose **Add display**. It is under the **Spotify account** section, and under the **Sync & Info** tab on mobile layouts.
     2. Type the code shown on the screen. Dashes and letter case do not matter.
     3. Give the screen a name of 1 to 64 characters and choose **Approve**.
 
@@ -64,7 +64,7 @@ If the QR opens Cantus in a browser that is not signed in, the prompt asks you t
 
 ## Manage Your Displays
 
-The **Displays** card lists every screen paired to your account, oldest first, with when each one last connected. The list updates by itself when a Display is paired, renamed or removed, from this device or another one, and when a Display connects. The last-seen times age as you watch, and the refresh button fetches the list again.
+The **Displays** section lists every screen paired to your account, oldest first, with when each one last connected. The list updates by itself when a Display is paired, renamed or removed, from this device or another one, and when a Display connects. The last-seen times age as you watch, and the refresh button fetches the list again.
 
 ### Rename a Display
 
@@ -96,7 +96,7 @@ Displays belong to your Spotify sign-in on this Cantus server. **Log Out** ends 
 
 | Message on the screen | What it means | What to do |
 | :--- | :--- | :--- |
-| This display was removed by its owner. | The Display was removed from the **Displays** card. | Pair it again if you still want it. |
+| This display was removed by its owner. | The Display was removed from the **Displays** section. | Pair it again if you still want it. |
 | This display's pairing is no longer valid. | The server refused the token several times in a row, for example after you logged out. A short server restart alone does not cause this: the screen retries first. | Pair it again. |
 | Too many pairing requests. Trying again shortly. | Too many codes were requested from your network in a short time. | Wait. The screen retries by itself. |
 | The server has too many pending pairings. Trying again shortly. | Many screens are waiting for approval at once. | Wait, or approve or cancel the other waiting screens. |
