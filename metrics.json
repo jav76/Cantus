@@ -1,12 +1,20 @@
 {
   "projectKey": "Cantus",
-  "generatedAt": "2026-11-22T21:44:03Z",
+  "generatedAt": "2026-11-22T22:03:03Z",
   "qualityGate": {
     "status": "OK",
-    "conditions": []
+    "conditions": [
+      {
+        "status": "OK",
+        "metricKey": "new_violations",
+        "comparator": "GT",
+        "errorThreshold": "0",
+        "actualValue": "0"
+      }
+    ]
   },
   "measures": {
-    "coverage": "72.8",
+    "coverage": "72.7",
     "reliability_rating": "5.0",
     "duplicated_lines_density": "0.8",
     "code_smells": "1989",
