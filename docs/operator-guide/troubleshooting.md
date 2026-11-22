@@ -18,6 +18,21 @@ This guide provides solutions to common setup, authentication, and network issue
   3. When you open Cantus at `http://localhost:5000`, it sends a `localhost` callback whatever `CANTUS_HOST_URL` says, and Spotify rejects `localhost`. Open `http://127.0.0.1:5000` instead and register `http://127.0.0.1:5000/api/auth/spotify/callback`.
   4. Behind a proxy with `CANTUS_HOST_URL` unset, an `http://` callback means the proxy is not trusted. See [Reverse Proxy](reverse-proxy.md).
 
+### Sign-in failure pages
+
+When a sign-in fails after Spotify's consent screen, Cantus shows a page with one of these titles. The server log has the full Spotify error.
+
+| Page title | Cause | Fix |
+| :--- | :--- | :--- |
+| Your account is not on this app's user list | The Spotify app is in Development Mode and this account was not added. | Add the account under **User Management** in the app, or let the user [sign in with their own app](spotify-setup.md#5-users-own-spotify-apps). |
+| The Spotify app owner needs Premium | The account that owns the Spotify app has no Premium. | Create the app with a Premium account. |
+| Spotify did not accept this Client ID | The Client ID is malformed or no such app exists. | Copy the Client ID again from the app's **Settings** page. |
+| Spotify rejected the sign-in | Usually the redirect URI in the app differs from the one Cantus sent. | Register the URI shown on the page exactly. |
+| Spotify is not set up on this server | No `Spotify__ClientId`, and no own app was chosen. | Set `Spotify__ClientId`, or sign in with your own app. |
+| Own Spotify apps are turned off here | A Client ID was supplied but `Spotify__AllowUserClientIds` does not allow it. | See [Users' own Spotify apps](spotify-setup.md#5-users-own-spotify-apps). |
+| Sign-in expired | The sign-in took over 10 minutes, or finished in another browser, so the PKCE cookies were missing. | Start again from Cantus in the same browser. |
+| Sign-in cancelled | The consent screen was declined. | Nothing to fix. |
+
 ---
 
 ## 2. WebAssembly Client & Browser Caching

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Cantus.Client.Icons;
@@ -22,6 +23,7 @@ namespace Cantus.Client.ViewModels;
 public sealed class SessionViewModel : INotifyPropertyChanged
 {
     public const string SPOTIFY_LOGIN_PATH = "/api/auth/spotify/login";
+    public const string SPOTIFY_CLIENT_ID_QUERY = "spotify_client_id";
     private const string NO_ACTIVE_USER_NAME = "None";
 
     private readonly ISignalRPlaybackClient _client;
@@ -35,7 +37,9 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         IDisplayManagementApi displaysApi,
         TimeProvider? timeProvider = null,
         Action<Action>? runOnUiThread = null,
-        PendingPairCodeStore? pendingPairCodes = null)
+        PendingPairCodeStore? pendingPairCodes = null,
+        ISpotifySetupApi? spotifySetupApi = null,
+        OwnSpotifyAppStore? ownSpotifyApp = null)
     {
         _client = client;
         Displays = new DisplaysViewModel(
@@ -44,6 +48,10 @@ public sealed class SessionViewModel : INotifyPropertyChanged
             () => _client.ClockOffsetMs,
             runOnUiThread,
             pendingPairCodes);
+        SpotifySetup = new SpotifySetupViewModel(
+            spotifySetupApi ?? new SpotifySetupApi(client, new HttpClient()),
+            ownSpotifyApp ?? new OwnSpotifyAppStore(new LocalSettingsStore()),
+            BuildSpotifyLoginPath);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -58,6 +66,9 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     /// <summary>The signed-in owner's Displays and the prompt that approves a new one.</summary>
     public DisplaysViewModel Displays { get; }
+
+    /// <summary>The Connect Spotify setup screen, for signing in with the user's own Spotify app.</summary>
+    public SpotifySetupViewModel SpotifySetup { get; }
 
     public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
 
@@ -128,12 +139,30 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     public string ServerBaseUrl => _client.ServerBaseUrl;
 
     /// <summary>
-    /// Server-relative sign-in path. Carries this client's id so the server
-    /// can pair the new Session with it.
+    /// Server-relative sign-in path through the server's Spotify app. Carries this client's id
+    /// so the server can pair the new Session with it.
     /// </summary>
-    public string SpotifyLoginPath => string.IsNullOrWhiteSpace(_client.ClientId)
-        ? SPOTIFY_LOGIN_PATH
-        : $"{SPOTIFY_LOGIN_PATH}?client_id={_client.ClientId}";
+    public string SpotifyLoginPath => BuildSpotifyLoginPath(null);
+
+    /// <summary>
+    /// Server-relative sign-in path. <paramref name="ownClientId"/> is the user's own Spotify
+    /// app; null signs in through the server's.
+    /// </summary>
+    public string BuildSpotifyLoginPath(string? ownClientId)
+    {
+        List<string> query = new();
+        if (!string.IsNullOrWhiteSpace(_client.ClientId))
+        {
+            query.Add($"client_id={Uri.EscapeDataString(_client.ClientId)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(ownClientId))
+        {
+            query.Add($"{SPOTIFY_CLIENT_ID_QUERY}={Uri.EscapeDataString(ownClientId)}");
+        }
+
+        return query.Count == 0 ? SPOTIFY_LOGIN_PATH : $"{SPOTIFY_LOGIN_PATH}?{string.Join('&', query)}";
+    }
 
     private bool HasActiveUserName =>
         ActiveUserName != NO_ACTIVE_USER_NAME && !string.IsNullOrEmpty(ActiveUserName);

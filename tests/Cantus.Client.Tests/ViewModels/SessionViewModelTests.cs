@@ -493,6 +493,31 @@ public sealed class SessionViewModelTests
         session.Displays.Displays.Should().BeEmpty();
     }
 
+    [Fact]
+    public void BuildSpotifyLoginPath_CarriesTheClientInstanceIdAndTheOwnClientId()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, SessionViewModel session) = CreateSession();
+        client.SetupGet(c => c.ClientId).Returns("instance-1");
+
+        // Act & Assert
+        session.SpotifyLoginPath.Should().Be("/api/auth/spotify/login?client_id=instance-1");
+        session.BuildSpotifyLoginPath("fedcba9876543210fedcba9876543210").Should().Be(
+            "/api/auth/spotify/login?client_id=instance-1&spotify_client_id=fedcba9876543210fedcba9876543210");
+    }
+
+    [Fact]
+    public void BuildSpotifyLoginPath_WithoutAClientInstanceId_StillCarriesTheOwnClientId()
+    {
+        // Arrange
+        (_, SessionViewModel session) = CreateSession();
+
+        // Act & Assert
+        session.SpotifyLoginPath.Should().Be(SessionViewModel.SPOTIFY_LOGIN_PATH);
+        session.BuildSpotifyLoginPath("fedcba9876543210fedcba9876543210").Should().Be(
+            "/api/auth/spotify/login?spotify_client_id=fedcba9876543210fedcba9876543210");
+    }
+
     private static void AssertSignedOut(SessionViewModel session)
     {
         session.Sessions.Should().BeEmpty();

@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Cantus.Infrastructure.Tests.Spotify;
 
+[Collection(SpotifyAuthServiceCacheCollection.NAME)]
 public sealed class SpotifyAuthServiceTests : IDisposable
 {
     private readonly SqliteConnection _connection;

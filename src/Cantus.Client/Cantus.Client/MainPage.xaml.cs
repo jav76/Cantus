@@ -46,6 +46,7 @@ public sealed partial class MainPage : Page
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
             await ViewModel.InitializeAsync();
+            await OpenConnectLinkAsync();
         };
 
         ViewModel.ActiveLineChanged += OnActiveLineChanged;
@@ -95,6 +96,18 @@ public sealed partial class MainPage : Page
         {
             WasmInterop.RemoveQueryParameter(DisplayPairingViewModel.PAIR_QUERY_PARAMETER);
         }
+    }
+
+    /// <summary>Opens the Connect Spotify setup screen for the sign-in failure page's <c>?connect=spotify</c> link.</summary>
+    private async System.Threading.Tasks.Task OpenConnectLinkAsync()
+    {
+        if (Pairing.IsDisplay || !SpotifySetupViewModel.IsConnectLink(WasmInterop.GetLocationSearch()))
+        {
+            return;
+        }
+
+        WasmInterop.RemoveQueryParameter(SpotifySetupViewModel.CONNECT_QUERY_PARAMETER);
+        await SpotifySignIn.StartAsync(ViewModel.Session, XamlRoot);
     }
 
     private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)

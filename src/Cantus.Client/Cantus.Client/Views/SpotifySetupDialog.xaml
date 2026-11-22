@@ -1,0 +1,139 @@
+<ContentDialog x:Class="Cantus.Client.Views.SpotifySetupDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               Title="Connect Spotify"
+               TitleTemplate="{StaticResource CantusDialogTitleTemplate}"
+               PrimaryButtonText="Connect"
+               CloseButtonText="Cancel"
+               DefaultButton="Primary"
+               IsPrimaryButtonEnabled="{x:Bind Setup.CanConnect, Mode=OneWay}"
+               Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+               CornerRadius="16">
+
+    <ScrollViewer MaxHeight="560"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12" MinWidth="280" MaxWidth="520" Margin="0,8,0,0">
+
+            <TextBlock Text="{x:Bind Setup.IntroText, Mode=OneWay}"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+
+            <!-- Server app or own app -->
+            <StackPanel Spacing="4" Visibility="{x:Bind Setup.AppChoiceVisibility, Mode=OneWay}">
+                <RadioButton x:Name="ServerAppOption"
+                             GroupName="SpotifyApp"
+                             Content="Use this server's Spotify app"
+                             IsChecked="{x:Bind Setup.UseServerApp, Mode=OneWay}"
+                             Checked="OnServerAppChecked"
+                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                <RadioButton x:Name="OwnAppOption"
+                             GroupName="SpotifyApp"
+                             Content="Use my own Spotify app"
+                             IsChecked="{x:Bind Setup.UseOwnApp, Mode=OneWay}"
+                             Checked="OnOwnAppChecked"
+                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+            </StackPanel>
+
+            <!-- Own app steps -->
+            <StackPanel Spacing="12" Visibility="{x:Bind Setup.OwnAppVisibility, Mode=OneWay}">
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="1. Create an app in the Spotify Developer Dashboard"
+                               FontSize="14"
+                               FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="Sign in with a Spotify Premium account. Any name and description will do."
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <HyperlinkButton Content="Open the Spotify Developer Dashboard"
+                                     NavigateUri="{x:Bind Setup.DashboardUri, Mode=OneWay}"
+                                     Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                     FontSize="13"
+                                     Padding="0,2" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="2. Add this Redirect URI"
+                               FontSize="14"
+                               FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
+                               TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0"
+                                 IsReadOnly="True"
+                                 FontSize="13"
+                                 TextWrapping="Wrap"
+                                 Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                                 Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                 Text="{x:Bind Setup.RedirectUri, Mode=OneWay}" />
+                        <Button x:Name="CopyRedirectButton"
+                                Grid.Column="1"
+                                Content="Copy"
+                                Click="OnCopyRedirectUriClicked"
+                                CornerRadius="8"
+                                Padding="12,6"
+                                VerticalAlignment="Top" />
+                    </Grid>
+                    <Border Visibility="{x:Bind Setup.RedirectUriWarningVisibility, Mode=OneWay}"
+                            Background="#33F59E0B"
+                            BorderBrush="#F59E0B"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10,8">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Spotify will refuse this address. It only allows http on 127.0.0.1, so open Cantus at http://127.0.0.1 on this machine, or put the server behind HTTPS."
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                            <HyperlinkButton Content="How to set up HTTPS"
+                                             NavigateUri="{x:Bind Setup.ReverseProxyDocsUri}"
+                                             Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                             FontSize="12"
+                                             Padding="0,2" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Under &quot;Which APIs are you planning to use?&quot; tick Web API, then save."
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="3. Paste the app's Client ID"
+                               FontSize="14"
+                               FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="It is on the app's Settings page. Cantus does not need the Client Secret."
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                    <TextBox x:Name="ClientIdBox"
+                             MaxLength="64"
+                             FontSize="13"
+                             PlaceholderText="32 letters and digits"
+                             Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                             Text="{x:Bind Setup.ClientIdText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{x:Bind Setup.ClientIdError, Mode=OneWay}"
+                               Visibility="{x:Bind Setup.ClientIdErrorVisibility, Mode=OneWay}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="#F87171" />
+                    <HyperlinkButton Content="Forget the saved Client ID"
+                                     Click="OnForgetClicked"
+                                     Visibility="{x:Bind Setup.ForgetVisibility, Mode=OneWay}"
+                                     Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                                     FontSize="12"
+                                     Padding="0,2" />
+                </StackPanel>
+
+                <TextBlock Text="Your own app only works for you and up to 4 people you add under User Management in the dashboard."
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
