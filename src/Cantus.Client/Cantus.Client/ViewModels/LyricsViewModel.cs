@@ -522,6 +522,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _layoutManager.BreakpointChanged += OnLayoutBreakpointChanged;
         _themeManager.PaletteChanged += OnPaletteChanged;
         _themeManager.PropertyChanged += OnThemeManagerPropertyChanged;
+        ApplyProgressColor(_themeManager.ActivePalette);
 
         _transport = new PlaybackTransport(client, _themeManager);
         _transport.SeekApplied += OnTransportSeekApplied;
@@ -665,7 +666,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     private void OnPaletteChanged(ColorPalette palette)
     {
+        ApplyProgressColor(palette);
         UpdateAmbientBackground();
+    }
+
+    private void ApplyProgressColor(ColorPalette palette)
+    {
+        KaraokeProgressBrush.SetColor(KaraokeProgressBrush.GetColor(_themeManager.CurrentMode, palette));
     }
 
     private void UpdateAmbientBackground()
