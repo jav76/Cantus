@@ -33,7 +33,9 @@ public class SqliteBatchLogAppender : AppenderSkeleton
             SingleReader = true
         });
         _cts = new();
-        _workerTask = Task.Run(ProcessQueueAsync, _cts.Token);
+        // No token here: a token cancelled before the worker starts would skip it entirely,
+        // and with it the shutdown flush. The worker observes _cts itself.
+        _workerTask = Task.Run(ProcessQueueAsync);
     }
 
     protected override void Append(LoggingEvent loggingEvent)
@@ -180,7 +182,9 @@ public class SqliteBatchLogAppender : AppenderSkeleton
         catch
         {
         }
-        finally
+
+        // A worker that outlived the wait still reads _cts.Token, so only dispose once it has stopped.
+        if (_workerTask.IsCompleted)
         {
             _cts.Dispose();
         }
