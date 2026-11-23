@@ -73,7 +73,7 @@ ENV ASPNETCORE_URLS=http://+:5000 \
 EXPOSE 5000
 
 # Create persistent state directory and static web root
-RUN mkdir -p /app/data /app/wwwroot
+RUN mkdir -p /app/data /app/wwwroot && chown -R $APP_UID:$APP_UID /app/data
 
 # Copy server binaries
 COPY --from=build-server /app/server_publish .
@@ -83,5 +83,7 @@ COPY --from=build-wasm /app/wasm_publish/wwwroot/ ./wwwroot/
 
 # Declare persistent storage mount for SQLite & DataProtection keys
 VOLUME ["/app/data"]
+
+USER $APP_UID
 
 ENTRYPOINT ["dotnet", "Cantus.Server.dll"]

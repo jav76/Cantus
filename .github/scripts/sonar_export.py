@@ -221,8 +221,8 @@ def sanitize_text(
             result = result.replace(normalized, replacement)
             parsed = urllib.parse.urlparse(normalized)
             if parsed.netloc:
-                result = result.replace(f"https://{parsed.netloc}", replacement)
-                result = result.replace(f"http://{parsed.netloc}", replacement)
+                for scheme in ("https", "http"):
+                    result = result.replace(f"{scheme}://{parsed.netloc}", replacement)
                 result = result.replace(parsed.netloc, replacement)
     return result
 

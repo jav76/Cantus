@@ -70,7 +70,7 @@ public sealed class SyllableFillTimeline
             string text = syllable.Text ?? string.Empty;
             string trimmed = text.Trim();
             int visible = trimmed.Length;
-            int charStart = offset + CountLeadingWhitespace(text);
+            int fallbackStart = offset + CountLeadingWhitespace(text);
             if (lineText is null)
             {
                 offset += text.Length;
@@ -81,15 +81,9 @@ public sealed class SyllableFillTimeline
                 continue;
             }
 
-            if (lineText is not null)
+            if (!TryLocateSegmentStart(trimmed, lineText, fallbackStart, ref offset, out int charStart))
             {
-                charStart = lineText.IndexOf(trimmed, offset, StringComparison.Ordinal);
-                if (charStart < 0)
-                {
-                    return null;
-                }
-
-                offset = charStart + visible;
+                return null;
             }
 
             if (firstVisibleChar < 0)
@@ -110,6 +104,36 @@ public sealed class SyllableFillTimeline
         }
 
         int totalChars = lastVisibleChar - firstVisibleChar;
+        ShiftSegmentsToOrigin(segments, firstVisibleChar);
+
+        return new SyllableFillTimeline(segments, totalChars, endMs);
+    }
+
+    private static bool TryLocateSegmentStart(
+        string trimmed,
+        string? lineText,
+        int fallbackStart,
+        ref int offset,
+        out int charStart)
+    {
+        if (lineText is null)
+        {
+            charStart = fallbackStart;
+            return true;
+        }
+
+        charStart = lineText.IndexOf(trimmed, offset, StringComparison.Ordinal);
+        if (charStart < 0)
+        {
+            return false;
+        }
+
+        offset = charStart + trimmed.Length;
+        return true;
+    }
+
+    private static void ShiftSegmentsToOrigin(List<Segment> segments, int firstVisibleChar)
+    {
         for (int i = 0; i < segments.Count; i++)
         {
             Segment segment = segments[i];
@@ -119,8 +143,6 @@ public sealed class SyllableFillTimeline
                 CharEnd = segment.CharEnd - firstVisibleChar,
             };
         }
-
-        return new SyllableFillTimeline(segments, totalChars, endMs);
     }
 
     /// <summary>Filled fraction of the line, 0..1, at the given playback position.</summary>

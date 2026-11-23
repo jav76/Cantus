@@ -11,18 +11,21 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 DOCS_DIR = ROOT_DIR / "docs"
 
 
+INDEX_PAGE = "index.md"
+
+
 def validate_documentation_integrity():
     """Verify that required documentation pages exist and are well-formed."""
     required_pages = [
-        DOCS_DIR / "index.md",
-        DOCS_DIR / "user-guide" / "index.md",
+        DOCS_DIR / INDEX_PAGE,
+        DOCS_DIR / "user-guide" / INDEX_PAGE,
         DOCS_DIR / "user-guide" / "connect-spotify.md",
         DOCS_DIR / "user-guide" / "displays.md",
         DOCS_DIR / "user-guide" / "song-lookup.md",
         DOCS_DIR / "user-guide" / "playback-and-display.md",
         DOCS_DIR / "user-guide" / "timing-and-calibration.md",
         DOCS_DIR / "user-guide" / "theming.md",
-        DOCS_DIR / "operator-guide" / "index.md",
+        DOCS_DIR / "operator-guide" / INDEX_PAGE,
         DOCS_DIR / "operator-guide" / "self-hosting.md",
         DOCS_DIR / "operator-guide" / "spotify-setup.md",
         DOCS_DIR / "operator-guide" / "reverse-proxy.md",
@@ -36,7 +39,7 @@ def validate_documentation_integrity():
         DOCS_DIR / "reference" / "signalr-api.md",
         DOCS_DIR / "reference" / "rest-api.md",
         DOCS_DIR / "reference" / "configuration.md",
-        DOCS_DIR / "contributing" / "index.md",
+        DOCS_DIR / "contributing" / INDEX_PAGE,
     ]
 
     missing = [p for p in required_pages if not p.exists()]

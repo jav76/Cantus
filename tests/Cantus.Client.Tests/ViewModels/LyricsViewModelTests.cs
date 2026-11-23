@@ -496,18 +496,23 @@ public sealed class LyricsViewModelTests
         LyricsViewModel vm = new(client);
 
         // Act & Assert - no track: early return; with track but disconnected: graceful false
-        await vm.Transport.SkipToNextAsync();
-        await vm.Transport.SkipToPreviousAsync();
-
-        client.RaisePlaybackStateReceived(new PlaybackStatePayload
+        Func<Task> act = async () =>
         {
-            CurrentTrack = new TrackInfoPayload { Id = "t-1", Title = "Song", Artist = "Artist" },
-            IsPlaying = true,
-            TimestampUtc = DateTimeOffset.UtcNow
-        });
+            await vm.Transport.SkipToNextAsync();
+            await vm.Transport.SkipToPreviousAsync();
 
-        await vm.Transport.SkipToNextAsync();
-        await vm.Transport.SkipToPreviousAsync();
+            client.RaisePlaybackStateReceived(new PlaybackStatePayload
+            {
+                CurrentTrack = new TrackInfoPayload { Id = "t-1", Title = "Song", Artist = "Artist" },
+                IsPlaying = true,
+                TimestampUtc = DateTimeOffset.UtcNow
+            });
+
+            await vm.Transport.SkipToNextAsync();
+            await vm.Transport.SkipToPreviousAsync();
+        };
+
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]

@@ -1,20 +1,16 @@
-using Cantus.Infrastructure.Spotify;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 
 namespace Cantus.Server.Services;
 
 public sealed class HostUrlResolver : IHostUrlResolver
 {
     private readonly IConfiguration _configuration;
-    private readonly SpotifyOptions _spotifyOptions;
     private const string DEFAULT_LOCALHOST_BASE = "http://localhost:5000";
 
-    public HostUrlResolver(IConfiguration configuration, IOptions<SpotifyOptions> spotifyOptions)
+    public HostUrlResolver(IConfiguration configuration)
     {
         _configuration = configuration;
-        _spotifyOptions = spotifyOptions.Value;
     }
 
     public string ResolveBaseUrl(HttpContext? context = null)

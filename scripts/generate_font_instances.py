@@ -33,12 +33,15 @@ OUTPUT_DIR = ROOT_DIR / "src" / "Cantus.Client" / "Cantus.Client" / "Assets" / "
 GOOGLE_FONTS_COMMIT = "06bfe0d62a98375cb09c942fa18e68bd32cff057"
 SOURCE_URL = "https://raw.githubusercontent.com/google/fonts/{commit}/ofl/{path}"
 
+FIGTREE_SOURCE = "Figtree[wght].ttf"
+FRAUNCES_SOURCE = "Fraunces[SOFT,WONK,opsz,wght].ttf"
+
 SOURCES = {
-    "Figtree[wght].ttf": (
+    FIGTREE_SOURCE: (
         "figtree/Figtree%5Bwght%5D.ttf",
         "26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714",
     ),
-    "Fraunces[SOFT,WONK,opsz,wght].ttf": (
+    FRAUNCES_SOURCE: (
         "fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
         "177ff6c0f14e5550a3c624247cd1189611d4eb65d000b14944c63d967958abbb",
     ),
@@ -49,11 +52,11 @@ SOURCES = {
 FRAUNCES_AXES = {"opsz": 72, "SOFT": 0, "WONK": 1}
 
 INSTANCES = [
-    ("Figtree[wght].ttf", "Figtree-Regular.ttf", {"wght": 400}),
-    ("Figtree[wght].ttf", "Figtree-Medium.ttf", {"wght": 500}),
-    ("Figtree[wght].ttf", "Figtree-SemiBold.ttf", {"wght": 600}),
-    ("Fraunces[SOFT,WONK,opsz,wght].ttf", "Fraunces-Regular.ttf", {**FRAUNCES_AXES, "wght": 400}),
-    ("Fraunces[SOFT,WONK,opsz,wght].ttf", "Fraunces-SemiBold.ttf", {**FRAUNCES_AXES, "wght": 600}),
+    (FIGTREE_SOURCE, "Figtree-Regular.ttf", {"wght": 400}),
+    (FIGTREE_SOURCE, "Figtree-Medium.ttf", {"wght": 500}),
+    (FIGTREE_SOURCE, "Figtree-SemiBold.ttf", {"wght": 600}),
+    (FRAUNCES_SOURCE, "Fraunces-Regular.ttf", {**FRAUNCES_AXES, "wght": 400}),
+    (FRAUNCES_SOURCE, "Fraunces-SemiBold.ttf", {**FRAUNCES_AXES, "wght": 600}),
 ]
 
 # The instancer names the Fraunces instances "Fraunces 72pt" after the pinned

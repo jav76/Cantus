@@ -38,28 +38,7 @@ public static class TitleGuessGenerator
         }
 
         double[] rarity = ComputeRarity(fragmentTokens, terms);
-        List<(int Start, int Length, double Score)> windows = new();
-
-        for (int length = MIN_WINDOW_TOKENS; length <= MAX_WINDOW_TOKENS; length++)
-        {
-            for (int start = 0; start + length <= fragmentTokens.Count; start++)
-            {
-                double contentScore = 0;
-                for (int i = start; i < start + length; i++)
-                {
-                    contentScore += rarity[i];
-                }
-
-                if (contentScore <= 0)
-                {
-                    continue;
-                }
-
-                double score = CONTENT_WORD_WEIGHT * contentScore / length
-                    + (start == 0 ? START_OF_FRAGMENT_BONUS : 0);
-                windows.Add((start, length, score));
-            }
-        }
+        List<(int Start, int Length, double Score)> windows = ScoreCandidateWindows(fragmentTokens.Count, rarity);
 
         List<(int Start, int Length)> chosen = new();
         List<string> guesses = new();
@@ -88,6 +67,39 @@ public static class TitleGuessGenerator
         }
 
         return guesses;
+    }
+
+    private static List<(int Start, int Length, double Score)> ScoreCandidateWindows(int tokenCount, double[] rarity)
+    {
+        List<(int Start, int Length, double Score)> windows = new();
+        for (int length = MIN_WINDOW_TOKENS; length <= MAX_WINDOW_TOKENS; length++)
+        {
+            for (int start = 0; start + length <= tokenCount; start++)
+            {
+                double contentScore = SumWindowRarity(rarity, start, length);
+                if (contentScore <= 0)
+                {
+                    continue;
+                }
+
+                double score = CONTENT_WORD_WEIGHT * contentScore / length
+                    + (start == 0 ? START_OF_FRAGMENT_BONUS : 0);
+                windows.Add((start, length, score));
+            }
+        }
+
+        return windows;
+    }
+
+    private static double SumWindowRarity(double[] rarity, int start, int length)
+    {
+        double sum = 0;
+        for (int i = start; i < start + length; i++)
+        {
+            sum += rarity[i];
+        }
+
+        return sum;
     }
 
     /// <summary>0 for stopwords; otherwise 1, or the token's idf relative to the most informative fragment word.</summary>

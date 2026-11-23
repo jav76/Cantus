@@ -93,9 +93,19 @@ public static class ClientLoggingManager
         return new DelegatingClientLogger<T>();
     }
 
+    private static ILoggerFactory GetOrCreateLoggerFactory()
+    {
+        lock (_syncLock)
+        {
+            _loggerFactory ??= CreateLoggerFactory();
+            return _loggerFactory;
+        }
+    }
+
     private sealed class DelegatingClientLogger : ILogger
     {
         private readonly string _categoryName;
+        private readonly object _cacheLock = new();
         private ILoggerFactory? _cachedFactory;
         private ILogger? _cachedLogger;
 
@@ -108,19 +118,14 @@ public static class ClientLoggingManager
         {
             get
             {
-                ILoggerFactory activeFactory;
-                lock (_syncLock)
-                {
-                    _loggerFactory ??= CreateLoggerFactory();
-                    activeFactory = _loggerFactory;
-                }
+                ILoggerFactory activeFactory = GetOrCreateLoggerFactory();
 
                 if (_cachedLogger is not null && ReferenceEquals(_cachedFactory, activeFactory))
                 {
                     return _cachedLogger;
                 }
 
-                lock (this)
+                lock (_cacheLock)
                 {
                     if (_cachedLogger is not null && ReferenceEquals(_cachedFactory, activeFactory))
                     {
