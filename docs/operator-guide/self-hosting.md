@@ -49,6 +49,7 @@ Navigate to your HTTPS domain, or `http://127.0.0.1:5000` on the Docker host. Th
 ## 2. Multi-Architecture Support
 
 Cantus Docker images are published as multi-arch manifests supporting:
+
 - `linux/amd64` (x86_64 servers, desktops, cloud VMs)
 - `linux/arm64` (Raspberry Pi 4/5, Apple Silicon via Docker Desktop, ARM64 servers)
 

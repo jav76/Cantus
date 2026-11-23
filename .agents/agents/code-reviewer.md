@@ -32,7 +32,7 @@ Before evaluating any code changes or diffs:
      - Multi-Tier Lyrics Caching: [docs/architecture/lyrics-caching.md](file:///home/jaret/Documents/GitHub/Cantus/docs/architecture/lyrics-caching.md)
      - Uno Platform Client: [docs/architecture/client-uno.md](file:///home/jaret/Documents/GitHub/Cantus/docs/architecture/client-uno.md)
 2. **Inspect Knowledge Graphs**:
-   - Check [.ua/knowledge-graph.json](file:///home/jaret/Documents/GitHub/Cantus/.ua/knowledge-graph.json) and [.ua/domain-graph.json](file:///home/jaret/Documents/GitHub/Cantus/.ua/domain-graph.json) (or `graphify-out/graph.json`) to trace layer dependencies, affected business domains, and caller/callee contracts.
+   - When `graphify-out/graph.json` exists, use it to trace layer dependencies, affected business domains, and caller/callee contracts.
 3. **Inspect Surrounding Implementations**:
    - When inspecting modified files, use `grep_search` and `view_file` to review sibling classes, DI registrations in `Program.cs`, base contracts, and unit tests.
 
@@ -124,10 +124,10 @@ Review every modified C# file against these mandatory conventions:
 - **Structured Message Templates**: Never use string interpolation (`$"..."`) within `ILogger` calls. Use semantic message templates with named placeholders:
   ```csharp
   // Correct
-  _logger.LogInformation("User {UserId} joined room {RoomCode}", userId, roomCode);
+  _logger.LogInformation("Display {DisplayId} paired to connection {ConnectionId}", displayId, connectionId);
 
   // Prohibited
-  _logger.LogInformation($"User {userId} joined room {roomCode}");
+  _logger.LogInformation($"Display {displayId} paired to connection {connectionId}");
   ```
 - **Method Tracing via `[TraceLog]` & `[Redact]`**:
   - Apply `[TraceLog]` to core interfaces in `Cantus.Core` or client services for auto-generated compile-time timing and parameter tracking.

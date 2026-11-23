@@ -18,7 +18,7 @@ On connect, the hub reads the connection's credential from the same sources as t
 
 ## Credential Kinds
 
-A connection holds a Session or a [Display token](rest-api.md#display-token). A Display passes its token the same way as on REST: the `cantus_display_token` cookie, the `display_token` query parameter, or the client's access token factory (sent as `access_token` on WebSockets and `Authorization: Bearer` on negotiate). The credential is resolved once, when the connection opens.
+A connection holds a Session or a [Display token](rest-api.md#display-token). A Display passes its token the same way as on REST: the `cantus_display_token` cookie, the `display_token` query parameter, or the client's access token factory (sent as `access_token` on WebSockets and `Authorization: Bearer` on negotiate). The credential is resolved once, when the connection opens. `SubscribeToUser` is the exception: it resolves the credential again on each call, so it does nothing once the Session is revoked.
 
 | | Session | Display token | Anonymous |
 | :--- | :--- | :--- | :--- |
@@ -26,7 +26,7 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 | Initial snapshot (playback, lyrics, offset) | Yes | Yes | No |
 | Initial `ReceiveDiagnostics` | Yes | Yes, `activeUserId` is `null` | Yes, idle with no user |
 | Initial `ReceiveSessions` | Own Session | Never | Empty list |
-| `ReceiveAuthSession` / `ReceiveSessionRevoked` / `ReceiveDisplaysChanged` | Yes | Never | `ReceiveAuthSession` only, after `RegisterClientLogin` |
+| `ReceiveAuthSession` / `ReceiveSessionRevoked` / `ReceiveDisplaysChanged` | Yes | Never | `ReceiveAuthSession` and `ReceiveSessions`, for a sign-in started with this connection's `client_id` |
 | `SyncClock` | Yes | Yes | Yes |
 | `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes, forced polls throttled to one per owner every 5 seconds | No effect (no owner) |
 | `SubscribeToUser` | Yes | No-op (bound to its owner) | No-op |
@@ -59,16 +59,19 @@ Clients invoke these methods on the hub:
 
 ### `SubscribeToUser(userId)`
 Re-subscribes a Session connection to its own playback. A Session connection is already subscribed when it connects, so this is only needed to refresh the snapshot or to unsubscribe.
+
 - **Parameters**: `userId` (`string?`): the caller's Session id, or `null` to unsubscribe. Ignored unless the connection's credential resolves to that same Session id.
 - **Behavior**: joins `user_{userId}` and records the subscription in the playback registry, then sends the current `ReceivePlaybackState`, `ReceiveLyrics` and `ReceiveTrackOffset` (each only when there is something to send) and a `ReceiveDiagnostics`. A no-op on a Display or anonymous connection.
 
 ### `RegisterClientLogin(clientId)`
 Joins the sign-in handoff group `client_{clientId}`.
+
 - **Parameters**: `clientId` (`string`): temporary client handshake id, the same value passed as `client_id` to [`GET /api/auth/login`](rest-api.md#get-apiauthspotifylogin-or-get-apiauthlogin).
 - **Behavior**: lets a client that is not signed in yet receive `ReceiveAuthSession` (and `ReceiveSessions`) when the browser OAuth flow completes. Ignored on a Display connection, since the handoff grants owner rights.
 
 ### `SyncClock(clientSendTimeMs)`
 Takes one clock sync sample.
+
 - **Parameters**: `clientSendTimeMs` (`long`): the client's Unix time in milliseconds when it sent the call ($t_0$).
 - **Returns**: a `ClockSyncResponse` with `clientSendTimeMs` ($t_0$), `serverReceiveTimeMs` ($t_1$) and `serverSendTimeMs` ($t_2$), all Unix milliseconds. The client records its own receive time ($t_3$) to compute offset and round trip.
 
@@ -82,18 +85,21 @@ Takes one clock sync sample.
 
 ### `SetTrackOffset(trackId, offsetMs)`
 Stores a manual timing offset for a track, like [`POST /api/lyrics/offset`](rest-api.md#post-apilyricsoffset).
+
 - **Parameters**:
-  - `trackId` (`string`): Spotify track id.
-  - `offsetMs` (`int`): offset in milliseconds (e.g. `150` or `-50`).
+    - `trackId` (`string`): Spotify track id.
+    - `offsetMs` (`int`): offset in milliseconds (e.g. `150` or `-50`).
 - **Behavior**: persists the offset in SQLite and sends `ReceiveTrackOffset` to the owner's Session connections and Displays. Requires a subscribed Session; ignored on a Display connection, for a blank `trackId`, or without a subscription. Returns nothing.
 
 ### `ReportClientVisibility(isVisible)`
 Tells the server whether the client window or browser tab is visible.
+
 - **Parameters**: `isVisible` (`bool`): `true` if visible; `false` if minimized, hidden or tabbed away.
 - **Behavior**: updates the connection's visibility in the playback registry. If `isVisible` is `true`, it also requests an immediate poll, like `RefreshPlayback`. On a Display connection the poll request is throttled like `RefreshPlayback`.
 
 ### `RefreshPlayback()`
 Requests an immediate Spotify playback poll for the connection's owner.
+
 - **Behavior**: calls `IPlaybackSessionRegistry.RequestUserActivity`, which cuts the background poller's wait short.
 - **Display connections**: calls `IPlaybackSessionRegistry.RequestDisplayActivity` instead, which forwards at most one request per owner every 5 seconds. Extra calls inside that window are dropped; the regular adaptive poll still runs.
 
@@ -147,7 +153,7 @@ Sent after each playback poll while something is playing or paused, and in the c
 }
 ```
 
-`currentTrack` can be `null`. `activeUserId` is the owner's Session id, and `null` on Display connections.
+`currentTrack`, `deviceName`, `volumePercent` and `activeUserDisplayName` can be `null`, as can `album` and `albumArtUrl` inside `currentTrack`. `activeUserId` is the owner's Session id, and `null` on Display connections.
 
 ### `ReceiveLyrics`
 Sent when a new track starts, when a [lyrics override](rest-api.md#post-apilyricstrackidoverride) changes the lyrics, and in the connect snapshot. A track with no lyrics is sent as an empty payload (`lines` empty) so clients clear the previous track.
@@ -179,14 +185,15 @@ Poller telemetry. Sent on connect, after `SubscribeToUser`, after each playback 
 }
 ```
 
-`activeUserId` is the owner's Session id, and `null` on Display connections. `activePollIntervalMs` is the poller's next interval; it is `0` in the diagnostics sent on connect and after `SubscribeToUser`.
+`activeUserId` is the owner's Session id, and `null` on Display connections. `activePollIntervalMs` is the poller's next interval; it is `0` in the diagnostics sent on connect and after `SubscribeToUser`. Those two also report only `"Active (Playing)"` or `"Idle"` as `pollerStatus`, until the next poll sends the full status.
 
 **`pollerStatus` values** (cadences are defaults; see [adaptive polling](../architecture/adaptive-polling.md)):
+
 - `"Active (Playing)"`: playing and at least one client is visible.
 - `"Active (Background)"`: playing but every client is hidden.
 - `"Paused"`: playback is paused (5s, backing off to 30s).
 - `"Idle"`: nothing is playing on Spotify (10s, backing off to 60s).
-- `"Rate Limited (mm:ss)"`: cooldown after an HTTP 429 from the Spotify API, with the time left.
+- `"Rate Limited (mm:ss)"`: cooldown after an HTTP 429 from the Spotify API, with the time left (`hh:mm:ss` from one hour).
 
 ### `ReceiveSessions`, `ReceiveAuthSession` and `ReceiveSessionRevoked`
 Never sent to a Display connection.

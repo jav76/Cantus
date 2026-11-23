@@ -53,6 +53,8 @@ The percentage is a match score for your line, not a probability that the song i
 ## Limits
 
 - Search requests are limited per network address (20 per minute by default). A search the library cannot answer uses two requests and "Not it? Search online" uses one, so about 10 such searches fit in a minute. Over the limit, the dialog asks you to try again in a minute.
+- **Play** and **Queue** have their own limit per network address (12 per minute by default).
+- A search returns at most 5 guesses.
 - Online searches are limited per Spotify account (6 per minute by default). Over that limit, library guesses still show and online search is reported as paused.
 - When NetEase or LRCLIB is busy or unreachable, you get library guesses and a note that online search failed or is paused.
 - Songs in Thai, Lao, Khmer or Burmese (no spaces between words) are not supported.

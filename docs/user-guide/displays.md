@@ -27,7 +27,7 @@ You need two devices: the screen you want to pair, and a phone or computer signe
 ### 1. Show a code on the screen
 
 1. On the screen, open your Cantus address, for example `http://<your-server-ip>:5000`.
-2. In the **Spotify account** section, choose **Pair as display**. On mobile layouts it is under the **Sync & Info** tab.
+2. In the **Spotify account** section, choose **Pair as display**. On mobile layouts it is under the **Sync & Info** tab. The button only shows while the screen is not signed in to Spotify, so log out there first if it is.
 3. The screen shows a short code in large type, a QR code, the server address and how long the code is valid.
 
 Open the screen at the same address your phone uses (for example your public HTTPS address). The QR code and the address under the code are built from it.
@@ -80,7 +80,7 @@ The new name shows on every device you are signed in on.
 
 Removing a Display takes effect at once:
 
-- The screen is disconnected, discards its token, and goes back to the pairing screen with the message "This display was removed by its owner."
+- The screen is disconnected, discards its token, and goes back to the pairing screen with the message "This display was removed by its owner. Pair it again to keep showing lyrics."
 - Your own sign-in and your other Displays are not affected.
 - To use that screen again, pair it again. It gets a new token.
 
@@ -96,9 +96,10 @@ Displays belong to your Spotify sign-in on this Cantus server. **Log Out** ends 
 
 | Message on the screen | What it means | What to do |
 | :--- | :--- | :--- |
-| This display was removed by its owner. | The Display was removed from the **Displays** section. | Pair it again if you still want it. |
-| This display's pairing is no longer valid. | The server refused the token several times in a row, for example after you logged out. A short server restart alone does not cause this: the screen retries first. | Pair it again. |
+| This display was removed by its owner. Pair it again to keep showing lyrics. | The Display was removed from the **Displays** section. | Pair it again if you still want it. |
+| This display's pairing is no longer valid. Pair it again to keep showing lyrics. | The server refused the token several times in a row, for example when the screen was offline while you logged out. A short server restart alone does not cause this: the screen retries first. | Pair it again. |
 | Too many pairing requests. Trying again shortly. | Too many codes were requested from your network in a short time. | Wait. The screen retries by itself. |
+| Too many attempts. Wait a minute and try again. | Shown to the owner: too many approvals were tried from your network in a short time. | Wait a minute, then approve again. |
 | The server has too many pending pairings. Trying again shortly. | Many screens are waiting for approval at once. | Wait, or approve or cancel the other waiting screens. |
 | Could not get a pairing code. Trying again shortly. | The screen could not reach the server. | Check the network. The screen retries by itself. |
 

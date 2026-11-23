@@ -2,7 +2,7 @@
 
 In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal API HTTP endpoints for authentication, lyrics, Displays and health checks.
 
-JSON bodies use camelCase property names in both directions (request property names are matched case-insensitively). Error responses for `400` and `404` carry `{ "message": "..." }`; `401` and `403` have no body.
+JSON bodies use camelCase property names in both directions (request property names are matched case-insensitively). Error responses for `400`, `404` and `502` carry `{ "message": "..." }`; `401`, `403` and `429` have no body. An unhandled error returns `500` as `application/problem+json` with a `traceId`. The sign-in endpoints are the exception: they answer a browser, so most of their failures are HTML pages.
 
 In the Development environment the server also serves its OpenAPI document at `/openapi/v1.json` and a Scalar API browser under `/scalar`.
 
@@ -20,7 +20,7 @@ A Display (a paired screen) holds a view-only Display token instead of a Session
 
 The server stores only a SHA-256 hash of each token. A revoked or unknown token is treated as no credential.
 
-A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `GET /api/lyrics/{trackId}/candidates`, `POST /api/lyrics/{trackId}/override`, `POST /api/lyrics/offset`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
+A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `GET /api/auth/me`, `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{userId}`, `POST /api/auth/logout`, `GET /api/lyrics/{trackId}/candidates`, `POST /api/lyrics/{trackId}/override`, `POST /api/lyrics/offset`, `POST /api/lookup/search`, `POST /api/lookup/play`, and every [Display endpoint](#display-endpoints) except `POST /api/displays/pairings`. Nothing is changed or revoked.
 
 ---
 
@@ -28,9 +28,30 @@ A Display token is rejected with `403 Forbidden` by every owner-only endpoint: `
 Starts the Spotify OAuth 2.0 PKCE flow. No credential needed.
 
 - **Query Parameters**:
-  - `json` (`bool`, optional): if `true`, returns `200 OK` with `{ "authorizationUrl": "..." }` instead of a redirect.
-  - `client_id` (`string`, optional): ephemeral client handshake id. After a successful callback the server sends [`ReceiveAuthSession`](signalr-api.md#receivesessions-receiveauthsession-and-receivesessionrevoked) to the hub group `client_{clientId}` (joined with `RegisterClientLogin`) and to the connection whose id is `clientId`, plus `ReceiveSessions` to that group.
+    - `json` (`bool`, optional): if `true`, returns `200 OK` with `{ "authorizationUrl": "..." }` instead of a redirect.
+    - `spotify_client_id` (`string`, optional): Client ID of the user's [own Spotify app](../operator-guide/spotify-setup.md#5-users-own-spotify-apps), used for this sign-in instead of the server's. It is kept in the `cantus_spotify_client_id` cookie for the callback.
+    - `client_id` (`string`, optional): ephemeral client handshake id. After a successful callback the server sends [`ReceiveAuthSession`](signalr-api.md#receivesessions-receiveauthsession-and-receivesessionrevoked) to the hub group `client_{clientId}` (joined with `RegisterClientLogin`) and to the connection whose id is `clientId`, plus `ReceiveSessions` to that group.
 - **Response**: `302 Found` redirect to Spotify's `https://accounts.spotify.com/authorize` with the generated `code_challenge`, `client_id`, `state` and requested scopes. The state, PKCE verifier, redirect URI and `client_id` are kept in short-lived (10 minute) HTTP-only cookies for the callback.
+- **Failure pages** (HTML): `403 Forbidden` when `spotify_client_id` is sent but users' own Spotify apps are turned off, `400 Bad Request` when it is not a valid Client ID, and `503 Service Unavailable` when no Spotify Client ID is configured.
+
+---
+
+### `GET /api/auth/spotify/setup`
+Describes how this server signs in to Spotify. The **Connect Spotify** screen uses it to guide a user through creating their own Spotify app. No credential needed.
+
+- **Response `200 OK`**:
+```json
+{
+  "serverClientIdConfigured": true,
+  "userClientIdsAllowed": false,
+  "redirectUri": "https://cantus.yourdomain.com/api/auth/spotify/callback",
+  "redirectUriAccepted": true,
+  "dashboardUrl": "https://developer.spotify.com/dashboard/create"
+}
+```
+
+  - `redirectUri`: the callback this server would send to Spotify for the current request.
+  - `redirectUriAccepted`: `false` when Spotify will refuse that callback (plain `http` on anything but a loopback IP literal, which includes `localhost` and LAN addresses).
 
 ---
 
@@ -38,18 +59,22 @@ Starts the Spotify OAuth 2.0 PKCE flow. No credential needed.
 Handles Spotify's redirect after user consent.
 
 - **Query Parameters**:
-  - `code` (`string`): Spotify authorization code.
-  - `state` (`string`): anti-forgery state, checked against the login cookie.
-  - `error` (`string`, optional): set by Spotify when consent fails.
+    - `code` (`string`): Spotify authorization code.
+    - `state` (`string`): anti-forgery state, checked against the login cookie.
+    - `error` (`string`, optional): set by Spotify when consent fails.
 - **Behavior**:
-  1. Validates the state and exchanges the code (with the PKCE verifier) for access and refresh tokens.
-  2. Encrypts the tokens with ASP.NET Core Data Protection and saves the Session in SQLite.
-  3. Registers the Session in the in-memory playback registry, keeping any playback already tracked for it.
-  4. Sends `ReceiveSessions` to the Session's own hub group `user_{sessionId}`, and the `client_id` handoff events described above.
-  5. Sets the `cantus_session_id` cookie (HTTP-only, 30 days).
+    1. Validates the state and exchanges the code (with the PKCE verifier) for access and refresh tokens.
+    2. Encrypts the tokens with ASP.NET Core Data Protection and saves the Session in SQLite.
+    3. Registers the Session in the in-memory playback registry, keeping any playback already tracked for it.
+    4. Sends `ReceiveSessions` to the Session's own hub group `user_{sessionId}`, and the `client_id` handoff events described above.
+    5. Sets the `cantus_session_id` cookie (HTTP-only, 30 days).
 - **Response `200 OK`**: HTML page that opens `cantus://auth?session_id=<id>` for the desktop app and links to the web player.
-- **Response `302 Found`** to `/?auth=error&message=...`: Spotify returned `error`, or the code exchange failed.
-- **Response `400 Bad Request`**: missing `code`, state mismatch, or missing PKCE verifier cookie.
+- **Failure pages** (HTML, see [sign-in failure pages](../operator-guide/troubleshooting.md#sign-in-failure-pages)):
+    - `200 OK`: the user cancelled at Spotify (`error=access_denied`).
+    - `400 Bad Request`: any other Spotify `error`, a state mismatch, a missing PKCE verifier cookie, an invalid own-app Client ID, or a code exchange that failed for a known reason.
+    - `403 Forbidden`: the sign-in used the user's own Spotify app, and that is turned off.
+    - `502 Bad Gateway`: the code exchange failed for an unknown reason.
+- **Response `400 Bad Request`** (JSON string): `code` is missing.
 
 ---
 
@@ -138,6 +163,7 @@ Returns the stored lyrics for a Spotify track id. No credential needed.
   "plainLyrics": null
 }
 ```
+
 - **Response `404 Not Found`**: nothing is cached for the track, or it has a `noLyrics` override.
 
 `syllables` carries real per-word timing (absolute milliseconds; a word's trailing space stays in its `text`) and is `null` for lines with line-level timing only.
@@ -154,6 +180,7 @@ Saves a manual timing offset for a track. The hub method [`SetTrackOffset`](sign
   "offsetMs": 150
 }
 ```
+
 - Requires the caller's [session credential](#session-credential).
 - **Behavior**: stores the offset (server-wide, per track) and sends `ReceiveTrackOffset` to the caller's Session connections and Displays.
 - **Response `200 OK`**: the saved request body.
@@ -163,114 +190,17 @@ Saves a manual timing offset for a track. The hub method [`SetTrackOffset`](sign
 
 ---
 
-## Display Endpoints
-
-A Display is paired in three steps:
-
-1. The screen opens an anonymous [PlaybackHub](signalr-api.md) connection and calls `POST /api/displays/pairings` with its connection id. It shows the returned code.
-2. The owner enters the code on a signed-in device, which calls `POST /api/displays/pairings/approve` with a name for the Display.
-3. The server sends the new Display token to the screen's connection as [`ReceiveDisplayPaired`](signalr-api.md#receivedisplaypaired). The screen stores the token and reconnects with it.
-
-The Cantus client's pairing screen shows the code and a QR of the approval link `<server base URL>/?pair=<CODE>`, the app's own address with the code in the `pair` query parameter. Opening the link in the web app shows the owner's approval prompt with the code filled in; it asks for the Display's name and calls `POST /api/displays/pairings/approve`. The client's **Displays** card lists, renames and revokes Displays with the endpoints below.
-
-After an approve, rename or revoke, and when a Display connects, the server sends [`ReceiveDisplaysChanged`](signalr-api.md#receivedisplayschanged) to the owner's Session connections, so a client that shows the list fetches `GET /api/displays` again. Changes made on another device show at once.
-
-Pending pairings live in server memory, so a restart drops them. Codes are 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no `0`, `O`, `1`, `I` or `L`), single-use, and expire after 5 minutes. A connection has at most one pending code: a new request replaces the old one, and disconnecting cancels it. Lengths, lifetimes and limits are set under [`DisplayPairing`](configuration.md#display-pairing-displaypairing).
-
-Both pairing endpoints are rate limited per client address, each counted on its own: 10 requests per 60 seconds by default. IPv6 addresses in the same `/64` count as one client, and changing the case of the path or adding a trailing slash does not reset the limit. Over the limit they return `429 Too Many Requests`. Behind a reverse proxy, configure [`ForwardedHeaders`](configuration.md#reverse-proxy-trust-forwardedheaders) so the limit sees real client addresses.
-
----
-
-### `POST /api/displays/pairings`
-Starts a pairing. No credential needed.
-
-- **Request Body**:
-```json
-{ "connectionId": "<PlaybackHub connection id>" }
-```
-- **Response `200 OK`**:
-```json
-{
-  "pairingId": "3f1c9a0e5b7d4e2a9c6b8d0f1e2a3b4c",
-  "code": "K7QH2MZP",
-  "expiresAtUtc": "2026-11-20T18:05:00+00:00"
-}
-```
-- **Response `400 Bad Request`**: `connectionId` is missing or is not a live PlaybackHub connection. Call this only after the connection has started.
-- **Response `429 Too Many Requests`**: rate limit reached.
-- **Response `503 Service Unavailable`**: too many pairings are waiting for approval (`DisplayPairing:MaxPendingPairings`). The body is a ProblemDetails object.
-
----
-
-### `POST /api/displays/pairings/approve`
-Approves a code and names the new Display. Requires the caller's [session credential](#session-credential).
-
-- **Request Body**:
-```json
-{ "code": "K7QH-2MZP", "name": "Living room TV" }
-```
-  `code` ignores case, spaces and hyphens. `name` is trimmed and must be 1 to 64 characters.
-- **Response `201 Created`**: the new Display, with `Location: /api/displays/{displayId}`. The token is not in this response; it goes only to the waiting connection.
-```json
-{
-  "id": "9b2e4c6a8d0f4b1e93a5c7e9f1b3d5a7",
-  "name": "Living room TV",
-  "createdAtUtc": "2026-11-20T18:01:12+00:00",
-  "lastSeenAtUtc": null
-}
-```
-- **Response `400 Bad Request`**: the name is empty or too long. The code stays valid.
-- **Response `401 Unauthorized`**: no Session credential. The code stays valid.
-- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). The code stays valid.
-- **Response `404 Not Found`**: the code is unknown, already used, expired, or its connection has disconnected. If the connection drops while the approval is running, the new Display is removed and the code is used up, so the screen must request a new code.
-- **Response `429 Too Many Requests`**: rate limit reached.
-
----
-
-### `GET /api/displays`
-Lists the caller's Displays, oldest first. Requires the caller's [session credential](#session-credential).
-
-- **Response `200 OK`**: an array of Displays, shaped like the approve response. Neither the Display token nor the owner's Session id is included.
-- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
-
----
-
-### `PATCH /api/displays/{displayId}`
-Renames one of the caller's Displays. Requires the caller's [session credential](#session-credential).
-
-- **Request Body**:
-```json
-{ "name": "Bedroom" }
-```
-- **Response `204 No Content`**
-- **Response `400 Bad Request`**: the name is empty or longer than 64 characters.
-- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
-- **Response `404 Not Found`**: the caller has no Display with that id.
-
----
-
-### `DELETE /api/displays/{displayId}`
-Revokes one of the caller's Displays. Requires the caller's [session credential](#session-credential).
-
-Its token stops working at once. Each of its live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed. The owner's Session, its connections and the owner's other Displays are untouched.
-
-- **Response `204 No Content`**
-- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
-- **Response `404 Not Found`**: the caller has no Display with that id.
-
----
-
 ### `GET /api/lyrics/{trackId}/candidates`
 Lists the lyrics every enabled provider has for the owner's current track, so a wrong automatic match can be replaced.
 
 - **Auth**: requires the caller's [session credential](#session-credential).
 - **Path Parameters**:
-  - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session, since providers search by its title, artist and duration.
+    - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session, since providers search by its title, artist and duration.
 - **Behavior**:
-  1. Queries LRCLIB and, when `Netease:Enabled` is `true`, NetEase in parallel. Nothing is cached or changed.
-  2. LRCLIB returns every search result that has synced lyrics, plain lyrics, or an instrumental flag.
-  3. NetEase returns synced lyrics or an instrumental marker (`isSynced: false`, `isInstrumental: true`, for songs NetEase flags `nolyric` or `pureMusic`), from the first 5 search results by a matching artist. Duration does not filter candidates.
-  4. A provider that fails (network error, timeout, 5xx, NetEase payload error code) is listed in `unavailableProviders` and the rest of the list is still returned. If only some NetEase lyric lookups fail, the songs that succeeded are still returned; NetEase is listed as unavailable only when its search fails or failed lookups leave it with no candidates.
+    1. Queries LRCLIB and, when `Netease:Enabled` is `true`, NetEase in parallel. Nothing is cached or changed.
+    2. LRCLIB returns every search result that has synced lyrics, plain lyrics, or an instrumental flag.
+    3. NetEase returns synced lyrics or an instrumental marker (`isSynced: false`, `isInstrumental: true`, for songs NetEase flags `nolyric` or `pureMusic`), from the first 5 search results by a matching artist. Duration does not filter candidates.
+    4. A provider that fails (network error, timeout, 5xx, NetEase payload error code) is listed in `unavailableProviders` and the rest of the list is still returned. If only some NetEase lyric lookups fail, the songs that succeeded are still returned; NetEase is listed as unavailable only when its search fails or failed lookups leave it with no candidates.
 - **Response `200 OK`**:
 ```json
 {
@@ -299,6 +229,7 @@ Lists the lyrics every enabled provider has for the owner's current track, so a 
   }
 }
 ```
+
 - `preview` holds the first non-blank lyric lines, 2 at most. It is empty for an instrumental candidate.
 - `activeOverride` is the [override](#post-apilyricstrackidoverride) in effect for the track, or `null` when it uses automatic matching. `kind` is `candidate` or `noLyrics`; `provider` and `candidateId` are `null` for `noLyrics`.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
@@ -312,7 +243,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 
 - **Auth**: requires the caller's [session credential](#session-credential).
 - **Path Parameters**:
-  - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session.
+    - `trackId` (`string`): Spotify track ID. Must be the track currently playing for the calling Session.
 - **Request Body**:
 ```json
 {
@@ -321,6 +252,7 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
   "candidateId": "3396226"
 }
 ```
+
 - **Actions** (`action` is required and case-sensitive; `provider` is matched ignoring case):
 
 | `action` | Effect |
@@ -342,6 +274,107 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 
 ---
 
+## Display Endpoints
+
+A Display is paired in three steps:
+
+1. The screen opens an anonymous [PlaybackHub](signalr-api.md) connection and calls `POST /api/displays/pairings` with its connection id. It shows the returned code.
+2. The owner enters the code on a signed-in device, which calls `POST /api/displays/pairings/approve` with a name for the Display.
+3. The server sends the new Display token to the screen's connection as [`ReceiveDisplayPaired`](signalr-api.md#receivedisplaypaired). The screen stores the token and reconnects with it.
+
+The Cantus client's pairing screen shows the code and a QR of the approval link `<server base URL>/?pair=<CODE>`, the app's own address with the code in the `pair` query parameter. Opening the link in the web app shows the owner's approval prompt with the code filled in; it asks for the Display's name and calls `POST /api/displays/pairings/approve`. The client's **Displays** card lists, renames and revokes Displays with the endpoints below.
+
+After an approve, rename or revoke, and when a Display connects, the server sends [`ReceiveDisplaysChanged`](signalr-api.md#receivedisplayschanged) to the owner's Session connections, so a client that shows the list fetches `GET /api/displays` again. Changes made on another device show at once.
+
+Pending pairings live in server memory, so a restart drops them. Codes are 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no `0`, `O`, `1`, `I` or `L`), single-use, and expire after 5 minutes. A connection has at most one pending code: a new request replaces the old one, and disconnecting cancels it. Lengths, lifetimes and limits are set under [`DisplayPairing`](configuration.md#display-pairing-displaypairing).
+
+Both pairing endpoints are rate limited per client address, each counted on its own: 10 requests per 60 seconds by default. IPv6 addresses in the same `/64` count as one client, and changing the case of the path or adding a trailing slash does not reset the limit. Over the limit they return `429 Too Many Requests`. Behind a reverse proxy, configure [`ForwardedHeaders`](configuration.md#reverse-proxy-trust-forwardedheaders) so the limit sees real client addresses.
+
+---
+
+### `POST /api/displays/pairings`
+Starts a pairing. No credential needed.
+
+- **Request Body**:
+```json
+{ "connectionId": "<PlaybackHub connection id>" }
+```
+
+- **Response `200 OK`**:
+```json
+{
+  "pairingId": "3f1c9a0e5b7d4e2a9c6b8d0f1e2a3b4c",
+  "code": "K7QH2MZP",
+  "expiresAtUtc": "2026-11-20T18:05:00+00:00"
+}
+```
+
+- **Response `400 Bad Request`**: `connectionId` is missing or is not a live PlaybackHub connection. Call this only after the connection has started.
+- **Response `429 Too Many Requests`**: rate limit reached.
+- **Response `503 Service Unavailable`**: too many pairings are waiting for approval (`DisplayPairing:MaxPendingPairings`). The body is a ProblemDetails object.
+
+---
+
+### `POST /api/displays/pairings/approve`
+Approves a code and names the new Display. Requires the caller's [session credential](#session-credential).
+
+- **Request Body**:
+```json
+{ "code": "K7QH-2MZP", "name": "Living room TV" }
+```
+  `code` ignores case, spaces and hyphens. `name` is trimmed and must be 1 to 64 characters.
+- **Response `201 Created`**: the new Display, with `Location: /api/displays/{displayId}`. The token is not in this response; it goes only to the waiting connection.
+```json
+{
+  "id": "9b2e4c6a8d0f4b1e93a5c7e9f1b3d5a7",
+  "name": "Living room TV",
+  "createdAtUtc": "2026-11-20T18:01:12+00:00",
+  "lastSeenAtUtc": null
+}
+```
+
+- **Response `400 Bad Request`**: the name is empty or too long. The code stays valid.
+- **Response `401 Unauthorized`**: no Session credential. The code stays valid.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). The code stays valid.
+- **Response `404 Not Found`**: the code is unknown, already used, expired, or its connection has disconnected. If the connection drops while the approval is running, the new Display is removed and the code is used up, so the screen must request a new code.
+- **Response `429 Too Many Requests`**: rate limit reached.
+
+---
+
+### `GET /api/displays`
+Lists the caller's Displays, oldest first. Requires the caller's [session credential](#session-credential).
+
+- **Response `200 OK`**: an array of Displays, shaped like the approve response. Neither the Display token nor the owner's Session id is included.
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+
+---
+
+### `PATCH /api/displays/{displayId}`
+Renames one of the caller's Displays. Requires the caller's [session credential](#session-credential).
+
+- **Request Body**:
+```json
+{ "name": "Bedroom" }
+```
+
+- **Response `204 No Content`**
+- **Response `400 Bad Request`**: the name is empty or longer than 64 characters.
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+- **Response `404 Not Found`**: the caller has no Display with that id.
+
+---
+
+### `DELETE /api/displays/{displayId}`
+Revokes one of the caller's Displays. Requires the caller's [session credential](#session-credential).
+
+Its token stops working at once. Each of its live hub connections receives [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked) and is then closed. The owner's Session, its connections and the owner's other Displays are untouched.
+
+- **Response `204 No Content`**
+- **Response `401 Unauthorized`** / **`403 Forbidden`**: as for approve.
+- **Response `404 Not Found`**: the caller has no Display with that id.
+
+---
+
 ## Song Lookup Endpoints
 
 Find a song from a remembered, possibly misremembered, lyric line, then play or queue it on Spotify. See [Find a Song by Lyrics](../user-guide/song-lookup.md) for the user view and [Song Lookup](../architecture/lyrics-caching.md#song-lookup-by-remembered-lyrics) for how matching works.
@@ -360,16 +393,17 @@ Ranks songs that match a lyric fragment: the server's lyrics library first, then
 ```json
 { "fragment": "amazing grace how sweet the sound", "scope": "local" }
 ```
-  - `fragment` (`string`): at most 200 characters, with at least 3 words or 4 CJK characters. Longer fragments are cut to the first 24 words or 48 CJK characters.
+
+  - `fragment` (`string`): at most 200 characters, with at least 3 words or 4 CJK characters. Longer fragments are cut to the first 24 words or 48 CJK characters. Mixed text shares one budget in which a word counts as two CJK characters: the minimum is 6 units and the cut is at 48.
   - `scope` (`string`, optional): `local`, `auto` (the default when missing) or `online`.
 - **Behavior**:
-  1. **Library**: every song with lyrics in the server's cache or overrides is scored against the fragment. The library is server-wide, so it includes tracks any Session on this server has played.
-  2. **Decision**: the best guess is `accepted` when it scores at least `0.70` and leads the next different song by at least `0.10`. Otherwise the outcome is `ambiguous` (best score at least `0.50`) or `none`.
-  3. **Online**: with `scope: "auto"` and an outcome that is not `accepted`, or with `scope: "online"`, NetEase lyric search runs first (1 request). LRCLIB title search (up to 2 requests) runs only while the outcome is still not `accepted`; with NetEase disabled, `scope: "online"` always asks LRCLIB. At most 3 provider requests and 10 seconds per lookup; a timeout returns what was found so far.
-  4. **Merge**: online hits are scored with the same scorer, ranked with the library guesses, and decided again. Versions of the same song (for example a remaster under another track id) are grouped into one guess.
-  5. `scope: "local"` never calls a provider and reports enabled providers as `skipped`, or as `rateLimited` when the outcome is not `accepted` and the caller's online budget is spent.
-  6. Each Spotify user may run 6 online lookups per minute (`SongLookup:OnlineLookupsPerMinute`). Answers reused from the 10-minute in-memory query cache do not count. When the budget is spent, providers report `rateLimited` and library guesses are still returned.
-  7. A lookup never writes the lyrics cache or the negative cache.
+    1. **Library**: every song with lyrics in the server's cache or overrides is scored against the fragment. The library is server-wide, so it includes tracks any Session on this server has played.
+    2. **Decision**: the best guess is `accepted` when it scores at least `0.70` and leads the next different song by at least `0.10`. Otherwise the outcome is `ambiguous` (best score at least `0.50`) or `none`.
+    3. **Online**: with `scope: "auto"` and an outcome that is not `accepted`, or with `scope: "online"`, NetEase lyric search runs first (1 request). LRCLIB title search (up to 2 requests) runs only while the outcome is still not `accepted`; with NetEase disabled, `scope: "online"` always asks LRCLIB. At most 3 provider requests and 10 seconds per lookup; a timeout returns what was found so far.
+    4. **Merge**: online hits are scored with the same scorer, ranked with the library guesses, and decided again. Versions of the same song (for example a remaster under another track id) are grouped into one guess.
+    5. `scope: "local"` never calls a provider and reports enabled providers as `skipped`, or as `rateLimited` when the outcome is not `accepted` and the caller's online budget is spent.
+    6. Each Spotify user may run 6 online lookups per minute (`SongLookup:OnlineLookupsPerMinute`). Answers reused from the in-memory query cache (kept 10 minutes, or 2 minutes when nothing was found) do not count. When the budget is spent, providers report `rateLimited` and library guesses are still returned.
+    7. A lookup never writes the lyrics cache or the negative cache.
 - **Response `200 OK`**:
 ```json
 {
@@ -398,6 +432,7 @@ Ranks songs that match a lyric fragment: the server's lyrics library first, then
   ]
 }
 ```
+
   - `outcome`: `accepted`, `ambiguous` or `none`. `none` can still carry low-scoring guesses.
   - `onlineRecommended`: `true` only for `scope: "local"` when the outcome is not `accepted`, a provider is enabled and the caller's online budget is not spent. Clients then repeat the search with `scope: "auto"`, which spends a second inbound permit.
   - `guesses`: at most 5 guesses scoring at least `0.40`, best first, followed by up to 3 NetEase hits the scorer could not confirm (`verified: false`, for example Traditional against Simplified Chinese).
@@ -424,14 +459,15 @@ Plays or queues a guess on the owner's active Spotify device.
 ```json
 { "action": "queue", "title": "Amazing Grace", "artist": "The Example Singers", "durationMs": 245000 }
 ```
+
   - `action` (`string`): `play` or `queue`.
   - `spotifyTrackId` (`string`): a 22-character Spotify track id. Takes precedence over `title` and `artist`.
   - `title`, `artist` (`string`, at most 300 characters each), `durationMs` (`int`, optional): used when there is no track id.
 - **Behavior**:
-  1. While Spotify calls are paused by a recent `429`, nothing is sent and the status is `rateLimited`.
-  2. A guess without a track id is searched on Spotify at click time (track search on the title and primary artist, then one plain-text retry, 5 results each). A hit is accepted only when its title matches and either an artist matches on whole words or the duration is within 3 seconds. Otherwise the status is `notOnSpotify` and nothing plays.
-  3. `play` starts the track at once and replaces the current playback context (album or playlist). `queue` adds it to the end of the user's Spotify queue.
-  4. After a successful `play`, the server polls playback twice shortly after, as for transport commands, so viewers see the new track and its lyrics quickly.
+    1. While Spotify calls are paused by a recent `429`, nothing is sent and the status is `rateLimited`.
+    2. A guess without a track id is searched on Spotify at click time (track search on the title and primary artist, then one plain-text retry, 5 results each). A hit is accepted only when its title matches and either an artist matches on whole words or the duration is within 3 seconds. Otherwise the status is `notOnSpotify` and nothing plays.
+    3. `play` starts the track at once and replaces the current playback context (album or playlist). `queue` adds it to the end of the user's Spotify queue.
+    4. After a successful `play`, the server polls playback at once and twice more shortly after, as for transport commands, so viewers see the new track and its lyrics quickly.
 - **Response `200 OK`**:
 ```json
 {
@@ -448,6 +484,7 @@ Plays or queues a guess on the owner's active Spotify device.
   "retryAfterSeconds": null
 }
 ```
+
   - `status`: `success`, `notOnSpotify`, `noActiveDevice`, `missingPermissions` (no playback scope, or not a Premium account), `rateLimited` or `failed`.
   - `track`: the Spotify track a title and artist resolved to, so the UI can show what actually started. `null` for a play by id.
   - `retryAfterSeconds`: whole seconds until Spotify may be called again, set only for `rateLimited`.

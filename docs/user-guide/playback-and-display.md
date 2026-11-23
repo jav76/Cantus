@@ -16,7 +16,7 @@ flowchart TD
     RLM --> Large["Large / Desktop (>= 1080px)"]
     RLM --> TV["Fullscreen / TV 10-Foot (Kiosk Toggle)"]
 
-    Small --> S_View["Compact Header + Swipeable Lyrics/Track/Sync Tabs + Mini Strip"]
+    Small --> S_View["Compact Header + Lyrics/Track/Sync and Info Tabs + Mini Strip"]
     Medium --> M_View["Streamlined Dual-Column + 230px Album Art + Status Dot"]
     Large --> L_View["Expansive Dual-Column + 332px Track Card + Status Dot"]
     TV --> TV_View["Centered 10-Foot Karaoke Stage + Floating Bottom HUD Bar"]
@@ -43,7 +43,7 @@ Inside each layout, controls shrink before they overflow:
 - **Diagnostics HUD:** drops its 420px minimum width on small screens.
 - **Desktop app:** the window cannot be made smaller than 360 x 560.
 
-On small layouts the header keeps only the brand, the connection dot, the Spotify button (owners only) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk**, **Switch Mobile View** and **Log Out** (owners only).
+On small layouts the header keeps only the brand, the connection dot, the Spotify button (hidden on a paired Display) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (signed-in owners only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk (F11)**, **Switch Mobile View** and **Log Out** (hidden on a paired Display). **Switch Mobile View** and <kbd>M</kbd> move between the **Lyrics**, **Track** and **Sync & Info** tabs, like the tab bar.
 
 ---
 
@@ -56,25 +56,40 @@ During playback, the lyrics stage dynamically scrolls to maintain the active sin
 
 ### 2. Manual Scroll Detection & Free Browsing
 If you want to read ahead or check previous lyrics:
+
 - Simply scroll using your mouse wheel, trackpad gesture, or touchscreen drag.
 - Cantus immediately detects user intervention and sets auto-scroll to **Paused**.
 - The active line continues to highlight in time with the music, but the scroll position will not jump or fight against your scrolling.
 
 ### 3. Floating Resume Button & 3-Second Auto-Resume
 When manual scrolling pauses the display:
+
 - A floating **Resume Autoscroll** pill button appears at the bottom-center of the stage.
 - If no scrolling interaction occurs for **3 seconds**, Cantus automatically resumes auto-scrolling with a smooth transition back to the currently active line.
 - You can also tap the floating **Resume** button at any time to re-center immediately.
+- Turn the **Autoscroll** toggle off (it then reads **Free Scroll**) to stop the lyrics following the music at all: nothing pauses and nothing resumes until you turn it back on.
+- The **Static View** toggle shows the lyrics as plain text with no highlighting. It then reads **Live Synced**, which switches back.
 
 ### 4. Karaoke Underline
 With the **Karaoke** toggle on, an underline fills beneath the active line:
+
 - **Word-timed lyrics**: the underline follows each word as it is sung, pauses during rests inside the line, and moves slowly through held notes.
 - **Line-timed lyrics**: the underline fills evenly over the line's duration. It does not track individual words.
 
-### 5. Fixing Wrong Lyrics
+### 5. Playback Controls and Seeking
+A signed-in owner can control Spotify from Cantus (Spotify Premium required):
+
+- The track card has **Shuffle**, **Previous track**, **Play / Pause**, **Next track**, **Repeat** (off, context, track) and a **Volume** slider. The kiosk bar has previous, play/pause and next.
+- Click or tap the progress bar to seek.
+- Click or tap a synced lyric line to jump to it. This works in live mode only, and also resumes autoscroll.
+
+A paired Display shows playback but cannot control it. If Spotify refuses a command, Cantus shows why, for example that Premium is required or that no device is active.
+
+### 6. Fixing Wrong Lyrics
 If a track shows the wrong lyrics, or none:
+
 - Tap **Wrong lyrics?** on the track card. On a phone it is on the **Sync & Info** tab.
-- Cantus lists the lyrics each provider has for the track, with the provider, title, artist, length, whether the lyrics are synced or plain, and their first lines. Tap one to use it.
+- Cantus lists the lyrics each provider has for the track, with the provider, title, artist, length, whether the lyrics are synced, plain or instrumental, and their first lines. Tap one to use it.
 - **Re-fetch automatically** looks the track up again. **No lyrics** shows an empty lyrics view for the track.
 - If you already picked lyrics for the track, the picker says so and offers **Use automatic lyrics** to undo it.
 - Your choice applies to every screen showing the track, without a reload, and is kept until you change it.
@@ -89,7 +104,7 @@ If a track shows the wrong lyrics, or none:
 To use Cantus as an ambient music visualizer on a TV or dedicated Raspberry Pi display:
 
 1. Open your browser on the smart TV (or launch a Chromium kiosk on Raspberry Pi) to your Cantus URL: `http://<your-server-ip>:5000`.
-2. Sign in with Spotify, or [pair the screen as a Display](displays.md) so it never holds your account.
+2. [Pair the screen as a Display](displays.md) so it never holds your account. Signing in with Spotify on the TV itself only works at an `https://` address, because Spotify rejects sign-in from a plain `http://` LAN address.
 3. Enter fullscreen mode (press <kbd>F11</kbd> or use the TV browser's fullscreen button).
 4. Press <kbd>K</kbd> (or <kbd>F11</kbd> in the app) to switch into the 10-foot kiosk lyrics stage. Kiosk mode is an explicit toggle, so large monitors keep the full desktop controls unless you opt in; press <kbd>Esc</kbd> to exit.
 
@@ -134,7 +149,7 @@ The dot next to the **Cantus** name shows the connection: green when connected, 
 
 Choose the **Diagnostics HUD** button in the header bar (on small layouts, the overflow menu) to open the diagnostics overlay. It shows live metrics useful for debugging latency and connection quality:
 
-- **Status** and **Transport**: the SignalR connection state (`Connected`, `Reconnecting`, `Disconnected`) and transport.
+- **Status** and **Transport**: the SignalR connection state (`Connecting`, `Connected`, `Reconnecting`, `Disconnected`) and transport.
 - **RTT / NTP Skew**: the round-trip time and estimated clock offset relative to the server.
 - **Latency Compensation**: this device's current compensation, as set with <kbd>[</kbd> and <kbd>]</kbd>.
 - **Poller Cadence**: the server-side poll state and interval for the active account.

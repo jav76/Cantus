@@ -10,16 +10,16 @@ services:
     environment:
       # The canonical public URL where your browser/clients access Cantus.
       # Used for dynamic Spotify OAuth2 PKCE callback resolution.
+      # Spotify only accepts https, or http on a loopback IP (not localhost or a LAN IP).
       # Examples:
-      #   Direct LAN IP:  http://192.168.1.50:5000
       #   Reverse Proxy:  https://lyrics.mydomain.com
-      #   Local Dev:      http://localhost:5000
+      #   Local Dev:      http://127.0.0.1:5000
       - CANTUS_HOST_URL=${CANTUS_HOST_URL:-http://localhost:5000}
 
       # Spotify Developer Credentials (from https://developer.spotify.com/dashboard)
       - Spotify__ClientId=${Spotify__ClientId}
       - Spotify__ClientSecret=${Spotify__ClientSecret}
-      # Optional overrides (leave unset to allow automatic dynamic host resolution):
+      # Optional overrides. Spotify__RedirectUri only applies when CANTUS_HOST_URL above is removed:
       # - Spotify__RedirectUri=${Spotify__RedirectUri}
       # - Lrclib__BaseUrl=https://lrclib.net
 
