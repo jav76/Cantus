@@ -14,12 +14,17 @@
             Padding="{x:Bind GetCardPadding(Layout.CurrentBreakpoint), Mode=OneWay}">
         <Grid>
             <!-- Standard / Desktop / Tablet Card Layout -->
+            <!-- The scroller extends 12px into the card's right padding and the content gets a
+                 matching right margin, so the scrollbar sits in that gutter instead of drawing
+                 over the buttons and sliders. -->
             <ScrollViewer x:Name="StandardCardScroller"
+                          Margin="0,0,-12,0"
                           VerticalScrollBarVisibility="Auto"
                           SizeChanged="OnStandardCardScrollerSizeChanged"
                           HorizontalScrollBarVisibility="Disabled"
                           Visibility="{x:Bind GetStandardCardVisibility(Layout.CurrentBreakpoint), Mode=OneWay}">
-                <StackPanel Spacing="{x:Bind GetCardSpacing(Layout.CurrentBreakpoint), Mode=OneWay}">
+                <StackPanel Margin="0,0,12,0"
+                            Spacing="{x:Bind GetCardSpacing(Layout.CurrentBreakpoint), Mode=OneWay}">
                     
                     <!-- Album Art: shrinks to the card's content width (minus any scrollbar gutter);
                          the height is kept square from code-behind (SquareArtSizing) -->
