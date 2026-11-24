@@ -42,7 +42,7 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return lyricsOverride.Lyrics;
+            return LyricsFromOverride(lyricsOverride, track);
         }
 
         // 1. Check negative cache
@@ -53,7 +53,7 @@ public sealed class CachedLyricsService : ILyricsProvider
                 track.Id,
                 track.Artist,
                 track.Title);
-            return null;
+            return InferInstrumentalFromTitle(track);
         }
 
         // 2. Check SQLite positive cache
@@ -100,7 +100,33 @@ public sealed class CachedLyricsService : ILyricsProvider
         CancellationToken cancellationToken)
     {
         LyricsOverride? applied = await _cacheRepository.GetLyricsOverrideAsync(track.Id, cancellationToken);
-        return applied is null ? fetched : applied.Lyrics;
+        return applied is null
+            ? fetched ?? InferInstrumentalFromTitle(track)
+            : LyricsFromOverride(applied, track);
+    }
+
+    /// <summary>A "no lyrics" override carries no lyrics of its own and is shown as an instrumental track.</summary>
+    private static SyncedLyrics LyricsFromOverride(LyricsOverride lyricsOverride, TrackInfo track) =>
+        lyricsOverride.Lyrics ?? SyncedLyrics.ForInstrumentalTrack(track);
+
+    /// <summary>
+    /// For a track no provider has lyrics for, instrumental lyrics when its title marks it as a
+    /// version without vocals, otherwise null. The guess is never cached, so a provider record
+    /// added later still wins once the "not found" mark expires.
+    /// </summary>
+    internal SyncedLyrics? InferInstrumentalFromTitle(TrackInfo track)
+    {
+        if (!InstrumentalTitle.IsMarked(track.Title))
+        {
+            return null;
+        }
+
+        _logger.LogDebug(
+            "No provider has lyrics for track {TrackId} ({Artist} - {Title}); its title marks it as instrumental",
+            track.Id,
+            track.Artist,
+            track.Title);
+        return SyncedLyrics.ForInstrumentalTrack(track);
     }
 
     /// <summary>

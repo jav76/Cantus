@@ -120,7 +120,7 @@ public sealed class LyricsOverrideService
         }
 
         await _repository.RemoveLyricsOverrideAsync(track.Id, cancellationToken);
-        return LyricsOverrideOutcome.Applied(result.Lyrics);
+        return LyricsOverrideOutcome.Applied(result.Lyrics ?? _automaticLyrics.InferInstrumentalFromTitle(track));
     }
 
     /// <summary>

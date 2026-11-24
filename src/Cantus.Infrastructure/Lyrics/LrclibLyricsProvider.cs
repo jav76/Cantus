@@ -19,6 +19,8 @@ public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvide
 
     public bool SupportsWordTiming => false;
 
+    private const int SEARCH_DURATION_TOLERANCE_SEC = 5;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -245,22 +247,20 @@ public partial class LrclibLyricsProvider : ILyricsProvider, ILyricsFetchProvide
 
         int targetDurationSec = (int)Math.Round(track.Duration.TotalSeconds);
 
-        LrclibResponseDto? candidate = results
-            .Where(r => !string.IsNullOrWhiteSpace(r.SyncedLyrics))
+        // Every kind of record must match the duration, so a mismatched synced
+        // record no longer hides an instrumental or plain record of the right
+        // length, and a record of the wrong length is never taken as a fallback.
+        List<LrclibResponseDto> matchingDuration = results
+            .Where(r => targetDurationSec <= 0
+                || !r.Duration.HasValue
+                || Math.Abs(r.Duration.Value - targetDurationSec) <= SEARCH_DURATION_TOLERANCE_SEC)
             .OrderBy(r => targetDurationSec > 0 && r.Duration.HasValue
                 ? Math.Abs(r.Duration.Value - targetDurationSec)
                 : 0)
-            .FirstOrDefault();
+            .ToList();
 
-        if (candidate is not null
-            && targetDurationSec > 0
-            && candidate.Duration.HasValue
-            && Math.Abs(candidate.Duration.Value - targetDurationSec) > 5)
-        {
-            return null;
-        }
-
-        return candidate ?? results.FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.PlainLyrics) || r.Instrumental);
+        return matchingDuration.FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.SyncedLyrics))
+            ?? matchingDuration.FirstOrDefault(r => r.Instrumental || !string.IsNullOrWhiteSpace(r.PlainLyrics));
     }
 
     private static SyncedLyrics MapToDomain(LrclibResponseDto dto, TrackInfo track)

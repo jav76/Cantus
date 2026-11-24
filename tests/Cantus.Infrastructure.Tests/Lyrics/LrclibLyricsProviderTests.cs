@@ -134,6 +134,82 @@ public class LrclibLyricsProviderTests
         result.Lines[0].Text.Should().Be("On a dark desert highway");
     }
 
+    private static LrclibLyricsProvider SearchOnlyProvider(string searchJson)
+    {
+        MockHttpMessageHandler mockHandler = new()
+        {
+            ResponseHandler = req => req.RequestUri!.PathAndQuery.StartsWith("/api/search")
+                ? new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(searchJson, Encoding.UTF8, "application/json")
+                }
+                : new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+
+        HttpClient httpClient = new(mockHandler) { BaseAddress = new Uri("https://lrclib.net") };
+        return new LrclibLyricsProvider(
+            httpClient,
+            Options.Create(new LrclibOptions()),
+            NullLogger<LrclibLyricsProvider>.Instance);
+    }
+
+    private static readonly TrackInfo ScoreTrack = new()
+    {
+        Id = "spotify_track_score",
+        Title = "Theme",
+        Artist = "Composer",
+        Duration = TimeSpan.FromSeconds(216)
+    };
+
+    [Fact]
+    public async Task FetchLyricsAsync_WhenTheSyncedSearchResultHasTheWrongLength_UsesAnInstrumentalResultOfTheRightLength()
+    {
+        LrclibLyricsProvider provider = SearchOnlyProvider("""
+            [
+                { "id": 1, "trackName": "Theme", "artistName": "Other", "duration": 250, "syncedLyrics": "[00:01.00]Wrong song" },
+                { "id": 2, "trackName": "Theme", "artistName": "Composer", "duration": 216, "instrumental": true }
+            ]
+            """);
+
+        LyricsFetchResult result = await provider.FetchLyricsAsync(ScoreTrack);
+
+        result.Lyrics.Should().NotBeNull();
+        result.Lyrics!.IsInstrumental.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WhenTheSyncedSearchResultHasTheRightLength_PrefersItOverAnInstrumentalResult()
+    {
+        LrclibLyricsProvider provider = SearchOnlyProvider("""
+            [
+                { "id": 2, "trackName": "Theme", "artistName": "Composer", "duration": 216, "instrumental": true },
+                { "id": 1, "trackName": "Theme", "artistName": "Composer", "duration": 217, "syncedLyrics": "[00:01.00]Sung line" }
+            ]
+            """);
+
+        LyricsFetchResult result = await provider.FetchLyricsAsync(ScoreTrack);
+
+        result.Lyrics.Should().NotBeNull();
+        result.Lyrics!.IsInstrumental.Should().BeFalse();
+        result.Lyrics.Lines.Should().ContainSingle().Which.Text.Should().Be("Sung line");
+    }
+
+    [Fact]
+    public async Task FetchLyricsAsync_WhenTheOnlySearchResultsHaveTheWrongLength_ReportsNotFound()
+    {
+        LrclibLyricsProvider provider = SearchOnlyProvider("""
+            [
+                { "id": 2, "trackName": "Theme", "artistName": "Composer", "duration": 300, "instrumental": true },
+                { "id": 3, "trackName": "Theme", "artistName": "Composer", "duration": 120, "plainLyrics": "Some words" }
+            ]
+            """);
+
+        LyricsFetchResult result = await provider.FetchLyricsAsync(ScoreTrack);
+
+        result.Lyrics.Should().BeNull();
+        result.IsDefinitive.Should().BeTrue();
+    }
+
     [Fact]
     public async Task GetLyricsAsync_WhenNotFoundAnywhere_ReturnsNull()
     {

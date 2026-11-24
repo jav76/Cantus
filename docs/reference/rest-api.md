@@ -196,7 +196,7 @@ Returns the stored lyrics for a Spotify track id. No credential needed.
 }
 ```
 
-- **Response `404 Not Found`**: nothing is cached for the track, or it has a `noLyrics` override.
+- **Response `404 Not Found`**: nothing is cached for the track, or it has a `noLyrics` override. This cache read does not apply the title-based instrumental guess.
 
 `syllables` carries real per-word timing (absolute milliseconds; a word's trailing space stays in its `text`) and is `null` for lines with line-level timing only.
 
@@ -290,11 +290,11 @@ Corrects the lyrics for the owner's current track. An override is stored per tra
 | `action` | Effect |
 | :--- | :--- |
 | `candidate` | Loads the candidate's lyrics from `provider` (as listed by `GET /api/lyrics/{trackId}/candidates`) and stores them as the override. `provider` and `candidateId` are required. |
-| `noLyrics` | Stores a "no lyrics" override. Viewers see an empty lyrics view and no provider is queried for the track. |
+| `noLyrics` | Stores a "no lyrics" override. Viewers see the track as instrumental (`isInstrumental: true`, no lines) and no provider is queried for the track. |
 | `refetch` | Queries the providers again, skipping the caches and preferring a word-timed result. A definitive answer replaces the cached automatic match (including a "not found" entry) and removes any override. If a provider cannot be reached, nothing is changed. |
 | `clear` | Removes any override and returns the track to automatic matching, served from the cache when it still holds a match. A line-only cached match can then get a word timing upgrade attempt (see [Lyrics Caching](../architecture/lyrics-caching.md#upgrading-line-only-entries)). |
 
-- **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result, or a re-fetch that finds nothing, is sent as an empty lyrics payload.
+- **Behavior**: after a successful action, every Session currently on the track (not only the caller) and its Displays receive the new lyrics through the hub's `ReceiveLyrics`. A `noLyrics` result is sent as an instrumental payload. A re-fetch that finds nothing is sent as an empty lyrics payload, or as an instrumental one when the title marks the track as a version without vocals (see [Lyrics Caching](../architecture/lyrics-caching.md#2-negative-caching-for-tracks-without-lyrics)).
 - **Response `200 OK`**: the lyrics now in effect, in the same shape as `GET /api/lyrics/{trackId}`. With no lyrics, `lines` is empty, `isSynced` is `false`, and `title`, `artist` and `album` come from the current track.
 - **Response `400 Bad Request`**: missing or unknown `action`, `candidate` without `provider` or `candidateId`, or `provider` is not an enabled provider.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
