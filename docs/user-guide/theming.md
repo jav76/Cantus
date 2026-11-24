@@ -15,6 +15,7 @@ flowchart TD
     Quantize --> Swatches[Dominant Color Swatches]
     Swatches --> Primary[Vibrant Primary Accent]
     Swatches --> Secondary[Hue-Separated Secondary Accent]
+    Secondary --> Karaoke[Karaoke Line-Progress Underline]
     Swatches --> Background[Hue-Matched Dark Background]
     Primary --> ActiveLyric[Active Lyric Glow and Accents]
     Art --> Backdrop[Full-Screen Artwork Backdrop Behind Darkening Scrim]

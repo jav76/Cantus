@@ -13,7 +13,6 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     private static readonly SolidColorBrush ActiveBrush = new(Windows.UI.Color.FromArgb(255, 248, 250, 252));
     private static readonly SolidColorBrush PastBrush = new(Windows.UI.Color.FromArgb(120, 148, 163, 184));
     private static readonly SolidColorBrush InactiveBrush = new(Windows.UI.Color.FromArgb(200, 203, 213, 225));
-    private static readonly SolidColorBrush ProgressBrush = new(Windows.UI.Color.FromArgb(255, 192, 132, 252));
 
     private const double PROGRESS_RENDER_EPSILON = 0.003;
 
@@ -80,7 +79,7 @@ public sealed class LyricLineViewModel : INotifyPropertyChanged
     public bool HasWordTiming => _syllableFill is not null;
 
     public SolidColorBrush LineBrush => IsActive ? ActiveBrush : (IsPast ? PastBrush : InactiveBrush);
-    public SolidColorBrush LineProgressBrush => ProgressBrush;
+    public SolidColorBrush LineProgressBrush => KaraokeProgressBrush.Brush;
     public TextAlignment Alignment => TextAlignment.Center;
 
     /// <summary>
