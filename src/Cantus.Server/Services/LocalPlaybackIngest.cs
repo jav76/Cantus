@@ -197,6 +197,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
             if (_pipelines.Remove(sessionId, out SessionPipeline? pipeline))
             {
+                pipeline.Ended = true;
                 pipeline.Stop();
             }
         }
@@ -335,6 +336,16 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            // The caller that ended the Session already cleared this state, but an apply that was
+            // past its last cancellation check may have written it again since.
+            if (pipeline.Ended)
+            {
+                _applier.Forget(pipeline.SessionId);
+                _registry.RemoveUserState(pipeline.SessionId);
+            }
         }
     }
 
@@ -672,6 +683,9 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         });
 
         public CancellationTokenSource Stopping { get; } = new();
+
+        /// <summary>Set when the Session ended, so the worker clears its state once it stops.</summary>
+        public bool Ended { get; set; }
 
         public string? LastTrackId { get; set; }
 

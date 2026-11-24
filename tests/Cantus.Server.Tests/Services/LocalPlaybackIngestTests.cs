@@ -566,6 +566,30 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
+    public async Task Forget_WhileAnApplyIsWriting_ClearsWhatThatApplyWritesAfterTheSessionEnded()
+    {
+        TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource started = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _applier.OnApply = async update =>
+        {
+            started.TrySetResult();
+            await release.Task;
+            // The real applier writes the snapshot after its last cancellation check.
+            _registry.UpdateUserState(update.SessionId, update.DisplayName, update.State, null, 0);
+        };
+        _ingest.Submit(CONNECTION_A, _session, Update(1));
+        await started.Task.WaitAsync(WAIT_TIMEOUT);
+
+        _ingest.Forget(_session.Id);
+        _registry.RemoveUserState(_session.Id);
+        release.TrySetResult();
+
+        await WaitForUpdatesAsync(1);
+        await WaitUntilAsync(() => _registry.GetUserState(_session.Id) is null);
+        _applier.ForgottenSessions.Should().Contain(_session.Id);
+    }
+
+    [Fact]
     public void Forget_RefusesOnlyTheForgottenSession()
     {
         _ingest.Forget(_session.Id);
@@ -656,6 +680,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         private readonly ConcurrentQueue<PlaybackUpdate> _updates = new();
         private readonly ConcurrentQueue<string> _offline = new();
         private readonly ConcurrentQueue<string> _events = new();
+        private readonly ConcurrentQueue<string> _forgotten = new();
 
         public Func<PlaybackUpdate, Task>? OnApply { get; set; }
 
@@ -664,6 +689,8 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         public IReadOnlyCollection<string> OfflineSessions => _offline;
 
         public IReadOnlyCollection<string> Events => _events;
+
+        public IReadOnlyCollection<string> ForgottenSessions => _forgotten;
 
         public async Task ApplyAsync(
             PlaybackUpdate update,
@@ -692,6 +719,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
 
         public void Forget(string sessionId)
         {
+            _forgotten.Enqueue(sessionId);
         }
     }
 }
