@@ -159,3 +159,12 @@ Recreating the container also removes the rolling log files, which live in its t
 ### Symptom: The container restarts in a loop and logs `Cantus cannot use its data files`
 - **Cause**: The data volume was created by an older image that ran as root. The current image runs as uid `1654` and cannot write root-owned files. Before this check, the same problem showed as `SQLite Error 8: 'attempt to write a readonly database'` and exit code 139.
 - **Fix**: Run the `chown` command printed in the log, or see [Upgrading from an Image That Ran as Root](self-hosting.md#upgrading-from-an-image-that-ran-as-root).
+
+---
+
+## 9. This Computer's Players
+
+### Symptom: The Linux desktop app only offers **Connect Spotify**, with no **This computer** option
+- **Cause**: Local Sessions are off on the server, which is the default. The option also needs the desktop app on Linux, where it reads players through MPRIS. The web app and the Windows and macOS apps never show it.
+- **Check**: `curl https://cantus.yourdomain.com/api/auth/spotify/setup` and look for `"localSessionsEnabled":true`.
+- **Fix**: Set `LocalSessions__Enabled=true` on the server (the repository's `docker-compose.yml` has it commented out) and recreate the container. On an internet-facing server, also set `LocalSessions__JoinCode`. See [Let People Use Their Own Players](self-hosting.md#6-let-people-use-their-own-players).

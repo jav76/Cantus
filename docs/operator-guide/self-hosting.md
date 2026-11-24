@@ -133,7 +133,7 @@ For a bind mount such as `./data:/app/data`, run `sudo chown -R 1654:1654 ./data
 
 ## 6. Let People Use Their Own Players
 
-The Linux desktop app can show lyrics for what a media player on the user's computer plays, with no Spotify account (see [Use this computer's players](../user-guide/local-players.md)). This creates a Local Session on your server. It is off by default:
+The Linux desktop app can show lyrics for what a media player on the user's computer plays, with no Spotify account (see [Use this computer's players](../user-guide/local-players.md)). This creates a Local Session on your server. It is off by default; the repository's `docker-compose.yml` has both settings commented out (the join code is read from `.env`):
 
 ```yaml
     environment:
