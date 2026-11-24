@@ -11,7 +11,8 @@ namespace Cantus.Client.LocalPlayback;
 /// host ships). Values leave this class as plain .NET types so nothing else depends on the library.
 /// Calls throw <see cref="DBusException"/> or <see cref="DisconnectedException"/> when a player
 /// vanishes mid-call, and <see cref="TimeoutException"/> when it does not answer within
-/// <see cref="CALL_TIMEOUT"/>; callers treat any exception as "player unavailable".
+/// <see cref="CALL_TIMEOUT"/> (or the longer <see cref="SETUP_CALL_TIMEOUT"/> for calls that find and
+/// first read players).
 /// Player calls take the player's unique connection name as <c>destination</c> and never auto-start
 /// a service, so a call racing a player's exit cannot D-Bus-activate it again.
 /// </summary>
@@ -27,6 +28,9 @@ internal sealed class MprisBus : IDisposable
 
     // The session bus has no reply timeout, so a player whose main loop is frozen would never answer.
     public static readonly TimeSpan CALL_TIMEOUT = TimeSpan.FromSeconds(2);
+
+    // libdbus and GDBus's default: a player busy starting up still gets found.
+    public static readonly TimeSpan SETUP_CALL_TIMEOUT = TimeSpan.FromSeconds(25);
 
     private Connection? _connection;
 
@@ -66,28 +70,37 @@ internal sealed class MprisBus : IDisposable
     public Task<string[]> ListNamesAsync()
     {
         Connection connection = RequireConnection();
-        return WithTimeout(connection.CallMethodAsync(
-            CreateBusCall(connection, "ListNames", argument: null),
-            static (Message message, object? _) => message.GetBodyReader().ReadArrayOfString(),
-            null));
+        return WithTimeout(
+            connection.CallMethodAsync(
+                CreateBusCall(connection, "ListNames", argument: null),
+                static (Message message, object? _) => message.GetBodyReader().ReadArrayOfString(),
+                null),
+            SETUP_CALL_TIMEOUT);
     }
 
     public Task<string> GetNameOwnerAsync(string name)
     {
         Connection connection = RequireConnection();
-        return WithTimeout(connection.CallMethodAsync(
-            CreateBusCall(connection, "GetNameOwner", name),
-            static (Message message, object? _) => message.GetBodyReader().ReadString(),
-            null));
+        return WithTimeout(
+            connection.CallMethodAsync(
+                CreateBusCall(connection, "GetNameOwner", name),
+                static (Message message, object? _) => message.GetBodyReader().ReadString(),
+                null),
+            SETUP_CALL_TIMEOUT);
     }
 
-    public Task<Dictionary<string, object?>> GetAllPropertiesAsync(string destination, string interfaceName)
+    public Task<Dictionary<string, object?>> GetAllPropertiesAsync(
+        string destination,
+        string interfaceName,
+        TimeSpan? timeout = null)
     {
         Connection connection = RequireConnection();
-        return WithTimeout(connection.CallMethodAsync(
-            CreatePropertiesCall(connection, destination, "GetAll", interfaceName, propertyName: null),
-            static (Message message, object? _) => ToDictionary(message.GetBodyReader().ReadDictionaryOfStringToVariantValue()),
-            null));
+        return WithTimeout(
+            connection.CallMethodAsync(
+                CreatePropertiesCall(connection, destination, "GetAll", interfaceName, propertyName: null),
+                static (Message message, object? _) => ToDictionary(message.GetBodyReader().ReadDictionaryOfStringToVariantValue()),
+                null),
+            timeout ?? CALL_TIMEOUT);
     }
 
     public Task<object?> GetPlayerPropertyAsync(string destination, string propertyName)
@@ -218,11 +231,11 @@ internal sealed class MprisBus : IDisposable
         _connection = null;
     }
 
-    private static async Task<T> WithTimeout<T>(Task<T> call)
+    private static async Task<T> WithTimeout<T>(Task<T> call, TimeSpan? timeout = null)
     {
         try
         {
-            return await call.WaitAsync(CALL_TIMEOUT).ConfigureAwait(false);
+            return await call.WaitAsync(timeout ?? CALL_TIMEOUT).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {

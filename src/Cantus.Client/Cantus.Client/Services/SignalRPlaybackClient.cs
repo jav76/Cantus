@@ -361,6 +361,13 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         !string.IsNullOrWhiteSpace(sessionToken) || string.IsNullOrWhiteSpace(displayToken);
 
     /// <summary>
+    /// A handed-off Session replaces the connection's credential unless it is the one already held,
+    /// so a sign-in that completes as another account (or over a Local Session) switches this client.
+    /// </summary>
+    internal static bool ShouldReconnectForAuthSession(string? currentSessionToken, string newSessionId) =>
+        !string.Equals(newSessionId, currentSessionToken, StringComparison.Ordinal);
+
+    /// <summary>
     /// A Session wins over a Display token, matching the server's credential order. Null means
     /// the connection is anonymous and registers for the sign-in handoff instead.
     /// </summary>
@@ -568,11 +575,11 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             if (session is not null && !string.IsNullOrWhiteSpace(session.Id))
             {
-                bool alreadyHeld = string.Equals(session.Id, SessionToken, StringComparison.Ordinal);
+                bool reconnect = ShouldReconnectForAuthSession(SessionToken, session.Id);
                 SavePersistedSessionToken(session.Id);
                 SessionToken = session.Id;
                 AuthSessionReceived?.Invoke(session);
-                if (!alreadyHeld)
+                if (reconnect)
                 {
                     _ = ReconnectWithTokenAsync(session.Id);
                 }

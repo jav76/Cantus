@@ -88,12 +88,13 @@ public sealed class MprisPlayerState
 
     /// <summary>
     /// Applies <c>org.mpris.MediaPlayer2.Player</c> properties from <c>GetAll</c> or <c>PropertiesChanged</c>.
-    /// Returns true when the position should be read again because status, track or rate changed
-    /// and the properties did not carry a fresh position.
+    /// Returns true when the position should be read again because status, track or rate changed (or
+    /// the track may have changed) and the properties did not carry a fresh position.
     /// </summary>
     public bool ApplyPlayerProperties(IReadOnlyDictionary<string, object?> properties, TimeSpan now)
     {
         bool timelineChanged = false;
+        bool positionSuspect = false;
 
         if (properties.TryGetValue(PROPERTY_PLAYBACK_STATUS, out object? statusValue)
             && statusValue is string statusText)
@@ -127,9 +128,12 @@ public sealed class MprisPlayerState
             }
             else if (track != Track)
             {
-                // Art, album or a late duration for the same track: the timeline carries on.
+                // Art, album or a late duration for the same track: the timeline carries on. Without a
+                // trackid this may also be the next track under the same title and artist, so the
+                // position is read again to settle which.
                 Freeze(now);
                 Track = track;
+                positionSuspect = trackPath is null;
             }
         }
 
@@ -163,7 +167,7 @@ public sealed class MprisPlayerState
             TimelineGeneration++;
         }
 
-        return timelineChanged;
+        return timelineChanged || positionSuspect;
     }
 
     public void SetPosition(long microseconds, TimeSpan now)

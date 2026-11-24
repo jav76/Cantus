@@ -168,6 +168,30 @@ public sealed class MprisPlayerStateTests
     }
 
     [Fact]
+    public void ADifferentAlbumWithoutATrackId_AsksForAPositionRead()
+    {
+        // Arrange
+        Dictionary<string, object?> player = MprisHostMaps.SpotifyPlayer();
+        Dictionary<string, object?> metadata = MprisHostMaps.SpotifyMetadata();
+        metadata.Remove("mpris:trackid");
+        player["Metadata"] = metadata;
+        MprisPlayerState state = new(MprisHostMaps.SPOTIFY_BUS_NAME, ":1.1");
+        state.ApplyPlayerProperties(player, T0);
+        Dictionary<string, object?> liveVersion = MprisHostMaps.SpotifyMetadata();
+        liveVersion.Remove("mpris:trackid");
+        liveVersion["xesam:album"] = "Reflections (Live)";
+
+        // Act
+        bool needsRead = state.ApplyPlayerProperties(
+            new Dictionary<string, object?> { ["Metadata"] = liveVersion },
+            T0 + TimeSpan.FromSeconds(2));
+
+        // Assert
+        needsRead.Should().BeTrue("without a trackid the same title and artist may be the next track");
+        state.Track!.Album.Should().Be("Reflections (Live)");
+    }
+
+    [Fact]
     public void Seeked_SetsThePositionAndCountsTheSeek()
     {
         // Arrange

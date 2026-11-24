@@ -23,6 +23,8 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
     /// <summary>How often a <c>GetAll</c> is repeated when signals from the player overtook it.</summary>
     public const int MAX_SETTLE_ATTEMPTS = 3;
 
+    private const int MAX_ADD_RETRY_DELAY_SECONDS = 30;
+
     private static readonly ILogger _logger = ClientLoggingManager.CreateLogger<MprisPlayerSource>();
 
     private readonly TimeProvider _clock;
@@ -174,7 +176,18 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         _ => throw new ArgumentOutOfRangeException(nameof(command), command, null),
     };
 
-    private async Task AddPlayerAsync(string busName, string? owner)
+    private Task AddPlayerAsync(string busName, string? owner)
+    {
+        int generation;
+        lock (_gate)
+        {
+            generation = OwnerGenerationLocked(busName);
+        }
+
+        return TryAddPlayerAsync(busName, owner, generation, timeouts: 0);
+    }
+
+    private async Task TryAddPlayerAsync(string busName, string? owner, int generation, int timeouts)
     {
         MprisBus? bus = _bus;
         if (bus is null)
@@ -182,70 +195,102 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             return;
         }
 
-        int generation;
-        lock (_gate)
-        {
-            generation = OwnerGenerationLocked(busName);
-        }
-
-        MprisPlayerState state;
         try
         {
             owner ??= await bus.GetNameOwnerAsync(busName).ConfigureAwait(false);
-            for (int attempt = 1; ; attempt++)
-            {
-                int signals;
-                lock (_gate)
-                {
-                    signals = SignalCountLocked(owner);
-                }
-
-                Dictionary<string, object?> root = await TryGetAllAsync(bus, owner, MprisBus.ROOT_INTERFACE).ConfigureAwait(false);
-                Dictionary<string, object?> player = await bus.GetAllPropertiesAsync(owner, MprisBus.PLAYER_INTERFACE).ConfigureAwait(false);
-
-                state = new MprisPlayerState(busName, owner);
-                state.ApplyRootProperties(root);
-                state.ApplyPlayerProperties(player, Now);
-
-                lock (_gate)
-                {
-                    if (generation != OwnerGenerationLocked(busName))
-                    {
-                        _logger.LogDebug("MPRIS player {Player} changed owner while it was being read", busName);
-                        return;
-                    }
-
-                    // Signals that arrived before the state was stored found nothing to update.
-                    if (SignalCountLocked(owner) != signals && attempt < MAX_SETTLE_ATTEMPTS)
-                    {
-                        continue;
-                    }
-
-                    _players[busName] = state;
-                    PublishSnapshotsLocked();
-                }
-
-                break;
-            }
+            await ReadAndStorePlayerAsync(bus, busName, owner, generation).ConfigureAwait(false);
+        }
+        catch (TimeoutException ex)
+        {
+            // Busy, not gone: a player that left changes the generation, which ends the retries. They
+            // run detached so startup is not held up by a player that never answers.
+            TimeSpan delay = AddRetryDelay(timeouts);
+            _logger.LogDebug(ex, "MPRIS player {Player} did not answer; trying again in {Delay}", busName, delay);
+            _ = RetryAddPlayerAsync(busName, owner, generation, timeouts + 1, delay);
         }
         catch (Exception ex)
         {
-            // The player left between being listed and answering, or did not answer in time.
+            // The player left between being listed and answering.
             _logger.LogDebug(ex, "Could not read MPRIS player {Player}", busName);
-            return;
+        }
+    }
+
+    private async Task RetryAddPlayerAsync(string busName, string? owner, int generation, int timeouts, TimeSpan delay)
+    {
+        await Task.Delay(delay, _clock).ConfigureAwait(false);
+        lock (_gate)
+        {
+            if (_disposed || generation != OwnerGenerationLocked(busName))
+            {
+                return;
+            }
         }
 
-        _logger.LogDebug("MPRIS player {Player} ({AppId}) is {Status}", busName, state.AppId, state.Status);
-        RaisePlayersChanged();
+        await TryAddPlayerAsync(busName, owner, generation, timeouts).ConfigureAwait(false);
+    }
+
+    /// <summary>5, 10, 20, then every 30 seconds.</summary>
+    private static TimeSpan AddRetryDelay(int previousTimeouts) =>
+        TimeSpan.FromSeconds(Math.Min(MAX_ADD_RETRY_DELAY_SECONDS, 5 << Math.Min(previousTimeouts, 3)));
+
+    private async Task ReadAndStorePlayerAsync(MprisBus bus, string busName, string owner, int generation)
+    {
+        for (int attempt = 1; ; attempt++)
+        {
+            int signals;
+            lock (_gate)
+            {
+                signals = SignalCountLocked(owner);
+            }
+
+            Dictionary<string, object?> root = await TryGetAllAsync(bus, owner, MprisBus.ROOT_INTERFACE).ConfigureAwait(false);
+            Dictionary<string, object?> player = await bus
+                .GetAllPropertiesAsync(owner, MprisBus.PLAYER_INTERFACE, MprisBus.SETUP_CALL_TIMEOUT)
+                .ConfigureAwait(false);
+
+            MprisPlayerState state = new(busName, owner);
+            state.ApplyRootProperties(root);
+            state.ApplyPlayerProperties(player, Now);
+
+            bool overtaken;
+            lock (_gate)
+            {
+                if (generation != OwnerGenerationLocked(busName))
+                {
+                    _logger.LogDebug("MPRIS player {Player} changed owner while it was being read", busName);
+                    return;
+                }
+
+                // Signals that arrived before the state was stored found nothing to update.
+                overtaken = SignalCountLocked(owner) != signals;
+                if (overtaken && attempt < MAX_SETTLE_ATTEMPTS)
+                {
+                    continue;
+                }
+
+                _players[busName] = state;
+                PublishSnapshotsLocked();
+            }
+
+            _logger.LogDebug("MPRIS player {Player} ({AppId}) is {Status}", busName, state.AppId, state.Status);
+            RaisePlayersChanged();
+            if (overtaken)
+            {
+                _ = RefreshPropertiesAsync(busName, MprisBus.PLAYER_INTERFACE, isFollowUp: true);
+                _ = ReadPositionAsync(busName);
+            }
+
+            return;
+        }
     }
 
     private static async Task<Dictionary<string, object?>> TryGetAllAsync(MprisBus bus, string destination, string interfaceName)
     {
         try
         {
-            return await bus.GetAllPropertiesAsync(destination, interfaceName).ConfigureAwait(false);
+            return await bus.GetAllPropertiesAsync(destination, interfaceName, MprisBus.SETUP_CALL_TIMEOUT).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not TimeoutException)
         {
             _logger.LogDebug(ex, "{Player} has no readable {Interface}", destination, interfaceName);
             return new Dictionary<string, object?>();
@@ -471,7 +516,11 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         RaisePlayersChanged();
     }
 
-    private async Task RefreshPropertiesAsync(string busName, string interfaceName)
+    /// <param name="isFollowUp">
+    /// True for the one extra read made when signals kept overtaking the previous one, so a player that
+    /// signals non-stop does not chain reads forever.
+    /// </param>
+    private async Task RefreshPropertiesAsync(string busName, string interfaceName, bool isFollowUp = false)
     {
         MprisBus? bus = _bus;
         if (bus is null)
@@ -480,6 +529,7 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         }
 
         bool needsPosition = false;
+        bool overtaken;
         for (int attempt = 1; ; attempt++)
         {
             MprisPlayerState? target;
@@ -513,7 +563,8 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
                 }
 
                 // A signal applied while the call was in flight may be newer than this answer.
-                if (SignalCountLocked(state.Owner) != signals && attempt < MAX_SETTLE_ATTEMPTS)
+                overtaken = SignalCountLocked(state.Owner) != signals;
+                if (overtaken && attempt < MAX_SETTLE_ATTEMPTS)
                 {
                     continue;
                 }
@@ -534,6 +585,12 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         }
 
         RaisePlayersChanged();
+        if (overtaken && !isFollowUp)
+        {
+            _ = RefreshPropertiesAsync(busName, interfaceName, isFollowUp: true);
+            needsPosition |= interfaceName == MprisBus.PLAYER_INTERFACE;
+        }
+
         if (needsPosition)
         {
             _ = ReadPositionAsync(busName);
