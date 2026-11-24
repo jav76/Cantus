@@ -19,7 +19,7 @@ public sealed class LyricsViewModelPreferencesTests
     public void Constructor_ReadsInitialStateFromInjectedPreferences()
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore())
+        ClientPreferences preferences = new(new InMemorySettingsStore())
         {
             IsAutoScrollEnabled = false,
             IsKaraokeModeEnabled = false,
@@ -34,7 +34,7 @@ public sealed class LyricsViewModelPreferencesTests
         vm.IsAutoScrollEnabled.Should().BeFalse();
         vm.IsKaraokeModeEnabled.Should().BeFalse();
         vm.Effects.IsScanlinesEnabled.Should().BeTrue();
-        vm.Effects.IsFilmGrainEnabled.Should().BeFalse();
+        vm.Effects.IsVignetteEnabled.Should().BeFalse();
         vm.Timing.LatencyCompensationMs.Should().Be(STORED_LATENCY_MS);
         vm.Timing.CalibrationText.Should().Be("400 ms");
     }
@@ -43,7 +43,7 @@ public sealed class LyricsViewModelPreferencesTests
     public void ChangingPreferences_WritesThroughToInjectedPreferences()
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore());
+        ClientPreferences preferences = new(new InMemorySettingsStore());
         LyricsViewModel vm = CreateViewModel(preferences);
 
         // Act
@@ -59,21 +59,22 @@ public sealed class LyricsViewModelPreferencesTests
     }
 
     [Fact]
-    public void Effects_AreOffByDefault()
+    public void Effects_DefaultToGrainAndBlurOnForAnOwner()
     {
         // Act
-        LyricsViewModel vm = CreateViewModel(new LyricsPreferences(new InMemorySettingsStore()));
+        LyricsViewModel vm = CreateViewModel(new ClientPreferences(new InMemorySettingsStore()));
 
         // Assert
-        vm.Effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Collapsed);
-        vm.Effects.IsBackgroundBlurEnabled.Should().BeFalse();
+        vm.Effects.IsFilmGrainEnabled.Should().BeTrue();
+        vm.Effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Visible);
+        vm.Effects.IsBackgroundBlurEnabled.Should().BeTrue();
     }
 
     [Fact]
     public void OutOfRangeLatency_IsClampedInViewModelAndPreferences()
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore());
+        ClientPreferences preferences = new(new InMemorySettingsStore());
         LyricsViewModel vm = CreateViewModel(preferences);
 
         // Act
@@ -84,7 +85,7 @@ public sealed class LyricsViewModelPreferencesTests
         preferences.LatencyCompensationMs.Should().Be(MAX_LATENCY_MS);
     }
 
-    private static LyricsViewModel CreateViewModel(ILyricsPreferences preferences)
+    private static LyricsViewModel CreateViewModel(IClientPreferences preferences)
     {
         return new LyricsViewModel(
             new SignalRPlaybackClient(),

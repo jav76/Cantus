@@ -1129,16 +1129,16 @@ public sealed class LyricsViewModelTests
     [Fact]
     public void ThemeChange_ViaCycleNextTheme_ShowsToastForEachMode()
     {
-        // Arrange - default mode is MidnightViolet, so cycling advances to EmeraldSynth
+        // Arrange - default mode is Dynamic, so cycling advances to MidnightViolet
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
 
         // Act & Assert
         vm.Theme.CycleNextTheme();
-        vm.ThemeToastText.Should().Be("Emerald Synth");
+        vm.ThemeToastText.Should().Be("Midnight Violet");
 
         vm.Theme.CycleNextTheme();
-        vm.ThemeToastText.Should().Be("Cyberpunk Sunset");
+        vm.ThemeToastText.Should().Be("Emerald Synth");
 
         vm.Theme.SetThemeMode(ThemeMode.Dynamic);
         vm.ThemeToastText.Should().Be("Dynamic Palette");
@@ -1165,12 +1165,12 @@ public sealed class LyricsViewModelTests
     [Fact]
     public void SettingSameThemeMode_DoesNotShowToast()
     {
-        // Arrange - MidnightViolet is already the default mode
+        // Arrange - Dynamic is already the default mode
         SignalRPlaybackClient client = new();
         LyricsViewModel vm = new(client, new ThemeManager(), new ResponsiveLayoutManager());
 
         // Act
-        vm.Theme.SetThemeMode(ThemeMode.MidnightViolet);
+        vm.Theme.SetThemeMode(ThemeMode.Dynamic);
 
         // Assert
         vm.ThemeToastStageVisibility.Should().Be(Visibility.Collapsed);
