@@ -74,18 +74,18 @@ Optional effects you can combine freely. **Film grain**, **Blur album background
 
 ### Seek Bar VU Meter
 
-The bars use the theme's accent colour. They fall flat when playback pauses and hold still while the pointer is over a seek bar you can click, so it is clear the bar is a control. **VU meter levels** (theme menu, or the picker under **Effects** on the mobile **Sync & Info** tab) picks where the levels come from. The first line of that submenu, and the text under the picker, says whether the bars are live right now.
+The bars only ever show real audio: with no live source, or while the source hears nothing, the seek bar stays plain. They use the theme's accent colour. They fall flat when playback pauses and hold still while the pointer is over a seek bar you can click, so it is clear the bar is a control. **VU meter levels** (theme menu, or the picker under **Effects** on the mobile **Sync & Info** tab) picks where the levels come from. The first line of that submenu, and the text under the picker, says whether the bars are live right now.
 
 | Levels | Real audio? | Where | Notes |
 | :--- | :--- | :--- | :--- |
 | **System audio** | Yes | Desktop app on Linux and Windows | The default there. Hears everything the default output plays, not just the player, and only when the music plays on this computer. Linux needs `parec` (PulseAudio or PipeWire) or `pw-record`. Re-pick it after switching outputs. |
 | **Microphone** | Yes | Browser | Hears the room, so a display reacts to speakers playing Spotify anywhere nearby. Asks for microphone access. |
 | **Tab or screen audio** | Yes | Browser (Chrome and Edge) | Pick a tab, or the whole screen on Windows and ChromeOS, and tick **Share audio**. Asks every time, so pick it again after a reload or after you stop sharing. |
-| **Decorative** | No | Everywhere | A beat-like pattern seeded by the track. It follows the playback position but not the music. The browser default. |
+| **None** | No | Everywhere | No bars: a plain seek bar. The browser default, and the only choice where no live source exists. |
 
 - Spotify does not offer audio data to Cantus, so with Spotify playing on another device only **Microphone** gives real levels.
-- When a live source hears nothing for a moment (nothing playing, or the music plays elsewhere), the decorative pattern takes over until sound returns.
-- Browsers only allow microphone and screen capture on HTTPS or `localhost`. Over plain HTTP on your network, only **Decorative** is offered.
+- When a live source hears nothing (nothing playing, or the music plays elsewhere), the bars fade out until sound returns.
+- Browsers only allow microphone and screen capture on HTTPS or `localhost`. Over plain HTTP on your network, only **None** is offered.
 - Audio never leaves the device: it is analysed locally and nothing is sent to the server.
 
 ### Where settings are saved
