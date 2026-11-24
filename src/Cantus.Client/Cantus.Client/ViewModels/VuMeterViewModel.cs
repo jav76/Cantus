@@ -18,8 +18,8 @@ namespace Cantus.Client.ViewModels;
 /// <see cref="FRAME_INTERVAL_MS"/> and raises <see cref="LevelsUpdated"/>.
 /// Levels only ever come from the selected live source while it hears sound;
 /// without one the bars fall to rest and the seek bar stays plain.
-/// Levels also fall to rest when playback pauses, hold still while the pointer is
-/// over the seek bar, and stop updating entirely once at rest.
+/// Levels also fall to rest when playback pauses or while the pointer is over
+/// the seek bar, and stop updating entirely once at rest.
 /// </summary>
 public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 {
@@ -201,8 +201,12 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>The source picker only matters when the meter is on and the platform has a live source.</summary>
     public Visibility SourcePickerVisibility => _isEnabled && HasLiveSources ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>True while the pointer is over a clickable seek bar; the bars hold still.</summary>
-    public bool IsFrozen => _isPointerOver && _isEnabled;
+    /// <summary>
+    /// True while the pointer is over a clickable seek bar. The bars fade to
+    /// rest so the plain seek bar reads as a control, and come back when the
+    /// pointer leaves.
+    /// </summary>
+    public bool IsPointerOver => _isPointerOver;
 
     public void SetPointerOver(bool isOver)
     {
@@ -212,7 +216,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         }
 
         _isPointerOver = isOver;
-        OnPropertyChanged(nameof(IsFrozen));
+        OnPropertyChanged(nameof(IsPointerOver));
     }
 
     /// <summary>
@@ -279,7 +283,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     /// <param name="isPlaying">When false the bars fall to rest.</param>
     public void Update(long nowMs, bool isPlaying)
     {
-        if (!_isEnabled || IsFrozen)
+        if (!_isEnabled)
         {
             return;
         }
@@ -294,7 +298,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         bool isLive = ReadLiveSource(nowMs);
         Mode = isLive ? VuMeterMode.Live : VuMeterMode.Static;
 
-        if (isPlaying && isLive)
+        if (isPlaying && isLive && !_isPointerOver)
         {
             Array.Copy(_live, _target, BAND_COUNT);
         }

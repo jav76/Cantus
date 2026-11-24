@@ -163,30 +163,67 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public async Task SetPointerOver_True_HoldsTheBarsStillUntilThePointerLeaves()
+    public async Task SetPointerOver_True_FadesTheBarsToRestUntilThePointerLeaves()
     {
         // Arrange
         VuMeterViewModel meter = await LiveMeterAsync(0.8f);
-        meter.Update(1_000, isPlaying: true);
-        float[] before = meter.Levels.ToArray();
+        long now = 1_000;
+        for (int frame = 0; frame < 10; frame++, now += FRAME)
+        {
+            meter.Update(now, isPlaying: true);
+        }
+
+        float beforeHover = Peak(meter);
+
+        // Act
+        meter.SetPointerOver(true);
+        meter.Update(now, isPlaying: true);
+        now += FRAME;
+        float afterOneFrame = Peak(meter);
+        for (int frame = 0; frame < 40; frame++, now += FRAME)
+        {
+            meter.Update(now, isPlaying: true);
+        }
+
+        float whileHovered = Peak(meter);
+        VuMeterMode modeWhileHovered = meter.Mode;
+        meter.SetPointerOver(false);
+        meter.Update(now, isPlaying: true);
+
+        // Assert: the bars fade out gradually rather than vanishing, and the source stays live.
+        afterOneFrame.Should().BeLessThan(beforeHover).And.BeGreaterThan(VuMeterViewModel.INVISIBLE_LEVEL);
+        whileHovered.Should().Be(0);
+        modeWhileHovered.Should().Be(VuMeterMode.Live);
+        meter.IsPointerOver.Should().BeFalse();
+        Peak(meter).Should().BeGreaterThan(VuMeterViewModel.INVISIBLE_LEVEL);
+    }
+
+    [Fact]
+    public async Task SetPointerOver_OnceTheBarsAreFlat_StopsRaisingUpdates()
+    {
+        // Arrange
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
+        long now = 1_000;
+        meter.Update(now, isPlaying: true);
+        meter.SetPointerOver(true);
+        for (int frame = 0; frame < 60; frame++)
+        {
+            now += FRAME;
+            meter.Update(now, isPlaying: true);
+        }
+
         int updates = 0;
         meter.LevelsUpdated += (s, e) => updates++;
 
         // Act
-        meter.SetPointerOver(true);
-        meter.Update(1_000 + FRAME, isPlaying: true);
-        meter.Update(1_000 + FRAME * 2, isPlaying: true);
-        bool frozen = meter.IsFrozen;
-        float[] during = meter.Levels.ToArray();
-        meter.SetPointerOver(false);
-        meter.Update(1_000 + FRAME * 3, isPlaying: true);
+        for (int frame = 0; frame < 10; frame++)
+        {
+            now += FRAME;
+            meter.Update(now, isPlaying: true);
+        }
 
         // Assert
-        frozen.Should().BeTrue();
-        during.Should().Equal(before);
-        updates.Should().Be(1);
-        meter.IsFrozen.Should().BeFalse();
-        meter.Levels.ToArray().Should().NotEqual(before);
+        updates.Should().Be(0);
     }
 
     [Fact]

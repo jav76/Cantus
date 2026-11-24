@@ -74,7 +74,7 @@ Optional effects you can combine freely. **Film grain**, **Blur album background
 
 ### Seek Bar VU Meter
 
-The bars only ever show real audio: with no live source, or while the source hears nothing, the seek bar stays plain. They use the theme's accent colour. They fall flat when playback pauses and hold still while the pointer is over a seek bar you can click, so it is clear the bar is a control. **VU meter levels** (theme menu, or the picker under **Effects** on the mobile **Sync & Info** tab) picks where the levels come from. The first line of that submenu, and the text under the picker, says whether the bars are live right now.
+The bars only ever show real audio: with no live source, or while the source hears nothing, the seek bar stays plain. They use the theme's accent colour. They fall flat when playback pauses, and fade out while the pointer is over a seek bar you can click, so it is clear the bar is a control. **VU meter levels** (theme menu, or the picker under **Effects** on the mobile **Sync & Info** tab) picks where the levels come from. The first line of that submenu, and the text under the picker, says whether the bars are live right now.
 
 | Levels | Real audio? | Where | Notes |
 | :--- | :--- | :--- | :--- |
