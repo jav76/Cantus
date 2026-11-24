@@ -99,6 +99,41 @@ public sealed class LocalSessionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateAsync_ConcurrentRequestsAtTheCap_CreateOnlyUpToTheCap()
+    {
+        const int REQUESTS = 8;
+        // Each request needs its own connection to race, which a shared in-memory one cannot give.
+        string databasePath = Path.Combine(Path.GetTempPath(), $"cantus-local-cap-{Guid.NewGuid():N}.db");
+        DbContextOptions<CantusDbContext> fileOptions = new DbContextOptionsBuilder<CantusDbContext>()
+            .UseSqlite($"Data Source={databasePath}")
+            .Options;
+        _options.MaxSessions = 1;
+        try
+        {
+            await using (CantusDbContext schema = new(fileOptions))
+            {
+                await schema.Database.EnsureCreatedAsync();
+            }
+
+            LocalSessionCreateResult[] results = await Task.WhenAll(Enumerable.Range(0, REQUESTS).Select(i => Task.Run(async () =>
+            {
+                await using CantusDbContext context = new(fileOptions);
+                LocalSessionService service = new(context, _time, Options.Create(_options), NullLogger<LocalSessionService>.Instance);
+                return await service.CreateAsync($"desktop-{i}");
+            })));
+
+            results.Count(r => r.Status == LocalSessionCreateStatus.Created).Should().Be(1);
+            await using CantusDbContext check = new(fileOptions);
+            (await check.UserSessions.CountAsync()).Should().Be(1);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    [Fact]
     public async Task CreateAsync_AtTheCap_PrunesIdleSessionsFirst()
     {
         _options.MaxSessions = 1;

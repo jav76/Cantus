@@ -12,6 +12,10 @@ namespace Cantus.Infrastructure.Sessions;
 
 public sealed class LocalSessionService : ILocalSessionService
 {
+    // Scoped per request, so the gate is static. The server is a single instance on SQLite,
+    // where a transaction would not stop two requests both counting below the cap.
+    private static readonly SemaphoreSlim _createGate = new(1, 1);
+
     private readonly CantusDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
     private readonly IOptions<LocalSessionOptions> _options;
@@ -38,6 +42,21 @@ public sealed class LocalSessionService : ILocalSessionService
             return new LocalSessionCreateResult(LocalSessionCreateStatus.InvalidDisplayName, null, LocalSessionPruneResult.None);
         }
 
+        await _createGate.WaitAsync(cancellationToken);
+        try
+        {
+            return await CreateUnderGateAsync(normalizedName, cancellationToken);
+        }
+        finally
+        {
+            _createGate.Release();
+        }
+    }
+
+    private async Task<LocalSessionCreateResult> CreateUnderGateAsync(
+        string normalizedName,
+        CancellationToken cancellationToken)
+    {
         LocalSessionPruneResult pruned = await PruneIdleAsync(cancellationToken);
 
         int existing = await _dbContext.UserSessions
