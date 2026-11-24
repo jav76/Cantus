@@ -269,7 +269,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return list;
     }
 
-    public async Task<bool> RevokeSessionAsync(
+    public async Task<SessionKind?> RevokeSessionAsync(
         string sessionId,
         CancellationToken cancellationToken = default)
     {
@@ -284,7 +284,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
                 _sessionCache.TryRemove(sessionId, out _);
             }
 
-            return false;
+            return null;
         }
 
         RemoveFromCache(entity.Id, entity.SpotifyUserId);
@@ -293,7 +293,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         // A reader that loaded the row before the delete committed may have cached it again.
         RemoveFromCache(entity.Id, entity.SpotifyUserId);
-        return true;
+        return entity.Kind;
     }
 
     private string ResolveClientId(string? userClientId)

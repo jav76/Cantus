@@ -49,7 +49,8 @@ public interface ISpotifyAuthService
 
     /// <summary>
     /// Revokes the session with this exact session id. A Spotify user id does not match.
+    /// Returns the revoked session's kind, or null when no session had this id.
     /// </summary>
-    Task<bool> RevokeSessionAsync([Redact] string sessionId, CancellationToken cancellationToken = default);
+    Task<SessionKind?> RevokeSessionAsync([Redact] string sessionId, CancellationToken cancellationToken = default);
 }
 

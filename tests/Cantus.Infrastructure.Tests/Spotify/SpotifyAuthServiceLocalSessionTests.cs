@@ -142,9 +142,9 @@ public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
         string id = await SeedLocalAsync();
         (await _authService.GetSessionByIdAsync(id)).Should().NotBeNull();
 
-        bool revoked = await _authService.RevokeSessionAsync(id);
+        SessionKind? revoked = await _authService.RevokeSessionAsync(id);
 
-        revoked.Should().BeTrue();
+        revoked.Should().Be(SessionKind.Local);
         (await _authService.GetSessionByIdAsync(id)).Should().BeNull();
     }
 
