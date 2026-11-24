@@ -53,6 +53,57 @@ public class CachedLyricsServiceTests
     }
 
     [Fact]
+    public async Task GetLyricsAsync_WhenNegativeCachedAndTheTitleMarksNoVocals_ReturnsInstrumental()
+    {
+        TrackInfo track = new() { Id = "t1i", Title = "Song (Instrumental)", Artist = "Artist" };
+        _mockRepo.IsMarkedNotFoundAsync("t1i").Returns(true);
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        AssertInstrumental(result, "t1i");
+        await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WhenNoProviderHasATrackWhoseTitleMarksNoVocals_ReturnsInstrumentalWithoutCachingIt()
+    {
+        TrackInfo track = new() { Id = "t1k", Title = "Song - Karaoke Version", Artist = "Artist" };
+        _mockRepo.GetCachedLyricsAsync("t1k").Returns((SyncedLyrics?)null);
+        _primaryProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.NotFound());
+        _fallbackProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.NotFound());
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        AssertInstrumental(result, "t1k");
+        await _mockRepo.DidNotReceive().SaveLyricsAsync(
+            Arg.Any<SyncedLyrics>(),
+            Arg.Any<TimeSpan?>(),
+            Arg.Any<CancellationToken>());
+        await _mockRepo.Received(1).MarkNotFoundAsync(
+            "t1k",
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<int>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetLyricsAsync_WhenAProviderHasLyricsForATitleThatMarksNoVocals_ReturnsTheProviderLyrics()
+    {
+        TrackInfo track = new() { Id = "t1p", Title = "Song (Off Vocal)", Artist = "Artist" };
+        SyncedLyrics fetched = LineLevel("t1p");
+        _mockRepo.GetCachedLyricsAsync("t1p").Returns((SyncedLyrics?)null);
+        _primaryProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.Found(fetched));
+        _fallbackProvider.FetchLyricsAsync(track).Returns(LyricsFetchResult.NotFound());
+
+        SyncedLyrics? result = await _service.GetLyricsAsync(track);
+
+        result.Should().BeSameAs(fetched);
+    }
+
+    [Fact]
     public async Task GetLyricsAsync_WhenCached_ReturnsCachedWithoutCallingProviders()
     {
         TrackInfo track = new() { Id = "t2", Title = "Song", Artist = "Artist" };
@@ -219,7 +270,7 @@ public class CachedLyricsServiceTests
     }
 
     [Fact]
-    public async Task GetLyricsAsync_WithNoLyricsOverride_ReturnsNullWithoutCachingOrCallingProviders()
+    public async Task GetLyricsAsync_WithNoLyricsOverride_ReturnsInstrumentalWithoutCachingOrCallingProviders()
     {
         TrackInfo track = new() { Id = "t9", Title = "Song", Artist = "Artist" };
         SyncedLyrics cached = new() { TrackId = "t9", Title = "Song", Artist = "Artist", Lines = [] };
@@ -229,7 +280,7 @@ public class CachedLyricsServiceTests
 
         SyncedLyrics? result = await _service.GetLyricsAsync(track);
 
-        result.Should().BeNull();
+        AssertInstrumental(result, "t9");
         await _primaryProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
         await _mockRepo.DidNotReceive().MarkNotFoundAsync(
             Arg.Any<string>(),
@@ -501,7 +552,7 @@ public class CachedLyricsServiceTests
 
         SyncedLyrics? result = await _service.GetLyricsAsync(track);
 
-        result.Should().BeNull();
+        AssertInstrumental(result, "t20");
         await AssertNoUpgradeOrFetchAsync();
     }
 
@@ -525,7 +576,7 @@ public class CachedLyricsServiceTests
 
         SyncedLyrics? result = await _service.GetLyricsAsync(track);
 
-        result.Should().BeSameAs(applied.Lyrics);
+        AssertOverrideLyrics(result, applied);
         await _mockRepo.Received(1).SaveLyricsAsync(wordTimed, cancellationToken: Arg.Any<CancellationToken>());
         await _mockRepo.DidNotReceive().RemoveLyricsOverrideAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -566,7 +617,7 @@ public class CachedLyricsServiceTests
 
         SyncedLyrics? result = await _service.GetLyricsAsync(track);
 
-        result.Should().BeSameAs(applied.Lyrics);
+        AssertOverrideLyrics(result, applied);
         await _mockRepo.DidNotReceive().SaveLyricsAsync(
             Arg.Any<SyncedLyrics>(),
             Arg.Any<TimeSpan?>(),
@@ -592,7 +643,7 @@ public class CachedLyricsServiceTests
 
         SyncedLyrics? result = await _service.GetLyricsAsync(track);
 
-        result.Should().BeSameAs(applied.Lyrics);
+        AssertOverrideLyrics(result, applied);
         await _mockRepo.Received(1).SaveLyricsAsync(fetched, cancellationToken: Arg.Any<CancellationToken>());
     }
 
@@ -611,6 +662,26 @@ public class CachedLyricsServiceTests
         result.Should().BeSameAs(cached);
         await _mockRepo.Received(1).GetLyricsOverrideAsync("t24", Arg.Any<CancellationToken>());
         await _fallbackProvider.DidNotReceive().FetchLyricsAsync(Arg.Any<TrackInfo>(), Arg.Any<CancellationToken>());
+    }
+
+    private static void AssertInstrumental(SyncedLyrics? result, string trackId)
+    {
+        result.Should().NotBeNull();
+        result!.TrackId.Should().Be(trackId);
+        result.IsInstrumental.Should().BeTrue();
+        result.Lines.Should().BeEmpty();
+    }
+
+    private static void AssertOverrideLyrics(SyncedLyrics? result, LyricsOverride applied)
+    {
+        if (applied.Lyrics is null)
+        {
+            AssertInstrumental(result, applied.TrackId);
+        }
+        else
+        {
+            result.Should().BeSameAs(applied.Lyrics);
+        }
     }
 
     private async Task AssertNoUpgradeOrFetchAsync()

@@ -11,6 +11,24 @@ public sealed class SyncedLyrics
     public bool IsInstrumental { get; init; }
     public string? PlainLyrics { get; init; }
 
+    /// <summary>Lyrics that say the track has no vocals, with no lines.</summary>
+    public static SyncedLyrics ForInstrumentalTrack(TrackInfo track)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+
+        return new SyncedLyrics
+        {
+            TrackId = track.Id,
+            Title = track.Title,
+            Artist = track.Artist,
+            Album = track.Album,
+            Lines = [],
+            IsSynced = false,
+            IsInstrumental = true,
+            PlainLyrics = null
+        };
+    }
+
     /// <summary>True when at least one line carries real per-word (syllable) timing.</summary>
     public bool HasWordTiming => Lines.Any(l => l.Syllables is { Count: > 0 });
 

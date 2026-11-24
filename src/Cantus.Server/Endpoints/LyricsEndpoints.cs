@@ -133,7 +133,7 @@ public static class LyricsEndpoints
                 break;
             case LyricsOverrideRequestDto.ACTION_NO_LYRICS:
                 await overrideService.MarkNoLyricsAsync(currentTrack, cancellationToken);
-                lyrics = null;
+                lyrics = SyncedLyrics.ForInstrumentalTrack(currentTrack);
                 break;
             case LyricsOverrideRequestDto.ACTION_REFETCH:
                 LyricsOverrideOutcome refetched = await overrideService.RefetchAsync(currentTrack, cancellationToken);

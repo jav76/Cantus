@@ -183,6 +183,21 @@ public sealed class LyricsOverrideServiceTests
     }
 
     [Fact]
+    public async Task Refetch_WhenNoProviderHasATrackWhoseTitleMarksNoVocals_AppliesInstrumentalLyrics()
+    {
+        TrackInfo instrumental = Track with { Id = "track-inst", Title = "Miss America (Instrumental)" };
+        _lrclib.FetchLyricsAsync(instrumental, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.NotFound());
+        _netease.FetchLyricsAsync(instrumental, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.NotFound());
+
+        LyricsOverrideOutcome outcome = await _service.RefetchAsync(instrumental);
+
+        outcome.Status.Should().Be(LyricsOverrideStatus.Applied);
+        outcome.Lyrics.Should().NotBeNull();
+        outcome.Lyrics!.TrackId.Should().Be("track-inst");
+        outcome.Lyrics.IsInstrumental.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Refetch_WhenAProviderIsUnavailable_ReportsProviderUnavailableAndChangesNothing()
     {
         _lrclib.FetchLyricsAsync(Track, Arg.Any<CancellationToken>()).Returns(LyricsFetchResult.Unavailable());

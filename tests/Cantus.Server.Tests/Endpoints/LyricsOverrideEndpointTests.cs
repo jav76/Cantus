@@ -377,7 +377,7 @@ public sealed class LyricsOverrideEndpointTests : IClassFixture<WebApplicationFa
     }
 
     [Fact]
-    public async Task MarkNoLyrics_StoresOverrideAndBroadcastsEmptyLyrics()
+    public async Task MarkNoLyrics_StoresOverrideAndBroadcastsInstrumentalLyrics()
     {
         HttpClient client = _factory.CreateClient();
         SetCurrentTrack(OWNER_SESSION_ID, CurrentTrack, Lyrics("Wrong match"));
@@ -394,11 +394,11 @@ public sealed class LyricsOverrideEndpointTests : IClassFixture<WebApplicationFa
             Times.Once);
 
         _ownerGroup.Verify(
-            g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.TrackId == TRACK_ID && l.Lines.Count == 0 && !l.IsInstrumental)),
+            g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.TrackId == TRACK_ID && l.Lines.Count == 0 && l.IsInstrumental)),
             Times.Once);
-        _otherGroup.Verify(g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.Lines.Count == 0)), Times.Once);
-        Registry.GetUserState(OWNER_SESSION_ID)!.Lyrics.Should().BeNull();
-        Registry.GetUserState(OTHER_SESSION_ID)!.Lyrics.Should().BeNull();
+        _otherGroup.Verify(g => g.ReceiveLyrics(It.Is<LyricsDto>(l => l.Lines.Count == 0 && l.IsInstrumental)), Times.Once);
+        Registry.GetUserState(OWNER_SESSION_ID)!.Lyrics!.IsInstrumental.Should().BeTrue();
+        Registry.GetUserState(OTHER_SESSION_ID)!.Lyrics!.IsInstrumental.Should().BeTrue();
     }
 
     [Fact]
