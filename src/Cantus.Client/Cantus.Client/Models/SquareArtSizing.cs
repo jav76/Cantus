@@ -45,4 +45,22 @@ public static class SquareArtSizing
 
         return width;
     }
+
+    /// <summary>
+    /// The largest art side that keeps the whole panel inside <paramref name="viewportHeight"/>,
+    /// never below <paramref name="minSize"/> (the panel scrolls instead).
+    /// Everything but the art keeps its height when the art resizes, so applying the cap settles in one pass.
+    /// </summary>
+    /// <param name="contentHeight">The panel's full height, art included.</param>
+    /// <param name="artHeight">The art's current height, or NaN before it is measured.</param>
+    public static double GetHeightCap(double viewportHeight, double contentHeight, double artHeight, double minSize)
+    {
+        if (!double.IsFinite(viewportHeight) || viewportHeight <= 0)
+        {
+            return double.PositiveInfinity;
+        }
+
+        double rest = contentHeight - (double.IsNaN(artHeight) ? 0 : artHeight);
+        return Math.Max(minSize, viewportHeight - rest);
+    }
 }

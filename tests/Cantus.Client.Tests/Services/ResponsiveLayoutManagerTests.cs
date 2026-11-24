@@ -139,7 +139,7 @@ public sealed class ResponsiveLayoutManagerTests
         layout.IsSmall.Should().BeTrue();
         layout.IsCompact.Should().BeTrue();
         layout.SidePanelWidth.Should().Be(0.0);
-        layout.AlbumArtSize.Should().Be(64.0);
+        layout.AlbumArtSize.Should().Be(double.PositiveInfinity);
         layout.ActiveLyricsFontSize.Should().Be(24.0);
         layout.InactiveLyricsFontSize.Should().Be(16.0);
         layout.PastLyricsFontSize.Should().Be(15.0);
@@ -197,7 +197,6 @@ public sealed class ResponsiveLayoutManagerTests
         layout.IsMobileLyricsActive.Should().BeFalse();
         layout.IsMobileNowPlayingActive.Should().BeTrue();
         layout.IsMobileSettingsActive.Should().BeFalse();
-        layout.AlbumArtSize.Should().Be(240.0);
 
         // Act 2: Cycle to Settings
         layout.CycleMobileView();
@@ -252,20 +251,16 @@ public sealed class ResponsiveLayoutManagerTests
     }
 
     [Fact]
-    public void MobileView_Change_NotifiesAlbumArtSize()
+    public void AlbumArtSize_Small_IsUncappedOnEveryTab()
     {
-        // Arrange
         ResponsiveLayoutManager layout = new();
         layout.UpdateDimensions(375, 667);
-        List<string?> notified = new();
-        layout.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
-        // Act
-        layout.MobileView = MobileViewMode.NowPlaying;
-
-        // Assert
-        layout.AlbumArtSize.Should().Be(240.0);
-        notified.Should().Contain(nameof(ResponsiveLayoutManager.AlbumArtSize));
+        foreach (MobileViewMode view in Enum.GetValues<MobileViewMode>())
+        {
+            layout.MobileView = view;
+            layout.AlbumArtSize.Should().Be(double.PositiveInfinity);
+        }
     }
     [Theory]
     [InlineData(680.0, 900.0)]
