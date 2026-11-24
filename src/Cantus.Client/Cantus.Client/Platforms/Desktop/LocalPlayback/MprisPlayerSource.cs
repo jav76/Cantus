@@ -13,10 +13,15 @@ namespace Cantus.Client.LocalPlayback;
 /// and followed through <c>NameOwnerChanged</c>; their state comes from <c>GetAll</c>,
 /// <c>PropertiesChanged</c> and <c>Seeked</c>. Because MPRIS never signals position changes, the
 /// position is read again on status, track or rate changes and every five seconds while playing.
+/// Calls go to each player's unique connection name, so the answer always comes from the owner the
+/// state belongs to.
 /// </summary>
 internal sealed class MprisPlayerSource : ILocalPlayerSource
 {
     public static readonly TimeSpan POSITION_REFRESH_INTERVAL = TimeSpan.FromSeconds(5);
+
+    /// <summary>How often a <c>GetAll</c> is repeated when signals from the player overtook it.</summary>
+    public const int MAX_SETTLE_ATTEMPTS = 3;
 
     private static readonly ILogger _logger = ClientLoggingManager.CreateLogger<MprisPlayerSource>();
 
@@ -27,6 +32,14 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
     // Bumped on every NameOwnerChanged for a name, so an add that was still reading the player when
     // its owner changed does not store a result for the old owner.
     private readonly Dictionary<string, int> _ownerGenerations = new(StringComparer.Ordinal);
+
+    // Signals received per unique sender. A GetAll whose count moved while it was in flight may have
+    // been overtaken by a signal it does not reflect (or, while adding, one that found no state yet).
+    private readonly Dictionary<string, int> _signalCounts = new(StringComparer.Ordinal);
+
+    // Players whose 5 s position read is still in flight, so a hung player does not pile up reads.
+    private readonly HashSet<string> _refreshingPositions = new(StringComparer.Ordinal);
+
     private readonly List<IDisposable> _subscriptions = new();
 
     private MprisBus? _bus;
@@ -62,20 +75,21 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         MprisBus bus = new();
         try
         {
-            await bus.ConnectAsync();
+            await bus.ConnectAsync().ConfigureAwait(false);
             _bus = bus;
 
             // Subscribe before listing so a player that appears in between is not missed.
-            _subscriptions.Add(await bus.WatchNameOwnerChangedAsync(OnNameOwnerChanged));
-            _subscriptions.Add(await bus.WatchPropertiesChangedAsync(OnPropertiesChanged));
-            _subscriptions.Add(await bus.WatchSeekedAsync(OnSeeked));
+            _subscriptions.Add(await bus.WatchNameOwnerChangedAsync(OnNameOwnerChanged).ConfigureAwait(false));
+            _subscriptions.Add(await bus.WatchPropertiesChangedAsync(OnPropertiesChanged).ConfigureAwait(false));
+            _subscriptions.Add(await bus.WatchSeekedAsync(OnSeeked).ConfigureAwait(false));
 
-            string[] names = await bus.ListNamesAsync();
-            foreach (string name in names.Where(LocalPlayerIdentity.IsMprisBusName))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await AddPlayerAsync(name, owner: null);
-            }
+            string[] names = await bus.ListNamesAsync().ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Read in parallel so one slow player does not hold up the others.
+            await Task.WhenAll(names
+                .Where(LocalPlayerIdentity.IsMprisBusName)
+                .Select(name => AddPlayerAsync(name, owner: null))).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -102,6 +116,7 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
     {
         MprisBus? bus = _bus;
         string? trackPath;
+        string owner;
         lock (_gate)
         {
             if (bus is null || !_players.TryGetValue(instanceId, out MprisPlayerState? state))
@@ -110,6 +125,7 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             }
 
             trackPath = state.TrackObjectPath;
+            owner = state.Owner;
         }
 
         try
@@ -122,11 +138,11 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
                         return false;
                     }
 
-                    await bus.SetPositionAsync(instanceId, trackPath, Math.Max(0, targetMs) * 1000);
+                    await bus.SetPositionAsync(owner, trackPath, Math.Max(0, targetMs) * 1000).ConfigureAwait(false);
                     return true;
 
                 default:
-                    await bus.CallPlayerMethodAsync(instanceId, ToMember(command));
+                    await bus.CallPlayerMethodAsync(owner, ToMember(command)).ConfigureAwait(false);
                     return true;
             }
         }
@@ -172,55 +188,80 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             generation = OwnerGenerationLocked(busName);
         }
 
+        MprisPlayerState state;
         try
         {
-            owner ??= await bus.GetNameOwnerAsync(busName);
-            Dictionary<string, object?> root = await TryGetAllAsync(bus, busName, MprisBus.ROOT_INTERFACE);
-            Dictionary<string, object?> player = await bus.GetAllPropertiesAsync(busName, MprisBus.PLAYER_INTERFACE);
-
-            MprisPlayerState state = new(busName, owner);
-            state.ApplyRootProperties(root);
-            state.ApplyPlayerProperties(player, Now);
-
-            lock (_gate)
+            owner ??= await bus.GetNameOwnerAsync(busName).ConfigureAwait(false);
+            for (int attempt = 1; ; attempt++)
             {
-                if (generation != OwnerGenerationLocked(busName))
+                int signals;
+                lock (_gate)
                 {
-                    _logger.LogDebug("MPRIS player {Player} changed owner while it was being read", busName);
-                    return;
+                    signals = SignalCountLocked(owner);
                 }
 
-                _players[busName] = state;
-                PublishSnapshotsLocked();
-            }
+                Dictionary<string, object?> root = await TryGetAllAsync(bus, owner, MprisBus.ROOT_INTERFACE).ConfigureAwait(false);
+                Dictionary<string, object?> player = await bus.GetAllPropertiesAsync(owner, MprisBus.PLAYER_INTERFACE).ConfigureAwait(false);
 
-            _logger.LogDebug("MPRIS player {Player} ({AppId}) is {Status}", busName, state.AppId, state.Status);
+                state = new MprisPlayerState(busName, owner);
+                state.ApplyRootProperties(root);
+                state.ApplyPlayerProperties(player, Now);
+
+                lock (_gate)
+                {
+                    if (generation != OwnerGenerationLocked(busName))
+                    {
+                        _logger.LogDebug("MPRIS player {Player} changed owner while it was being read", busName);
+                        return;
+                    }
+
+                    // Signals that arrived before the state was stored found nothing to update.
+                    if (SignalCountLocked(owner) != signals && attempt < MAX_SETTLE_ATTEMPTS)
+                    {
+                        continue;
+                    }
+
+                    _players[busName] = state;
+                    PublishSnapshotsLocked();
+                }
+
+                break;
+            }
         }
         catch (Exception ex)
         {
-            // The player left between being listed and answering.
+            // The player left between being listed and answering, or did not answer in time.
             _logger.LogDebug(ex, "Could not read MPRIS player {Player}", busName);
             return;
         }
 
+        _logger.LogDebug("MPRIS player {Player} ({AppId}) is {Status}", busName, state.AppId, state.Status);
         RaisePlayersChanged();
     }
 
-    private static async Task<Dictionary<string, object?>> TryGetAllAsync(MprisBus bus, string busName, string interfaceName)
+    private static async Task<Dictionary<string, object?>> TryGetAllAsync(MprisBus bus, string destination, string interfaceName)
     {
         try
         {
-            return await bus.GetAllPropertiesAsync(busName, interfaceName);
+            return await bus.GetAllPropertiesAsync(destination, interfaceName).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "{Player} has no readable {Interface}", busName, interfaceName);
+            _logger.LogDebug(ex, "{Player} has no readable {Interface}", destination, interfaceName);
             return new Dictionary<string, object?>();
         }
     }
 
     private void OnNameOwnerChanged(string name, string oldOwner, string newOwner)
     {
+        if (string.IsNullOrEmpty(newOwner) && !string.IsNullOrEmpty(oldOwner))
+        {
+            lock (_gate)
+            {
+                _signalCounts.Remove(oldOwner);
+            }
+        }
+
         if (!LocalPlayerIdentity.IsMprisBusName(name))
         {
             return;
@@ -271,6 +312,7 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         List<string> needRefresh = new();
         lock (_gate)
         {
+            CountSignalLocked(sender);
             List<MprisPlayerState> states = StatesOwnedByLocked(sender);
             if (states.Count == 0)
             {
@@ -319,6 +361,7 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         _logger.LogTrace("Seeked from {Sender} to {Position} us", sender, positionMicroseconds);
         lock (_gate)
         {
+            CountSignalLocked(sender);
             List<MprisPlayerState> states = StatesOwnedByLocked(sender);
             if (states.Count == 0)
             {
@@ -343,14 +386,27 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         lock (_gate)
         {
             playing = _players.Values
-                .Where(p => p.Status == LocalPlayerStatus.Playing)
+                .Where(p => p.Status == LocalPlayerStatus.Playing && !_refreshingPositions.Contains(p.BusName))
                 .Select(p => p.BusName)
                 .ToList();
+            _refreshingPositions.UnionWith(playing);
         }
 
-        foreach (string busName in playing)
+        await Task.WhenAll(playing.Select(RefreshPositionAsync)).ConfigureAwait(false);
+    }
+
+    private async Task RefreshPositionAsync(string busName)
+    {
+        try
         {
-            await ReadPositionAsync(busName);
+            await ReadPositionAsync(busName).ConfigureAwait(false);
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _refreshingPositions.Remove(busName);
+            }
         }
     }
 
@@ -378,7 +434,8 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         try
         {
             if (MprisMetadataParser.ToInt64(
-                    await bus.GetPlayerPropertyAsync(busName, MprisPlayerState.PROPERTY_POSITION)) is not long value)
+                    await bus.GetPlayerPropertyAsync(before.Owner, MprisPlayerState.PROPERTY_POSITION).ConfigureAwait(false))
+                is not long value)
             {
                 return;
             }
@@ -422,44 +479,72 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             return;
         }
 
-        Dictionary<string, object?> properties;
-        try
+        bool needsPosition = false;
+        for (int attempt = 1; ; attempt++)
         {
-            properties = await bus.GetAllPropertiesAsync(busName, interfaceName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Could not refresh {Player}", busName);
-            return;
-        }
-
-        lock (_gate)
-        {
-            if (!_players.TryGetValue(busName, out MprisPlayerState? state))
+            MprisPlayerState? target;
+            int signals;
+            lock (_gate)
             {
+                if (!_players.TryGetValue(busName, out target))
+                {
+                    return;
+                }
+
+                signals = SignalCountLocked(target.Owner);
+            }
+
+            Dictionary<string, object?> properties;
+            try
+            {
+                properties = await bus.GetAllPropertiesAsync(target.Owner, interfaceName).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not refresh {Player}", busName);
                 return;
             }
 
-            if (interfaceName == MprisBus.PLAYER_INTERFACE)
+            lock (_gate)
             {
-                state.ApplyPlayerProperties(properties, Now);
-            }
-            else
-            {
-                state.ApplyRootProperties(properties);
+                if (!_players.TryGetValue(busName, out MprisPlayerState? state) || state != target)
+                {
+                    return;
+                }
+
+                // A signal applied while the call was in flight may be newer than this answer.
+                if (SignalCountLocked(state.Owner) != signals && attempt < MAX_SETTLE_ATTEMPTS)
+                {
+                    continue;
+                }
+
+                if (interfaceName == MprisBus.PLAYER_INTERFACE)
+                {
+                    needsPosition = state.ApplyPlayerProperties(properties, Now);
+                }
+                else
+                {
+                    state.ApplyRootProperties(properties);
+                }
+
+                PublishSnapshotsLocked();
             }
 
-            PublishSnapshotsLocked();
+            break;
         }
 
         RaisePlayersChanged();
+        if (needsPosition)
+        {
+            _ = ReadPositionAsync(busName);
+        }
     }
 
     private async Task WatchForDisconnectAsync(MprisBus bus)
     {
         try
         {
-            Exception? reason = await bus.WhenDisconnectedAsync();
+            Exception? reason = await bus.WhenDisconnectedAsync().ConfigureAwait(false);
             if (_disposed)
             {
                 return;
@@ -497,6 +582,12 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         _logger.LogDebug("MPRIS player {Player} no longer has an owner; dropped it", busName);
         RaisePlayersChanged();
     }
+
+    private int SignalCountLocked(string owner) =>
+        _signalCounts.TryGetValue(owner, out int count) ? count : 0;
+
+    private void CountSignalLocked(string sender) =>
+        _signalCounts[sender] = unchecked(SignalCountLocked(sender) + 1);
 
     private int OwnerGenerationLocked(string busName) =>
         _ownerGenerations.TryGetValue(busName, out int generation) ? generation : 0;

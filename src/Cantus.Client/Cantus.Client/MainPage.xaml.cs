@@ -49,10 +49,8 @@ public sealed partial class MainPage : Page
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
             await ViewModel.InitializeAsync();
-            if (localPlayback is not null)
-            {
-                await localPlayback.StartAsync();
-            }
+            // Not awaited: it logs its own failures, and a slow player or server must not hold up the page.
+            _ = localPlayback?.StartAsync();
 
             await OpenConnectLinkAsync();
         };

@@ -140,6 +140,33 @@ public sealed class MprisPlayerStateTests
         state.Position.Should().Be(TimeSpan.FromMilliseconds(112283));
     }
 
+    [Theory]
+    [InlineData("mpris:artUrl", "https://i.scdn.co/image/late-artwork")]
+    [InlineData("xesam:album", "Reflections (Deluxe)")]
+    [InlineData("mpris:length", 200_000_000L)]
+    public void AMetadataRefreshForTheSameTrack_KeepsTheTimeline(string key, object value)
+    {
+        // Arrange
+        MprisPlayerState state = new(MprisHostMaps.SPOTIFY_BUS_NAME, ":1.1");
+        state.ApplyPlayerProperties(MprisHostMaps.SpotifyPlayer(), T0);
+        int timeline = state.TimelineGeneration;
+        LocalTrack before = state.Track!;
+        Dictionary<string, object?> metadata = MprisHostMaps.SpotifyMetadata();
+        metadata[key] = value;
+
+        // Act
+        bool needsRead = state.ApplyPlayerProperties(
+            new Dictionary<string, object?> { ["Metadata"] = metadata },
+            T0 + TimeSpan.FromSeconds(2));
+
+        // Assert
+        needsRead.Should().BeFalse();
+        state.Track.Should().NotBe(before, "the refreshed details are kept");
+        state.ToSnapshot().ProjectPosition(T0 + TimeSpan.FromSeconds(2))
+            .Should().Be(TimeSpan.FromMilliseconds(112283 + 2000));
+        state.TimelineGeneration.Should().Be(timeline);
+    }
+
     [Fact]
     public void Seeked_SetsThePositionAndCountsTheSeek()
     {

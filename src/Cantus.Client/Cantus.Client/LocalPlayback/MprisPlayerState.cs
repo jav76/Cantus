@@ -117,13 +117,19 @@ public sealed class MprisPlayerState
             IReadOnlyDictionary<string, object?>? metadata = metadataValue as IReadOnlyDictionary<string, object?>;
             LocalTrack? track = MprisMetadataParser.Parse(metadata);
             string? trackPath = MprisMetadataParser.ReadTrackObjectPath(metadata);
-            if (track != Track || trackPath != TrackObjectPath)
+            if (IsDifferentTrack(track, trackPath))
             {
                 Track = track;
                 TrackObjectPath = trackPath;
                 Position = TimeSpan.Zero;
                 PositionCapturedAt = now;
                 timelineChanged = true;
+            }
+            else if (track != Track)
+            {
+                // Art, album or a late duration for the same track: the timeline carries on.
+                Freeze(now);
+                Track = track;
             }
         }
 
@@ -193,6 +199,12 @@ public sealed class MprisPlayerState
         "Paused" => LocalPlayerStatus.Paused,
         _ => LocalPlayerStatus.Stopped,
     };
+
+    private bool IsDifferentTrack(LocalTrack? track, string? trackPath) =>
+        trackPath != TrackObjectPath
+        || (track is null) != (Track is null)
+        || !string.Equals(track?.Title, Track?.Title, StringComparison.Ordinal)
+        || !string.Equals(track?.Artist, Track?.Artist, StringComparison.Ordinal);
 
     private void Freeze(TimeSpan now)
     {

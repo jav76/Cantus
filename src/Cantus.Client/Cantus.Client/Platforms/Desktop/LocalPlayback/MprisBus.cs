@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
 
@@ -9,7 +10,10 @@ namespace Cantus.Client.LocalPlayback;
 /// Every D-Bus call the MPRIS source makes, against Tmds.DBus.Protocol 0.21.3 (the version Uno's X11
 /// host ships). Values leave this class as plain .NET types so nothing else depends on the library.
 /// Calls throw <see cref="DBusException"/> or <see cref="DisconnectedException"/> when a player
-/// vanishes mid-call; callers treat any exception as "player gone".
+/// vanishes mid-call, and <see cref="TimeoutException"/> when it does not answer within
+/// <see cref="CALL_TIMEOUT"/>; callers treat any exception as "player unavailable".
+/// Player calls take the player's unique connection name as <c>destination</c> and never auto-start
+/// a service, so a call racing a player's exit cannot D-Bus-activate it again.
 /// </summary>
 internal sealed class MprisBus : IDisposable
 {
@@ -20,6 +24,9 @@ internal sealed class MprisBus : IDisposable
     private const string PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
     private const string BUS_SERVICE = "org.freedesktop.DBus";
     private const string BUS_PATH = "/org/freedesktop/DBus";
+
+    // The session bus has no reply timeout, so a player whose main loop is frozen would never answer.
+    public static readonly TimeSpan CALL_TIMEOUT = TimeSpan.FromSeconds(2);
 
     private Connection? _connection;
 
@@ -59,56 +66,56 @@ internal sealed class MprisBus : IDisposable
     public Task<string[]> ListNamesAsync()
     {
         Connection connection = RequireConnection();
-        return connection.CallMethodAsync(
+        return WithTimeout(connection.CallMethodAsync(
             CreateBusCall(connection, "ListNames", argument: null),
             static (Message message, object? _) => message.GetBodyReader().ReadArrayOfString(),
-            null);
+            null));
     }
 
     public Task<string> GetNameOwnerAsync(string name)
     {
         Connection connection = RequireConnection();
-        return connection.CallMethodAsync(
+        return WithTimeout(connection.CallMethodAsync(
             CreateBusCall(connection, "GetNameOwner", name),
             static (Message message, object? _) => message.GetBodyReader().ReadString(),
-            null);
+            null));
     }
 
-    public Task<Dictionary<string, object?>> GetAllPropertiesAsync(string busName, string interfaceName)
+    public Task<Dictionary<string, object?>> GetAllPropertiesAsync(string destination, string interfaceName)
     {
         Connection connection = RequireConnection();
-        return connection.CallMethodAsync(
-            CreatePropertiesCall(connection, busName, "GetAll", interfaceName, propertyName: null),
+        return WithTimeout(connection.CallMethodAsync(
+            CreatePropertiesCall(connection, destination, "GetAll", interfaceName, propertyName: null),
             static (Message message, object? _) => ToDictionary(message.GetBodyReader().ReadDictionaryOfStringToVariantValue()),
-            null);
+            null));
     }
 
-    public Task<object?> GetPlayerPropertyAsync(string busName, string propertyName)
+    public Task<object?> GetPlayerPropertyAsync(string destination, string propertyName)
     {
         Connection connection = RequireConnection();
-        return connection.CallMethodAsync(
-            CreatePropertiesCall(connection, busName, "Get", PLAYER_INTERFACE, propertyName),
+        return WithTimeout(connection.CallMethodAsync(
+            CreatePropertiesCall(connection, destination, "Get", PLAYER_INTERFACE, propertyName),
             static (Message message, object? _) => ToClr(message.GetBodyReader().ReadVariantValue()),
-            null);
+            null));
     }
 
     /// <summary>Calls an argument-less player method such as <c>PlayPause</c> or <c>Next</c>.</summary>
-    public Task CallPlayerMethodAsync(string busName, string member)
+    public Task CallPlayerMethodAsync(string destination, string member)
     {
         Connection connection = RequireConnection();
         MessageWriter writer = connection.GetMessageWriter();
-        writer.WriteMethodCallHeader(busName, OBJECT_PATH, PLAYER_INTERFACE, member, null, MessageFlags.None);
-        return connection.CallMethodAsync(TakeMessage(ref writer));
+        writer.WriteMethodCallHeader(destination, OBJECT_PATH, PLAYER_INTERFACE, member, null, MessageFlags.NoAutoStart);
+        return WithTimeout(connection.CallMethodAsync(TakeMessage(ref writer)));
     }
 
-    public Task SetPositionAsync(string busName, string trackObjectPath, long positionMicroseconds)
+    public Task SetPositionAsync(string destination, string trackObjectPath, long positionMicroseconds)
     {
         Connection connection = RequireConnection();
         MessageWriter writer = connection.GetMessageWriter();
-        writer.WriteMethodCallHeader(busName, OBJECT_PATH, PLAYER_INTERFACE, "SetPosition", "ox", MessageFlags.None);
+        writer.WriteMethodCallHeader(destination, OBJECT_PATH, PLAYER_INTERFACE, "SetPosition", "ox", MessageFlags.NoAutoStart);
         writer.WriteObjectPath(trackObjectPath);
         writer.WriteInt64(positionMicroseconds);
-        return connection.CallMethodAsync(TakeMessage(ref writer));
+        return WithTimeout(connection.CallMethodAsync(TakeMessage(ref writer)));
     }
 
     public async Task<IDisposable> WatchNameOwnerChangedAsync(Action<string, string, string> handler)
@@ -211,6 +218,40 @@ internal sealed class MprisBus : IDisposable
         _connection = null;
     }
 
+    private static async Task<T> WithTimeout<T>(Task<T> call)
+    {
+        try
+        {
+            return await call.WaitAsync(CALL_TIMEOUT).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            ObserveAbandoned(call);
+            throw;
+        }
+    }
+
+    private static async Task WithTimeout(Task call)
+    {
+        try
+        {
+            await call.WaitAsync(CALL_TIMEOUT).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            ObserveAbandoned(call);
+            throw;
+        }
+    }
+
+    // The abandoned call completes when the reply finally arrives or the connection closes.
+    private static void ObserveAbandoned(Task call) =>
+        _ = call.ContinueWith(
+            static t => _ = t.Exception,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+
     private Connection RequireConnection() =>
         _connection ?? throw new InvalidOperationException("The session bus is not connected.");
 
@@ -234,19 +275,19 @@ internal sealed class MprisBus : IDisposable
 
     private static MessageBuffer CreatePropertiesCall(
         Connection connection,
-        string busName,
+        string destination,
         string member,
         string interfaceName,
         string? propertyName)
     {
         MessageWriter writer = connection.GetMessageWriter();
         writer.WriteMethodCallHeader(
-            busName,
+            destination,
             OBJECT_PATH,
             PROPERTIES_INTERFACE,
             member,
             propertyName is null ? "s" : "ss",
-            MessageFlags.None);
+            MessageFlags.NoAutoStart);
         writer.WriteString(interfaceName);
         if (propertyName is not null)
         {
