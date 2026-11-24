@@ -1,6 +1,6 @@
 {
   "projectKey": "Cantus",
-  "generatedAt": "2026-11-24T20:18:37Z",
+  "generatedAt": "2026-11-24T20:32:54Z",
   "qualityGate": {
     "status": "ERROR",
     "conditions": [
@@ -9,7 +9,7 @@
         "metricKey": "new_coverage",
         "comparator": "LT",
         "errorThreshold": "50",
-        "actualValue": "72.6"
+        "actualValue": "72.5"
       },
       {
         "status": "OK",

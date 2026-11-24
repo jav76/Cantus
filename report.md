@@ -2,7 +2,7 @@
 
 - **Project**: `Cantus`
 - **Quality Gate**: **ERROR**
-- **Generated (UTC)**: `2026-11-24T20:18:37Z`
+- **Generated (UTC)**: `2026-11-24T20:32:54Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
@@ -24,7 +24,7 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 72.6 | LT 50 |
+| `new_coverage` | OK | 72.5 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.09051 | GT 5 |
 | `new_software_quality_reliability_rating` | ERROR | 3 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
