@@ -30,6 +30,7 @@ Defaults below are the effective values: the shipped `appsettings.json` wins ove
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |
 | **`ConnectionStrings__CantusDatabase`** | `string` | `Data Source=/app/data/cantus.db` (`Production`), `Data Source=cantus.db` (other environments) | SQLite connection string. A relative path resolves against the working directory. The directory is created at startup if missing. | No |
+| **`Database__BackupBeforeMigrations`** | `bool` | `true` | Before applying schema migrations to an existing database, copy it to `<database>.pre-<migration>.bak` next to it. The 3 newest copies are kept. If the copy fails, startup stops without migrating. Set to `false` to migrate without a copy. | No |
 | **`DATA_DIR`** | `string` | `/app/data` in the Docker image | Parent of the Data Protection key ring (`$DATA_DIR/keys`). Does not move the database. When unset, `/app/data` is used if it exists; otherwise keys go to the ASP.NET Core default key store. | No |
 | **`CANTUS_LOG_CONFIGURATION`** | `string` | `none` (Release builds), `debug` (Debug builds) | Log profile: `none`, `debug` or `trace` (case-insensitive). Unknown values fall back to the default. See [Logging](#logging-configurations-cli-parameters). | No |
 | **`ASPNETCORE_ENVIRONMENT`** | `string` | `Production` | ASP.NET Core environment (`Development`, `Production`). `Development` also serves the OpenAPI document and Scalar API reference. | No |
