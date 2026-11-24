@@ -102,11 +102,12 @@ public sealed class LocalSessionServiceTests : IDisposable
     public async Task CreateAsync_AtTheCap_PrunesIdleSessionsFirst()
     {
         _options.MaxSessions = 1;
-        await SeedAsync(SessionKind.Local, _time.GetUtcNow().AddDays(-IDLE_EXPIRY_DAYS - 1));
+        string idle = await SeedAsync(SessionKind.Local, _time.GetUtcNow().AddDays(-IDLE_EXPIRY_DAYS - 1));
 
         LocalSessionCreateResult result = await CreateService().CreateAsync("fresh");
 
         result.Status.Should().Be(LocalSessionCreateStatus.Created);
+        result.Pruned.SessionIds.Should().Equal(idle);
     }
 
     [Fact]
@@ -119,9 +120,10 @@ public sealed class LocalSessionServiceTests : IDisposable
         CreatedDisplay idleDisplay = await CreateDisplayService().CreateAsync(idleLocal, "TV");
         CreatedDisplay recentDisplay = await CreateDisplayService().CreateAsync(recentLocal, "TV");
 
-        int pruned = await CreateService().PruneIdleAsync();
+        LocalSessionPruneResult pruned = await CreateService().PruneIdleAsync();
 
-        pruned.Should().Be(1);
+        pruned.SessionIds.Should().Equal(idleLocal);
+        pruned.DisplayIds.Should().Equal(idleDisplay.Display.Id);
         List<string> remaining = await Context().UserSessions.Select(u => u.Id).ToListAsync();
         remaining.Should().BeEquivalentTo([recentLocal, oldSpotify]);
         (await CreateDisplayService().ValidateAsync(idleDisplay.Token)).Should().BeNull();
@@ -148,9 +150,9 @@ public sealed class LocalSessionServiceTests : IDisposable
         await CreateService().TouchAsync(session);
         _time.Advance(TimeSpan.FromDays(2));
 
-        int pruned = await CreateService().PruneIdleAsync();
+        LocalSessionPruneResult pruned = await CreateService().PruneIdleAsync();
 
-        pruned.Should().Be(0);
+        pruned.SessionIds.Should().BeEmpty();
         (await Context().UserSessions.AnyAsync(u => u.Id == session)).Should().BeTrue();
     }
 

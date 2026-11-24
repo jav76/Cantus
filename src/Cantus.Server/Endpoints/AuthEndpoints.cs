@@ -391,8 +391,7 @@ public static class AuthEndpoints
             return Results.NotFound(new { Message = $"Session '{userId}' not found." });
         }
 
-        await hubContext.Clients.Group($"user_{userId}").ReceiveSessionRevoked(userId);
-        await hubContext.Clients.Group($"user_{userId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+        await NotifySessionEndedAsync(hubContext, userId);
 
         return Results.Ok(new { Message = $"Session '{userId}' revoked." });
     }
@@ -423,8 +422,7 @@ public static class AuthEndpoints
                 sessionId,
                 new SessionEndServices(authService, displayService, displayConnections, registry, localIngest, applier),
                 cancellationToken);
-            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
-            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+            await NotifySessionEndedAsync(hubContext, sessionId);
         }
 
         context.Response.Cookies.Delete(SESSION_COOKIE);
@@ -455,9 +453,7 @@ public static class AuthEndpoints
         // A Spotify Session's snapshot is left to the poller until it moves onto the applier.
         if (session?.Kind == SessionKind.Local)
         {
-            services.LocalIngest.Forget(sessionId);
-            services.Applier.Forget(sessionId);
-            services.Registry.RemoveUserState(sessionId);
+            ForgetLocalPlayback(sessionId, services.LocalIngest, services.Applier, services.Registry);
         }
 
         foreach (DisplayInfo display in displays)
@@ -469,6 +465,47 @@ public static class AuthEndpoints
     }
 
     /// <summary>
+    /// Ends what the server holds live for Local Sessions the idle prune deleted, the same way a
+    /// logout does: their playback state, their clients' Session, and their Displays' connections.
+    /// </summary>
+    private static async Task ReleasePrunedSessionsAsync(
+        LocalSessionPruneResult pruned,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry,
+        IDisplayConnectionTracker displayConnections,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext)
+    {
+        foreach (string sessionId in pruned.SessionIds)
+        {
+            ForgetLocalPlayback(sessionId, localIngest, applier, registry);
+            await NotifySessionEndedAsync(hubContext, sessionId);
+        }
+
+        foreach (string displayId in pruned.DisplayIds)
+        {
+            await displayConnections.DisconnectAsync(displayId);
+        }
+    }
+
+    private static void ForgetLocalPlayback(
+        string sessionId,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry)
+    {
+        localIngest.Forget(sessionId);
+        applier.Forget(sessionId);
+        registry.RemoveUserState(sessionId);
+    }
+
+    private static async Task NotifySessionEndedAsync(IHubContext<PlaybackHub, IPlaybackClient> hubContext, string sessionId)
+    {
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+    }
+
+    /// <summary>
     /// Creates a Local Session: no Spotify account, playback published by the desktop client.
     /// Off unless the operator enables it; optionally gated by a join code compared in constant time.
     /// </summary>
@@ -476,6 +513,11 @@ public static class AuthEndpoints
         [FromBody] LocalSessionRequestDto? request,
         IOptions<LocalSessionOptions> options,
         ILocalSessionService localSessions,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry,
+        IDisplayConnectionTracker displayConnections,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -499,6 +541,7 @@ public static class AuthEndpoints
         }
 
         LocalSessionCreateResult result = await localSessions.CreateAsync(request?.DisplayName, cancellationToken);
+        await ReleasePrunedSessionsAsync(result.Pruned, localIngest, applier, registry, displayConnections, hubContext);
         if (result is not { Status: LocalSessionCreateStatus.Created, Session: { } session })
         {
             return result.Status == LocalSessionCreateStatus.InvalidDisplayName

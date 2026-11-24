@@ -35,10 +35,10 @@ public sealed class LocalSessionService : ILocalSessionService
     {
         if (!DisplayService.TryNormalizeName(displayName, out string normalizedName))
         {
-            return new LocalSessionCreateResult(LocalSessionCreateStatus.InvalidDisplayName, null);
+            return new LocalSessionCreateResult(LocalSessionCreateStatus.InvalidDisplayName, null, LocalSessionPruneResult.None);
         }
 
-        await PruneIdleAsync(cancellationToken);
+        LocalSessionPruneResult pruned = await PruneIdleAsync(cancellationToken);
 
         int existing = await _dbContext.UserSessions
             .CountAsync(u => u.Kind == SessionKind.Local, cancellationToken);
@@ -48,7 +48,7 @@ public sealed class LocalSessionService : ILocalSessionService
                 "Refused a Local Session: {Count} exist and the limit is {Limit}",
                 existing,
                 _options.Value.MaxSessions);
-            return new LocalSessionCreateResult(LocalSessionCreateStatus.LimitReached, null);
+            return new LocalSessionCreateResult(LocalSessionCreateStatus.LimitReached, null, pruned);
         }
 
         DateTimeOffset now = _timeProvider.GetUtcNow();
@@ -68,7 +68,8 @@ public sealed class LocalSessionService : ILocalSessionService
         _logger.LogInformation("Created Local Session {SessionRef}", SessionLogRef.For(entity.Id));
         return new LocalSessionCreateResult(
             LocalSessionCreateStatus.Created,
-            SpotifyAuthService.ToModel(entity, accessToken: null, refreshToken: null));
+            SpotifyAuthService.ToModel(entity, accessToken: null, refreshToken: null),
+            pruned);
     }
 
     public async Task TouchAsync(string sessionId, CancellationToken cancellationToken = default)
@@ -79,7 +80,7 @@ public sealed class LocalSessionService : ILocalSessionService
             .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.UpdatedAtUtc, now), cancellationToken);
     }
 
-    public async Task<int> PruneIdleAsync(CancellationToken cancellationToken = default)
+    public async Task<LocalSessionPruneResult> PruneIdleAsync(CancellationToken cancellationToken = default)
     {
         DateTimeOffset cutoff = _timeProvider.GetUtcNow().AddDays(-_options.Value.IdleExpiryDays);
 
@@ -95,8 +96,13 @@ public sealed class LocalSessionService : ILocalSessionService
             .ToList();
         if (idleIds.Count == 0)
         {
-            return 0;
+            return LocalSessionPruneResult.None;
         }
+
+        List<string> displayIds = await _dbContext.Displays
+            .Where(d => idleIds.Contains(d.OwnerSessionId))
+            .Select(d => d.Id)
+            .ToListAsync(cancellationToken);
 
         // The database cascade deletes each Session's Displays with it.
         int deleted = await _dbContext.UserSessions
@@ -109,6 +115,6 @@ public sealed class LocalSessionService : ILocalSessionService
         }
 
         _logger.LogInformation("Pruned {Count} idle Local Sessions", deleted);
-        return deleted;
+        return new LocalSessionPruneResult(idleIds, displayIds);
     }
 }

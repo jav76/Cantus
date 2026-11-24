@@ -10,6 +10,7 @@ using Cantus.Server.Services;
 using Cantus.Server.Tests.TestSupport;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -205,6 +206,36 @@ public sealed class LocalSessionEndpointTests : IClassFixture<WebApplicationFact
         (await host.Store.SessionExistsAsync(created.Id)).Should().BeFalse();
         (await host.Store.CreateDisplayService().ValidateAsync(tv.Token)).Should().BeNull();
         registry.GetUserState(created.Id).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Create_ThatPrunesAnIdleSession_DropsItsPlaybackStateAndClosesItsDisplays()
+    {
+        const int IDLE_EXPIRY_DAYS = 90;
+        await using DisplayTestHost host = CreateHost(options => options.IdleExpiryDays = IDLE_EXPIRY_DAYS);
+        AuthorizedSessionDto idle = (await (await PostAsync(host, "Old desktop"))
+            .Content.ReadFromJsonAsync<AuthorizedSessionDto>())!;
+        CreatedDisplay tv = await host.Store.CreateDisplayService().CreateAsync(idle.Id, "TV");
+        HubConnection display = await host.ConnectDisplayAsync(tv);
+        TaskCompletionSource closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        display.Closed += _ =>
+        {
+            closed.TrySetResult();
+            return Task.CompletedTask;
+        };
+        IPlaybackSessionRegistry registry = host.Factory.Services.GetRequiredService<IPlaybackSessionRegistry>();
+        registry.UpdateUserState(idle.Id, "Old desktop", new PlaybackState { Source = PlaybackSource.Local }, null, 0);
+
+        host.Time.Advance(TimeSpan.FromDays(IDLE_EXPIRY_DAYS + 1));
+        (await PostAsync(host, "New desktop")).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        (await host.Store.SessionExistsAsync(idle.Id)).Should().BeFalse();
+        registry.GetUserState(idle.Id).Should().BeNull();
+        UserSession pruned = new() { Id = idle.Id, Kind = SessionKind.Local, DisplayName = "Old desktop" };
+        host.Factory.Services.GetRequiredService<ILocalPlaybackIngest>()
+            .Submit("late-connection", pruned, null)
+            .Should().Be(LocalPublishResult.NotLocalSession, "the ingest must forget a pruned Session");
+        await DisplayTestHost.WaitAsync(closed.Task);
     }
 
     private DisplayTestHost CreateHost(Action<LocalSessionOptions>? configure = null)
