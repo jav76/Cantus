@@ -138,7 +138,6 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsMobileLyricsActive));
                 OnPropertyChanged(nameof(IsMobileNowPlayingActive));
                 OnPropertyChanged(nameof(IsMobileSettingsActive));
-                OnPropertyChanged(nameof(AlbumArtSize));
                 LayoutChanged?.Invoke();
             }
         }
@@ -172,9 +171,10 @@ public sealed class ResponsiveLayoutManager : INotifyPropertyChanged
         _ => 0.0
     };
 
+    /// <summary>The track card art's largest side. Small has no fixed cap: the phone Track tab fits the art to its height.</summary>
     public double AlbumArtSize => CurrentBreakpoint switch
     {
-        LayoutBreakpoint.Small => (MobileView == MobileViewMode.NowPlaying ? 240.0 : 64.0),
+        LayoutBreakpoint.Small => double.PositiveInfinity,
         LayoutBreakpoint.Medium => 230.0,
         LayoutBreakpoint.Large => 332.0,
         _ => 56.0

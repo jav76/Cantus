@@ -5,12 +5,15 @@
 
     <!-- The player: art, track text, seek bar, transport, volume and playback state.
          Hosts give it a card and, when it can scroll, its ScrollViewer (Scroller) for square art sizing. -->
-    <StackPanel Spacing="{x:Bind GetSectionSpacing(Layout.CurrentBreakpoint), Mode=OneWay}">
-        <!-- Album Art: shrinks to the card's content width (minus any scrollbar gutter);
+    <StackPanel x:Name="PanelRoot"
+                Spacing="{x:Bind GetSectionSpacing(Layout.CurrentBreakpoint), Mode=OneWay}"
+                SizeChanged="OnPanelRootSizeChanged">
+        <!-- Album Art: shrinks to the card's content width (minus any scrollbar gutter), and with
+             FitArtToHeight also to the height the rest of the panel leaves free;
              the height is kept square from code-behind (SquareArtSizing) -->
         <Border x:Name="AlbumArtFrame"
                 CornerRadius="16"
-                MaxWidth="{x:Bind Layout.AlbumArtSize, Mode=OneWay}"
+                MaxWidth="{x:Bind GetArtMaxWidth(Layout.AlbumArtSize, ArtHeightCap), Mode=OneWay}"
                 Background="#1A1B26"
                 BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                 BorderThickness="1"
@@ -32,16 +35,19 @@
                        FontSize="{x:Bind GetTitleFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
                        FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                       TextAlignment="{x:Bind TrackTextAlignment, Mode=OneWay}"
                        TextWrapping="Wrap" />
             <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
                        FontSize="{x:Bind GetArtistFontSize(Layout.CurrentBreakpoint), Mode=OneWay}"
                        FontFamily="{StaticResource CantusTextMediumFontFamily}"
                        Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                       TextAlignment="{x:Bind TrackTextAlignment, Mode=OneWay}"
                        TextWrapping="NoWrap"
                        TextTrimming="CharacterEllipsis" />
             <TextBlock Text="{x:Bind ViewModel.CurrentAlbum, Mode=OneWay}"
                        FontSize="13"
                        Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                       TextAlignment="{x:Bind TrackTextAlignment, Mode=OneWay}"
                        TextWrapping="NoWrap"
                        TextTrimming="CharacterEllipsis" />
         </StackPanel>
