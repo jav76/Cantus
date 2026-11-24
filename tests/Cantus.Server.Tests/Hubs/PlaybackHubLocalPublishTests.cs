@@ -241,6 +241,33 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
         await DisplayTestHost.WaitAsync(offline);
     }
 
+    [Fact]
+    public async Task Subscribe_AfterThePublisherWentOffline_ReportsPublisherOffline()
+    {
+        UserSessionEntity local = await _host.Store.SeedLocalSessionAsync("Desktop");
+        CreatedDisplay tv = await _host.Store.CreateDisplayService().CreateAsync(local.Id, "TV");
+        HubConnection publisher = await _host.ConnectAsync(local.Id);
+        HubConnection display = await _host.ConnectDisplayAsync(tv);
+        Task<DiagnosticsDto> offline = NextAsync<DiagnosticsDto>(
+            display,
+            nameof(IPlaybackClient.ReceiveDiagnostics),
+            diagnostics => diagnostics.PollerStatus == PlaybackUpdateApplier.STATUS_PUBLISHER_OFFLINE);
+        (await publisher.InvokeAsync<int>(PUBLISH, Update(1))).Should().Be((int)LocalPublishResult.Accepted);
+        string publisherConnectionId = publisher.ConnectionId!;
+        await publisher.StopAsync();
+        await _host.WaitForServerDisconnectAsync(publisherConnectionId);
+        _host.Time.Advance(TimeSpan.FromSeconds(PUBLISHER_GRACE_SECONDS));
+        await DisplayTestHost.WaitAsync(offline);
+
+        HubConnection ownerTab = await _host.ConnectAsync(local.Id);
+        Task<DiagnosticsDto> subscribed = NextAsync<DiagnosticsDto>(ownerTab, nameof(IPlaybackClient.ReceiveDiagnostics));
+        await ownerTab.InvokeAsync(nameof(PlaybackHub.SubscribeToUser), local.Id);
+
+        (await DisplayTestHost.WaitAsync(subscribed)).PollerStatus.Should().Be(
+            PlaybackUpdateApplier.STATUS_PUBLISHER_OFFLINE,
+            "a viewer arriving late must agree with the viewers that saw the publisher leave");
+    }
+
     private static Task<PlaybackStateDto> NextStateWithTrackAsync(HubConnection connection) =>
         NextAsync<PlaybackStateDto>(connection, nameof(IPlaybackClient.ReceivePlaybackState), s => s.CurrentTrack is not null);
 

@@ -39,6 +39,12 @@ public interface ILocalPlaybackIngest
     /// already in flight.
     /// </summary>
     void Forget(string sessionId);
+
+    /// <summary>
+    /// True once a Session's publisher left and the grace period ended with no new one, until a
+    /// connection publishes again.
+    /// </summary>
+    bool IsPublisherOffline(string sessionId);
 }
 
 /// <summary>
@@ -203,6 +209,14 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         }
     }
 
+    public bool IsPublisherOffline(string sessionId)
+    {
+        lock (_lock)
+        {
+            return _pipelines.TryGetValue(sessionId, out SessionPipeline? pipeline) && pipeline.PublisherOffline;
+        }
+    }
+
     public void Dispose()
     {
         lock (_lock)
@@ -249,6 +263,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         connection.Displaced = false;
         pipeline.PublisherConnectionId = connectionId;
         pipeline.OfflinePending = false;
+        pipeline.PublisherOffline = false;
         pipeline.CancelGraceTimer();
         return true;
     }
@@ -303,6 +318,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
             pipeline.CancelGraceTimer();
             pipeline.OfflinePending = true;
+            pipeline.PublisherOffline = true;
             pipeline.Signal();
         }
     }
@@ -782,6 +798,9 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         /// <summary>Set when the grace period ends with no publisher. Guarded by the ingest lock.</summary>
         public bool OfflinePending { get; set; }
+
+        /// <summary>Like <see cref="OfflinePending"/>, but stays set until a connection publishes again.</summary>
+        public bool PublisherOffline { get; set; }
 
         /// <summary>Wakes the worker; coalesced, since the worker drains both slots on each wakeup.</summary>
         public Channel<bool> Wakeups { get; } = Channel.CreateBounded<bool>(new BoundedChannelOptions(1)

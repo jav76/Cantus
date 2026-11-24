@@ -531,6 +531,23 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
+    public async Task IsPublisherOffline_IsTrueFromTheEndOfTheGracePeriodUntilTheNextPublish()
+    {
+        _ingest.Submit(CONNECTION_A, _session, Update(1));
+        await WaitForUpdatesAsync(1);
+
+        Disconnect(CONNECTION_A);
+        _ingest.IsPublisherOffline(_session.Id).Should().BeFalse("the grace period has not ended");
+
+        _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS));
+        _ingest.IsPublisherOffline(_session.Id).Should().BeTrue();
+
+        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+        _ingest.IsPublisherOffline(_session.Id).Should().BeFalse();
+        _ingest.IsPublisherOffline("never-published").Should().BeFalse();
+    }
+
+    [Fact]
     public async Task ReleaseConnection_ThenANewPublisherWithinGrace_DoesNotMarkItOffline()
     {
         _ingest.Submit(CONNECTION_A, _session, Update(1));

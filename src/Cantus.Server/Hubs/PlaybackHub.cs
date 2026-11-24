@@ -458,11 +458,16 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         }
     }
 
-    private static string DescribeStatus(UserSession session, UserPlaybackSnapshot? snapshot)
+    private string DescribeStatus(UserSession session, UserPlaybackSnapshot? snapshot)
     {
         PlaybackState? state = snapshot?.PlaybackState;
         if (session.Kind == SessionKind.Local)
         {
+            if (_localIngest.IsPublisherOffline(session.Id))
+            {
+                return PlaybackUpdateApplier.STATUS_PUBLISHER_OFFLINE;
+            }
+
             if (state?.CurrentTrack is null)
             {
                 return PlaybackUpdateApplier.STATUS_LOCAL_IDLE;
