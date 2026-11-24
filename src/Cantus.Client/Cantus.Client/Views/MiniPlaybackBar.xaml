@@ -52,7 +52,7 @@
                 <views:VuMeterBars Meter="{x:Bind ViewModel.VuMeter, Mode=OneWay}"
                                    Progress="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                                    BarBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                   RestThickness="4"
+                                   RestThickness="2"
                                    Height="16"
                                    Opacity="0.55"
                                    VerticalAlignment="Center" />

@@ -7,6 +7,7 @@ using Cantus.Client.Services;
 using Cantus.Client.Tests.Services;
 using Cantus.Client.ViewModels;
 using FluentAssertions;
+using Microsoft.UI.Xaml;
 using Xunit;
 
 namespace Cantus.Client.Tests.ViewModels;
@@ -334,6 +335,59 @@ public sealed class VuMeterViewModelTests
         // Assert
         provider.Created[0].IsDisposed.Should().BeTrue();
         provider.Created[1].IsDisposed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SelectedSourceIndex_WritingTheCurrentIndex_DoesNotRestartTheSource()
+    {
+        // Arrange
+        FakeProvider provider = new(defaultSource: VuMeterSource.SharedAudio);
+        VuMeterViewModel meter = new(Preferences(), provider);
+        await meter.ActivateAsync();
+
+        // Act: a two-way ComboBox binding echoes the bound index back on load.
+        meter.SelectedSourceIndex = meter.SelectedSourceIndex;
+
+        // Assert
+        provider.Created.Should().ContainSingle().Which.StartedByUser.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ModeSummary_FollowsTheMode()
+    {
+        // Arrange
+        FakeProvider provider = new(defaultSource: VuMeterSource.Microphone);
+        VuMeterViewModel meter = new(Preferences(), provider);
+        await meter.ActivateAsync();
+        string before = meter.ModeSummary;
+        List<string?> changed = [];
+        meter.PropertyChanged += (s, e) => changed.Add(e.PropertyName);
+        provider.Created[0].Bands.AsSpan().Fill(0.5f);
+
+        // Act
+        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+
+        // Assert
+        before.Should().Be("Showing decorative bars");
+        meter.ModeSummary.Should().Be("Showing live microphone");
+        changed.Should().Contain(nameof(VuMeterViewModel.ModeSummary));
+    }
+
+    [Fact]
+    public void SourcePickerVisibility_NeedsALiveSourceAndTheMeterOn()
+    {
+        // Arrange
+        VuMeterViewModel decorativeOnly = new(Preferences());
+        VuMeterViewModel withLive = new(Preferences(), new FakeProvider(defaultSource: VuMeterSource.Decorative));
+
+        // Act
+        Visibility liveWhileOn = withLive.SourcePickerVisibility;
+        withLive.IsEnabled = false;
+
+        // Assert
+        decorativeOnly.SourcePickerVisibility.Should().Be(Visibility.Collapsed);
+        liveWhileOn.Should().Be(Visibility.Visible);
+        withLive.SourcePickerVisibility.Should().Be(Visibility.Collapsed);
     }
 
     [Fact]

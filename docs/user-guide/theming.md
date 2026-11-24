@@ -57,7 +57,7 @@ Every theme is dark, and the whole interface follows it: text boxes, menus, drop
 
 ## Post-Processing Effects
 
-Optional effects you can combine freely. Each one is off by default.
+Optional effects you can combine freely. Each one is off by default, except the seek bar VU meter.
 
 | Effect | What it does | Applies to |
 | :--- | :--- | :--- |
@@ -65,11 +65,28 @@ Optional effects you can combine freely. Each one is off by default.
 | **Vignette** | Darkens the window edges and leaves the centre clear. | Every theme and kiosk mode |
 | **Scanlines** | Thin, static horizontal lines, like a CRT screen. | Every theme and kiosk mode |
 | **Blur album background** | Shows a soft, blurred version of the album cover behind the lyrics instead of the sharp one, with a slightly lighter scrim. | The **Dynamic Palette** theme only |
+| **Seek bar VU meter** | Thin level bars behind the seek bar, low to high frequency from left to right, shown only over the part of the track that has played. | The track card and the kiosk bar |
 
 - Toggle them in the theme menu, below the list of themes (on small screens: overflow menu, **Theme**), or with the checkboxes under **Effects** in the **Color theme** section on the mobile **Sync & Info** tab.
 - Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
 - **Blur album background** (labelled **Blur album background (Dynamic theme)** in the theme menu) can be switched on in any theme, but it only changes something in Dynamic Palette, the one theme with an album art backdrop. The sharp cover shows first and the blurred one replaces it a moment later. If the blur fails, the sharp cover stays.
 - All effects are subtle, so lyrics stay readable. The grain animation stops while film grain is off.
+
+### Seek Bar VU Meter
+
+The bars use the theme's accent colour. They fall flat when playback pauses and hold still while the pointer is over a seek bar you can click, so it is clear the bar is a control. **VU meter levels** (theme menu, or the picker under **Effects** on the mobile **Sync & Info** tab) picks where the levels come from. The first line of that submenu, and the text under the picker, says whether the bars are live right now.
+
+| Levels | Real audio? | Where | Notes |
+| :--- | :--- | :--- | :--- |
+| **System audio** | Yes | Desktop app on Linux and Windows | The default there. Hears everything the default output plays, not just the player, and only when the music plays on this computer. Linux needs `parec` (PulseAudio or PipeWire) or `pw-record`. Re-pick it after switching outputs. |
+| **Microphone** | Yes | Browser | Hears the room, so a display reacts to speakers playing Spotify anywhere nearby. Asks for microphone access. |
+| **Tab or screen audio** | Yes | Browser (Chrome and Edge) | Pick a tab, or the whole screen on Windows and ChromeOS, and tick **Share audio**. Asks every time, so pick it again after a reload or after you stop sharing. |
+| **Decorative** | No | Everywhere | A beat-like pattern seeded by the track. It follows the playback position but not the music. The browser default. |
+
+- Spotify does not offer audio data to Cantus, so with Spotify playing on another device only **Microphone** gives real levels.
+- When a live source hears nothing for a moment (nothing playing, or the music plays elsewhere), the decorative pattern takes over until sound returns.
+- Browsers only allow microphone and screen capture on HTTPS or `localhost`. Over plain HTTP on your network, only **Decorative** is offered.
+- Audio never leaves the device: it is analysed locally and nothing is sent to the server.
 
 ---
 
