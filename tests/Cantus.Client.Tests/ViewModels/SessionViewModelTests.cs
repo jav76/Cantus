@@ -388,6 +388,7 @@ public sealed class SessionViewModelTests
             nameof(SessionViewModel.AccountButtonToolTip),
             nameof(SessionViewModel.AccountSourceText),
             nameof(SessionViewModel.AccountIcon),
+            nameof(SessionViewModel.CanControlPlayer),
             nameof(SessionViewModel.SpotifyControlsVisibility),
             nameof(SessionViewModel.SongLookupVisibility),
             nameof(SessionViewModel.LocalChoiceVisibility),

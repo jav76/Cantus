@@ -42,7 +42,7 @@
                   MinHeight="18"
                   VerticalAlignment="Center"
                   Margin="{x:Bind GetProgressMargin(Layout.IsKioskBarCompact, Layout.IsKioskBarStacked), Mode=OneWay}"
-                  IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
+                  IsHitTestVisible="{x:Bind ViewModel.CanUsePlayerControls, Mode=OneWay}"
                   PointerReleased="OnProgressBarPointerReleased"
                   PointerEntered="OnSeekBarPointerEntered"
                   PointerMoved="OnSeekBarPointerMoved"
@@ -83,7 +83,7 @@
                        Visibility="{x:Bind GetWideBarVisibility(Layout.IsKioskBarCompact), Mode=OneWay}" />
 
             <!-- Transport Controls -->
-            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0" Visibility="{x:Bind ViewModel.PlayerControlsVisibility, Mode=OneWay}">
                 <Button Click="OnSkipPreviousClicked"
                         Background="#22FFFFFF"
                         Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"

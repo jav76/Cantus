@@ -195,12 +195,16 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     public CantusIconKind AccountIcon => IsLocalSession ? CantusIconKind.Display : CantusIconKind.Account;
 
-    /// <summary>Volume, shuffle and repeat: a local player cannot be driven through them.</summary>
-    public Visibility SpotifyControlsVisibility => IsLocalSession ? Visibility.Collapsed : Visibility.Visible;
+    /// <summary>
+    /// Player commands (play, pause, skip, seek, volume, shuffle, repeat) are sent to Spotify, so they need
+    /// a Spotify Session: signed out, on a Local Session and on a Display there is no player to drive.
+    /// </summary>
+    public bool CanControlPlayer => CurrentUserSession is not null && !IsLocalSession;
+
+    public Visibility SpotifyControlsVisibility => CanControlPlayer ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>Find a song plays the pick on Spotify, so it is offered only for a Spotify Session.</summary>
-    public Visibility SongLookupVisibility =>
-        CurrentUserSession is not null && !IsLocalSession ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility SongLookupVisibility => SpotifyControlsVisibility;
 
     /// <summary>The app name of the player a Local Session follows, or null when none is playing.</summary>
     public string? FollowedPlayerName => _localPlayback?.FollowedPlayer?.AppName;
@@ -496,6 +500,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(AccountButtonToolTip));
         OnPropertyChanged(nameof(AccountSourceText));
         OnPropertyChanged(nameof(AccountIcon));
+        OnPropertyChanged(nameof(CanControlPlayer));
         OnPropertyChanged(nameof(SpotifyControlsVisibility));
         OnPropertyChanged(nameof(SongLookupVisibility));
         OnPropertyChanged(nameof(LocalChoiceVisibility));

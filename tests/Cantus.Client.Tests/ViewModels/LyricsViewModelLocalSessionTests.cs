@@ -166,6 +166,63 @@ public sealed class LyricsViewModelLocalSessionTests
         vm.DeviceName.Should().Be(LyricsViewModel.NO_DEVICE);
     }
 
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData(AuthorizedSessionPayload.KIND_LOCAL, false)]
+    [InlineData(AuthorizedSessionPayload.KIND_SPOTIFY, true)]
+    public void PlayerControls_AreOfferedOnlyForASpotifySession(string? kind, bool expected)
+    {
+        // Arrange
+        LyricsViewModel vm = CreateViewModel();
+        List<string?> changed = new();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        // Act
+        if (kind is not null)
+        {
+            SignIn(kind);
+        }
+
+        // Assert
+        vm.CanUsePlayerControls.Should().Be(expected);
+        vm.PlayerControlsVisibility.Should().Be(expected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed);
+        if (kind is not null)
+        {
+            changed.Should().Contain(nameof(LyricsViewModel.PlayerControlsVisibility));
+        }
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData(AuthorizedSessionPayload.KIND_LOCAL, false)]
+    [InlineData(AuthorizedSessionPayload.KIND_SPOTIFY, true)]
+    public void TappingALyricLine_SeeksOnlyWhenThePlayerCanBeControlled(string? kind, bool expected)
+    {
+        // Arrange
+        LyricsViewModel vm = CreateViewModel();
+        if (kind is not null)
+        {
+            SignIn(kind);
+        }
+
+        // Act
+        _client.RaisePlaybackStateReceived(new PlaybackStatePayload
+        {
+            CurrentTrack = new TrackInfoPayload { Id = "t-1", Title = "Song", Artist = "Artist", DurationMs = 180000 },
+            IsPlaying = true,
+            TimestampUtc = DateTimeOffset.UtcNow,
+        });
+        _client.RaiseLyricsReceived(new LyricsPayload
+        {
+            TrackId = "t-1",
+            IsSynced = true,
+            Lines = new List<LyricLinePayload> { new() { TimestampMs = 1000, Text = "Line" } },
+        });
+
+        // Assert
+        vm.CanSeekToLines.Should().Be(expected);
+    }
+
     private LyricsViewModel CreateViewModel() =>
         new(
             _client,

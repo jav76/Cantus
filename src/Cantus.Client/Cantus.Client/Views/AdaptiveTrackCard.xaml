@@ -70,7 +70,7 @@
                     <StackPanel Spacing="6">
                         <Grid Background="Transparent"
                               MinHeight="18"
-                              IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
+                              IsHitTestVisible="{x:Bind ViewModel.CanUsePlayerControls, Mode=OneWay}"
                               PointerReleased="OnProgressBarPointerReleased"
                               PointerEntered="OnSeekBarPointerEntered"
                               PointerMoved="OnSeekBarPointerMoved"
@@ -106,7 +106,7 @@
                     </StackPanel>
 
                     <!-- Playback Transport Controls -->
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" HorizontalAlignment="Center" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.PlayerControlsVisibility, Mode=OneWay}">
                         <Button Grid.Column="0"
                                 Click="OnShuffleClicked"
                                 Visibility="{x:Bind Session.SpotifyControlsVisibility, Mode=OneWay}"
@@ -420,7 +420,7 @@
                 </StackPanel>
 
                 <!-- Compact Transport Controls -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.PlayerControlsVisibility, Mode=OneWay}">
                     <Button Click="OnSkipPreviousClicked"
                             Background="#20FFFFFF"
                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"

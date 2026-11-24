@@ -293,7 +293,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _transport.PlaybackState?.CurrentTrack is not null
         && HasSyncedLyrics
         && !IsStaticLyricsMode
-        && _pairing.CanControlPlayback;
+        && CanUsePlayerControls;
+
+    /// <summary>Whether the transport controls and seeking are offered. A Display never holds a Session.</summary>
+    public bool CanUsePlayerControls => _pairing.CanControlPlayback && _session.CanControlPlayer;
+
+    public Visibility PlayerControlsVisibility => CanUsePlayerControls ? Visibility.Visible : Visibility.Collapsed;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
@@ -1093,6 +1098,13 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     // The no-track copy depends on the Session kind and on whether this computer's players are offered.
     private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(SessionViewModel.CanControlPlayer))
+        {
+            OnPropertyChanged(nameof(CanUsePlayerControls));
+            OnPropertyChanged(nameof(PlayerControlsVisibility));
+            return;
+        }
+
         if (e.PropertyName is not (nameof(SessionViewModel.IsLocalSession) or nameof(SessionViewModel.LocalChoiceVisibility)))
         {
             return;
