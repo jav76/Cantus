@@ -31,7 +31,7 @@ jobs:
       # Prerequisites: Tailscale ACL tag `tag:ci`, OAuth secrets `TS_OAUTH_CLIENT_ID` /
       # `TS_OAUTH_SECRET`, subnet router + split-DNS, and `SONAR_HOST_URL=https://sonarqube.local.jav26122.net`.
       - name: Connect to Tailscale
-        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3.3.0
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
@@ -122,13 +122,13 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload SARIF to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3
+        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3.39.4
         with:
           sarif_file: sonar-results.sarif
           category: sonarqube
 
       - name: Publish static report and badges to GitHub Pages
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: gh-pages-out
