@@ -740,4 +740,48 @@ public sealed class ThemeManagerTests
         notified.Should().Contain(nameof(ThemeManager.CurrentMode));
         notified.Should().Contain(nameof(ThemeManager.CurrentModeIndex));
     }
+
+    [Fact]
+    public void Constructor_WithoutPreferences_StartsOnDynamic()
+    {
+        // Act
+        ThemeManager tm = new();
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.Dynamic);
+        tm.ActivePalette.Should().Be(ColorPalette.MidnightViolet);
+    }
+
+    [Fact]
+    public void Constructor_StartsOnTheSavedTheme_WithoutRaisingAChange()
+    {
+        // Arrange
+        ClientPreferences preferences = new(new InMemorySettingsStore()) { Theme = ThemeMode.EmeraldSynth };
+
+        // Act
+        ThemeManager tm = new(AlbumArtColorService.Instance, preferences);
+        List<string?> notified = [];
+        tm.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Assert
+        tm.CurrentMode.Should().Be(ThemeMode.EmeraldSynth);
+        tm.ActivePalette.Should().Be(ColorPalette.EmeraldSynth);
+        notified.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ChangingTheMode_SavesIt_ForTheNextLaunch()
+    {
+        // Arrange
+        InMemorySettingsStore store = new();
+        ThemeManager tm = new(AlbumArtColorService.Instance, new ClientPreferences(store));
+
+        // Act
+        tm.CycleNextTheme();
+
+        // Assert
+        new ClientPreferences(store).Theme.Should().Be(ThemeMode.MidnightViolet);
+        new ThemeManager(AlbumArtColorService.Instance, new ClientPreferences(store))
+            .CurrentMode.Should().Be(ThemeMode.MidnightViolet);
+    }
 }

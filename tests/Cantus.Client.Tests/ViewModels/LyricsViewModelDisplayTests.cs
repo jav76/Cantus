@@ -49,6 +49,30 @@ public sealed class LyricsViewModelDisplayTests
     }
 
     [Fact]
+    public void PairedDisplay_DefaultsFilmGrainOff_AndKeepsBackgroundBlur()
+    {
+        // Act
+        (_, LyricsViewModel vm, _) = CreateViewModel(paired: true);
+
+        // Assert
+        vm.Effects.IsFilmGrainEnabled.Should().BeFalse();
+        vm.Effects.IsBackgroundBlurEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DisplayRevokedEvent_RestoresTheOwnerFilmGrainDefault()
+    {
+        // Arrange
+        (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: true);
+
+        // Act
+        client.Raise(c => c.DisplayRevoked += null, "display-1");
+
+        // Assert
+        vm.Effects.IsFilmGrainEnabled.Should().BeTrue();
+    }
+
+    [Fact]
     public void DisplayRevokedEvent_ClearsPlaybackAndOpensThePairingScreen()
     {
         // Arrange
@@ -220,7 +244,7 @@ public sealed class LyricsViewModelDisplayTests
             client.Object,
             new ThemeManager(),
             new ResponsiveLayoutManager(),
-            new LyricsPreferences(new InMemorySettingsStore()),
+            new ClientPreferences(new InMemorySettingsStore()),
             api.Object,
             new DisplayCredentialStore(store),
             displaysApi: displaysApi.Object,

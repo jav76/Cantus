@@ -30,12 +30,14 @@ public sealed class ThemeManager : INotifyPropertyChanged
 
     private static readonly ILogger<ThemeManager> _logger = ClientLoggingManager.CreateLogger<ThemeManager>();
     private static ThemeManager? _instance;
-    public static ThemeManager Instance => _instance ??= new ThemeManager();
+    public static ThemeManager Instance =>
+        _instance ??= new ThemeManager(AlbumArtColorService.Instance, new ClientPreferences(new LocalSettingsStore()));
 
     private readonly AlbumArtColorService _artColorService;
+    private readonly IClientPreferences? _preferences;
     private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
 
-    private ThemeMode _currentMode = ThemeMode.MidnightViolet;
+    private ThemeMode _currentMode;
     private ColorPalette _activePalette = ColorPalette.MidnightViolet;
 
     private SolidColorBrush? _backgroundBrush;
@@ -97,6 +99,11 @@ public sealed class ThemeManager : INotifyPropertyChanged
             if (_currentMode != value)
             {
                 _currentMode = value;
+                if (_preferences is not null)
+                {
+                    _preferences.Theme = value;
+                }
+
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentModeIndex));
                 ApplyTheme();
@@ -193,8 +200,20 @@ public sealed class ThemeManager : INotifyPropertyChanged
     }
 
     public ThemeManager(AlbumArtColorService artColorService)
+        : this(artColorService, null)
+    {
+    }
+
+    /// <summary>
+    /// Starts on the saved theme (or <see cref="ClientPreferences.DEFAULT_THEME"/>
+    /// without preferences) and saves every later change. The start raises no
+    /// change notification, so no theme toast shows at launch.
+    /// </summary>
+    public ThemeManager(AlbumArtColorService artColorService, IClientPreferences? preferences)
     {
         _artColorService = artColorService;
+        _preferences = preferences;
+        _currentMode = preferences?.Theme ?? ClientPreferences.DEFAULT_THEME;
 
         try
         {

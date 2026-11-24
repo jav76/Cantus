@@ -29,7 +29,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
-        LyricsPreferences preferences = new(new LocalSettingsStore());
+        ClientPreferences preferences = new(new LocalSettingsStore());
         SongLookupClient lookupClient = new(client, new HttpClient());
         ViewModel = new LyricsViewModel(
             client,
