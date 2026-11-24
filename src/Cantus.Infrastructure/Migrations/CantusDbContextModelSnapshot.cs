@@ -15,7 +15,7 @@ namespace Cantus.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.2");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
             modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.CachedLyricsEntity", b =>
                 {
@@ -265,15 +265,20 @@ namespace Cantus.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EncryptedAccessToken")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EncryptedRefreshToken")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("ExpiresAtUtc")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Spotify");
 
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("TEXT");
@@ -283,7 +288,6 @@ namespace Cantus.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SpotifyUserId")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")

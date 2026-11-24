@@ -158,20 +158,29 @@ public sealed class DisplayService : IDisplayService
 
     private static string NormalizeName(string name)
     {
-        string trimmed = name?.Trim() ?? string.Empty;
-        if (trimmed.Length == 0)
+        if (TryNormalizeName(name, out string normalized))
+        {
+            return normalized;
+        }
+
+        if (normalized.Length == 0)
         {
             throw new ArgumentException("A Display name is required.", nameof(name));
         }
 
-        if (trimmed.Length > DisplayInfo.MAX_NAME_LENGTH)
-        {
-            throw new ArgumentException(
-                $"A Display name must be at most {DisplayInfo.MAX_NAME_LENGTH} characters.",
-                nameof(name));
-        }
+        throw new ArgumentException(
+            $"A Display name must be at most {DisplayInfo.MAX_NAME_LENGTH} characters.",
+            nameof(name));
+    }
 
-        return trimmed;
+    /// <summary>
+    /// Trims a user-chosen name and checks it is 1 to <see cref="DisplayInfo.MAX_NAME_LENGTH"/>
+    /// characters. Shared with Local Session names, which follow the same rule.
+    /// </summary>
+    internal static bool TryNormalizeName(string? name, out string normalized)
+    {
+        normalized = name?.Trim() ?? string.Empty;
+        return normalized.Length > 0 && normalized.Length <= DisplayInfo.MAX_NAME_LENGTH;
     }
 
     private static DisplayInfo ToModel(DisplayEntity entity)

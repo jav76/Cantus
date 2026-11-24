@@ -183,7 +183,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             foreach (string userId in activeUserIds)
             {
                 UserSession? session = await authService.GetSessionForUserAsync(userId, cancellationToken);
-                if (session is null)
+                if (session is null || session.Kind == SessionKind.Local)
                 {
                     continue;
                 }
@@ -213,9 +213,20 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
 
             try
             {
+                // A Local Session's playback is pushed by its client, so polling Spotify would only
+                // reach the idle branch below and wipe the pushed snapshot. Its schedule entry is
+                // dropped too: an immediate-poll request leaves it at MinValue, which would hold
+                // the whole loop at its minimum delay.
                 UserSession? session = await authService.GetSessionForUserAsync(userId, cancellationToken);
-                if (session is null)
+                if (session is null || session.Kind == SessionKind.Local)
                 {
+                    _nextPollUtc.TryRemove(userId, out _);
+                    continue;
+                }
+
+                if (session.AccessToken is not { } accessToken)
+                {
+                    _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_cadence.PollErrorIntervalMs);
                     continue;
                 }
 
@@ -226,7 +237,7 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                 try
                 {
                     currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(
-                        session.AccessToken,
+                        accessToken,
                         cancellationToken);
                 }
                 catch (APITooManyRequestsException tooManyEx)
@@ -264,8 +275,10 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
                         UserSession refreshedSession = await authService.RefreshTokenAsync(
                             session.Id,
                             cancellationToken);
+                        string refreshedToken = refreshedSession.AccessToken
+                            ?? throw new InvalidOperationException("The refreshed Session has no access token.");
                         currentPlayback = await spotifyClient.GetCurrentPlaybackAsync(
-                            refreshedSession.AccessToken,
+                            refreshedToken,
                             cancellationToken);
                     }
                     catch (APITooManyRequestsException refreshTooManyEx)

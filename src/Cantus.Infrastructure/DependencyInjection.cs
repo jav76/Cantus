@@ -5,6 +5,7 @@ using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Lyrics.Lookup;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Security;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Infrastructure.Spotify;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -171,6 +172,9 @@ public static class DependencyInjection
             new TraceLoggingDisplayServiceDecorator(
                 sp.GetRequiredService<DisplayService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingDisplayServiceDecorator>>()));
+
+        // 8. Local Sessions (options are bound by the server's AddLocalSessions)
+        services.AddScoped<ILocalSessionService, LocalSessionService>();
 
         return services;
     }

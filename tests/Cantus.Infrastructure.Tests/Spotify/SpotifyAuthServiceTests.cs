@@ -196,9 +196,9 @@ public sealed class SpotifyAuthServiceTests : IDisposable
         await SeedSessionAsync("session_revoke", "spotify_revoke");
         (await _authService.GetSessionByIdAsync("session_revoke")).Should().NotBeNull();
 
-        bool revoked = await _authService.RevokeSessionAsync("spotify_revoke");
+        Core.Models.SessionKind? revoked = await _authService.RevokeSessionAsync("spotify_revoke");
 
-        revoked.Should().BeFalse();
+        revoked.Should().BeNull();
         (await _dbContext.UserSessions.AnyAsync(u => u.Id == "session_revoke")).Should().BeTrue();
         (await _authService.GetSessionByIdAsync("session_revoke")).Should().NotBeNull();
     }

@@ -50,7 +50,40 @@ public static class DtoMappingExtensions
             IsShuffled = state.IsShuffled,
             RepeatMode = state.RepeatMode,
             ActiveUserId = activeUserId,
-            ActiveUserDisplayName = activeUserName
+            ActiveUserDisplayName = activeUserName,
+            Source = state.Source == PlaybackSource.Local
+                ? PlaybackStateDto.SOURCE_LOCAL
+                : PlaybackStateDto.SOURCE_SPOTIFY,
+            Capabilities = state.Capabilities?.ToDto()
+        };
+    }
+
+    public static PlaybackCapabilitiesDto ToDto(this PlaybackCapabilities capabilities)
+    {
+        return new PlaybackCapabilitiesDto
+        {
+            CanPlay = capabilities.CanPlay,
+            CanPause = capabilities.CanPause,
+            CanGoNext = capabilities.CanGoNext,
+            CanGoPrevious = capabilities.CanGoPrevious,
+            CanSeek = capabilities.CanSeek
+        };
+    }
+
+    public static PlaybackCapabilities ToModel(this PlaybackCapabilitiesDto? capabilities)
+    {
+        if (capabilities is null)
+        {
+            return PlaybackCapabilities.None;
+        }
+
+        return new PlaybackCapabilities
+        {
+            CanPlay = capabilities.CanPlay,
+            CanPause = capabilities.CanPause,
+            CanGoNext = capabilities.CanGoNext,
+            CanGoPrevious = capabilities.CanGoPrevious,
+            CanSeek = capabilities.CanSeek
         };
     }
 
@@ -153,6 +186,9 @@ public static class DtoMappingExtensions
         return new AuthorizedSessionDto
         {
             Id = session.Id,
+            Kind = session.Kind == SessionKind.Local
+                ? AuthorizedSessionDto.KIND_LOCAL
+                : AuthorizedSessionDto.KIND_SPOTIFY,
             SpotifyUserId = session.SpotifyUserId,
             DisplayName = session.DisplayName,
             Email = session.Email,

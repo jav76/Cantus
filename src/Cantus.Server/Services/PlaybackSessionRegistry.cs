@@ -205,6 +205,11 @@ public sealed class PlaybackSessionRegistry : IPlaybackSessionRegistry
         return updatedUserIds;
     }
 
+    public void RemoveUserState(string userId)
+    {
+        _userSnapshots.TryRemove(userId, out _);
+    }
+
     public UserPlaybackSnapshot? GetUserState(string userId)
     {
         return _userSnapshots.TryGetValue(userId, out UserPlaybackSnapshot? snapshot) ? snapshot : null;

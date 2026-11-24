@@ -215,6 +215,24 @@ public sealed class SongLookupEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Theory]
+    [InlineData(SEARCH_PATH)]
+    [InlineData(PLAY_PATH)]
+    public async Task Post_WithLocalSession_ReturnsForbiddenAndCallsNoService(string path)
+    {
+        const string LOCAL_SESSION_ID = "sess-local";
+        _authService
+            .Setup(a => a.GetSessionByIdAsync(LOCAL_SESSION_ID, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserSession { Id = LOCAL_SESSION_ID, Kind = SessionKind.Local, DisplayName = "Desktop" });
+        HttpClient client = CreateFactory().CreateClient();
+
+        HttpResponseMessage response = await client.SendAsync(
+            Post(path, new { fragment = FRAGMENT, action = "play", spotifyTrackId = TRACK_ID }, LOCAL_SESSION_ID));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        VerifyNoServiceCalled();
+    }
+
+    [Theory]
     [InlineData("{}")]
     [InlineData("{\"scope\":\"local\"}")]
     [InlineData("{\"fragment\":\"   \"}")]

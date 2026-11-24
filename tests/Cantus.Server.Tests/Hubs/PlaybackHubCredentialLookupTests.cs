@@ -60,7 +60,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
     public async Task OnConnectedAsync_WithSpotifyUserIdCookie_StaysUnauthenticated()
     {
         UserSessionEntity seeded = await _store.SeedSessionAsync("Owner");
-        PlaybackHub hub = CreateHub(WithCookie(seeded.SpotifyUserId));
+        PlaybackHub hub = CreateHub(WithCookie(seeded.RequiredSpotifyUserId()));
 
         await hub.OnConnectedAsync();
 
@@ -79,7 +79,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
         _mockRegistry.Verify(r => r.RegisterConnection(CONNECTION_ID, seeded.Id), Times.Once);
         ClearRecordedCalls();
 
-        PlaybackHub hub = CreateHub(WithQuery(queryParameter, seeded.SpotifyUserId));
+        PlaybackHub hub = CreateHub(WithQuery(queryParameter, seeded.RequiredSpotifyUserId()));
 
         await hub.OnConnectedAsync();
 
@@ -101,7 +101,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
     public async Task SubscribeToUser_WithSpotifyUserIdCookie_DoesNotSubscribe()
     {
         UserSessionEntity seeded = await _store.SeedSessionAsync("Owner");
-        PlaybackHub hub = CreateHub(WithCookie(seeded.SpotifyUserId));
+        PlaybackHub hub = CreateHub(WithCookie(seeded.RequiredSpotifyUserId()));
 
         await hub.SubscribeToUser(seeded.Id);
 
@@ -145,6 +145,7 @@ public sealed class PlaybackHubCredentialLookupTests : IDisposable
             _store.CreateCredentialResolver(),
             Mock.Of<IDisplayPairingService>(),
             Mock.Of<IDisplayConnectionTracker>(t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>())),
+            Mock.Of<ILocalPlaybackIngest>(),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

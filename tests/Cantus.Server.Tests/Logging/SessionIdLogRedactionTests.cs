@@ -97,6 +97,7 @@ public sealed class SessionIdLogRedactionTests
                 new CredentialResolver(SessionResolver.Object, AuthService.Object, Mock.Of<IDisplayService>()),
                 Mock.Of<IDisplayPairingService>(),
                 Mock.Of<IDisplayConnectionTracker>(t => t.Add(It.IsAny<string>(), It.IsAny<HubCallerContext>())),
+                Mock.Of<ILocalPlaybackIngest>(),
                 Logger)
             {
                 Clients = clients.Object,

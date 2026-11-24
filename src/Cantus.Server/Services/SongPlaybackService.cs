@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Logging;
 using Cantus.Core.Models;
@@ -15,7 +14,7 @@ namespace Cantus.Server.Services;
 /// validated id. Lives in the server because a play schedules the same
 /// follow-up polls as the hub's transport commands.
 /// </summary>
-public sealed partial class SongPlaybackService : ISongPlaybackService
+public sealed class SongPlaybackService : ISongPlaybackService
 {
     private const string TRACK_URI_PREFIX = "spotify:track:";
 
@@ -39,12 +38,9 @@ public sealed partial class SongPlaybackService : ISongPlaybackService
         _logger = logger;
     }
 
-    [GeneratedRegex(@"^[A-Za-z0-9]{22}\z", RegexOptions.CultureInvariant)]
-    private static partial Regex TrackIdPattern();
-
     public static bool IsValidTrackId(string? trackId)
     {
-        return trackId is not null && TrackIdPattern().IsMatch(trackId);
+        return TrackIdentity.TryParseSpotifyTrackId(trackId, out _);
     }
 
     public static bool HasValidNameLengths(string? title, string? artist)
