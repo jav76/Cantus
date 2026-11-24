@@ -171,41 +171,65 @@
                   RowDefinitions="Auto,Auto"
                   ColumnDefinitions="Auto,*,Auto,Auto"
                   ColumnSpacing="12">
-                <!-- Mini Album Art -->
-                <Border Grid.Column="0"
+                <!-- Art and track details open the Track tab, like a music app's mini player.
+                     The transport buttons sit outside this button, so their taps never switch tabs.
+                     A tap does not take focus: the strip collapses on the switch, and focus falling
+                     back to the header would pop up that button's tooltip. -->
+                <Button Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Click="OnOpenPlayerClicked"
+                        AllowFocusOnInteraction="False"
+                        PointerEntered="OnOpenPlayerPointerEntered"
+                        PointerExited="OnOpenPlayerPointerExited"
+                        PointerCanceled="OnOpenPlayerPointerExited"
+                        Background="Transparent"
+                        BorderThickness="0"
                         CornerRadius="10"
-                        Width="56"
-                        Height="56"
-                        Background="#1A1B26"
-                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                        BorderThickness="1">
-                    <Grid>
-                        <views:CantusIcon Kind="MusicNote" Size="22" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
-                    </Grid>
-                </Border>
+                        Padding="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Center"
+                        AutomationProperties.Name="Open the player"
+                        ToolTipService.ToolTip="Open the player">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <!-- Mini Album Art -->
+                        <Border Grid.Column="0"
+                                CornerRadius="10"
+                                Width="56"
+                                Height="56"
+                                Background="#1A1B26"
+                                BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                BorderThickness="1">
+                            <Grid>
+                                <views:CantusIcon Kind="MusicNote" Size="22" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
+                            </Grid>
+                        </Border>
 
-                <!-- Track Details + Progress -->
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                    <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
-                               FontSize="15"
-                               FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
-                               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
-                               TextWrapping="NoWrap"
-                               TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
-                               FontSize="12"
-                               Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
-                               TextWrapping="NoWrap"
-                               TextTrimming="CharacterEllipsis" />
-                    <ProgressBar Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
-                                 Minimum="0"
-                                 Maximum="1"
-                                 Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                 Background="#1AFFFFFF"
-                                 Height="3"
-                                 CornerRadius="2" />
-                </StackPanel>
+                        <!-- Track Details + Progress -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.CurrentTitle, Mode=OneWay}"
+                                       FontSize="15"
+                                       FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
+                                       Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}"
+                                       FontSize="12"
+                                       Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
+                            <ProgressBar Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
+                                         Minimum="0"
+                                         Maximum="1"
+                                         Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                         Background="#1AFFFFFF"
+                                         Height="3"
+                                         CornerRadius="2" />
+                        </StackPanel>
+                    </Grid>
+                </Button>
 
                 <!-- Timestamps & Offset Tag -->
                 <StackPanel Grid.Column="2"
