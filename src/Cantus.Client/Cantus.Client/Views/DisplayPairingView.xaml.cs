@@ -76,7 +76,24 @@ public sealed partial class DisplayPairingView : UserControl
     public DisplayPairingView()
     {
         InitializeComponent();
+#if __WASM__
+        _ = ShowCodeOnceFontLoadedAsync();
+#endif
     }
+
+#if __WASM__
+    // The DOM renderer fetches an ms-appx font only when text first uses it, so the code would be drawn and
+    // measured in the browser's fallback font, then keep that narrower width after the swap and clip its last
+    // glyph. The view exists from startup, so loading the font here has it ready long before the code shows.
+    private async Task ShowCodeOnceFontLoadedAsync()
+    {
+        CodeTextBlock.Opacity = 0;
+        await Uno.UI.Xaml.Media.FontFamilyHelper.PreloadAsync(CodeTextBlock.FontFamily);
+        CodeTextBlock.InvalidateMeasure();
+        UpdateLayout();
+        CodeTextBlock.Opacity = 1;
+    }
+#endif
 
     // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -155,10 +172,20 @@ public sealed partial class DisplayPairingView : UserControl
     public double GetTitleFontSize(LayoutBreakpoint? breakpoint = null) =>
         (breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint) == LayoutBreakpoint.Small ? 22.0 : 30.0;
 
-    public Orientation GetCodeOrientation(LayoutBreakpoint? breakpoint = null) =>
-        (breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint) == LayoutBreakpoint.Small
-            ? Orientation.Vertical
-            : Orientation.Horizontal;
+    public int GetCodeRow(LayoutBreakpoint? breakpoint = null) =>
+        PairingCodeLayout.GetCodeRow(breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint);
+
+    public int GetCodeColumn(LayoutBreakpoint? breakpoint = null) =>
+        PairingCodeLayout.GetCodeColumn(breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint);
+
+    public int GetCodeColumnSpan(LayoutBreakpoint? breakpoint = null) =>
+        PairingCodeLayout.GetColumnSpan(breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint);
+
+    public double GetCodeRowSpacing(LayoutBreakpoint? breakpoint = null) =>
+        PairingCodeLayout.GetRowSpacing(breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint);
+
+    public double GetCodeColumnSpacing(LayoutBreakpoint? breakpoint = null) =>
+        PairingCodeLayout.GetColumnSpacing(breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint);
 
     public double GetQrMaxSize(LayoutBreakpoint? breakpoint = null) =>
         (breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint) switch
