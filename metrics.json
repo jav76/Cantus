@@ -1,15 +1,15 @@
 {
   "projectKey": "Cantus",
-  "generatedAt": "2026-11-24T01:52:52Z",
+  "generatedAt": "2026-11-24T17:17:30Z",
   "qualityGate": {
-    "status": "OK",
+    "status": "ERROR",
     "conditions": [
       {
         "status": "OK",
         "metricKey": "new_coverage",
         "comparator": "LT",
         "errorThreshold": "50",
-        "actualValue": "81.9"
+        "actualValue": "75.4"
       },
       {
         "status": "OK",
@@ -19,11 +19,11 @@
         "actualValue": "0.0"
       },
       {
-        "status": "OK",
+        "status": "ERROR",
         "metricKey": "new_software_quality_reliability_rating",
         "comparator": "GT",
         "errorThreshold": "2",
-        "actualValue": "1"
+        "actualValue": "3"
       },
       {
         "status": "OK",
@@ -37,50 +37,50 @@
   "measures": {
     "coverage": "74.7",
     "reliability_rating": "3.0",
-    "duplicated_lines_density": "0.8",
-    "code_smells": "1778",
+    "duplicated_lines_density": "0.7",
+    "code_smells": "2161",
     "software_quality_security_rating": "1.0",
     "security_rating": "1.0",
     "software_quality_security_issues": "0",
-    "software_quality_maintainability_remediation_effort": "184",
+    "software_quality_maintainability_remediation_effort": "224",
     "security_hotspots": "0",
-    "sqale_index": "214",
+    "sqale_index": "249",
     "sqale_rating": "1.0",
-    "bugs": "4",
-    "alert_status": "OK",
+    "bugs": "5",
+    "alert_status": "ERROR",
     "software_quality_reliability_issues": "10",
-    "ncloc": "27416",
-    "software_quality_maintainability_issues": "1772",
+    "ncloc": "31568",
+    "software_quality_maintainability_issues": "2156",
     "software_quality_reliability_rating": "4.0",
     "vulnerabilities": "0",
     "software_quality_maintainability_rating": "1.0"
   },
   "issueSummary": {
-    "totalOpenIssues": 1782,
+    "totalOpenIssues": 2166,
     "openHotspots": 0,
     "sarifResults": 0,
     "bySoftwareQuality": {
       "RELIABILITY": 10,
       "SECURITY": 0,
-      "MAINTAINABILITY": 1772
+      "MAINTAINABILITY": 2156
     },
     "byImpactSeverity": {
       "BLOCKER": 0,
-      "HIGH": 2,
-      "MEDIUM": 23,
-      "LOW": 13,
-      "INFO": 1744
+      "HIGH": 4,
+      "MEDIUM": 24,
+      "LOW": 12,
+      "INFO": 2126
     },
     "byLegacySeverity": {
       "BLOCKER": 0,
-      "CRITICAL": 1,
+      "CRITICAL": 3,
       "MAJOR": 29,
       "MINOR": 8,
-      "INFO": 1744
+      "INFO": 2126
     }
   },
   "totalsReported": {
-    "issues": 1782,
+    "issues": 2166,
     "hotspots": 0
   },
   "repoUrl": "https://github.com/jav76/Cantus"
