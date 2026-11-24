@@ -1,14 +1,19 @@
+using Cantus.Core.Models;
+
 namespace Cantus.Infrastructure.Persistence.Entities;
 
 public sealed class UserSessionEntity
 {
+    public const int KIND_MAX_LENGTH = 32;
+
     public required string Id { get; set; }
-    public required string SpotifyUserId { get; set; }
+    public SessionKind Kind { get; set; } = SessionKind.Spotify;
+    public string? SpotifyUserId { get; set; }
     public required string DisplayName { get; set; }
     public string? Email { get; set; }
     public string? ProfileImageUrl { get; set; }
-    public required string EncryptedAccessToken { get; set; }
-    public required string EncryptedRefreshToken { get; set; }
+    public string? EncryptedAccessToken { get; set; }
+    public string? EncryptedRefreshToken { get; set; }
 
     /// <summary>
     /// The user's own Spotify app that issued the tokens, or null for the server's app.

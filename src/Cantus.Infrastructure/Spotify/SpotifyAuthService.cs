@@ -87,6 +87,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             sessionEntity = new UserSessionEntity
             {
                 Id = Guid.NewGuid().ToString("N"),
+                Kind = SessionKind.Spotify,
                 SpotifyUserId = me.Id,
                 DisplayName = me.DisplayName ?? me.Id,
                 Email = me.Email,
@@ -114,22 +115,8 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        UserSession session = new()
-        {
-            Id = sessionEntity.Id,
-            SpotifyUserId = sessionEntity.SpotifyUserId,
-            DisplayName = sessionEntity.DisplayName,
-            Email = sessionEntity.Email,
-            ProfileImageUrl = sessionEntity.ProfileImageUrl,
-            AccessToken = tokenResponse.AccessToken,
-            RefreshToken = tokenResponse.RefreshToken,
-            ExpiresAtUtc = sessionEntity.ExpiresAtUtc,
-            CreatedAtUtc = sessionEntity.CreatedAtUtc,
-            UpdatedAtUtc = sessionEntity.UpdatedAtUtc
-        };
-
-        _sessionCache[session.Id] = session;
-        _sessionCache[session.SpotifyUserId] = session;
+        UserSession session = ToModel(sessionEntity, tokenResponse.AccessToken, tokenResponse.RefreshToken);
+        CacheSession(session);
         return session;
     }
 
@@ -143,6 +130,18 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         if (sessionEntity is null)
         {
             throw new InvalidOperationException($"User session {SessionLogRef.For(userId)} not found.");
+        }
+
+        if (sessionEntity.Kind == SessionKind.Local)
+        {
+            throw new InvalidOperationException(
+                $"Session {SessionLogRef.For(sessionEntity.Id)} is a Local Session and has no Spotify token to refresh.");
+        }
+
+        if (sessionEntity.EncryptedRefreshToken is null)
+        {
+            throw new InvalidOperationException(
+                $"Session {SessionLogRef.For(sessionEntity.Id)} has no stored refresh token.");
         }
 
         string rawRefreshToken = _encryptionService.Decrypt(sessionEntity.EncryptedRefreshToken);
@@ -160,24 +159,11 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        UserSession session = new()
-        {
-            Id = sessionEntity.Id,
-            SpotifyUserId = sessionEntity.SpotifyUserId,
-            DisplayName = sessionEntity.DisplayName,
-            Email = sessionEntity.Email,
-            ProfileImageUrl = sessionEntity.ProfileImageUrl,
-            AccessToken = refreshResponse.AccessToken,
-            RefreshToken = string.IsNullOrEmpty(refreshResponse.RefreshToken)
-                ? rawRefreshToken
-                : refreshResponse.RefreshToken,
-            ExpiresAtUtc = sessionEntity.ExpiresAtUtc,
-            CreatedAtUtc = sessionEntity.CreatedAtUtc,
-            UpdatedAtUtc = sessionEntity.UpdatedAtUtc
-        };
-
-        _sessionCache[session.Id] = session;
-        _sessionCache[session.SpotifyUserId] = session;
+        UserSession session = ToModel(
+            sessionEntity,
+            refreshResponse.AccessToken,
+            string.IsNullOrEmpty(refreshResponse.RefreshToken) ? rawRefreshToken : refreshResponse.RefreshToken);
+        CacheSession(session);
         return session;
     }
 
@@ -201,7 +187,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         return GetSessionCoreAsync(
             userId,
             _ => true,
-            u => u.Id == userId || u.SpotifyUserId == userId,
+            u => u.Id == userId || (u.SpotifyUserId != null && u.SpotifyUserId == userId),
             cancellationToken);
     }
 
@@ -216,7 +202,9 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             ? entry
             : null;
 
-        if (cached is not null && cached.ExpiresAtUtc > refreshThreshold)
+        // A Local Session has no token to expire, so its cache entry stays valid until the
+        // Session is revoked or pruned, which evict it.
+        if (cached is not null && (cached.Kind == SessionKind.Local || cached.ExpiresAtUtc > refreshThreshold))
         {
             return cached;
         }
@@ -232,6 +220,13 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             }
 
             return null;
+        }
+
+        if (sessionEntity.Kind == SessionKind.Local)
+        {
+            UserSession localSession = ToModel(sessionEntity, accessToken: null, refreshToken: null);
+            CacheSession(localSession);
+            return localSession;
         }
 
         if (sessionEntity.ExpiresAtUtc <= refreshThreshold)
@@ -250,22 +245,8 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             }
         }
 
-        UserSession loadedSession = new()
-        {
-            Id = sessionEntity.Id,
-            SpotifyUserId = sessionEntity.SpotifyUserId,
-            DisplayName = sessionEntity.DisplayName,
-            Email = sessionEntity.Email,
-            ProfileImageUrl = sessionEntity.ProfileImageUrl,
-            AccessToken = _encryptionService.Decrypt(sessionEntity.EncryptedAccessToken),
-            RefreshToken = _encryptionService.Decrypt(sessionEntity.EncryptedRefreshToken),
-            ExpiresAtUtc = sessionEntity.ExpiresAtUtc,
-            CreatedAtUtc = sessionEntity.CreatedAtUtc,
-            UpdatedAtUtc = sessionEntity.UpdatedAtUtc
-        };
-
-        _sessionCache[loadedSession.Id] = loadedSession;
-        _sessionCache[loadedSession.SpotifyUserId] = loadedSession;
+        UserSession loadedSession = ToModelDecrypted(sessionEntity);
+        CacheSession(loadedSession);
         return loadedSession;
     }
 
@@ -278,19 +259,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         List<UserSession> list = new(entities.Count);
         foreach (UserSessionEntity entity in entities.OrderByDescending(u => u.UpdatedAtUtc))
         {
-            list.Add(new UserSession
-            {
-                Id = entity.Id,
-                SpotifyUserId = entity.SpotifyUserId,
-                DisplayName = entity.DisplayName,
-                Email = entity.Email,
-                ProfileImageUrl = entity.ProfileImageUrl,
-                AccessToken = _encryptionService.Decrypt(entity.EncryptedAccessToken),
-                RefreshToken = _encryptionService.Decrypt(entity.EncryptedRefreshToken),
-                ExpiresAtUtc = entity.ExpiresAtUtc,
-                CreatedAtUtc = entity.CreatedAtUtc,
-                UpdatedAtUtc = entity.UpdatedAtUtc
-            });
+            list.Add(ToModelDecrypted(entity));
         }
 
         return list;
@@ -315,7 +284,10 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         }
 
         _sessionCache.TryRemove(entity.Id, out _);
-        _sessionCache.TryRemove(entity.SpotifyUserId, out _);
+        if (entity.SpotifyUserId is not null)
+        {
+            _sessionCache.TryRemove(entity.SpotifyUserId, out _);
+        }
 
         _dbContext.UserSessions.Remove(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -336,5 +308,61 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     public static void ClearCache()
     {
         _sessionCache.Clear();
+    }
+
+    /// <summary>
+    /// Drops a Session deleted outside this service (a pruned Local Session) from the shared cache,
+    /// so its id stops working as a credential at once.
+    /// </summary>
+    internal static void EvictCachedSession(string sessionId)
+    {
+        if (_sessionCache.TryRemove(sessionId, out UserSession? cached) && cached.SpotifyUserId is not null)
+        {
+            _sessionCache.TryRemove(cached.SpotifyUserId, out _);
+        }
+    }
+
+    internal static UserSession ToModel(UserSessionEntity entity, string? accessToken, string? refreshToken)
+    {
+        return new UserSession
+        {
+            Id = entity.Id,
+            Kind = entity.Kind,
+            SpotifyUserId = entity.SpotifyUserId,
+            DisplayName = entity.DisplayName,
+            Email = entity.Email,
+            ProfileImageUrl = entity.ProfileImageUrl,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            ExpiresAtUtc = entity.ExpiresAtUtc,
+            CreatedAtUtc = entity.CreatedAtUtc,
+            UpdatedAtUtc = entity.UpdatedAtUtc
+        };
+    }
+
+    private UserSession ToModelDecrypted(UserSessionEntity entity)
+    {
+        if (entity.Kind == SessionKind.Local)
+        {
+            return ToModel(entity, accessToken: null, refreshToken: null);
+        }
+
+        return ToModel(entity, DecryptOrNull(entity.EncryptedAccessToken), DecryptOrNull(entity.EncryptedRefreshToken));
+    }
+
+    private string? DecryptOrNull(string? cipherText) =>
+        cipherText is null ? null : _encryptionService.Decrypt(cipherText);
+
+    /// <summary>
+    /// Caches under the Session id and, for a Spotify Session, the Spotify user id. Local
+    /// Sessions have no Spotify id, so they are never cached under a shared null key.
+    /// </summary>
+    private static void CacheSession(UserSession session)
+    {
+        _sessionCache[session.Id] = session;
+        if (session.SpotifyUserId is not null)
+        {
+            _sessionCache[session.SpotifyUserId] = session;
+        }
     }
 }
