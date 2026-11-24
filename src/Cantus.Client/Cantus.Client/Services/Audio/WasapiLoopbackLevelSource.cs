@@ -13,7 +13,7 @@ namespace Cantus.Client.Services.Audio;
 /// <summary>
 /// Windows system audio through WASAPI loopback on the default output. WASAPI
 /// sends no packets while nothing plays, which the meter reads as a stall and
-/// answers with the decorative pattern. The capture stays on the output that
+/// answers by leaving the seek bar plain. The capture stays on the output that
 /// was default when it started.
 /// </summary>
 [SupportedOSPlatform("windows")]

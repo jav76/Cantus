@@ -36,7 +36,7 @@ public interface IAudioLevelSource : IDisposable
 /// <summary>The live sources this platform offers.</summary>
 public interface IAudioLevelSourceProvider
 {
-    /// <summary>Always starts with <see cref="VuMeterSource.Decorative"/>.</summary>
+    /// <summary>Always starts with <see cref="VuMeterSource.None"/>.</summary>
     IReadOnlyList<VuMeterSource> AvailableSources { get; }
 
     /// <summary>The source to use before the user picks one.</summary>
@@ -45,13 +45,13 @@ public interface IAudioLevelSourceProvider
     IAudioLevelSource? Create(VuMeterSource source);
 }
 
-public sealed class DecorativeOnlyAudioLevelSourceProvider : IAudioLevelSourceProvider
+public sealed class NoAudioLevelSourceProvider : IAudioLevelSourceProvider
 {
-    public static DecorativeOnlyAudioLevelSourceProvider Instance { get; } = new();
+    public static NoAudioLevelSourceProvider Instance { get; } = new();
 
-    public IReadOnlyList<VuMeterSource> AvailableSources { get; } = [VuMeterSource.Decorative];
+    public IReadOnlyList<VuMeterSource> AvailableSources { get; } = [VuMeterSource.None];
 
-    public VuMeterSource DefaultSource => VuMeterSource.Decorative;
+    public VuMeterSource DefaultSource => VuMeterSource.None;
 
     public IAudioLevelSource? Create(VuMeterSource source) => null;
 }
