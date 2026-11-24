@@ -52,11 +52,16 @@
                     </Border>
 
                     <!-- QR code and short code -->
-                    <StackPanel Visibility="{x:Bind Pairing.CodeVisibility, Mode=OneWay}"
-                                Orientation="{x:Bind GetCodeOrientation(Layout.CurrentBreakpoint), Mode=OneWay}"
-                                Spacing="40"
-                                HorizontalAlignment="Center">
-                        <Viewbox StretchDirection="DownOnly"
+                    <Grid Visibility="{x:Bind Pairing.CodeVisibility, Mode=OneWay}"
+                          RowDefinitions="Auto,Auto"
+                          ColumnDefinitions="Auto,*"
+                          RowSpacing="{x:Bind GetCodeRowSpacing(Layout.CurrentBreakpoint), Mode=OneWay}"
+                          ColumnSpacing="{x:Bind GetCodeColumnSpacing(Layout.CurrentBreakpoint), Mode=OneWay}"
+                          HorizontalAlignment="Center">
+                        <Viewbox Grid.Row="0"
+                                 Grid.Column="0"
+                                 Grid.ColumnSpan="{x:Bind GetCodeColumnSpan(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                 StretchDirection="DownOnly"
                                  MaxWidth="{x:Bind GetQrMaxSize(Layout.CurrentBreakpoint), Mode=OneWay}"
                                  VerticalAlignment="Center">
                             <Border Background="White" CornerRadius="12" Padding="4">
@@ -64,13 +69,18 @@
                             </Border>
                         </Viewbox>
 
-                        <StackPanel Spacing="12" VerticalAlignment="Center">
+                        <StackPanel Grid.Row="{x:Bind GetCodeRow(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                    Grid.Column="{x:Bind GetCodeColumn(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                    Grid.ColumnSpan="{x:Bind GetCodeColumnSpan(Layout.CurrentBreakpoint), Mode=OneWay}"
+                                    Spacing="12"
+                                    VerticalAlignment="Center">
                             <TextBlock Text="Code"
                                        FontSize="15"
                                        HorizontalAlignment="Center"
                                        Style="{StaticResource CantusSectionLabelStyle}" />
                             <Viewbox StretchDirection="DownOnly" MaxWidth="640">
-                                <TextBlock Text="{x:Bind Pairing.CodeText, Mode=OneWay}"
+                                <TextBlock x:Name="CodeTextBlock"
+                                           Text="{x:Bind Pairing.CodeText, Mode=OneWay}"
                                            FontSize="104"
                                            FontFamily="{StaticResource MonoBoldFontFamily}"
                                            CharacterSpacing="80"
@@ -80,6 +90,7 @@
                                        FontSize="18"
                                        FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
                                        HorizontalAlignment="Center"
+                                       TextAlignment="Center"
                                        TextWrapping="Wrap"
                                        IsTextSelectionEnabled="True"
                                        Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
@@ -88,7 +99,7 @@
                                        HorizontalAlignment="Center"
                                        Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
 
                     <!-- Waiting for the connection or a code -->
                     <StackPanel Visibility="{x:Bind Pairing.ProgressVisibility, Mode=OneWay}"
