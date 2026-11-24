@@ -1,8 +1,10 @@
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 
 namespace Cantus.Client.Views;
 
@@ -191,6 +193,30 @@ public sealed partial class AdaptiveTrackCard : UserControl
     private async void OnSkipNextClicked(object sender, RoutedEventArgs e)
     {
         if (Transport is not null) await Transport.SkipToNextAsync();
+    }
+
+    private void OnOpenPlayerClicked(object sender, RoutedEventArgs e)
+    {
+        if (Layout is not null)
+        {
+            Layout.MobileView = MobileViewMode.NowPlaying;
+        }
+    }
+
+    private void OnOpenPlayerPointerEntered(object sender, PointerRoutedEventArgs e) => SetHandCursor(true);
+
+    private void OnOpenPlayerPointerExited(object sender, PointerRoutedEventArgs e) => SetHandCursor(false);
+
+    private void SetHandCursor(bool isHand)
+    {
+        try
+        {
+            ProtectedCursor = isHand ? InputSystemCursor.Create(InputSystemCursorShape.Hand) : null;
+        }
+        catch
+        {
+            // Cursor shapes are a desktop nicety; a head without cursor support keeps the arrow.
+        }
     }
 
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
