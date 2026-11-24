@@ -491,6 +491,30 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
+    public async Task Submit_OverTheLyricBudget_FetchesTheRefusedTracksLyricsOnceTheWindowPasses()
+    {
+        long sequence = 0;
+        for (int i = 0; i < LocalPlaybackIngest.LYRIC_FETCHES_PER_MINUTE; i++)
+        {
+            await SubmitAndWaitAsync(TrackUpdate(++sequence, $"Song {i}"));
+        }
+
+        (await SubmitAndWaitAsync(TrackUpdate(++sequence, "One too many"))).AllowLyricsFetch.Should().BeFalse();
+        PlaybackUpdate playing = await SubmitAndWaitAsync(TrackUpdate(++sequence, "Still too many"));
+        playing.AllowLyricsFetch.Should().BeFalse();
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.Refetches.Should().BeEmpty("the budget is still spent");
+
+        _time.Advance(TimeSpan.FromMinutes(1));
+
+        await WaitUntilAsync(() => _applier.Refetches.Count > 0);
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.Refetches.Should().Equal(
+            [playing.State.CurrentTrack!.Id],
+            "only the track still playing is fetched, with no further publish needed");
+    }
+
+    [Fact]
     public async Task ReleaseConnection_OfThePublisher_MarksItOfflineAfterTheGracePeriod()
     {
         _ingest.Submit(CONNECTION_A, _session, Update(1));
@@ -681,6 +705,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         private readonly ConcurrentQueue<string> _offline = new();
         private readonly ConcurrentQueue<string> _events = new();
         private readonly ConcurrentQueue<string> _forgotten = new();
+        private readonly ConcurrentQueue<string> _refetches = new();
 
         public Func<PlaybackUpdate, Task>? OnApply { get; set; }
 
@@ -691,6 +716,8 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         public IReadOnlyCollection<string> Events => _events;
 
         public IReadOnlyCollection<string> ForgottenSessions => _forgotten;
+
+        public IReadOnlyCollection<string> Refetches => _refetches;
 
         public async Task ApplyAsync(
             PlaybackUpdate update,
@@ -714,6 +741,17 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         {
             _offline.Enqueue(sessionId);
             _events.Enqueue("offline");
+            return Task.CompletedTask;
+        }
+
+        public Task RefetchLyricsAsync(
+            string sessionId,
+            string trackId,
+            ILyricsProvider lyricsProvider,
+            ILyricsCacheRepository lyricsCache,
+            CancellationToken cancellationToken = default)
+        {
+            _refetches.Enqueue(trackId);
             return Task.CompletedTask;
         }
 

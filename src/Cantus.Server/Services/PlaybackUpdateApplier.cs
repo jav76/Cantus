@@ -40,6 +40,18 @@ public interface IPlaybackUpdateApplier
     /// </summary>
     Task MarkPublisherOfflineAsync(string sessionId, string displayName, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Fetches lyrics for a track that was broadcast without them because the Session was over
+    /// its lyric budget, and broadcasts them with the saved offset. Does nothing once the Session
+    /// has moved on to another track. Playback state is left as it is.
+    /// </summary>
+    Task RefetchLyricsAsync(
+        string sessionId,
+        string trackId,
+        ILyricsProvider lyricsProvider,
+        ILyricsCacheRepository lyricsCache,
+        CancellationToken cancellationToken = default);
+
     void Forget(string sessionId);
 }
 
@@ -156,10 +168,44 @@ public sealed class PlaybackUpdateApplier : IPlaybackUpdateApplier
         await viewers.ReceiveDiagnostics(CreateDiagnostics(sessionId, displayName, STATUS_PUBLISHER_OFFLINE));
     }
 
+    public async Task RefetchLyricsAsync(
+        string sessionId,
+        string trackId,
+        ILyricsProvider lyricsProvider,
+        ILyricsCacheRepository lyricsCache,
+        CancellationToken cancellationToken = default)
+    {
+        if (SnapshotOnTrack(sessionId, trackId)?.PlaybackState?.CurrentTrack is not { } track)
+        {
+            return;
+        }
+
+        SyncedLyrics? lyrics = await FetchLyricsAsync(track, lyricsProvider, sessionId, cancellationToken);
+        int trackOffset = await lyricsCache.GetTrackOffsetAsync(trackId, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (SnapshotOnTrack(sessionId, trackId) is not { } snapshot)
+        {
+            return;
+        }
+
+        _registry.UpdateUserState(sessionId, snapshot.DisplayName, snapshot.PlaybackState, lyrics, trackOffset);
+
+        IPlaybackClient viewers = _hubContext.Clients.Viewers(sessionId);
+        await viewers.ReceiveLyrics(track.ToLyricsDto(lyrics));
+        await viewers.ReceiveTrackOffset(new TrackOffsetDto { TrackId = trackId, OffsetMs = trackOffset });
+    }
+
     public void Forget(string sessionId)
     {
         _lastTrackIdBySession.TryRemove(sessionId, out _);
     }
+
+    private UserPlaybackSnapshot? SnapshotOnTrack(string sessionId, string trackId) =>
+        _registry.GetUserState(sessionId) is { PlaybackState.CurrentTrack.Id: { } currentTrackId } snapshot
+            && string.Equals(currentTrackId, trackId, StringComparison.Ordinal)
+            ? snapshot
+            : null;
 
     private static TimeSpan ProjectProgress(PlaybackState state, DateTimeOffset now)
     {

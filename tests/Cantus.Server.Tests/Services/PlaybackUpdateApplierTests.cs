@@ -119,6 +119,40 @@ public sealed class PlaybackUpdateApplierTests
     }
 
     [Fact]
+    public async Task RefetchLyricsAsync_ForTheCurrentTrack_StoresAndBroadcastsLyricsAndOffsetOnly()
+    {
+        await _applier.ApplyAsync(
+            new PlaybackUpdate(SESSION_ID, DISPLAY_NAME, State(TRACK_ID, isPlaying: true), AllowLyricsFetch: false),
+            _lyricsProvider.Object,
+            _lyricsCache.Object);
+        PlaybackState applied = _registry.GetUserState(SESSION_ID)!.PlaybackState!;
+
+        await _applier.RefetchLyricsAsync(SESSION_ID, TRACK_ID, _lyricsProvider.Object, _lyricsCache.Object);
+
+        UserPlaybackSnapshot snapshot = _registry.GetUserState(SESSION_ID)!;
+        snapshot.Lyrics!.TrackId.Should().Be(TRACK_ID);
+        snapshot.TrackOffsetMs.Should().Be(SAVED_OFFSET_MS);
+        snapshot.PlaybackState.Should().BeSameAs(applied);
+        _owners.Verify(c => c.ReceiveLyrics(It.Is<LyricsDto>(l => l.TrackId == TRACK_ID && l.Lines.Count == 1)), Times.Once);
+        _displays.Verify(c => c.ReceiveLyrics(It.Is<LyricsDto>(l => l.TrackId == TRACK_ID && l.Lines.Count == 1)), Times.Once);
+        _owners.Verify(c => c.ReceiveTrackOffset(It.IsAny<TrackOffsetDto>()), Times.Exactly(2));
+        _owners.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RefetchLyricsAsync_AfterTheTrackChanged_DoesNothing()
+    {
+        await ApplyAsync(State(OTHER_TRACK_ID, isPlaying: true));
+
+        await _applier.RefetchLyricsAsync(SESSION_ID, TRACK_ID, _lyricsProvider.Object, _lyricsCache.Object);
+
+        _lyricsProvider.Verify(
+            p => p.GetLyricsAsync(It.Is<TrackInfo>(t => t.Id == TRACK_ID), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _owners.Verify(c => c.ReceiveLyrics(It.Is<LyricsDto>(l => l.TrackId == TRACK_ID)), Times.Never);
+    }
+
+    [Fact]
     public async Task ApplyAsync_WhenLyricsLookupFails_StillBroadcastsTheTrackWithEmptyLyrics()
     {
         _lyricsProvider.Setup(p => p.GetLyricsAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()))

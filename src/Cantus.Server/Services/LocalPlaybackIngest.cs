@@ -374,6 +374,13 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
                 }
             }
 
+            if (pipeline.LyricRetryPending)
+            {
+                pipeline.LyricRetryPending = false;
+                item = new LyricRetryItem();
+                return true;
+            }
+
             item = null;
             return false;
         }
@@ -404,13 +411,18 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             case PublisherOfflineItem offline:
                 await _applier.MarkPublisherOfflineAsync(pipeline.SessionId, offline.DisplayName, cancellationToken);
                 break;
+
+            case LyricRetryItem:
+                await RetryDeniedLyricsAsync(pipeline, services, cancellationToken);
+                break;
         }
     }
 
     /// <summary>
     /// Counts track changes, not updates: a Session may start at most
-    /// <see cref="LYRIC_FETCHES_PER_MINUTE"/> lyric lookups per rolling minute. Runs on the
-    /// Session's worker only, so it needs no lock.
+    /// <see cref="LYRIC_FETCHES_PER_MINUTE"/> lyric lookups per rolling minute. A track refused
+    /// lyrics gets them once the budget frees up, because the client publishes only on changes
+    /// and may send nothing more while that track plays. Runs on the Session's worker only.
     /// </summary>
     private bool TrySpendLyricBudget(SessionPipeline pipeline, PlaybackState state)
     {
@@ -418,11 +430,56 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         bool trackChanged = trackId is not null
             && !string.Equals(trackId, pipeline.LastTrackId, StringComparison.Ordinal);
         pipeline.LastTrackId = trackId;
+        if (!string.Equals(trackId, pipeline.LyricsDeniedTrackId, StringComparison.Ordinal))
+        {
+            CancelLyricRetry(pipeline);
+        }
+
         if (!trackChanged)
         {
             return true;
         }
 
+        if (!TryTakeLyricFetch(pipeline))
+        {
+            _logger.LogWarning(
+                "Session {SessionRef} is over its lyric budget; sending the new track without lyrics for now",
+                SessionLogRef.For(pipeline.SessionId));
+            pipeline.LyricsDeniedTrackId = trackId;
+            ScheduleLyricRetry(pipeline);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task RetryDeniedLyricsAsync(
+        SessionPipeline pipeline,
+        IServiceProvider services,
+        CancellationToken cancellationToken)
+    {
+        if (pipeline.LyricsDeniedTrackId is not { } trackId)
+        {
+            return;
+        }
+
+        if (!TryTakeLyricFetch(pipeline))
+        {
+            ScheduleLyricRetry(pipeline);
+            return;
+        }
+
+        pipeline.LyricsDeniedTrackId = null;
+        await _applier.RefetchLyricsAsync(
+            pipeline.SessionId,
+            trackId,
+            services.GetRequiredService<ILyricsProvider>(),
+            services.GetRequiredService<ILyricsCacheRepository>(),
+            cancellationToken);
+    }
+
+    private bool TryTakeLyricFetch(SessionPipeline pipeline)
+    {
         DateTimeOffset now = _timeProvider.GetUtcNow();
         while (pipeline.LyricFetches.Count > 0 && pipeline.LyricFetches.Peek() + LyricBudgetWindow <= now)
         {
@@ -431,14 +488,55 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         if (pipeline.LyricFetches.Count >= LYRIC_FETCHES_PER_MINUTE)
         {
-            _logger.LogWarning(
-                "Session {SessionRef} is over its lyric budget; sending the new track without lyrics",
-                SessionLogRef.For(pipeline.SessionId));
             return false;
         }
 
         pipeline.LyricFetches.Enqueue(now);
         return true;
+    }
+
+    /// <summary>Wakes the worker when the oldest lyric fetch leaves the budget window.</summary>
+    private void ScheduleLyricRetry(SessionPipeline pipeline)
+    {
+        TimeSpan due = pipeline.LyricFetches.Peek() + LyricBudgetWindow - _timeProvider.GetUtcNow();
+        lock (_lock)
+        {
+            if (pipeline.Stopping.IsCancellationRequested)
+            {
+                return;
+            }
+
+            pipeline.CancelLyricRetryTimer();
+            pipeline.LyricRetryTimer = _timeProvider.CreateTimer(
+                _ => OnLyricRetryDue(pipeline),
+                null,
+                due > TimeSpan.Zero ? due : TimeSpan.Zero,
+                Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void OnLyricRetryDue(SessionPipeline pipeline)
+    {
+        lock (_lock)
+        {
+            if (pipeline.Stopping.IsCancellationRequested)
+            {
+                return;
+            }
+
+            pipeline.LyricRetryPending = true;
+            pipeline.Signal();
+        }
+    }
+
+    private void CancelLyricRetry(SessionPipeline pipeline)
+    {
+        pipeline.LyricsDeniedTrackId = null;
+        lock (_lock)
+        {
+            pipeline.CancelLyricRetryTimer();
+            pipeline.LyricRetryPending = false;
+        }
     }
 
     private async Task TouchIfDueAsync(
@@ -615,6 +713,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
     private sealed record PublisherOfflineItem(string DisplayName) : WorkItem;
 
+    private sealed record LyricRetryItem : WorkItem;
+
     private sealed class ConnectionState
     {
         private double _tokens = TOKEN_BUCKET_BURST;
@@ -668,6 +768,15 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         public ITimer? GraceTimer { get; set; }
 
+        /// <summary>Fires when a track refused lyrics may have them. Guarded by the ingest lock.</summary>
+        public ITimer? LyricRetryTimer { get; set; }
+
+        /// <summary>Set when <see cref="LyricRetryTimer"/> fires. Guarded by the ingest lock.</summary>
+        public bool LyricRetryPending { get; set; }
+
+        /// <summary>The current track, when it was broadcast without lyrics over the budget. Worker only.</summary>
+        public string? LyricsDeniedTrackId { get; set; }
+
         /// <summary>The newest update not yet applied; a newer one replaces it. Guarded by the ingest lock.</summary>
         public ApplyItem? PendingApply { get; set; }
 
@@ -701,9 +810,16 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             GraceTimer = null;
         }
 
+        public void CancelLyricRetryTimer()
+        {
+            LyricRetryTimer?.Dispose();
+            LyricRetryTimer = null;
+        }
+
         public void Stop()
         {
             CancelGraceTimer();
+            CancelLyricRetryTimer();
             Stopping.Cancel();
             Wakeups.Writer.TryComplete();
         }
