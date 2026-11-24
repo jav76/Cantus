@@ -89,6 +89,21 @@ builder.Services.AddProblemDetails();
 string? dataDir = Environment.GetEnvironmentVariable("DATA_DIR")
     ?? (Directory.Exists("/app/data") ? "/app/data" : null);
 
+IReadOnlyList<string> inaccessiblePaths = DataDirectoryAccessCheck.FindInaccessiblePaths(dataDir, connStr);
+if (inaccessiblePaths.Count > 0)
+{
+    using ILoggerFactory startupLoggerFactory = LoggerFactory.Create(logging => logging.AddProvider(new Log4NetLoggerProvider()));
+    startupLoggerFactory.CreateLogger("Cantus.Startup").LogCritical(
+        "{Message}",
+        DataDirectoryAccessCheck.BuildFixMessage(
+            inaccessiblePaths,
+            dataDir,
+            DataDirectoryAccessCheck.GetCurrentUserId(),
+            builder.Configuration.GetValue<bool>("DOTNET_RUNNING_IN_CONTAINER")));
+    Environment.ExitCode = 1;
+    return;
+}
+
 if (!string.IsNullOrEmpty(dataDir))
 {
     Directory.CreateDirectory(dataDir);

@@ -35,7 +35,10 @@ services:
       # nothing here; only set this if you host the client separately.
       # - Cors__AllowedOrigins__0=https://lyrics.mydomain.com
     volumes:
-      # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys
+      # Persistent storage for SQLite database (cantus.db) and DataProtection encryption keys.
+      # The image runs as uid 1654. A volume created by an older image that ran as root
+      # needs this once before upgrading (see docs/operator-guide/self-hosting.md):
+      #   docker compose run --rm --no-deps --user 0 --entrypoint chown cantus -R 1654:1654 /app/data
       - cantus-data:/app/data
     networks:
       - cantus-net

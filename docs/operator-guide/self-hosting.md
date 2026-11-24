@@ -110,6 +110,25 @@ docker compose pull
 docker compose up -d --remove-orphans
 ```
 
+### Upgrading from an Image That Ran as Root
+
+Images built before November 2026 ran as root, so the files they wrote to `/app/data` are owned by root. The current image runs as uid `1654` and cannot write them. On the first start after upgrading, Cantus stops with exit code 1 and logs `Cantus cannot use its data files`, followed by the paths it cannot use.
+
+Fix the ownership once, then start Cantus again:
+
+```bash
+docker compose run --rm --no-deps --user 0 --entrypoint chown cantus -R 1654:1654 /app/data
+docker compose up -d
+```
+
+Without Compose, use your volume and image names:
+
+```bash
+docker run --rm --user 0 -v cantus_data:/app/data --entrypoint chown ghcr.io/jav76/cantus:latest -R 1654:1654 /app/data
+```
+
+For a bind mount such as `./data:/app/data`, run `sudo chown -R 1654:1654 ./data` on the host. New installs are not affected.
+
 ---
 
 ## 6. Let People Use Their Own Players

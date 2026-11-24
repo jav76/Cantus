@@ -82,7 +82,7 @@ public static class DatabaseMigrator
         return backupPath;
     }
 
-    private static string? GetDatabaseFilePath(string? connectionString)
+    internal static string? GetDatabaseFilePath(string? connectionString)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
