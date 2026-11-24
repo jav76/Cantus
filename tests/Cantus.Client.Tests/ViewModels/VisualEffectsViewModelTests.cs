@@ -12,7 +12,7 @@ namespace Cantus.Client.Tests.ViewModels;
 public sealed class VisualEffectsViewModelTests
 {
     [Fact]
-    public void Constructor_EmptyStore_GrainAndBlurOn_VignetteAndScanlinesOff()
+    public void Constructor_EmptyStore_GrainBlurAndVuMeterOn_VignetteAndScanlinesOff()
     {
         // Act
         VisualEffectsViewModel effects = new(new ClientPreferences(new InMemorySettingsStore()));
@@ -20,9 +20,11 @@ public sealed class VisualEffectsViewModelTests
         // Assert
         effects.IsFilmGrainEnabled.Should().BeTrue();
         effects.IsBackgroundBlurEnabled.Should().BeTrue();
+        effects.IsVuMeterEnabled.Should().BeTrue();
         effects.IsVignetteEnabled.Should().BeFalse();
         effects.IsScanlinesEnabled.Should().BeFalse();
         effects.FilmGrainVisibility.Should().Be(Visibility.Visible);
+        effects.VuMeterVisibility.Should().Be(Visibility.Visible);
         effects.VignetteVisibility.Should().Be(Visibility.Collapsed);
         effects.ScanlinesVisibility.Should().Be(Visibility.Collapsed);
         effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Visible);
@@ -128,7 +130,7 @@ public sealed class VisualEffectsViewModelTests
         {
             if (other != effect)
             {
-                effects.IsEnabled(other).Should().BeFalse();
+                effects.IsEnabled(other).Should().Be(other == VisualEffect.VuMeter);
             }
         }
     }
@@ -171,12 +173,33 @@ public sealed class VisualEffectsViewModelTests
         effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Collapsed);
     }
 
+    [Fact]
+    public void DisablingTheVuMeter_PersistsAndNotifiesWithoutShowingTheOverlay()
+    {
+        // Arrange
+        ClientPreferences preferences = new(new InMemorySettingsStore());
+        VisualEffectsViewModel effects = new(preferences);
+        Visibility overlayBefore = effects.AnyOverlayEffectVisibility;
+        List<string?> notified = [];
+        effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        effects.SetEnabled(VisualEffect.VuMeter, false);
+
+        // Assert
+        notified.Should().Equal(nameof(VisualEffectsViewModel.IsVuMeterEnabled), nameof(VisualEffectsViewModel.VuMeterVisibility));
+        effects.VuMeterVisibility.Should().Be(Visibility.Collapsed);
+        preferences.IsVuMeterEnabled.Should().BeFalse();
+        effects.AnyOverlayEffectVisibility.Should().Be(overlayBefore);
+    }
+
     [Theory]
-    [InlineData(VisualEffect.FilmGrain)]
-    [InlineData(VisualEffect.Vignette)]
-    [InlineData(VisualEffect.Scanlines)]
-    [InlineData(VisualEffect.BackgroundBlur)]
-    public void SettingTheCurrentValue_DoesNotNotify(VisualEffect effect)
+    [InlineData(VisualEffect.FilmGrain, false)]
+    [InlineData(VisualEffect.Vignette, false)]
+    [InlineData(VisualEffect.Scanlines, false)]
+    [InlineData(VisualEffect.BackgroundBlur, false)]
+    [InlineData(VisualEffect.VuMeter, true)]
+    public void SettingTheCurrentValue_DoesNotNotify(VisualEffect effect, bool defaultValue)
     {
         // Arrange
         VisualEffectsViewModel effects = new(AllEffectsOff());
@@ -184,7 +207,7 @@ public sealed class VisualEffectsViewModelTests
         effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
         // Act
-        effects.SetEnabled(effect, false);
+        effects.SetEnabled(effect, defaultValue);
 
         // Assert
         notified.Should().BeEmpty();
@@ -215,8 +238,10 @@ public sealed class VisualEffectsViewModelTests
             VisualEffect.FilmGrain,
             VisualEffect.Vignette,
             VisualEffect.Scanlines,
-            VisualEffect.BackgroundBlur);
+            VisualEffect.BackgroundBlur,
+            VisualEffect.VuMeter);
         VisualEffect.BackgroundBlur.GetDisplayName().Should().Contain("Dynamic theme");
+        VisualEffect.VuMeter.GetDisplayName().Should().Be("Seek bar VU meter");
     }
 
     private static ClientPreferences AllEffectsOff() => new(new InMemorySettingsStore())

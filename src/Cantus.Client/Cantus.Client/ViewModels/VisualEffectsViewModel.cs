@@ -11,8 +11,9 @@ namespace Cantus.Client.ViewModels;
 /// <summary>
 /// The per-device post-processing effects. Grain, vignette and scanlines are
 /// overlay layers drawn over every theme; background blur swaps the Dynamic
-/// theme's album art backdrop for a blurred copy. Each toggle persists
-/// immediately. Film grain and background blur default to on, vignette and
+/// theme's album art backdrop for a blurred copy, and the VU meter draws level
+/// bars over the played part of the seek bar. Each toggle persists immediately.
+/// Film grain, background blur and the VU meter default to on, vignette and
 /// scanlines to off, and a paired Display shows no grain until it is chosen
 /// there (<see cref="ApplyDeviceRole"/>).
 /// </summary>
@@ -26,6 +27,7 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
     private bool _isVignetteEnabled;
     private bool _isScanlinesEnabled;
     private bool _isBackgroundBlurEnabled;
+    private bool _isVuMeterEnabled;
 
     public VisualEffectsViewModel(IClientPreferences preferences)
     {
@@ -34,6 +36,7 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
         _isVignetteEnabled = preferences.IsVignetteEnabled;
         _isScanlinesEnabled = preferences.IsScanlinesEnabled;
         _isBackgroundBlurEnabled = preferences.IsBackgroundBlurEnabled;
+        _isVuMeterEnabled = preferences.IsVuMeterEnabled;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -91,6 +94,25 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsVuMeterEnabled
+    {
+        get => _isVuMeterEnabled;
+        set
+        {
+            if (_isVuMeterEnabled == value)
+            {
+                return;
+            }
+
+            _isVuMeterEnabled = value;
+            _preferences.IsVuMeterEnabled = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(VuMeterVisibility));
+        }
+    }
+
+    public Visibility VuMeterVisibility => ToVisibility(_isVuMeterEnabled);
+
     public Visibility FilmGrainVisibility => ToVisibility(_isFilmGrainEnabled);
 
     public Visibility VignetteVisibility => ToVisibility(_isVignetteEnabled);
@@ -120,6 +142,7 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
         VisualEffect.Vignette => IsVignetteEnabled,
         VisualEffect.Scanlines => IsScanlinesEnabled,
         VisualEffect.BackgroundBlur => IsBackgroundBlurEnabled,
+        VisualEffect.VuMeter => IsVuMeterEnabled,
         _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, null),
     };
 
@@ -138,6 +161,9 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
                 break;
             case VisualEffect.BackgroundBlur:
                 IsBackgroundBlurEnabled = isEnabled;
+                break;
+            case VisualEffect.VuMeter:
+                IsVuMeterEnabled = isEnabled;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(effect), effect, null);

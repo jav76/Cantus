@@ -112,7 +112,20 @@
                             <CheckBox Content="Blur album background"
                                       IsChecked="{x:Bind Effects.IsBackgroundBlurEnabled, Mode=TwoWay}"
                                       Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+                            <CheckBox Content="Seek bar VU meter"
+                                      IsChecked="{x:Bind Effects.IsVuMeterEnabled, Mode=TwoWay}"
+                                      Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                         </StackPanel>
+                        <ComboBox Header="VU meter levels"
+                                  ItemsSource="{x:Bind VuMeter.AvailableSourceNames, Mode=OneWay}"
+                                  SelectedIndex="{x:Bind VuMeter.SelectedSourceIndex, Mode=TwoWay}"
+                                  Visibility="{x:Bind VuMeter.SourcePickerVisibility, Mode=OneWay}"
+                                  HorizontalAlignment="Stretch"
+                                  AutomationProperties.Name="VU meter levels" />
+                        <TextBlock Text="{x:Bind VuMeter.StatusText, Mode=OneWay}"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                         <TextBlock Text="Saved on this device. Background blur applies to the Dynamic theme only."
                                    FontSize="11"
                                    TextWrapping="Wrap"

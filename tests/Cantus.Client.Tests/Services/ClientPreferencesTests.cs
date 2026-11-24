@@ -35,7 +35,57 @@ public sealed class ClientPreferencesTests
         preferences.IsVignetteEnabled.Should().BeFalse();
         preferences.IsScanlinesEnabled.Should().BeFalse();
         preferences.IsBackgroundBlurEnabled.Should().BeTrue();
+        preferences.IsVuMeterEnabled.Should().BeTrue();
+        preferences.VuMeterSource.Should().BeNull();
         preferences.LatencyCompensationMs.Should().Be(DEFAULT_LATENCY_MS);
+    }
+
+    [Theory]
+    [InlineData(VuMeterSource.Decorative)]
+    [InlineData(VuMeterSource.SharedAudio)]
+    public void VuMeterSettings_RoundTripUnderTheirKeys(VuMeterSource source)
+    {
+        // Arrange
+        InMemorySettingsStore store = new();
+        ClientPreferences writer = new(store);
+
+        // Act
+        writer.IsVuMeterEnabled = false;
+        writer.VuMeterSource = source;
+        ClientPreferences reader = new(store);
+
+        // Assert
+        reader.IsVuMeterEnabled.Should().BeFalse();
+        reader.VuMeterSource.Should().Be(source);
+        store.Values["cantus_fx_vu_meter"].Should().Be(false);
+        store.Values["cantus_vu_meter_source"].Should().Be(source.ToString());
+    }
+
+    [Fact]
+    public void VuMeterSource_SetToNull_ReadsAsNull()
+    {
+        // Arrange
+        ClientPreferences preferences = new(new InMemorySettingsStore()) { VuMeterSource = VuMeterSource.Microphone };
+
+        // Act
+        preferences.VuMeterSource = null;
+
+        // Assert
+        preferences.VuMeterSource.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("Theremin")]
+    [InlineData("99")]
+    [InlineData(NON_BOOLEAN_VALUE)]
+    public void VuMeterSource_UnknownStoredValue_ReadsAsNull(object stored)
+    {
+        // Arrange
+        InMemorySettingsStore store = new();
+        store.SetValue("cantus_vu_meter_source", stored);
+
+        // Act / Assert
+        new ClientPreferences(store).VuMeterSource.Should().BeNull();
     }
 
     [Fact]

@@ -35,11 +35,11 @@
                 <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
-            <!-- Progress Bar (click to seek; hover shows a scrub thumb) -->
+            <!-- Progress Bar (click to seek; hover shows a scrub thumb and holds the VU meter still) -->
             <Grid x:Name="SeekArea"
                   Grid.Column="2"
                   Background="Transparent"
-                  MinHeight="18"
+                  MinHeight="28"
                   VerticalAlignment="Center"
                   Margin="{x:Bind GetProgressMargin(Layout.IsKioskBarCompact, Layout.IsKioskBarStacked), Mode=OneWay}"
                   IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
@@ -47,7 +47,14 @@
                   PointerEntered="OnSeekBarPointerEntered"
                   PointerMoved="OnSeekBarPointerMoved"
                   PointerExited="OnSeekBarPointerExited"
+                  PointerCanceled="OnSeekBarPointerExited"
                   ToolTipService.ToolTip="Seek">
+                <views:VuMeterBars Meter="{x:Bind ViewModel.VuMeter, Mode=OneWay}"
+                                   Progress="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
+                                   BarBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                   Height="28"
+                                   Opacity="0.85"
+                                   VerticalAlignment="Center" />
                 <ProgressBar x:Name="SeekProgressBar"
                              Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                              Minimum="0"

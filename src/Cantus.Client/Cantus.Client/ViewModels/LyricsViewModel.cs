@@ -66,6 +66,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     internal const double BLURRED_AMBIENT_SCRIM_OPACITY = 0.86;
     private readonly AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource> _ambientBackdrop;
     private readonly VisualEffectsViewModel _effects;
+    private readonly VuMeterViewModel _vuMeter;
     private const int THEME_TOAST_DURATION_MS = 2000;
     private readonly DispatcherTimer _themeToastTimer;
     private string _themeToastText = string.Empty;
@@ -77,6 +78,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     public PlaybackTiming Timing => _timing;
     public SessionViewModel Session => _session;
     public VisualEffectsViewModel Effects => _effects;
+    public VuMeterViewModel VuMeter => _vuMeter;
     public DisplayPairingViewModel Pairing => _pairing;
     public LyricsPickerViewModel LyricsPicker => _lyricsPicker;
     public SongLookupViewModel Lookup => _lookup;
@@ -493,7 +495,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         IDisplayManagementApi? displaysApi = null,
         PendingPairCodeStore? pendingPairCodes = null,
         ILyricsCorrectionService? lyricsCorrection = null,
-        ISongLookupClient? lookupClient = null)
+        ISongLookupClient? lookupClient = null,
+        IAudioLevelSourceProvider? audioLevelSources = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -503,6 +506,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
         _effects = new VisualEffectsViewModel(_preferences);
         _effects.PropertyChanged += OnEffectsPropertyChanged;
+        _vuMeter = new VuMeterViewModel(
+            _preferences,
+            audioLevelSources,
+            ClientLoggingManager.CreateLogger<VuMeterViewModel>());
         _ambientBackdrop = new AmbientBackdrop<Microsoft.UI.Xaml.Media.ImageSource>(
             CreateSharpBackdrop,
             CreateBlurredBackdropAsync,
@@ -634,6 +641,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public async Task InitializeAsync()
     {
+        _ = _vuMeter.ActivateAsync();
         await _client.StartAsync();
     }
 
@@ -693,6 +701,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (e.PropertyName == nameof(VisualEffectsViewModel.IsBackgroundBlurEnabled))
         {
             UpdateAmbientBackground();
+        }
+        else if (e.PropertyName == nameof(VisualEffectsViewModel.IsVuMeterEnabled))
+        {
+            _vuMeter.IsEnabled = _effects.IsVuMeterEnabled;
         }
     }
 
@@ -1078,6 +1090,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             ProgressText = "00:00";
             TotalDurationText = "00:00";
             IsInstrumentalBreak = false;
+            _vuMeter.Update(Environment.TickCount64, null, 0, isPlaying: false);
             return;
         }
 
@@ -1094,6 +1107,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ProgressFraction = (double)currentWithOffset / durationMs;
         ProgressText = FormatTime(currentWithOffset);
         TotalDurationText = FormatTime(durationMs);
+        _vuMeter.Update(Environment.TickCount64, track.Id, currentWithOffset, state.IsPlaying);
 
         UpdateActiveLyricLine(currentWithOffset);
     }

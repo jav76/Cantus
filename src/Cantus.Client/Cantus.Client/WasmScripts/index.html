@@ -263,6 +263,116 @@
             }
         };
 
+        // Live levels for the seek bar VU meter (Services/Audio/BrowserAudioLevelSource.cs).
+        // Each start carries a session id so a superseded capture can never stop or feed a newer one.
+        window.CantusAudio = (function() {
+            var current = null;
+            var latestId = 0;
+
+            function release(capture) {
+                capture.stream.getTracks().forEach(function(track) { track.stop(); });
+                capture.context.close().catch(function() {});
+            }
+
+            function stopAll(stream) {
+                stream.getTracks().forEach(function(track) { track.stop(); });
+            }
+
+            return {
+                supports: function(kind) {
+                    var devices = navigator.mediaDevices;
+                    if (!window.isSecureContext || !devices || !(window.AudioContext || window.webkitAudioContext)) {
+                        return false;
+                    }
+                    return kind === "microphone"
+                        ? typeof devices.getUserMedia === "function"
+                        : typeof devices.getDisplayMedia === "function";
+                },
+                start: async function(kind, id) {
+                    latestId = id;
+                    if (current) {
+                        release(current);
+                        current = null;
+                    }
+
+                    var stream;
+                    try {
+                        stream = kind === "microphone"
+                            ? await navigator.mediaDevices.getUserMedia({
+                                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true }
+                            })
+                            : await navigator.mediaDevices.getDisplayMedia({
+                                video: true,
+                                audio: true,
+                                systemAudio: "include",
+                                selfBrowserSurface: "exclude"
+                            });
+                    } catch (e) {
+                        return e && (e.name === "NotAllowedError" || e.name === "SecurityError") ? "denied" : "error";
+                    }
+
+                    if (id !== latestId) {
+                        stopAll(stream);
+                        return "superseded";
+                    }
+
+                    // Only the audio is analysed; dropping the video track saves the screen capture work.
+                    stream.getVideoTracks().forEach(function(track) { track.stop(); });
+                    var audioTracks = stream.getAudioTracks();
+                    if (audioTracks.length === 0) {
+                        stopAll(stream);
+                        return "no-audio";
+                    }
+
+                    var AudioContextType = window.AudioContext || window.webkitAudioContext;
+                    var context = new AudioContextType();
+                    var analyser = context.createAnalyser();
+                    analyser.fftSize = 2048;
+                    analyser.smoothingTimeConstant = 0.5;
+                    analyser.minDecibels = -80;
+                    analyser.maxDecibels = -22;
+                    context.createMediaStreamSource(stream).connect(analyser);
+
+                    var capture = {
+                        id: id,
+                        stream: stream,
+                        context: context,
+                        analyser: analyser,
+                        bins: new Uint8Array(analyser.frequencyBinCount),
+                        ended: false
+                    };
+                    audioTracks.forEach(function(track) {
+                        track.addEventListener("ended", function() { capture.ended = true; });
+                    });
+
+                    if (context.state === "suspended") {
+                        context.resume().catch(function() {});
+                        document.addEventListener("pointerdown", function() { context.resume().catch(function() {}); }, { once: true });
+                    }
+
+                    current = capture;
+                    return "ok";
+                },
+                readBins: function(id, view) {
+                    if (!current || current.id !== id || current.ended) {
+                        return -1;
+                    }
+                    if (current.context.state !== "running") {
+                        return 0;
+                    }
+                    current.analyser.getByteFrequencyData(current.bins);
+                    view.set(current.bins);
+                    return current.context.sampleRate;
+                },
+                stop: function(id) {
+                    if (current && current.id === id) {
+                        release(current);
+                        current = null;
+                    }
+                }
+            };
+        })();
+
         (function() {
             function initLoader() {
                 var defaultLoader = document.querySelector(".uno-loader");

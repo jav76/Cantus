@@ -66,16 +66,24 @@
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <!-- Progress Bar & Timestamps (click to seek; hover shows a scrub thumb) -->
+                    <!-- Progress Bar & Timestamps (click to seek; hover shows a scrub thumb and holds the VU meter still) -->
                     <StackPanel Spacing="6">
-                        <Grid Background="Transparent"
-                              MinHeight="18"
+                        <Grid x:Name="SeekArea"
+                              Background="Transparent"
+                              MinHeight="36"
                               IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                               PointerReleased="OnProgressBarPointerReleased"
                               PointerEntered="OnSeekBarPointerEntered"
                               PointerMoved="OnSeekBarPointerMoved"
                               PointerExited="OnSeekBarPointerExited"
+                              PointerCanceled="OnSeekBarPointerExited"
                               ToolTipService.ToolTip="Seek">
+                            <views:VuMeterBars Meter="{x:Bind ViewModel.VuMeter, Mode=OneWay}"
+                                               Progress="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
+                                               BarBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                               Height="36"
+                                               Opacity="0.85"
+                                               VerticalAlignment="Center" />
                             <ProgressBar x:Name="SeekProgressBar"
                                          Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                                          Minimum="0"

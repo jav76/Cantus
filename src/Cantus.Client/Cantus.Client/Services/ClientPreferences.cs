@@ -13,6 +13,7 @@ public sealed class ClientPreferences : IClientPreferences
     public const bool DEFAULT_VIGNETTE_ENABLED = false;
     public const bool DEFAULT_SCANLINES_ENABLED = false;
     public const bool DEFAULT_BACKGROUND_BLUR_ENABLED = true;
+    public const bool DEFAULT_VU_METER_ENABLED = true;
 
     private const string KEY_THEME = "cantus_theme";
     private const string KEY_AUTOSCROLL = "cantus_autoscroll";
@@ -22,6 +23,8 @@ public sealed class ClientPreferences : IClientPreferences
     private const string KEY_VIGNETTE = "cantus_fx_vignette";
     private const string KEY_SCANLINES = "cantus_fx_scanlines";
     private const string KEY_BACKGROUND_BLUR = "cantus_fx_background_blur";
+    private const string KEY_VU_METER = "cantus_fx_vu_meter";
+    private const string KEY_VU_METER_SOURCE = "cantus_vu_meter_source";
     private const bool DEFAULT_AUTOSCROLL_ENABLED = true;
     private const bool DEFAULT_KARAOKE_ENABLED = true;
 
@@ -79,6 +82,20 @@ public sealed class ClientPreferences : IClientPreferences
     {
         get => ReadBool(KEY_BACKGROUND_BLUR) ?? DEFAULT_BACKGROUND_BLUR_ENABLED;
         set => _store.SetValue(KEY_BACKGROUND_BLUR, value);
+    }
+
+    public bool IsVuMeterEnabled
+    {
+        get => ReadBool(KEY_VU_METER) ?? DEFAULT_VU_METER_ENABLED;
+        set => _store.SetValue(KEY_VU_METER, value);
+    }
+
+    public VuMeterSource? VuMeterSource
+    {
+        get => _store.GetValue(KEY_VU_METER_SOURCE) is string s && Enum.TryParse(s, out VuMeterSource source) && Enum.IsDefined(source)
+            ? source
+            : null;
+        set => _store.SetValue(KEY_VU_METER_SOURCE, value?.ToString() ?? string.Empty);
     }
 
     public int LatencyCompensationMs

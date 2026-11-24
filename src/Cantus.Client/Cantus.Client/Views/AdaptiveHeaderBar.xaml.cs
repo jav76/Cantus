@@ -102,9 +102,9 @@ public sealed partial class AdaptiveHeaderBar : UserControl
 
         // Radio groups are tracked by name across the app, so each header gets its own names.
         string groupPrefix = $"CantusTheme-{Guid.NewGuid():N}";
-        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnEffectToggled);
-        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnEffectToggled);
-        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnEffectToggled);
+        ThemeMenuItems.Populate(LargeThemeMenu.Items, $"{groupPrefix}-Large", OnThemeSelected, OnEffectToggled, OnMeterSourceSelected);
+        ThemeMenuItems.Populate(MediumThemeMenu.Items, $"{groupPrefix}-Medium", OnThemeSelected, OnEffectToggled, OnMeterSourceSelected);
+        ThemeMenuItems.Populate(SmallThemeMenu.Items, $"{groupPrefix}-Small", OnThemeSelected, OnEffectToggled, OnMeterSourceSelected);
 
         Loaded += (s, e) =>
         {
@@ -129,6 +129,11 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         ViewModel?.Effects.SetEnabled(effect, isEnabled);
     }
 
+    private void OnMeterSourceSelected(VuMeterSource source)
+    {
+        ViewModel?.VuMeter.SelectSource(source);
+    }
+
     private void OnThemeMenuOpening(object sender, object e)
     {
         SyncThemeMenus();
@@ -140,6 +145,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         {
             _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _subscribedViewModel.Effects.PropertyChanged -= OnEffectsChanged;
+            _subscribedViewModel.VuMeter.PropertyChanged -= OnVuMeterChanged;
             _subscribedViewModel.Theme.PropertyChanged -= OnThemeStateChanged;
         }
 
@@ -149,6 +155,7 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         {
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.Effects.PropertyChanged += OnEffectsChanged;
+            viewModel.VuMeter.PropertyChanged += OnVuMeterChanged;
             viewModel.Theme.PropertyChanged += OnThemeStateChanged;
         }
 
@@ -227,14 +234,24 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         SyncThemeMenus();
     }
 
+    private void OnVuMeterChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(VuMeterViewModel.ModeSummary)
+            or nameof(VuMeterViewModel.SelectedSource)
+            or nameof(VuMeterViewModel.SourcePickerVisibility))
+        {
+            SyncThemeMenus();
+        }
+    }
+
     private void SyncThemeMenus()
     {
         if (ViewModel is null) return;
         ThemeMode mode = ViewModel.Theme.CurrentMode;
         VisualEffectsViewModel effects = ViewModel.Effects;
-        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, effects);
-        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, effects);
-        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, effects);
+        ThemeMenuItems.Sync(LargeThemeMenu.Items, mode, effects, ViewModel.VuMeter);
+        ThemeMenuItems.Sync(MediumThemeMenu.Items, mode, effects, ViewModel.VuMeter);
+        ThemeMenuItems.Sync(SmallThemeMenu.Items, mode, effects, ViewModel.VuMeter);
     }
 
     private async void OnOpenDiagnosticsHudClicked(object sender, RoutedEventArgs e)
