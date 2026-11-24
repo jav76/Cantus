@@ -63,6 +63,11 @@
     <PackageReference Include="Tmds.DBus.Protocol" />
   </ItemGroup>
 
+  <!-- The SDK precompresses .otf but not .ttf; the fonts shrink by about 60% as brotli. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <CompressionIncludePatterns>$(CompressionIncludePatterns);**/*.ttf</CompressionIncludePatterns>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <EmbeddedResource Include="WasmScripts\AppManifest.js" />
   </ItemGroup>

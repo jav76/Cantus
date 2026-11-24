@@ -317,11 +317,17 @@ flowchart LR
 
 | Platform Target | Target Framework | UI Backend | Packaging (release workflow) |
 | :--- | :--- | :--- | :--- |
-| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries), as the `.br` or `.gz` files the publish writes next to each asset when the browser accepts them (`PrecompressedStaticFiles`). |
+| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries), as the `.br` or `.gz` files the publish writes next to each asset when the browser accepts them (`PrecompressedStaticFiles`). `.ttf` fonts are added to the SDK's compressed types in the client project. |
 | **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`) for `linux-x64`. `linux-arm64` is build-from-source. |
 | **Windows Desktop** | `net10.0-desktop` (`win-x64`) | Skia (Win32) | `.zip` and Inno Setup installer (`packaging/windows`). |
 | **macOS Desktop** | `net10.0-desktop` (`osx-x64`, `osx-arm64`) | Skia (macOS) | `.tar.gz`. |
 
 The WASM build runs C# in the Mono interpreter (no AOT) and keeps the SDK's Release defaults for the native runtime: `dotnet.native.wasm` is linked at `-O2` and stripped of DWARF debug info. Turning the strip off made that file 13.3 MB instead of 2.9 MB. AOT (`WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT`) made the brotli download 2x larger and the publish about 6x slower, for CPU gains the app does not need.
+
+**Caching.** `PrecompressedStaticFiles` sets `Cache-Control` on every static response. Files in `_framework` carry a content hash in their name and are `immutable` for a year. Everything else (`index.html`, client routes, `service-worker.js` and the `package_<hash>` folder, whose name does not change with every build) is `no-cache`, so the browser revalidates it with its ETag and a deploy is picked up on the next load.
+
+**No third-party requests.** The page loads nothing from other sites. The loading screen in `WasmScripts/index.html` uses the bundled Figtree and Noto Sans Mono files (their folder is read from the bootstrap script tag), the tab icon is an inline SVG, and the hidden default Uno loader has no `<img>`, which the bootstrapper would otherwise fill from Uno's CDN. A script in the same file gives each `<img>` the DOM renderer creates an `alt` (the control's accessible name when Uno exposes one, otherwise empty).
+
+**Lottie stays.** `lottie.js` and `Uno.UI.Lottie` come with the `Material` feature, and Material's default `ProgressRing` style is a Lottie animation, so the app's progress rings need them.
 
 The client project also has a `net10.0-windows10.0.26100` (WinUI) target when built on Windows, but releases ship the Skia desktop build.

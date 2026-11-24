@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Cantus.Server.Middleware;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,8 +10,9 @@ namespace Cantus.Server.Tests.Middleware;
 
 public sealed class PrecompressedStaticFilesTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
-    private const string WASM_PATH = "/_framework/dotnet.native.wasm";
-    private const string PLAIN_PATH = "/_framework/blazor.boot.json";
+    private const string WASM_PATH = "/_framework/dotnet.native.3de749s1ug.wasm";
+    private const string PLAIN_PATH = "/package_abc/uno-config.js";
+    private const string PLAIN_BODY = "let config = {};";
     private const string ORIGINAL_BODY = "original";
     private const string BROTLI_BODY = "brotli";
     private const string GZIP_BODY = "gzip";
@@ -25,10 +27,12 @@ public sealed class PrecompressedStaticFilesTests : IClassFixture<WebApplication
         _webRoot = Directory.CreateTempSubdirectory("cantus-webroot-").FullName;
         string framework = Directory.CreateDirectory(Path.Combine(_webRoot, "_framework")).FullName;
 
-        File.WriteAllText(Path.Combine(framework, "dotnet.native.wasm"), ORIGINAL_BODY);
-        File.WriteAllText(Path.Combine(framework, "dotnet.native.wasm.br"), BROTLI_BODY);
-        File.WriteAllText(Path.Combine(framework, "dotnet.native.wasm.gz"), GZIP_BODY);
-        File.WriteAllText(Path.Combine(framework, "blazor.boot.json"), "{}");
+        string package = Directory.CreateDirectory(Path.Combine(_webRoot, "package_abc")).FullName;
+
+        File.WriteAllText(Path.Combine(framework, "dotnet.native.3de749s1ug.wasm"), ORIGINAL_BODY);
+        File.WriteAllText(Path.Combine(framework, "dotnet.native.3de749s1ug.wasm.br"), BROTLI_BODY);
+        File.WriteAllText(Path.Combine(framework, "dotnet.native.3de749s1ug.wasm.gz"), GZIP_BODY);
+        File.WriteAllText(Path.Combine(package, "uno-config.js"), PLAIN_BODY);
         File.WriteAllText(Path.Combine(_webRoot, "index.html"), INDEX_BODY);
         File.WriteAllText(Path.Combine(_webRoot, "index.html.br"), INDEX_BROTLI_BODY);
 
@@ -81,7 +85,7 @@ public sealed class PrecompressedStaticFilesTests : IClassFixture<WebApplication
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         response.Content.Headers.ContentEncoding.Should().BeEmpty();
         response.Headers.Vary.Should().NotContain("Accept-Encoding");
-        (await response.Content.ReadAsStringAsync()).Should().Be("{}");
+        (await response.Content.ReadAsStringAsync()).Should().Be(PLAIN_BODY);
     }
 
     [Fact]
@@ -106,15 +110,90 @@ public sealed class PrecompressedStaticFilesTests : IClassFixture<WebApplication
         (await response.Content.ReadAsStringAsync()).Should().Be(INDEX_BROTLI_BODY);
     }
 
-    [Fact]
-    public async Task Get_ClientRoute_StillFallsBackToIndex()
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/kiosk/display")]
+    public async Task Get_ClientRoute_FallsBackToCompressedIndexThatIsRevalidated(string path)
     {
-        HttpResponseMessage response = await SendAsync(HttpMethod.Get, "/kiosk/display", "br");
+        HttpResponseMessage response = await SendAsync(HttpMethod.Get, path, "br");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentEncoding.Should().Equal("br");
+        response.Content.Headers.ContentType!.MediaType.Should().Be("text/html");
+        response.Headers.CacheControl!.ToString().Should().Be(PrecompressedStaticFiles.REVALIDATE_CACHE_CONTROL);
+        (await response.Content.ReadAsStringAsync()).Should().Be(INDEX_BROTLI_BODY);
+    }
+
+    [Fact]
+    public async Task Get_ClientRouteWithoutAcceptedEncoding_FallsBackToOriginalIndex()
+    {
+        HttpResponseMessage response = await SendAsync(HttpMethod.Get, "/kiosk/display", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         response.Content.Headers.ContentEncoding.Should().BeEmpty();
-        response.Content.Headers.ContentType!.MediaType.Should().Be("text/html");
         (await response.Content.ReadAsStringAsync()).Should().Be(INDEX_BODY);
+    }
+
+    [Theory]
+    [InlineData("br")]
+    [InlineData(null)]
+    public async Task Get_FingerprintedFrameworkFile_IsCachedAsImmutable(string? acceptEncoding)
+    {
+        HttpResponseMessage response = await SendAsync(HttpMethod.Get, WASM_PATH, acceptEncoding);
+
+        response.Headers.CacheControl!.ToString().Should().Be(PrecompressedStaticFiles.IMMUTABLE_CACHE_CONTROL);
+    }
+
+    [Theory]
+    [InlineData(PLAIN_PATH)]
+    [InlineData("/index.html")]
+    public async Task Get_FileWithoutContentHash_IsRevalidated(string path)
+    {
+        HttpResponseMessage response = await SendAsync(HttpMethod.Get, path, "br");
+
+        response.Headers.CacheControl!.ToString().Should().Be(PrecompressedStaticFiles.REVALIDATE_CACHE_CONTROL);
+    }
+
+    [Fact]
+    public async Task Get_UnchangedFile_AnswersNotModifiedWithCacheControl()
+    {
+        HttpResponseMessage first = await SendAsync(HttpMethod.Get, "/index.html", "br");
+        HttpClient client = _factory.CreateClient();
+        using HttpRequestMessage request = new(HttpMethod.Get, "/index.html");
+        request.Headers.TryAddWithoutValidation("Accept-Encoding", "br");
+        request.Headers.IfNoneMatch.Add(first.Headers.ETag!);
+
+        HttpResponseMessage second = await client.SendAsync(request);
+
+        second.StatusCode.Should().Be(HttpStatusCode.NotModified);
+        second.Headers.CacheControl!.ToString().Should().Be(PrecompressedStaticFiles.REVALIDATE_CACHE_CONTROL);
+    }
+
+    [Fact]
+    public async Task Get_ApiRoute_HasNoStaticCacheControl()
+    {
+        HttpResponseMessage response = await SendAsync(HttpMethod.Get, "/api/health", "br");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("/_framework/dotnet.native.3de749s1ug.wasm", true)]
+    [InlineData("/_framework/icudt_EFIGS.tptq2av103.dat", true)]
+    [InlineData("/_framework/dotnet.js", false)]
+    [InlineData("/_framework/dotnet.runtime.js.map", false)]
+    [InlineData("/package_ff1da3256d138c9dd4cd0c10bc42927ab9145ca2/uno-config.js", false)]
+    [InlineData("/package_ff1da3256d138c9dd4cd0c10bc42927ab9145ca2/Assets/Fonts/Figtree-Regular.ttf", false)]
+    [InlineData("/index.html", false)]
+    [InlineData("/service-worker.js", false)]
+    public void GetCacheControl_OnlyContentHashedFrameworkFilesAreImmutable(string path, bool immutable)
+    {
+        string expected = immutable
+            ? PrecompressedStaticFiles.IMMUTABLE_CACHE_CONTROL
+            : PrecompressedStaticFiles.REVALIDATE_CACHE_CONTROL;
+
+        PrecompressedStaticFiles.GetCacheControl(path).Should().Be(expected);
     }
 
     [Fact]

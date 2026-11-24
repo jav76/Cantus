@@ -39,7 +39,7 @@ When a sign-in fails, Cantus shows a page with one of these titles. The server l
 ## 2. WebAssembly Client & Browser Caching
 
 ### Symptom: Frontend appears blank or does not reflect newly authorized accounts
-- **Cause**: Browsers aggressively cache WebAssembly scripts, `.wasm` binaries, and application manifest files across deployments.
+- **Cause**: Releases before the cache headers were added let browsers keep `index.html` and other files across deployments. Current releases tell the browser to recheck those files on every load, so this should only happen once after upgrading from an older release, or behind a proxy that overrides `Cache-Control`.
 - **Solution**:
     1. Perform a hard refresh in your browser to bypass the cache:
         - **Windows / Linux**: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> or <kbd>Ctrl</kbd> + <kbd>F5</kbd>
