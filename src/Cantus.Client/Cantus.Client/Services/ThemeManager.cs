@@ -341,7 +341,7 @@ public sealed class ThemeManager : INotifyPropertyChanged
     /// App resource keys that <see cref="ApplyToResources"/> points at the live
     /// theme brushes: the Cantus* keys for views (DataTemplates cannot reach
     /// <c>x:Bind Theme</c>) and the Uno.Material 6.1.1 lightweight-styling keys
-    /// read by the TextBox, ComboBox, CheckBox, ProgressRing and menu templates.
+    /// read by the TextBox, ComboBox, CheckBox, ProgressRing, Slider and menu templates.
     /// The menu templates read the Material colour brushes directly, so those
     /// are mapped too. Button keys are left alone on purpose: most buttons set
     /// their own translucent Background and Foreground.
@@ -486,6 +486,13 @@ public sealed class ThemeManager : INotifyPropertyChanged
         ["CheckBoxStateCircleFillChecked"] = ThemeBrush.PrimaryAccent,
 
         ["ProgressRingForeground"] = ThemeBrush.PrimaryAccent,
+
+        ["SliderTrackValueFill"] = ThemeBrush.PrimaryAccent,
+        ["SliderTrackValueFillDisabled"] = ThemeBrush.TextMuted,
+        ["SliderThumbBackground"] = ThemeBrush.PrimaryAccent,
+        ["SliderThumbBackgroundDisabled"] = ThemeBrush.TextMuted,
+        ["SliderTrackFill"] = ThemeBrush.CardBorder,
+        ["SliderTrackFillDisabled"] = ThemeBrush.CardBorder,
     };
 
     /// <summary>
