@@ -23,6 +23,9 @@ public sealed class ClockOffsetEstimator
     public long RttMs { get; private set; }
     public long ClockOffsetMs { get; private set; }
 
+    /// <summary>False until the first sample, while <see cref="ClockOffsetMs"/> is still 0 by default.</summary>
+    public bool IsClockSynced { get; private set; }
+
     /// <summary>
     /// Computes one sample from the client send (t1), server receive (t2), server send (t3)
     /// and client receive (t4) times. A negative RTT (clock steps, server time spent exceeding
@@ -56,6 +59,7 @@ public sealed class ClockOffsetEstimator
             {
                 RttMs = samples[0].RttMs;
                 ClockOffsetMs = samples[0].OffsetMs;
+                IsClockSynced = true;
                 return;
             }
 
@@ -85,6 +89,7 @@ public sealed class ClockOffsetEstimator
 
             RttMs = (long)(ALPHA * computedRtt + (1 - ALPHA) * RttMs);
             ClockOffsetMs = (long)(ALPHA * computedOffset + (1 - ALPHA) * ClockOffsetMs);
+            IsClockSynced = true;
         }
     }
 }

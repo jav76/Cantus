@@ -75,6 +75,23 @@ public sealed class OptimisticSeekAnchorTests
     }
 
     [Fact]
+    public void Begin_KeepsTheLocalSourceAndCapabilities()
+    {
+        // Arrange
+        OptimisticSeekAnchor anchor = new();
+        PlaybackStatePayload state = CreateState(POLL_PROGRESS_MS, isPlaying: true);
+        state.Source = PlaybackStatePayload.SOURCE_LOCAL;
+        state.Capabilities = new PlayerCapabilitiesPayload { CanPlay = true, CanPause = true, CanSeek = true };
+
+        // Act
+        PlaybackStatePayload optimistic = anchor.Begin(state, LINE_TIMESTAMP_MS, isPlaying: true, ISSUED_AT_MS, LINE_TIMESTAMP_MS);
+
+        // Assert
+        optimistic.Source.Should().Be(PlaybackStatePayload.SOURCE_LOCAL);
+        optimistic.Capabilities.Should().BeSameAs(state.Capabilities);
+    }
+
+    [Fact]
     public void Revert_WithNoTrackToRestore_ReturnsNullAndDropsTheAnchor()
     {
         // Arrange

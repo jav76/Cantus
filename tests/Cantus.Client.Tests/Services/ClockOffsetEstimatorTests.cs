@@ -15,6 +15,20 @@ public sealed class ClockOffsetEstimatorTests
         // Assert
         estimator.RttMs.Should().Be(0);
         estimator.ClockOffsetMs.Should().Be(0);
+        estimator.IsClockSynced.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsClockSynced_BecomesTrueWithTheFirstSampleAndStaysTrue()
+    {
+        // Arrange
+        ClockOffsetEstimator estimator = new();
+
+        // Act & Assert
+        estimator.AddSample(t1: 1000, t2: 1510, t3: 1512, t4: 1030);
+        estimator.IsClockSynced.Should().BeTrue();
+        estimator.AddSample(rawRtt: 30, rawOffset: 0, timestampMs: 2000);
+        estimator.IsClockSynced.Should().BeTrue();
     }
 
     [Fact]

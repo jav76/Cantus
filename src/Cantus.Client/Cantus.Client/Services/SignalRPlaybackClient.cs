@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Cantus.Client.LocalPlayback;
 using Cantus.Core.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,6 +38,9 @@ public sealed class TrackInfoPayload
 
 public sealed class PlaybackStatePayload
 {
+    public const string SOURCE_SPOTIFY = "Spotify";
+    public const string SOURCE_LOCAL = "Local";
+
     [JsonPropertyName("currentTrack")]
     public TrackInfoPayload? CurrentTrack { get; set; }
 
@@ -65,6 +70,14 @@ public sealed class PlaybackStatePayload
 
     [JsonPropertyName("activeUserDisplayName")]
     public string? ActiveUserDisplayName { get; set; }
+
+    /// <summary><see cref="SOURCE_SPOTIFY"/> or <see cref="SOURCE_LOCAL"/>: where this update came from.</summary>
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = SOURCE_SPOTIFY;
+
+    /// <summary>The followed local player's controls; null for Spotify.</summary>
+    [JsonPropertyName("capabilities")]
+    public PlayerCapabilitiesPayload? Capabilities { get; set; }
 }
 
 public sealed class LyricLinePayload
@@ -154,11 +167,19 @@ public sealed class DiagnosticsPayload
 
 public sealed class AuthorizedSessionPayload
 {
+    public const string KIND_SPOTIFY = "Spotify";
+    public const string KIND_LOCAL = "Local";
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
+    /// <summary>Null for a Local Session.</summary>
     [JsonPropertyName("spotifyUserId")]
-    public string SpotifyUserId { get; set; } = string.Empty;
+    public string? SpotifyUserId { get; set; }
+
+    /// <summary><see cref="KIND_SPOTIFY"/> or <see cref="KIND_LOCAL"/>.</summary>
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = KIND_SPOTIFY;
 
     [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = string.Empty;
@@ -181,6 +202,9 @@ public sealed class AuthorizedSessionPayload
     [JsonIgnore]
     public Microsoft.UI.Xaml.Visibility PlayingVisibility =>
         IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    [JsonIgnore]
+    public bool IsLocal => string.Equals(Kind, KIND_LOCAL, StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -245,6 +269,10 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(SongLookupPlayResponsePayload))]
 [JsonSerializable(typeof(SongLookupErrorPayload))]
 [JsonSerializable(typeof(SpotifySetupInfoPayload))]
+[JsonSerializable(typeof(LocalPlaybackUpdatePayload))]
+[JsonSerializable(typeof(PlayerCapabilitiesPayload))]
+[JsonSerializable(typeof(LocalSessionRequestPayload))]
+[JsonSerializable(typeof(ApiErrorPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
@@ -267,11 +295,13 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     public long RttMs => _clockOffset.RttMs;
     public long ClockOffsetMs => _clockOffset.ClockOffsetMs;
+    public bool IsClockSynced => _clockOffset.IsClockSynced;
     public string TransportType { get; private set; } = "Unknown";
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
     public string? ConnectionId => _connection?.ConnectionId;
 
     public event Action<string>? ConnectionStateChanged;
+    public event Action? Connected;
     public event Action<PlaybackStatePayload>? PlaybackStateReceived;
     public event Action<LyricsPayload>? LyricsReceived;
     public event Action<TrackOffsetPayload>? TrackOffsetReceived;
@@ -580,6 +610,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
             }
             _ = SyncClockAsync();
+            Connected?.Invoke();
             return Task.CompletedTask;
         };
 
@@ -656,6 +687,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
             _clockSyncTimer ??= new Timer(async _ => await SyncClockAsync(), null, 0, 5000);
             _ = SyncClockAsync();
+            Connected?.Invoke();
             return true;
         }
         catch (Exception)
@@ -749,6 +781,32 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             _logger.LogWarning(ex, "Player action {HubMethod} failed before the server answered", hubMethod);
             return PlayerCommandResult.Failed;
+        }
+    }
+
+    public async Task<int> PublishLocalPlaybackAsync(LocalPlaybackUpdatePayload update)
+    {
+        HubConnection? connection = _connection;
+        if (connection is null || connection.State != HubConnectionState.Connected)
+        {
+            return (int)LocalPublishResult.NotConnected;
+        }
+
+        try
+        {
+            object? raw = await connection.InvokeCoreAsync("PublishLocalPlayback", typeof(int), new object[] { update });
+            return raw is int result && result >= (int)LocalPublishResult.Accepted && result <= (int)LocalPublishResult.Invalid
+                ? result
+                : (int)LocalPublishResult.Invalid;
+        }
+        catch (HubException)
+        {
+            // The server answered but refused the call, as a server without local playback does.
+            return (int)LocalPublishResult.Invalid;
+        }
+        catch
+        {
+            return (int)LocalPublishResult.NotConnected;
         }
     }
 
