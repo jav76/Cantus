@@ -151,3 +151,11 @@ Recreating the container also removes the rolling log files, which live in its t
 ### Symptom: A Display went back to the pairing screen on its own
 - **Cause**: The owner removed it, or logged out (which removes all of their Displays). A server restart alone does not unpair a screen: it retries before giving up.
 - **Fix**: Pair the screen again. To tell the two apart, check the logs: a removal logs `Display {DisplayId} revoked`, while a log out logs only `Closed {Count} connection(s) of revoked Display {DisplayId}` (and only if the screen was connected).
+
+---
+
+## 8. Container Stops After an Upgrade
+
+### Symptom: The container restarts in a loop and logs `Cantus cannot use its data files`
+- **Cause**: The data volume was created by an older image that ran as root. The current image runs as uid `1654` and cannot write root-owned files. Before this check, the same problem showed as `SQLite Error 8: 'attempt to write a readonly database'` and exit code 139.
+- **Fix**: Run the `chown` command printed in the log, or see [Upgrading from an Image That Ran as Root](self-hosting.md#upgrading-from-an-image-that-ran-as-root).
