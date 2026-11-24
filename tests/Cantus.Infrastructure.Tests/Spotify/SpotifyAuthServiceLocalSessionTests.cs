@@ -18,6 +18,7 @@ namespace Cantus.Infrastructure.Tests.Spotify;
 /// refreshing or decrypting anything, and must never cache it under a shared null key.
 /// Ids are unique per test because the session cache is static.
 /// </summary>
+[Collection(SpotifyAuthServiceCacheCollection.NAME)]
 public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
 {
     private readonly SqliteConnection _connection;
@@ -46,6 +47,7 @@ public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
 
     public void Dispose()
     {
+        SpotifyAuthService.ClearCache();
         _dbContext.Dispose();
         _connection.Dispose();
     }

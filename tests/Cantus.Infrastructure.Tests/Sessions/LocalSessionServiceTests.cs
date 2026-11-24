@@ -5,6 +5,7 @@ using Cantus.Infrastructure.Persistence.Entities;
 using Cantus.Infrastructure.Security;
 using Cantus.Infrastructure.Sessions;
 using Cantus.Infrastructure.Spotify;
+using Cantus.Infrastructure.Tests.Spotify;
 using FluentAssertions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
@@ -16,6 +17,7 @@ using Xunit;
 
 namespace Cantus.Infrastructure.Tests.Sessions;
 
+[Collection(SpotifyAuthServiceCacheCollection.NAME)]
 public sealed class LocalSessionServiceTests : IDisposable
 {
     private const int IDLE_EXPIRY_DAYS = 90;
@@ -37,6 +39,7 @@ public sealed class LocalSessionServiceTests : IDisposable
 
     public void Dispose()
     {
+        SpotifyAuthService.ClearCache();
         foreach (CantusDbContext context in _contexts)
         {
             context.Dispose();
