@@ -7,6 +7,7 @@ public enum VisualEffect
     Vignette,
     Scanlines,
     BackgroundBlur,
+    VuMeter,
 }
 
 public static class VisualEffectExtensions
@@ -17,6 +18,7 @@ public static class VisualEffectExtensions
         VisualEffect.Vignette => "Vignette",
         VisualEffect.Scanlines => "Scanlines",
         VisualEffect.BackgroundBlur => "Blur album background (Dynamic theme)",
+        VisualEffect.VuMeter => "Seek bar VU meter",
         _ => effect.ToString(),
     };
 }

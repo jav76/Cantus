@@ -1,0 +1,485 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Cantus.Client.Models;
+using Cantus.Client.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace Cantus.Client.ViewModels;
+
+/// <summary>
+/// Levels for the seek bar VU meter. The playback clock calls
+/// <see cref="Update"/> every frame; it produces new levels at most every
+/// <see cref="FRAME_INTERVAL_MS"/> and raises <see cref="LevelsUpdated"/>.
+/// Real levels come from the selected live source while it hears sound;
+/// otherwise the decorative <see cref="SyntheticLevels"/> pattern plays.
+/// Levels fall to rest when playback pauses, hold still while the pointer is
+/// over the seek bar, and stop updating entirely once at rest.
+/// </summary>
+public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
+{
+    public const int BAND_COUNT = 48;
+    public const long FRAME_INTERVAL_MS = 33;
+
+    /// <summary>How long a live source may stay silent before the decorative pattern takes over.</summary>
+    public const long SILENCE_FALLBACK_MS = 1500;
+
+    /// <summary>A live source that sends nothing for this long counts as stalled.</summary>
+    public const long STALL_MS = 500;
+
+    internal const float SILENCE_LEVEL = 0.05f;
+    internal const float REST_LEVEL = 0.002f;
+    private const float ATTACK = 0.6f;
+    private const float RELEASE = 0.2f;
+
+    private readonly ILyricsPreferences _preferences;
+    private readonly IAudioLevelSourceProvider _provider;
+    private readonly ILogger _logger;
+    private readonly float[] _levels = new float[BAND_COUNT];
+    private readonly float[] _target = new float[BAND_COUNT];
+    private readonly float[] _live = new float[BAND_COUNT];
+
+    private bool _isEnabled;
+    private bool _isPointerOver;
+    private VuMeterSource _selectedSource;
+    private IAudioLevelSource? _source;
+    private CancellationTokenSource? _startCts;
+    private AudioLevelSourceStartResult? _startResult;
+    private bool _sourceEnded;
+    private long _lastFrameMs = long.MinValue;
+    private long _lastLiveDataMs = long.MinValue;
+    private long _lastSoundMs = long.MinValue;
+    private bool _isAtRest = true;
+    private VuMeterMode _mode = VuMeterMode.Decorative;
+    private string _statusText = string.Empty;
+
+    public VuMeterViewModel(
+        ILyricsPreferences preferences,
+        IAudioLevelSourceProvider? provider = null,
+        ILogger? logger = null)
+    {
+        _preferences = preferences;
+        _provider = provider ?? DecorativeOnlyAudioLevelSourceProvider.Instance;
+        _logger = logger ?? NullLogger.Instance;
+        _isEnabled = preferences.IsVuMeterEnabled;
+
+        VuMeterSource? stored = preferences.VuMeterSource;
+        _selectedSource = stored is VuMeterSource source && IndexOf(source) >= 0
+            ? source
+            : _provider.DefaultSource;
+        _statusText = BuildStatusText();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>Raised on the UI thread whenever <see cref="Levels"/> changed.</summary>
+    public event EventHandler? LevelsUpdated;
+
+    public IReadOnlyList<VuMeterSource> AvailableSources => _provider.AvailableSources;
+
+    public IReadOnlyList<string> AvailableSourceNames
+    {
+        get
+        {
+            string[] names = new string[AvailableSources.Count];
+            for (int i = 0; i < names.Length; i++)
+            {
+                names[i] = AvailableSources[i].GetDisplayName();
+            }
+
+            return names;
+        }
+    }
+
+    /// <summary>True when this platform has at least one real audio source to pick.</summary>
+    public bool HasLiveSources => AvailableSources.Count > 1;
+
+    public ReadOnlySpan<float> Levels => _levels;
+
+    /// <summary>The start in flight, if any; exposed so tests can await it.</summary>
+    internal Task? PendingStart { get; private set; }
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            if (_isEnabled == value)
+            {
+                return;
+            }
+
+            _isEnabled = value;
+            OnPropertyChanged();
+            if (!value)
+            {
+                StopSource();
+                RestNow();
+            }
+            else
+            {
+                PendingStart = RestartSourceAsync(isUserInitiated: false);
+            }
+
+            RefreshStatus();
+        }
+    }
+
+    public VuMeterSource SelectedSource
+    {
+        get => _selectedSource;
+        set => SelectSource(value);
+    }
+
+    /// <summary>Index into <see cref="AvailableSources"/>, for a ComboBox.</summary>
+    public int SelectedSourceIndex
+    {
+        get => IndexOf(_selectedSource);
+        set
+        {
+            if (value >= 0 && value < AvailableSources.Count)
+            {
+                SelectSource(AvailableSources[value]);
+            }
+        }
+    }
+
+    public VuMeterMode Mode
+    {
+        get => _mode;
+        private set
+        {
+            if (_mode == value)
+            {
+                return;
+            }
+
+            _mode = value;
+            OnPropertyChanged();
+            RefreshStatus();
+        }
+    }
+
+    /// <summary>Says which source is in use and whether the bars are real or decorative.</summary>
+    public string StatusText
+    {
+        get => _statusText;
+        private set
+        {
+            if (_statusText == value)
+            {
+                return;
+            }
+
+            _statusText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>True while the pointer is over a clickable seek bar; the bars hold still.</summary>
+    public bool IsFrozen => _isPointerOver && _isEnabled;
+
+    public void SetPointerOver(bool isOver)
+    {
+        if (_isPointerOver == isOver)
+        {
+            return;
+        }
+
+        _isPointerOver = isOver;
+        OnPropertyChanged(nameof(IsFrozen));
+    }
+
+    /// <summary>
+    /// Picks a source from a click. Picking the current source again restarts
+    /// it, which is how a browser share is resumed after it was stopped.
+    /// </summary>
+    public void SelectSource(VuMeterSource source)
+    {
+        if (IndexOf(source) < 0)
+        {
+            return;
+        }
+
+        bool changed = _selectedSource != source;
+        _selectedSource = source;
+        _preferences.VuMeterSource = source;
+        if (changed)
+        {
+            OnPropertyChanged(nameof(SelectedSource));
+            OnPropertyChanged(nameof(SelectedSourceIndex));
+        }
+
+        PendingStart = RestartSourceAsync(isUserInitiated: true);
+        RefreshStatus();
+    }
+
+    /// <summary>Starts the stored source at launch, without any click.</summary>
+    public Task ActivateAsync()
+    {
+        PendingStart = RestartSourceAsync(isUserInitiated: false);
+        return PendingStart;
+    }
+
+    /// <summary>Linearly interpolated level at a point 0..1 across the bands.</summary>
+    public float SampleLevel(double fraction)
+    {
+        double position = Math.Clamp(fraction, 0, 1) * (BAND_COUNT - 1);
+        int lower = (int)position;
+        int upper = Math.Min(lower + 1, BAND_COUNT - 1);
+        double t = position - lower;
+        return (float)(_levels[lower] + (_levels[upper] - _levels[lower]) * t);
+    }
+
+    /// <summary>One frame of the meter.</summary>
+    /// <param name="nowMs">A monotonic clock in milliseconds.</param>
+    /// <param name="trackId">Seeds the decorative pattern.</param>
+    /// <param name="positionMs">The rendered playback position.</param>
+    /// <param name="isPlaying">When false the bars fall to rest.</param>
+    public void Update(long nowMs, string? trackId, long positionMs, bool isPlaying)
+    {
+        if (!_isEnabled || IsFrozen)
+        {
+            return;
+        }
+
+        if (_lastFrameMs != long.MinValue && nowMs >= _lastFrameMs && nowMs - _lastFrameMs < FRAME_INTERVAL_MS)
+        {
+            return;
+        }
+
+        _lastFrameMs = nowMs;
+
+        bool isLive = ReadLiveSource(nowMs);
+        Mode = isLive ? VuMeterMode.Live : VuMeterMode.Decorative;
+
+        if (!isPlaying)
+        {
+            Array.Clear(_target);
+        }
+        else if (isLive)
+        {
+            Array.Copy(_live, _target, BAND_COUNT);
+        }
+        else
+        {
+            SyntheticLevels.Fill(_target, trackId, positionMs);
+        }
+
+        Smooth();
+    }
+
+    public void Dispose()
+    {
+        StopSource();
+    }
+
+    private bool ReadLiveSource(long nowMs)
+    {
+        if (_source is null)
+        {
+            return false;
+        }
+
+        if (!_source.IsActive)
+        {
+            _logger.LogInformation("VU meter source {Source} ended", _selectedSource);
+            StopSource();
+            _sourceEnded = true;
+            RefreshStatus();
+            return false;
+        }
+
+        if (_source.TryReadBands(_live))
+        {
+            _lastLiveDataMs = nowMs;
+            if (Peak(_live) >= SILENCE_LEVEL)
+            {
+                _lastSoundMs = nowMs;
+            }
+        }
+
+        bool isFresh = _lastLiveDataMs != long.MinValue && nowMs - _lastLiveDataMs < STALL_MS;
+        bool heardRecently = _lastSoundMs != long.MinValue && nowMs - _lastSoundMs < SILENCE_FALLBACK_MS;
+        return isFresh && heardRecently;
+    }
+
+    private void Smooth()
+    {
+        bool atRest = true;
+        for (int i = 0; i < BAND_COUNT; i++)
+        {
+            float current = _levels[i];
+            float target = _target[i];
+            float rate = target > current ? ATTACK : RELEASE;
+            float next = current + (target - current) * rate;
+            if (next < REST_LEVEL && target < REST_LEVEL)
+            {
+                next = 0;
+            }
+
+            _levels[i] = next;
+            atRest &= next == 0;
+        }
+
+        if (atRest && _isAtRest)
+        {
+            return;
+        }
+
+        _isAtRest = atRest;
+        LevelsUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RestNow()
+    {
+        Array.Clear(_levels);
+        Array.Clear(_target);
+        if (!_isAtRest)
+        {
+            _isAtRest = true;
+            LevelsUpdated?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private async Task RestartSourceAsync(bool isUserInitiated)
+    {
+        StopSource();
+        _startResult = null;
+        _sourceEnded = false;
+
+        if (!_isEnabled || _selectedSource == VuMeterSource.Decorative)
+        {
+            return;
+        }
+
+        VuMeterSource requested = _selectedSource;
+        IAudioLevelSource? source = _provider.Create(requested);
+        if (source is null)
+        {
+            _startResult = AudioLevelSourceStartResult.Unavailable;
+            return;
+        }
+
+        CancellationTokenSource cts = new();
+        _startCts = cts;
+
+        AudioLevelSourceStartResult result;
+        try
+        {
+            result = await source.StartAsync(isUserInitiated, cts.Token);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "VU meter source {Source} failed to start", requested);
+            result = AudioLevelSourceStartResult.Unavailable;
+        }
+        catch (OperationCanceledException)
+        {
+            source.Dispose();
+            return;
+        }
+
+        if (cts.IsCancellationRequested)
+        {
+            source.Dispose();
+            return;
+        }
+
+        _startCts = null;
+        cts.Dispose();
+        _startResult = result;
+        if (result == AudioLevelSourceStartResult.Started)
+        {
+            _source = source;
+            _lastLiveDataMs = long.MinValue;
+            _lastSoundMs = long.MinValue;
+        }
+        else
+        {
+            _logger.LogInformation("VU meter source {Source} did not start: {Result}", requested, result);
+            source.Dispose();
+        }
+
+        RefreshStatus();
+    }
+
+    private void StopSource()
+    {
+        if (_startCts is not null)
+        {
+            _startCts.Cancel();
+            _startCts = null;
+        }
+
+        _source?.Dispose();
+        _source = null;
+        Mode = VuMeterMode.Decorative;
+    }
+
+    private void RefreshStatus() => StatusText = BuildStatusText();
+
+    private string BuildStatusText()
+    {
+        if (!_isEnabled)
+        {
+            return "Off.";
+        }
+
+        string name = _selectedSource.GetDisplayName();
+        if (_selectedSource == VuMeterSource.Decorative)
+        {
+            return "Decorative: the bars follow an invented beat, not the audio.";
+        }
+
+        if (_mode == VuMeterMode.Live)
+        {
+            return $"Live: levels from {name.ToLowerInvariant()}.";
+        }
+
+        if (_sourceEnded)
+        {
+            return $"{name} stopped. Pick it again to resume; showing decorative bars.";
+        }
+
+        return _startResult switch
+        {
+            AudioLevelSourceStartResult.Denied => $"{name} access was denied; showing decorative bars.",
+            AudioLevelSourceStartResult.Unavailable => $"{name} is not available on this device; showing decorative bars.",
+            AudioLevelSourceStartResult.NeedsUserAction => $"Pick {name.ToLowerInvariant()} again to share audio; showing decorative bars.",
+            AudioLevelSourceStartResult.Started => $"Waiting for sound from {name.ToLowerInvariant()}; showing decorative bars.",
+            _ => $"Starting {name.ToLowerInvariant()}...",
+        };
+    }
+
+    private int IndexOf(VuMeterSource source)
+    {
+        for (int i = 0; i < AvailableSources.Count; i++)
+        {
+            if (AvailableSources[i] == source)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static float Peak(ReadOnlySpan<float> values)
+    {
+        float peak = 0;
+        foreach (float value in values)
+        {
+            peak = Math.Max(peak, value);
+        }
+
+        return peak;
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
