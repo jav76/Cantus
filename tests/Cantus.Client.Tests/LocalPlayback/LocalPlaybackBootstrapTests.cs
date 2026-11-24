@@ -137,6 +137,45 @@ public sealed class LocalPlaybackBootstrapTests
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Start_WhenASessionOrDisplayArrivesDuringCreation_KeepsIt(bool spotifySignIn)
+    {
+        // Arrange: the sign-in handoff or a pairing lands while the request is in flight.
+        string? sessionToken = null;
+        string? displayToken = null;
+        _client.SetupGet(c => c.SessionToken).Returns(() => sessionToken);
+        _client.SetupGet(c => c.DisplayToken).Returns(() => displayToken);
+        _sessionApi
+            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback(() =>
+            {
+                if (spotifySignIn)
+                {
+                    sessionToken = "spotify-session";
+                }
+                else
+                {
+                    displayToken = "display-token";
+                }
+            })
+            .ReturnsAsync(new LocalSessionResult(
+                LocalSessionStatus.Created,
+                new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL }));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+
+        // Act
+        await bootstrap.StartAsync();
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Theory]
     [InlineData(LocalSessionStatus.Failed)]
     [InlineData(LocalSessionStatus.RateLimited)]
     public async Task Start_WhenCreationMayPass_RetriesOnTheNextConnect(LocalSessionStatus firstStatus)

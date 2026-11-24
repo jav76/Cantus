@@ -226,6 +226,17 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
         switch (result.Status)
         {
             case LocalSessionStatus.Created when result.Session is not null:
+                lock (_gate)
+                {
+                    // A sign-in or pairing can complete while the request is in flight; it wins.
+                    if (_disposed || !NeedsLocalSession)
+                    {
+                        _logger.LogInformation(
+                            "A Session or Display arrived while the Local Session was being created; keeping it");
+                        return false;
+                    }
+                }
+
                 _logger.LogInformation("Created a Local Session for this computer");
                 await _client.ReconnectWithTokenAsync(result.Session.Id);
                 return false;

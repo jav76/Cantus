@@ -350,6 +350,16 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
     private bool HoldsCredential => ConnectionCredential is not null;
 
+    private bool RegistersForSignIn => ShouldRegisterForSignIn(SessionToken, DisplayToken);
+
+    /// <summary>
+    /// Every connection except a Display's joins the sign-in handoff, so a Spotify sign-in started
+    /// while holding a Session (for example a Local one, or another account) still reaches this client.
+    /// The server refuses the registration from a Display connection.
+    /// </summary>
+    internal static bool ShouldRegisterForSignIn(string? sessionToken, string? displayToken) =>
+        !string.IsNullOrWhiteSpace(sessionToken) || string.IsNullOrWhiteSpace(displayToken);
+
     /// <summary>
     /// A Session wins over a Display token, matching the server's credential order. Null means
     /// the connection is anonymous and registers for the sign-in handoff instead.
@@ -558,10 +568,14 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             if (session is not null && !string.IsNullOrWhiteSpace(session.Id))
             {
+                bool alreadyHeld = string.Equals(session.Id, SessionToken, StringComparison.Ordinal);
                 SavePersistedSessionToken(session.Id);
                 SessionToken = session.Id;
                 AuthSessionReceived?.Invoke(session);
-                _ = ReconnectWithTokenAsync(session.Id);
+                if (!alreadyHeld)
+                {
+                    _ = ReconnectWithTokenAsync(session.Id);
+                }
             }
         });
 
@@ -605,7 +619,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
-            if (!HoldsCredential)
+            if (RegistersForSignIn)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
             }
@@ -680,7 +694,7 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
 
-            if (!HoldsCredential)
+            if (RegistersForSignIn)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId, cancellationToken);
             }
