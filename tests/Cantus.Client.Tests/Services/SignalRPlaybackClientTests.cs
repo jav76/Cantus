@@ -114,6 +114,35 @@ public sealed class SignalRPlaybackClientTests
         SignalRPlaybackClient.SelectConnectionCredential(sessionToken, displayToken).Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(null, null, true)]
+    [InlineData("local-session", null, true)]
+    [InlineData("session-token", "display-token", true)]
+    [InlineData(null, "display-token", false)]
+    [InlineData(" ", "display-token", false)]
+    public void ShouldRegisterForSignIn_HoldsForEveryConnectionButADisplays(
+        string? sessionToken,
+        string? displayToken,
+        bool expected)
+    {
+        // Act & Assert
+        SignalRPlaybackClient.ShouldRegisterForSignIn(sessionToken, displayToken).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(null, "spotify-session", true)]
+    [InlineData("local-session", "spotify-session", true)]
+    [InlineData("account-a-session", "account-b-session", true)]
+    [InlineData("spotify-session", "spotify-session", false)]
+    public void ShouldReconnectForAuthSession_SwitchesUnlessTheSessionIsAlreadyHeld(
+        string? currentToken,
+        string newSessionId,
+        bool expected)
+    {
+        // Act & Assert
+        SignalRPlaybackClient.ShouldReconnectForAuthSession(currentToken, newSessionId).Should().Be(expected);
+    }
+
     [Fact]
     public async Task ReconnectWithDisplayToken_DropsAStaleSessionSoTheDisplayTokenIsSent()
     {

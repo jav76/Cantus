@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Cantus.Client.LocalPlayback;
 using Cantus.Core.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,6 +38,9 @@ public sealed class TrackInfoPayload
 
 public sealed class PlaybackStatePayload
 {
+    public const string SOURCE_SPOTIFY = "Spotify";
+    public const string SOURCE_LOCAL = "Local";
+
     [JsonPropertyName("currentTrack")]
     public TrackInfoPayload? CurrentTrack { get; set; }
 
@@ -65,6 +70,14 @@ public sealed class PlaybackStatePayload
 
     [JsonPropertyName("activeUserDisplayName")]
     public string? ActiveUserDisplayName { get; set; }
+
+    /// <summary><see cref="SOURCE_SPOTIFY"/> or <see cref="SOURCE_LOCAL"/>: where this update came from.</summary>
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = SOURCE_SPOTIFY;
+
+    /// <summary>The followed local player's controls; null for Spotify.</summary>
+    [JsonPropertyName("capabilities")]
+    public PlayerCapabilitiesPayload? Capabilities { get; set; }
 }
 
 public sealed class LyricLinePayload
@@ -154,11 +167,19 @@ public sealed class DiagnosticsPayload
 
 public sealed class AuthorizedSessionPayload
 {
+    public const string KIND_SPOTIFY = "Spotify";
+    public const string KIND_LOCAL = "Local";
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
+    /// <summary>Null for a Local Session.</summary>
     [JsonPropertyName("spotifyUserId")]
-    public string SpotifyUserId { get; set; } = string.Empty;
+    public string? SpotifyUserId { get; set; }
+
+    /// <summary><see cref="KIND_SPOTIFY"/> or <see cref="KIND_LOCAL"/>.</summary>
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = KIND_SPOTIFY;
 
     [JsonPropertyName("displayName")]
     public string DisplayName { get; set; } = string.Empty;
@@ -181,6 +202,9 @@ public sealed class AuthorizedSessionPayload
     [JsonIgnore]
     public Microsoft.UI.Xaml.Visibility PlayingVisibility =>
         IsCurrentlyPlaying ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    [JsonIgnore]
+    public bool IsLocal => string.Equals(Kind, KIND_LOCAL, StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -245,6 +269,10 @@ public sealed class ClockSyncResponsePayload
 [JsonSerializable(typeof(SongLookupPlayResponsePayload))]
 [JsonSerializable(typeof(SongLookupErrorPayload))]
 [JsonSerializable(typeof(SpotifySetupInfoPayload))]
+[JsonSerializable(typeof(LocalPlaybackUpdatePayload))]
+[JsonSerializable(typeof(PlayerCapabilitiesPayload))]
+[JsonSerializable(typeof(LocalSessionRequestPayload))]
+[JsonSerializable(typeof(ApiErrorPayload))]
 public partial class CantusJsonContext : JsonSerializerContext
 {
 }
@@ -267,11 +295,13 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     public long RttMs => _clockOffset.RttMs;
     public long ClockOffsetMs => _clockOffset.ClockOffsetMs;
+    public bool IsClockSynced => _clockOffset.IsClockSynced;
     public string TransportType { get; private set; } = "Unknown";
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
     public string? ConnectionId => _connection?.ConnectionId;
 
     public event Action<string>? ConnectionStateChanged;
+    public event Action? Connected;
     public event Action<PlaybackStatePayload>? PlaybackStateReceived;
     public event Action<LyricsPayload>? LyricsReceived;
     public event Action<TrackOffsetPayload>? TrackOffsetReceived;
@@ -319,6 +349,23 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     internal string? ConnectionCredential => SelectConnectionCredential(SessionToken, DisplayToken);
 
     private bool HoldsCredential => ConnectionCredential is not null;
+
+    private bool RegistersForSignIn => ShouldRegisterForSignIn(SessionToken, DisplayToken);
+
+    /// <summary>
+    /// Every connection except a Display's joins the sign-in handoff, so a Spotify sign-in started
+    /// while holding a Session (for example a Local one, or another account) still reaches this client.
+    /// The server refuses the registration from a Display connection.
+    /// </summary>
+    internal static bool ShouldRegisterForSignIn(string? sessionToken, string? displayToken) =>
+        !string.IsNullOrWhiteSpace(sessionToken) || string.IsNullOrWhiteSpace(displayToken);
+
+    /// <summary>
+    /// A handed-off Session replaces the connection's credential unless it is the one already held,
+    /// so a sign-in that completes as another account (or over a Local Session) switches this client.
+    /// </summary>
+    internal static bool ShouldReconnectForAuthSession(string? currentSessionToken, string newSessionId) =>
+        !string.Equals(newSessionId, currentSessionToken, StringComparison.Ordinal);
 
     /// <summary>
     /// A Session wins over a Display token, matching the server's credential order. Null means
@@ -528,10 +575,14 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             if (session is not null && !string.IsNullOrWhiteSpace(session.Id))
             {
+                bool reconnect = ShouldReconnectForAuthSession(SessionToken, session.Id);
                 SavePersistedSessionToken(session.Id);
                 SessionToken = session.Id;
                 AuthSessionReceived?.Invoke(session);
-                _ = ReconnectWithTokenAsync(session.Id);
+                if (reconnect)
+                {
+                    _ = ReconnectWithTokenAsync(session.Id);
+                }
             }
         });
 
@@ -575,11 +626,12 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
-            if (!HoldsCredential)
+            if (RegistersForSignIn)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId);
             }
             _ = SyncClockAsync();
+            Connected?.Invoke();
             return Task.CompletedTask;
         };
 
@@ -649,13 +701,14 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             ConnectionStateChanged?.Invoke("Connected");
             TransportType = "WebSockets";
 
-            if (!HoldsCredential)
+            if (RegistersForSignIn)
             {
                 _ = _connection.InvokeAsync("RegisterClientLogin", ClientId, cancellationToken);
             }
 
             _clockSyncTimer ??= new Timer(async _ => await SyncClockAsync(), null, 0, 5000);
             _ = SyncClockAsync();
+            Connected?.Invoke();
             return true;
         }
         catch (Exception)
@@ -749,6 +802,32 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         {
             _logger.LogWarning(ex, "Player action {HubMethod} failed before the server answered", hubMethod);
             return PlayerCommandResult.Failed;
+        }
+    }
+
+    public async Task<int> PublishLocalPlaybackAsync(LocalPlaybackUpdatePayload update)
+    {
+        HubConnection? connection = _connection;
+        if (connection is null || connection.State != HubConnectionState.Connected)
+        {
+            return (int)LocalPublishResult.NotConnected;
+        }
+
+        try
+        {
+            object? raw = await connection.InvokeCoreAsync("PublishLocalPlayback", typeof(int), new object[] { update });
+            return raw is int result && result >= (int)LocalPublishResult.Accepted && result <= (int)LocalPublishResult.Invalid
+                ? result
+                : (int)LocalPublishResult.Invalid;
+        }
+        catch (HubException)
+        {
+            // The server failed the call: a transient fault, or a server without local playback.
+            return (int)LocalPublishResult.ServerError;
+        }
+        catch
+        {
+            return (int)LocalPublishResult.NotConnected;
         }
     }
 
