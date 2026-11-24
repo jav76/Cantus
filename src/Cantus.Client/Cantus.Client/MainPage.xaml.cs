@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Cantus.Client.LocalPlayback;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -36,6 +37,8 @@ public sealed partial class MainPage : Page
             ResponsiveLayoutManager.Instance,
             preferences,
             lookupClient: lookupClient);
+        LocalPlaybackBootstrap? localPlayback =
+            LocalPlaybackBootstrap.CreateFromEnvironment(client, new LocalSettingsStore());
         this.InitializeComponent();
         OpenPairLink();
 
@@ -46,6 +49,11 @@ public sealed partial class MainPage : Page
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
             await ViewModel.InitializeAsync();
+            if (localPlayback is not null)
+            {
+                await localPlayback.StartAsync();
+            }
+
             await OpenConnectLinkAsync();
         };
 
