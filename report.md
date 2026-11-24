@@ -2,7 +2,7 @@
 
 - **Project**: `Cantus`
 - **Quality Gate**: **OK**
-- **Generated (UTC)**: `2026-11-24T00:41:58Z`
+- **Generated (UTC)**: `2026-11-24T01:52:52Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
@@ -11,12 +11,12 @@
 | Quality Gate | OK |
 | Reliability Rating / Issues | D (10) |
 | Security Rating / Issues | A (0) |
-| Maintainability Rating / Issues | A (1765) |
+| Maintainability Rating / Issues | A (1772) |
 | Coverage | 74.7% |
 | Duplicated Lines | 0.8% |
 | Lines of Code (NCLOC) | 27.4k |
 | Technical Debt | 3h4min |
-| Open Issues (total) | 1775 |
+| Open Issues (total) | 1782 |
 | Open Security Hotspots | 0 |
 | SARIF Exported Findings | 0 |
 
@@ -24,7 +24,7 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 83.3 | LT 50 |
+| `new_coverage` | OK | 81.9 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.0 | GT 5 |
 | `new_software_quality_reliability_rating` | OK | 1 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
@@ -47,8 +47,8 @@
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Generators/TraceLogDecoratorGenerator.cs:47` | Refactor this method to reduce its Cognitive Complexity from 52 to the 25 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Core/Parsers/LrcParser.cs:110` | Refactor this method to reduce its Cognitive Complexity from 39 to the 25 allowed. |
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Infrastructure/Lyrics/ProviderResponseReader.cs:39` | Await WriteAsync instead. |
-| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:876` | Await DisposeAsync instead. |
-| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:877` | Await DisposeAsync instead. |
+| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:892` | Await DisposeAsync instead. |
+| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:893` | Await DisposeAsync instead. |
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Server/Program.cs:225` | Await MigrateAsync instead. |
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Server/Program.cs:276` | Await RunAsync instead. |
 | Issue | MAJOR/MEDIUM | `css:S7924` | `docs/stylesheets/extra.css:156` | Text does not meet the minimal contrast requirement with its background. |
