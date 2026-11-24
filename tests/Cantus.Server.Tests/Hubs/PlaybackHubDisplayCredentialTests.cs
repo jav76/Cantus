@@ -441,6 +441,7 @@ public sealed class PlaybackHubDisplayCredentialTests : IDisposable
             _store.CreateCredentialResolver(),
             _mockPairings.Object,
             _mockDisplayConnections.Object,
+            Mock.Of<ILocalPlaybackIngest>(),
             NullLogger<PlaybackHub>.Instance)
         {
             Clients = _mockClients.Object,

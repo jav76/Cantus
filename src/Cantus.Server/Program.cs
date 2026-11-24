@@ -116,6 +116,7 @@ builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 builder.Services.AddScoped<ICredentialResolver, CredentialResolver>();
 builder.Services.AddDisplayPairing(builder.Configuration);
+builder.Services.AddLocalSessions(builder.Configuration);
 builder.Services.AddSongLookup();
 builder.Services.AddScoped<SongPlaybackService>();
 builder.Services.AddScoped<ISongPlaybackService>(sp =>

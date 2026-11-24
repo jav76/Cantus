@@ -65,7 +65,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.SendAsync(
-            CreateCookieRequest(HttpMethod.Get, "/api/auth/me", seeded.SpotifyUserId));
+            CreateCookieRequest(HttpMethod.Get, "/api/auth/me", seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -80,7 +80,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         warmUp.StatusCode.Should().Be(HttpStatusCode.OK);
 
         HttpResponseMessage response = await client.SendAsync(
-            CreateCookieRequest(HttpMethod.Get, "/api/auth/me", seeded.SpotifyUserId));
+            CreateCookieRequest(HttpMethod.Get, "/api/auth/me", seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -94,7 +94,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync(
-            $"/api/auth/me?{queryParameter}={Uri.EscapeDataString(seeded.SpotifyUserId)}");
+            $"/api/auth/me?{queryParameter}={Uri.EscapeDataString(seeded.RequiredSpotifyUserId())}");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -120,7 +120,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.SendAsync(
-            CreateCookieRequest(HttpMethod.Get, "/api/auth/sessions", seeded.SpotifyUserId));
+            CreateCookieRequest(HttpMethod.Get, "/api/auth/sessions", seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         List<AuthorizedSessionDto>? sessions = await response.Content.ReadFromJsonAsync<List<AuthorizedSessionDto>>();
@@ -135,8 +135,8 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
 
         HttpResponseMessage response = await client.SendAsync(CreateCookieRequest(
             HttpMethod.Delete,
-            $"/api/auth/sessions/{seeded.SpotifyUserId}",
-            seeded.SpotifyUserId));
+            $"/api/auth/sessions/{seeded.RequiredSpotifyUserId()}",
+            seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await _store.SessionExistsAsync(seeded.Id)).Should().BeTrue();
@@ -149,7 +149,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.SendAsync(
-            CreateCookieRequest(HttpMethod.Post, "/api/auth/logout", seeded.SpotifyUserId));
+            CreateCookieRequest(HttpMethod.Post, "/api/auth/logout", seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         (await _store.SessionExistsAsync(seeded.Id)).Should().BeTrue();
@@ -190,7 +190,7 @@ public sealed class AuthCredentialLookupTests : IClassFixture<WebApplicationFact
         HttpClient client = _factory.CreateClient();
         string trackId = $"track-{seeded.Id}";
 
-        HttpResponseMessage response = await client.SendAsync(CreateOffsetRequest(trackId, seeded.SpotifyUserId));
+        HttpResponseMessage response = await client.SendAsync(CreateOffsetRequest(trackId, seeded.RequiredSpotifyUserId()));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         _mockCacheRepo.Verify(

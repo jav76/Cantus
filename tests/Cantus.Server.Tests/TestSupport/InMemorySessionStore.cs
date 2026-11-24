@@ -1,7 +1,9 @@
+using Cantus.Core.Models;
 using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Persistence;
 using Cantus.Infrastructure.Persistence.Entities;
 using Cantus.Infrastructure.Security;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Services;
 using Microsoft.AspNetCore.DataProtection;
@@ -77,6 +79,17 @@ public sealed class InMemorySessionStore : IDisposable
         return new DisplayService(dbContext, TimeProvider.System, NullLogger<DisplayService>.Instance);
     }
 
+    public LocalSessionService CreateLocalSessionService(TimeProvider timeProvider, IOptions<LocalSessionOptions> options)
+    {
+        CantusDbContext dbContext = new(_dbOptions);
+        lock (_contextsLock)
+        {
+            _contexts.Add(dbContext);
+        }
+
+        return new LocalSessionService(dbContext, timeProvider, options, NullLogger<LocalSessionService>.Instance);
+    }
+
     public CredentialResolver CreateCredentialResolver()
     {
         return new CredentialResolver(new SessionTokenResolver(), CreateAuthService(), CreateDisplayService());
@@ -101,6 +114,31 @@ public sealed class InMemorySessionStore : IDisposable
         await dbContext.UserSessions.AddAsync(entity);
         await dbContext.SaveChangesAsync();
         return entity;
+    }
+
+    public async Task<UserSessionEntity> SeedLocalSessionAsync(string displayName)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        UserSessionEntity entity = new()
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Kind = SessionKind.Local,
+            DisplayName = displayName,
+            ExpiresAtUtc = DateTimeOffset.MaxValue,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        };
+
+        await using CantusDbContext dbContext = new(_dbOptions);
+        await dbContext.UserSessions.AddAsync(entity);
+        await dbContext.SaveChangesAsync();
+        return entity;
+    }
+
+    public async Task<UserSessionEntity?> FindSessionAsync(string sessionId)
+    {
+        await using CantusDbContext dbContext = new(_dbOptions);
+        return await dbContext.UserSessions.AsNoTracking().FirstOrDefaultAsync(u => u.Id == sessionId);
     }
 
     public async Task<bool> SessionExistsAsync(string sessionId)

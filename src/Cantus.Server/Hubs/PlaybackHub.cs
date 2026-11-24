@@ -22,6 +22,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
     private readonly ICredentialResolver _credentialResolver;
     private readonly IDisplayPairingService _pairings;
     private readonly IDisplayConnectionTracker _displayConnections;
+    private readonly ILocalPlaybackIngest _localIngest;
     private readonly ILogger<PlaybackHub> _logger;
 
     public PlaybackHub(
@@ -32,6 +33,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         ICredentialResolver credentialResolver,
         IDisplayPairingService pairings,
         IDisplayConnectionTracker displayConnections,
+        ILocalPlaybackIngest localIngest,
         ILogger<PlaybackHub> logger)
     {
         _registry = registry;
@@ -41,6 +43,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         _credentialResolver = credentialResolver;
         _pairings = pairings;
         _displayConnections = displayConnections;
+        _localIngest = localIngest;
         _logger = logger;
     }
 
@@ -118,7 +121,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
                 {
                     ConnectedClients = _registry.ConnectedClientsCount,
                     AuthorizedSessions = sessionDtos.Count,
-                    PollerStatus = isPlaying ? "Active (Playing)" : "Idle",
+                    PollerStatus = DescribeStatus(userSession, snapshot),
                     ActiveUserId = userSession.Id,
                     ActiveUserName = userSession.DisplayName,
                     ServerTimeUtc = DateTimeOffset.UtcNow
@@ -157,6 +160,7 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
         _registry.UnregisterConnection(Context.ConnectionId);
         _pairings.Cancel(Context.ConnectionId);
+        _localIngest.ReleaseConnection(Context.ConnectionId);
 
         if (Context.Items.TryGetValue(DISPLAY_ID_ITEM, out object? item) && item is string displayId)
         {
@@ -242,12 +246,11 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             UserPlaybackSnapshot? snapshot = _registry.GetUserState(userId);
             await SendSnapshotToCallerAsync(snapshot, forDisplay: false);
 
-            bool isPlaying = snapshot?.PlaybackState?.IsPlaying ?? false;
             await Clients.Caller.ReceiveDiagnostics(new DiagnosticsDto
             {
                 ConnectedClients = _registry.ConnectedClientsCount,
                 AuthorizedSessions = 1,
-                PollerStatus = isPlaying ? "Active (Playing)" : "Idle",
+                PollerStatus = DescribeStatus(userSession, snapshot),
                 ActiveUserId = userId,
                 ActiveUserName = userSession.DisplayName,
                 ServerTimeUtc = DateTimeOffset.UtcNow
@@ -288,6 +291,33 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             TrackId = trackId,
             OffsetMs = offsetMs
         });
+    }
+
+    /// <summary>
+    /// Publishes what a Local Session's desktop client is playing. Only validates, rate-limits
+    /// and queues: a lyrics fetch must never hold this connection's invocation slot, which
+    /// SyncClock shares. Returns a <see cref="LocalPublishResult"/> as an int.
+    /// </summary>
+    public async Task<int> PublishLocalPlayback(LocalPlaybackUpdateDto update)
+    {
+        if (GetCredentialKind() is not CredentialKind.Session)
+        {
+            return (int)LocalPublishResult.NotLocalSession;
+        }
+
+        string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return (int)LocalPublishResult.NotLocalSession;
+        }
+
+        UserSession? session = await _authService.GetSessionByIdAsync(userId);
+        if (session is not { Kind: SessionKind.Local })
+        {
+            return (int)LocalPublishResult.NotLocalSession;
+        }
+
+        return (int)_localIngest.Submit(Context.ConnectionId, session, update);
     }
 
     public Task ReportClientVisibility(bool isVisible)
@@ -377,8 +407,9 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
             return (int)PlayerCommandResult.Failed;
         }
 
+        // A Local Session has no Spotify account; its client drives the OS player directly.
         UserSession? session = await _authService.GetSessionForUserAsync(userId);
-        if (session is null || string.IsNullOrWhiteSpace(session.AccessToken))
+        if (session is null || session.Kind == SessionKind.Local || string.IsNullOrWhiteSpace(session.AccessToken))
         {
             _logger.LogWarning(
                 "Player command {Command} rejected: no session with an access token (Session: {SessionRef}, SessionFound: {SessionFound})",
@@ -425,6 +456,24 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         {
             _registry.RequestUserActivity(userId);
         }
+    }
+
+    private static string DescribeStatus(UserSession session, UserPlaybackSnapshot? snapshot)
+    {
+        PlaybackState? state = snapshot?.PlaybackState;
+        if (session.Kind == SessionKind.Local)
+        {
+            if (state?.CurrentTrack is null)
+            {
+                return PlaybackUpdateApplier.STATUS_LOCAL_IDLE;
+            }
+
+            return state.IsPlaying
+                ? PlaybackUpdateApplier.STATUS_LOCAL_PLAYING
+                : PlaybackUpdateApplier.STATUS_LOCAL_PAUSED;
+        }
+
+        return state?.IsPlaying == true ? "Active (Playing)" : "Idle";
     }
 
     private CredentialKind? GetCredentialKind()

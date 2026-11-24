@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Server.BackgroundServices;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 
@@ -53,6 +55,9 @@ public sealed class DisplayTestHost : IAsyncDisposable
                 services.AddSingleton<TimeProvider>(Time);
                 services.AddScoped<ISpotifyAuthService>(_ => Store.CreateAuthService());
                 services.AddScoped<IDisplayService>(_ => Store.CreateDisplayService());
+                services.AddScoped<ILocalSessionService>(sp => Store.CreateLocalSessionService(
+                    sp.GetRequiredService<TimeProvider>(),
+                    sp.GetRequiredService<IOptions<LocalSessionOptions>>()));
                 services.AddScoped(_ => Mock.Of<ISpotifyPlayerClient>());
                 services.AddScoped(_ => Mock.Of<ILyricsCacheRepository>());
                 if (configurePairing is not null)

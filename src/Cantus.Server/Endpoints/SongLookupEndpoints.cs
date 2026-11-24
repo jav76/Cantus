@@ -1,4 +1,5 @@
 using Cantus.Core.Interfaces;
+using Cantus.Core.Logging;
 using Cantus.Core.Models;
 using Cantus.Core.Search;
 using Cantus.Server.Models;
@@ -40,7 +41,7 @@ public static class SongLookupEndpoints
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        (UserSession? owner, IResult? rejection) = await ResolveOwnerAsync(
+        (SpotifyOwner? owner, IResult? rejection) = await ResolveOwnerAsync(
             credentialResolver,
             context,
             cancellationToken);
@@ -84,7 +85,7 @@ public static class SongLookupEndpoints
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        (UserSession? owner, IResult? rejection) = await ResolveOwnerAsync(
+        (SpotifyOwner? owner, IResult? rejection) = await ResolveOwnerAsync(
             credentialResolver,
             context,
             cancellationToken);
@@ -183,9 +184,10 @@ public static class SongLookupEndpoints
     }
 
     /// <summary>
-    /// Owner-only: 401 without a credential, 403 for a Display token, which is view-only.
+    /// Owner-only: 401 without a credential, 403 for a Display token, which is view-only, and
+    /// 403 for a Local Session, which has no Spotify account to search or play with.
     /// </summary>
-    private static async Task<(UserSession? Owner, IResult? Rejection)> ResolveOwnerAsync(
+    private static async Task<(SpotifyOwner? Owner, IResult? Rejection)> ResolveOwnerAsync(
         ICredentialResolver credentialResolver,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -196,11 +198,23 @@ public static class SongLookupEndpoints
             return (null, Results.Unauthorized());
         }
 
-        if (!caller.IsSession)
+        if (!caller.IsSession
+            || caller.Owner is not
+            {
+                Kind: SessionKind.Spotify,
+                SpotifyUserId: { } spotifyUserId,
+                AccessToken: { } accessToken
+            })
         {
             return (null, Results.StatusCode(StatusCodes.Status403Forbidden));
         }
 
-        return (caller.Owner, null);
+        return (new SpotifyOwner(caller.Owner.Id, spotifyUserId, accessToken), null);
+    }
+
+    private sealed record SpotifyOwner(string Id, string SpotifyUserId, string AccessToken)
+    {
+        public override string ToString() =>
+            $"SpotifyOwner {{ Id = {SessionLogRef.For(Id)}, SpotifyUserId = {SpotifyUserId}, AccessToken = [REDACTED] }}";
     }
 }

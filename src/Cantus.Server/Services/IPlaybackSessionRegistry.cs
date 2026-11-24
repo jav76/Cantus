@@ -61,6 +61,9 @@ public interface IPlaybackSessionRegistry
     /// <returns>The ids of the users whose snapshot was updated.</returns>
     IReadOnlyList<string> ReplaceLyricsForTrack(string trackId, SyncedLyrics? lyrics);
 
+    /// <summary>Drops a Session's snapshot, for when the Session itself ends.</summary>
+    void RemoveUserState(string userId);
+
     UserPlaybackSnapshot? GetUserState(string userId);
     UserPlaybackSnapshot? GetActivePlaybackSnapshot();
     IReadOnlyList<UserPlaybackSnapshot> GetAllSnapshots();
