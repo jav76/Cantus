@@ -122,7 +122,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload SARIF to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3
+        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3.39.4
         with:
           sarif_file: sonar-results.sarif
           category: sonarqube
