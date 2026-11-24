@@ -50,7 +50,7 @@ public partial class App : Application
         }
 
 #if !__WASM__
-        MainWindow.Title = "Cantus - Real-Time Spotify Synced Lyrics";
+        MainWindow.Title = "Cantus - Real-Time Synced Lyrics";
         ApplyMinimumWindowSize(MainWindow);
 #endif
         MainWindow.Activate();

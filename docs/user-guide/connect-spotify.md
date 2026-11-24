@@ -1,6 +1,9 @@
 # Connect Spotify
 
-Cantus reads your playback through Spotify's sign-in. Select **Connect Spotify** in the header (an icon on small screens), or **Connect** under **Spotify account** on the track card or the **Sync & Info** tab. The desktop app opens the sign-in in your browser and offers **Return to Desktop App** when it is done.
+Cantus reads your playback through Spotify's sign-in. Select **Connect Spotify** in the header (an icon on small screens), or **Connect** under **Account** on the track card or the **Sync & Info** tab. The desktop app opens the sign-in in your browser and offers **Return to Desktop App** when it is done.
+
+!!! tip "No Spotify account?"
+    On Linux, the desktop app can show lyrics for this computer's own players instead: choose **Use this computer's players**. See [Use This Computer's Players](local-players.md).
 
 ---
 

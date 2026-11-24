@@ -11,7 +11,7 @@ namespace Cantus.Client.Views;
 /// <summary>
 /// Starts a Spotify sign-in from any Connect Spotify button: shows the setup screen when the
 /// server lets the user choose their own Spotify app, then opens the sign-in page (same tab on
-/// WASM, the system browser elsewhere).
+/// WASM, the system browser elsewhere). The setup screen can hand over to this computer's players.
 /// </summary>
 internal static class SpotifySignIn
 {
@@ -29,9 +29,27 @@ internal static class SpotifySignIn
             {
                 SpotifySetupViewModel setup = session.SpotifySetup;
                 await setup.LoadAsync();
-                if (setup.NeedsDialog && !await ShowSetupAsync(setup, xamlRoot))
+                if (setup.NeedsDialog)
                 {
-                    return;
+                    // From a Local Session ("Connect Spotify instead") the way back is Cancel, not a second Local Session.
+                    bool offerLocalPlayers = session.IsLocalAvailable && !session.IsLocalSession;
+                    SpotifySetupDialog dialog = new(setup, ThemeManager.Instance, offerLocalPlayers);
+                    if (xamlRoot is not null)
+                    {
+                        dialog.XamlRoot = xamlRoot;
+                    }
+
+                    ContentDialogResult choice = await dialog.ShowAsync();
+                    if (dialog.ChoseLocalPlayers)
+                    {
+                        await LocalSessionSignIn.StartAsync(session, xamlRoot);
+                        return;
+                    }
+
+                    if (choice != ContentDialogResult.Primary)
+                    {
+                        return;
+                    }
                 }
 
                 loginPath = setup.PrepareLoginPath();
@@ -48,17 +66,6 @@ internal static class SpotifySignIn
         {
             _logger.LogError(ex, "Error connecting to Spotify");
         }
-    }
-
-    private static async Task<bool> ShowSetupAsync(SpotifySetupViewModel setup, XamlRoot? xamlRoot)
-    {
-        SpotifySetupDialog dialog = new(setup, ThemeManager.Instance);
-        if (xamlRoot is not null)
-        {
-            dialog.XamlRoot = xamlRoot;
-        }
-
-        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private static async Task LaunchAsync(string? serverBaseUrl, string loginPath)

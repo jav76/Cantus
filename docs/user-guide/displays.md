@@ -12,7 +12,7 @@ Use a Display for any screen other people can reach. Sign in with Spotify only o
 | :--- | :--- |
 | Show your current track, artwork, progress and synced lyrics | Play, pause, skip, seek, or change volume, shuffle or repeat |
 | Follow your playback live, with the same timing as your own devices | Change per-track sync offsets or pick different lyrics |
-| Adjust its own **Device latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, log out, or see your Spotify sign-in |
+| Adjust its own **Device latency** (and use <kbd>[</kbd> and <kbd>]</kbd>) to correct the screen's lag | Sign in, sign out, or see your sign-in |
 | Keep your playback updating while no other device is open | List, approve, rename or remove Displays |
 | Reconnect by itself after a restart or network drop | Watch anyone else's playback |
 
@@ -22,12 +22,12 @@ A Display hides the transport controls, seeking, sync offset steppers, the **Wro
 
 ## Pair a Screen
 
-You need two devices: the screen you want to pair, and a phone or computer signed in to Cantus with Spotify.
+You need two devices: the screen you want to pair, and a phone or computer signed in to Cantus, with Spotify or with [this computer's players](local-players.md).
 
 ### 1. Show a code on the screen
 
 1. On the screen, open your Cantus address, for example `http://<your-server-ip>:5000`.
-2. In the **Spotify account** section, choose **Pair as display**. On mobile layouts it is under the **Sync & Info** tab. The button only shows while the screen is not signed in to Spotify, so log out there first if it is.
+2. In the **Account** section, choose **Pair as display**. On mobile layouts it is under the **Sync & Info** tab. The button only shows while the screen is signed out, so sign out there first if it is signed in.
 3. The screen shows a short code in large type, a QR code, the server address and how long the code is valid.
 
 Open the screen at the same address your phone uses (for example your public HTTPS address). The QR code and the address under the code are built from it.
@@ -44,7 +44,7 @@ Approve it from your signed-in phone or computer in one of two ways.
 
 === "Type the code"
 
-    1. In the **Displays** section, choose **Add display**. It is under the **Spotify account** section, and under the **Sync & Info** tab on mobile layouts.
+    1. In the **Displays** section, choose **Add display**. It is under the **Account** section, and under the **Sync & Info** tab on mobile layouts.
     2. Type the code shown on the screen. Dashes and letter case do not matter.
     3. Give the screen a name of 1 to 64 characters and choose **Approve**.
 
@@ -52,7 +52,7 @@ The screen switches to the lyrics view by itself. It stores its token on the dev
 
 ### If the phone is not signed in
 
-If the QR opens Cantus in a browser that is not signed in, the prompt asks you to sign in first. Choose **Connect Spotify** in the prompt. Cantus keeps the code on this device, and the prompt opens again with it once you are back and signed in. A kept code is dropped if you cancel the prompt, or after 5 minutes, when the screen's code has expired anyway.
+If the QR opens Cantus in a browser that is not signed in, the prompt asks you to sign in first. Choose **Connect Spotify** in the prompt (or **Use this computer's players**, where the desktop app offers it). Cantus keeps the code on this device, and the prompt opens again with it once you are back and signed in. A kept code is dropped if you cancel the prompt, or after 5 minutes, when the screen's code has expired anyway.
 
 ### About pairing codes
 
@@ -88,7 +88,7 @@ Remove a Display you no longer use, or one you think someone else has copied. A 
 
 ### Logging out removes your Displays
 
-Displays belong to your Spotify sign-in on this Cantus server. **Log Out** ends that sign-in on every device and removes every Display paired to it. Each screen goes back to the pairing screen the next time it reconnects. Pair them again after you sign back in.
+Displays belong to your sign-in on this Cantus server, whether it is a Spotify sign-in or a Local Session. Signing out ends that sign-in on every device and removes every Display paired to it. Each screen goes back to the pairing screen the next time it reconnects. Pair them again after you sign back in.
 
 ---
 

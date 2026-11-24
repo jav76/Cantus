@@ -23,6 +23,7 @@ public sealed partial class SongLookupDialog : ContentDialog
         Lookup = viewModel.Lookup;
         Theme = viewModel.Theme;
         this.InitializeComponent();
+        DialogLightDismiss.Enable(this);
         Opened += (_, _) => FragmentBox.Focus(FocusState.Programmatic);
         Closed += (_, _) => Lookup.Cancel();
     }

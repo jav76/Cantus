@@ -286,9 +286,14 @@ public sealed partial class AdaptiveHeaderBar : UserControl
         Layout?.CycleMobileView();
     }
 
-    private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
+    private async void OnAccountClicked(object sender, RoutedEventArgs e)
     {
-        await SpotifySignIn.StartAsync(Session, XamlRoot);
+        await AccountMenu.OpenAsync(Session, (FrameworkElement)sender);
+    }
+
+    private async void OnUseLocalPlayersClicked(object sender, RoutedEventArgs e)
+    {
+        await LocalSessionSignIn.StartAsync(Session, XamlRoot);
     }
 
     private async void OnLogoutClicked(object sender, RoutedEventArgs e)

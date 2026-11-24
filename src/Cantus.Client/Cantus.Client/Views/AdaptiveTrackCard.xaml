@@ -71,7 +71,7 @@
                         <Grid x:Name="SeekArea"
                               Background="Transparent"
                               MinHeight="36"
-                              IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
+                              IsHitTestVisible="{x:Bind ViewModel.CanUsePlayerControls, Mode=OneWay}"
                               PointerReleased="OnProgressBarPointerReleased"
                               PointerEntered="OnSeekBarPointerEntered"
                               PointerMoved="OnSeekBarPointerMoved"
@@ -114,9 +114,10 @@
                     </StackPanel>
 
                     <!-- Playback Transport Controls -->
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" HorizontalAlignment="Center" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.PlayerControlsVisibility, Mode=OneWay}">
                         <Button Grid.Column="0"
                                 Click="OnShuffleClicked"
+                                Visibility="{x:Bind Session.SpotifyControlsVisibility, Mode=OneWay}"
                                 Background="Transparent"
                                 Foreground="{x:Bind Transport.ShuffleButtonForeground, Mode=OneWay}"
                                 CornerRadius="16"
@@ -162,6 +163,7 @@
                         </Button>
                         <Button Grid.Column="4"
                                 Click="OnRepeatClicked"
+                                Visibility="{x:Bind Session.SpotifyControlsVisibility, Mode=OneWay}"
                                 Background="Transparent"
                                 Foreground="{x:Bind Transport.RepeatButtonForeground, Mode=OneWay}"
                                 CornerRadius="16"
@@ -174,8 +176,8 @@
                         </Button>
                     </Grid>
 
-                    <!-- Volume -->
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                    <!-- Volume (Spotify Sessions only) -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Visibility="{x:Bind GetSpotifyControlsVisibility(Pairing.OwnerControlsVisibility, Session.SpotifyControlsVisibility), Mode=OneWay}">
                         <views:CantusIcon Grid.Column="0"
                                           Kind="Volume"
                                           Size="16"
@@ -281,30 +283,33 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Connected Spotify Account -->
+                    <!-- Account: a Spotify Session or this computer's players -->
                     <StackPanel Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
-                        <TextBlock Text="Spotify account" Style="{StaticResource CantusSectionLabelStyle}" />
+                        <TextBlock Text="Account" Style="{StaticResource CantusSectionLabelStyle}" />
 
                         <!-- Logged in state -->
                         <Grid ColumnDefinitions="Auto,*,Auto" Visibility="{x:Bind Session.HasSessionsVisibility, Mode=OneWay}">
                             <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#20FFFFFF" Margin="0,0,10,0">
-                                <views:CantusIcon Kind="Account" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <views:CantusIcon Kind="{x:Bind Session.AccountIcon, Mode=OneWay}" Size="17" Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="{x:Bind Session.ActiveUserName, Mode=OneWay}" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center" />
-                                    <TextBlock Text="Active Account" FontSize="11" Foreground="#10B981" />
+                                    <TextBlock Text="{x:Bind Session.AccountSourceText, Mode=OneWay}" FontSize="11" Foreground="#10B981" />
                                 </StackPanel>
                             </StackPanel>
                             <Button Grid.Column="2"
-                                    Click="OnLogoutClicked"
+                                    Click="OnAccountClicked"
                                     Background="#1AFFFFFF"
                                     Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
                                     CornerRadius="6"
                                     Padding="8,4"
-                                    ToolTipService.ToolTip="Log Out">
-                                <views:CantusIcon Kind="SignOut" Size="14" />
+                                    ToolTipService.ToolTip="Switch or sign out">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <views:CantusIcon Kind="SignOut" Size="14" />
+                                    <views:CantusIcon Kind="ChevronDown" Size="10" VerticalAlignment="Center" />
+                                </StackPanel>
                             </Button>
                         </Grid>
 
@@ -314,22 +319,38 @@
                                 <TextBlock Text="Not Connected" FontSize="13" FontFamily="{StaticResource CantusTextSemiBoldFontFamily}" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
                                 <TextBlock Text="Log in to view lyrics" FontSize="11" Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
                             </StackPanel>
-                            <Button Grid.Row="1"
-                                    Grid.ColumnSpan="2"
-                                    Click="OnPairAsDisplayClicked"
-                                    HorizontalAlignment="Stretch"
-                                    Background="#1AFFFFFF"
-                                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
-                                    BorderThickness="1"
-                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
-                                    CornerRadius="6"
-                                    Padding="10,5"
-                                    ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <views:CantusIcon Kind="Display" Size="13" />
-                                    <TextBlock Text="Pair as display" FontSize="11" />
-                                </StackPanel>
-                            </Button>
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="8">
+                                <Button Click="OnUseLocalPlayersClicked"
+                                        Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                        IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
+                                        HorizontalAlignment="Stretch"
+                                        Background="#1AFFFFFF"
+                                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                        BorderThickness="1"
+                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                        CornerRadius="6"
+                                        Padding="10,5"
+                                        ToolTipService.ToolTip="Follow the media players on this computer, no Spotify account needed">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <views:CantusIcon Kind="Display" Size="13" />
+                                        <TextBlock Text="Use this computer's players" FontSize="11" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnPairAsDisplayClicked"
+                                        HorizontalAlignment="Stretch"
+                                        Background="#1AFFFFFF"
+                                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                        BorderThickness="1"
+                                        Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                        CornerRadius="6"
+                                        Padding="10,5"
+                                        ToolTipService.ToolTip="Show a code an owner approves from a signed-in device">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <views:CantusIcon Kind="Display" Size="13" />
+                                        <TextBlock Text="Pair as display" FontSize="11" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                             <Button Grid.Column="1"
                                     Click="OnConnectSpotifyClicked"
                                     Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
@@ -344,6 +365,10 @@
                             </Button>
                         </Grid>
                     </StackPanel>
+
+                    <!-- Players on this computer (Local Session only) -->
+                    <views:LocalPlayersCard Visibility="{x:Bind LocalPlayers.SectionVisibility, Mode=OneWay}"
+                                            ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
 
                     <!-- Owner's Displays -->
                     <views:DisplaysCard Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
@@ -403,7 +428,7 @@
                 </StackPanel>
 
                 <!-- Compact Transport Controls -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.PlayerControlsVisibility, Mode=OneWay}">
                     <Button Click="OnSkipPreviousClicked"
                             Background="#20FFFFFF"
                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"

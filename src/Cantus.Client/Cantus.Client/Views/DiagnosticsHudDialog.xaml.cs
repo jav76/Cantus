@@ -26,6 +26,7 @@ public sealed partial class DiagnosticsHudDialog : ContentDialog
         Theme = viewModel.Theme;
         Layout = viewModel.Layout;
         this.InitializeComponent();
+        DialogLightDismiss.Enable(this);
     }
 
     public string GetLatencySkewText(long? rtt = null, long? skew = null)

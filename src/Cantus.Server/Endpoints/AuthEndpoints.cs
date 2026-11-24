@@ -152,9 +152,11 @@ public static class AuthEndpoints
     private static IResult HandleGetSetupInfo(
         IHostUrlResolver hostUrlResolver,
         IOptions<SpotifyOptions> spotifyOptions,
+        IOptions<LocalSessionOptions> localSessionOptions,
         HttpContext context)
     {
         SpotifyOptions options = spotifyOptions.Value;
+        LocalSessionOptions localOptions = localSessionOptions.Value;
         string redirectUri = hostUrlResolver.ResolveSpotifyRedirectUri(context);
         return Results.Ok(new SpotifySetupInfoDto
         {
@@ -162,6 +164,8 @@ public static class AuthEndpoints
             UserClientIdsAllowed = options.UserClientIdsAllowed,
             RedirectUri = redirectUri,
             RedirectUriAccepted = IsRedirectUriAcceptedBySpotify(redirectUri),
+            LocalSessionsEnabled = localOptions.Enabled,
+            LocalSessionJoinCodeRequired = localOptions.Enabled && localOptions.RequiresJoinCode,
         });
     }
 

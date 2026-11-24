@@ -38,6 +38,19 @@ public sealed partial class DisplayPromptView : UserControl
         private set => SetValue(DisplaysProperty, value);
     }
 
+    public static readonly DependencyProperty SessionProperty =
+        DependencyProperty.Register(
+            nameof(Session),
+            typeof(SessionViewModel),
+            typeof(DisplayPromptView),
+            new PropertyMetadata(null));
+
+    public SessionViewModel? Session
+    {
+        get => (SessionViewModel?)GetValue(SessionProperty);
+        private set => SetValue(SessionProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -64,6 +77,7 @@ public sealed partial class DisplayPromptView : UserControl
         }
 
         LyricsViewModel? viewModel = (LyricsViewModel?)e.NewValue;
+        prompt.Session = viewModel?.Session;
         prompt.Displays = viewModel?.Session.Displays;
         prompt.Theme = viewModel?.Theme;
 
@@ -143,6 +157,11 @@ public sealed partial class DisplayPromptView : UserControl
     private async void OnConnectSpotifyClicked(object sender, RoutedEventArgs e)
     {
         await SpotifySignIn.StartAsync(ViewModel?.Session, XamlRoot, () => Displays?.KeepCodeThroughSignIn());
+    }
+
+    private async void OnUseLocalPlayersClicked(object sender, RoutedEventArgs e)
+    {
+        await LocalSessionSignIn.StartAsync(Session, XamlRoot);
     }
 
     private void OnCancelClicked(object sender, RoutedEventArgs e)
