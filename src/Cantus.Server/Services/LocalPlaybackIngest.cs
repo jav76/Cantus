@@ -33,15 +33,24 @@ public interface ILocalPlaybackIngest
     /// <summary>Drops a closed connection's state and releases its publisher claim.</summary>
     void ReleaseConnection(string connectionId);
 
-    /// <summary>Drops everything held for a Session that ended.</summary>
+    /// <summary>
+    /// Drops everything held for a Session that ended, and refuses publishes for it that were
+    /// already in flight.
+    /// </summary>
     void Forget(string sessionId);
 }
 
 /// <summary>
 /// Takes playback that Local Sessions publish and applies it in the background, one Session at
-/// a time. Each Session has one publisher connection, a queue that keeps only the newest update,
+/// a time. Each Session has one publisher connection, a slot that keeps only the newest update,
 /// and a lyric budget; each connection has a token bucket and a sequence check.
 /// </summary>
+/// <remarks>
+/// The newest connection of a Session to publish takes the claim, because one Session is one
+/// person: a client that reconnects after a network change must not be locked out by its old
+/// connection, which the server may keep for up to the client timeout. A connection whose claim
+/// was taken gets <see cref="LocalPublishResult.NotPublisher"/> until the claim is free again.
+/// </remarks>
 public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 {
     public const int TOKEN_BUCKET_BURST = 10;
@@ -59,26 +68,31 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
     private static readonly TimeSpan TimestampFutureTolerance = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan LyricBudgetWindow = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan TouchInterval = TimeSpan.FromHours(1);
+    private static readonly TimeSpan ForgottenSessionRetention = TimeSpan.FromMinutes(5);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IPlaybackUpdateApplier _applier;
+    private readonly IPlaybackSessionRegistry _registry;
     private readonly TimeProvider _timeProvider;
     private readonly IOptions<LocalSessionOptions> _options;
     private readonly ILogger<LocalPlaybackIngest> _logger;
     private readonly object _lock = new();
     private readonly Dictionary<string, ConnectionState> _connections = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SessionPipeline> _pipelines = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DateTimeOffset> _forgottenSessions = new(StringComparer.Ordinal);
     private bool _disposed;
 
     public LocalPlaybackIngest(
         IServiceScopeFactory scopeFactory,
         IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry,
         TimeProvider timeProvider,
         IOptions<LocalSessionOptions> options,
         ILogger<LocalPlaybackIngest> logger)
     {
         _scopeFactory = scopeFactory;
         _applier = applier;
+        _registry = registry;
         _timeProvider = timeProvider;
         _options = options;
         _logger = logger;
@@ -86,7 +100,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
     public LocalPublishResult Submit(string connectionId, UserSession session, LocalPlaybackUpdateDto? update)
     {
-        if (session.Kind != SessionKind.Local)
+        if (session.Kind != SessionKind.Local || !_options.Value.Enabled)
         {
             return LocalPublishResult.NotLocalSession;
         }
@@ -95,6 +109,19 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         lock (_lock)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (_forgottenSessions.ContainsKey(session.Id))
+            {
+                return LocalPublishResult.NotLocalSession;
+            }
+
+            // The hub looks the Session up before calling here, and SignalR does not wait for
+            // that before running OnDisconnectedAsync. The registry drops a connection before
+            // ReleaseConnection runs, so this refuses a publish that would outlive its release.
+            if (!_registry.IsConnected(connectionId))
+            {
+                return LocalPublishResult.NotPublisher;
+            }
 
             ConnectionState connection = GetOrCreateConnection(connectionId, session.Id, now);
             if (!connection.TryTakeToken(now))
@@ -108,12 +135,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             }
 
             SessionPipeline pipeline = GetOrCreatePipeline(session.Id);
-            if (pipeline.PublisherConnectionId is null)
-            {
-                pipeline.PublisherConnectionId = connectionId;
-                pipeline.CancelGraceTimer();
-            }
-            else if (!string.Equals(pipeline.PublisherConnectionId, connectionId, StringComparison.Ordinal))
+            if (!TryHoldClaim(pipeline, connectionId, connection))
             {
                 return LocalPublishResult.NotPublisher;
             }
@@ -125,7 +147,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
             connection.LastSequence = update.Sequence;
             pipeline.DisplayName = session.DisplayName;
-            pipeline.Queue.Writer.TryWrite(new ApplyItem(state, session.DisplayName, claimedSpotifyTrackId));
+            pipeline.PendingApply = new ApplyItem(state, session.DisplayName, claimedSpotifyTrackId);
+            pipeline.Signal();
             return LocalPublishResult.Accepted;
         }
     }
@@ -152,6 +175,17 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
     {
         lock (_lock)
         {
+            DateTimeOffset now = _timeProvider.GetUtcNow();
+            foreach (KeyValuePair<string, DateTimeOffset> entry in _forgottenSessions.ToList())
+            {
+                if (now - entry.Value >= ForgottenSessionRetention)
+                {
+                    _forgottenSessions.Remove(entry.Key);
+                }
+            }
+
+            _forgottenSessions[sessionId] = now;
+
             foreach (KeyValuePair<string, ConnectionState> entry in _connections.ToList())
             {
                 if (string.Equals(entry.Value.SessionId, sessionId, StringComparison.Ordinal))
@@ -184,7 +218,37 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
             _pipelines.Clear();
             _connections.Clear();
+            _forgottenSessions.Clear();
         }
+    }
+
+    /// <summary>
+    /// Gives <paramref name="connectionId"/> the publisher claim unless a newer connection took
+    /// it from this one and still holds it. Caller holds the lock.
+    /// </summary>
+    private bool TryHoldClaim(SessionPipeline pipeline, string connectionId, ConnectionState connection)
+    {
+        string? holder = pipeline.PublisherConnectionId;
+        if (string.Equals(holder, connectionId, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (holder is not null && connection.Displaced)
+        {
+            return false;
+        }
+
+        if (holder is not null && _connections.TryGetValue(holder, out ConnectionState? previous))
+        {
+            previous.Displaced = true;
+        }
+
+        connection.Displaced = false;
+        pipeline.PublisherConnectionId = connectionId;
+        pipeline.OfflinePending = false;
+        pipeline.CancelGraceTimer();
+        return true;
     }
 
     private ConnectionState GetOrCreateConnection(string connectionId, string sessionId, DateTimeOffset now)
@@ -236,7 +300,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             }
 
             pipeline.CancelGraceTimer();
-            pipeline.Queue.Writer.TryWrite(new PublisherOfflineItem(pipeline.DisplayName));
+            pipeline.OfflinePending = true;
+            pipeline.Signal();
         }
     }
 
@@ -245,27 +310,60 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         CancellationToken stopping = pipeline.Stopping.Token;
         try
         {
-            await foreach (WorkItem item in pipeline.Queue.Reader.ReadAllAsync(stopping))
+            await foreach (bool _ in pipeline.Wakeups.Reader.ReadAllAsync(stopping))
             {
-                try
+                while (TryTakeWork(pipeline, out WorkItem? item))
                 {
-                    await ProcessAsync(pipeline, item, stopping);
-                }
-                catch (OperationCanceledException) when (stopping.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Failed to apply published playback for Session {SessionRef}",
-                        SessionLogRef.For(pipeline.SessionId));
+                    try
+                    {
+                        await ProcessAsync(pipeline, item, stopping);
+                    }
+                    catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Failed to apply published playback for Session {SessionRef}",
+                            SessionLogRef.For(pipeline.SessionId));
+                    }
                 }
             }
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested)
         {
+        }
+    }
+
+    /// <summary>
+    /// Takes the pending update before the offline mark, so the grace period ending while an
+    /// apply runs never discards the publisher's last update.
+    /// </summary>
+    private bool TryTakeWork(SessionPipeline pipeline, [NotNullWhen(true)] out WorkItem? item)
+    {
+        lock (_lock)
+        {
+            if (pipeline.PendingApply is { } apply)
+            {
+                pipeline.PendingApply = null;
+                item = apply;
+                return true;
+            }
+
+            if (pipeline.OfflinePending)
+            {
+                pipeline.OfflinePending = false;
+                if (pipeline.PublisherConnectionId is null)
+                {
+                    item = new PublisherOfflineItem(pipeline.DisplayName);
+                    return true;
+                }
+            }
+
+            item = null;
+            return false;
         }
     }
 
@@ -485,6 +583,9 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         public long LastSequence { get; set; }
 
+        /// <summary>True once a newer connection of the Session took the publisher claim from this one.</summary>
+        public bool Displaced { get; set; }
+
         public bool TryTakeToken(DateTimeOffset now)
         {
             if (now > _lastRefillUtc)
@@ -520,9 +621,16 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         public ITimer? GraceTimer { get; set; }
 
-        public Channel<WorkItem> Queue { get; } = Channel.CreateBounded<WorkItem>(new BoundedChannelOptions(1)
+        /// <summary>The newest update not yet applied; a newer one replaces it. Guarded by the ingest lock.</summary>
+        public ApplyItem? PendingApply { get; set; }
+
+        /// <summary>Set when the grace period ends with no publisher. Guarded by the ingest lock.</summary>
+        public bool OfflinePending { get; set; }
+
+        /// <summary>Wakes the worker; coalesced, since the worker drains both slots on each wakeup.</summary>
+        public Channel<bool> Wakeups { get; } = Channel.CreateBounded<bool>(new BoundedChannelOptions(1)
         {
-            FullMode = BoundedChannelFullMode.DropOldest,
+            FullMode = BoundedChannelFullMode.DropWrite,
             SingleReader = true,
             SingleWriter = false
         });
@@ -535,6 +643,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         public DateTimeOffset LastTouchUtc { get; set; } = DateTimeOffset.MinValue;
 
+        public void Signal() => Wakeups.Writer.TryWrite(true);
+
         public void CancelGraceTimer()
         {
             GraceTimer?.Dispose();
@@ -545,7 +655,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         {
             CancelGraceTimer();
             Stopping.Cancel();
-            Queue.Writer.TryComplete();
+            Wakeups.Writer.TryComplete();
         }
     }
 }

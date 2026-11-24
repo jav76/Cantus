@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
 using Cantus.Core.Search;
 using Cantus.Infrastructure.Persistence.Entities;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
 using Cantus.Server.Services;
@@ -25,13 +27,19 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
     private const string PUBLISH = nameof(PlaybackHub.PublishLocalPlayback);
     private const int PUBLISHER_GRACE_SECONDS = 20;
 
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly DisplayTestHost _host;
 
     public PlaybackHubLocalPublishTests(WebApplicationFactory<Program> factory)
     {
+        _factory = factory;
         _host = new DisplayTestHost(
             factory,
-            configureServices: services => services.AddScoped(_ => Mock.Of<ILyricsProvider>()));
+            configureServices: services =>
+            {
+                services.AddScoped(_ => Mock.Of<ILyricsProvider>());
+                services.Configure<LocalSessionOptions>(options => options.Enabled = true);
+            });
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
@@ -73,6 +81,67 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task Publish_OfTheContractSampleJson_IsAcceptedAndEchoedWithTheContractFieldNames()
+    {
+        const string SAMPLE = """
+            {
+              "sequence": 42,
+              "player": { "id": "spotify", "name": "Spotify" },
+              "deviceName": "Spotify",
+              "track": {
+                "title": "Glimpse of Us",
+                "artist": "Joji",
+                "album": "SMITHEREENS",
+                "durationMs": 233000,
+                "albumArtUrl": "https://i.scdn.co/image/abc",
+                "spotifyTrackId": "2mlNgAeIBnL78ZriXgrRHz"
+              },
+              "isPlaying": true,
+              "positionMs": 98774,
+              "rate": 1.0,
+              "positionAtServerMs": null,
+              "capabilities": { "canPlay": true, "canPause": true, "canGoNext": true, "canGoPrevious": false, "canSeek": true }
+            }
+            """;
+        UserSessionEntity local = await _host.Store.SeedLocalSessionAsync("Desktop");
+        HubConnection owner = await _host.ConnectAsync(local.Id);
+        Task<JsonElement> echo = NextAsync<JsonElement>(
+            owner,
+            nameof(IPlaybackClient.ReceivePlaybackState),
+            state => state.TryGetProperty("currentTrack", out JsonElement track) && track.ValueKind == JsonValueKind.Object);
+
+        using JsonDocument sample = JsonDocument.Parse(SAMPLE);
+        int result = await owner.InvokeAsync<int>(PUBLISH, sample.RootElement);
+
+        result.Should().Be(0, "0 is Accepted on the wire");
+        JsonElement state = await DisplayTestHost.WaitAsync(echo);
+        state.GetProperty("source").GetString().Should().Be("Local");
+        state.GetProperty("isPlaying").GetBoolean().Should().BeTrue();
+        JsonElement track = state.GetProperty("currentTrack");
+        track.GetProperty("id").GetString().Should().StartWith("local:");
+        track.GetProperty("title").GetString().Should().Be("Glimpse of Us");
+        track.GetProperty("artist").GetString().Should().Be("Joji");
+        JsonElement capabilities = state.GetProperty("capabilities");
+        capabilities.GetProperty("canSeek").GetBoolean().Should().BeTrue();
+        capabilities.GetProperty("canGoNext").GetBoolean().Should().BeTrue();
+        capabilities.GetProperty("canGoPrevious").GetBoolean().Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Publish_WhenLocalSessionsAreDisabled_IsRefusedForAnExistingLocalSession()
+    {
+        await using DisplayTestHost disabled = new(
+            _factory,
+            configureServices: services => services.AddScoped(_ => Mock.Of<ILyricsProvider>()));
+        UserSessionEntity local = await disabled.Store.SeedLocalSessionAsync("Desktop");
+        HubConnection owner = await disabled.ConnectAsync(local.Id);
+
+        int result = await owner.InvokeAsync<int>(PUBLISH, Update(1));
+
+        result.Should().Be((int)LocalPublishResult.NotLocalSession);
+    }
+
+    [Fact]
     public async Task Publish_FromDisplayConnection_IsRefused()
     {
         UserSessionEntity local = await _host.Store.SeedLocalSessionAsync("Desktop");
@@ -106,15 +175,16 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
     }
 
     [Fact]
-    public async Task Publish_FromASecondConnectionOfTheSession_IsNotPublisher()
+    public async Task Publish_FromANewerConnectionOfTheSession_TakesTheClaimFromTheOlderOne()
     {
         UserSessionEntity local = await _host.Store.SeedLocalSessionAsync("Desktop");
         HubConnection first = await _host.ConnectAsync(local.Id);
         HubConnection second = await _host.ConnectAsync(local.Id);
-
         (await first.InvokeAsync<int>(PUBLISH, Update(1))).Should().Be((int)LocalPublishResult.Accepted);
 
-        (await second.InvokeAsync<int>(PUBLISH, Update(1))).Should().Be((int)LocalPublishResult.NotPublisher);
+        (await second.InvokeAsync<int>(PUBLISH, Update(1))).Should().Be((int)LocalPublishResult.Accepted);
+
+        (await first.InvokeAsync<int>(PUBLISH, Update(2))).Should().Be((int)LocalPublishResult.NotPublisher);
     }
 
     [Fact]

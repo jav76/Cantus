@@ -19,6 +19,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
 {
     private const string CONNECTION_A = "conn-a";
     private const string CONNECTION_B = "conn-b";
+    private const string CONNECTION_C = "conn-c";
     private const long DURATION_MS = 233_000;
     private const int GRACE_SECONDS = 20;
 
@@ -27,6 +28,8 @@ public sealed class LocalPlaybackIngestTests : IDisposable
 
     private readonly FakeTimeProvider _time = new(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero));
     private readonly RecordingApplier _applier = new();
+    private readonly PlaybackSessionRegistry _registry;
+    private readonly LocalSessionOptions _options = new() { Enabled = true, PublisherGraceSeconds = GRACE_SECONDS };
     private readonly Mock<ILocalSessionService> _localSessions = new();
     private readonly ServiceProvider _services;
     private readonly LocalPlaybackIngest _ingest;
@@ -40,11 +43,18 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         services.AddScoped(_ => _localSessions.Object);
         _services = services.BuildServiceProvider();
 
+        _registry = new PlaybackSessionRegistry(_time);
+        foreach (string connectionId in new[] { CONNECTION_A, CONNECTION_B, CONNECTION_C })
+        {
+            _registry.RegisterConnection(connectionId, _session.Id);
+        }
+
         _ingest = new LocalPlaybackIngest(
             _services.GetRequiredService<IServiceScopeFactory>(),
             _applier,
+            _registry,
             _time,
-            Options.Create(new LocalSessionOptions { PublisherGraceSeconds = GRACE_SECONDS }),
+            Options.Create(_options),
             NullLogger<LocalPlaybackIngest>.Instance);
     }
 
@@ -60,6 +70,17 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         UserSession spotify = new() { Id = "spotify-1", Kind = SessionKind.Spotify, DisplayName = "Owner" };
 
         _ingest.Submit(CONNECTION_A, spotify, Update(1)).Should().Be(LocalPublishResult.NotLocalSession);
+    }
+
+    [Fact]
+    public async Task Submit_WhenLocalSessionsAreDisabled_IsRefusedForExistingSessions()
+    {
+        _options.Enabled = false;
+
+        _ingest.Submit(CONNECTION_A, _session, Update(1)).Should().Be(LocalPublishResult.NotLocalSession);
+
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.Updates.Should().BeEmpty();
     }
 
     public static TheoryData<string> InvalidUpdateCases() => new()
@@ -225,7 +246,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     {
         _ingest.Submit(CONNECTION_A, _session, Update(9)).Should().Be(LocalPublishResult.Accepted);
         await WaitForUpdatesAsync(1);
-        _ingest.ReleaseConnection(CONNECTION_A);
+        Disconnect(CONNECTION_A);
 
         _ingest.Submit(CONNECTION_B, _session, Update(1) with { PositionMs = 7_000 })
             .Should().Be(LocalPublishResult.Accepted);
@@ -272,15 +293,63 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
-    public void Submit_FromASecondConnectionOfTheSession_IsNotPublisherUntilTheFirstDisconnects()
+    public async Task Submit_FromANewerConnectionOfTheSession_TakesThePublisherClaim()
     {
         _ingest.Submit(CONNECTION_A, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+        await WaitForUpdatesAsync(1);
 
-        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.NotPublisher);
+        _ingest.Submit(CONNECTION_B, _session, Update(1) with { PositionMs = 7_000 })
+            .Should().Be(LocalPublishResult.Accepted);
+        (await WaitForUpdatesAsync(2))[1].State.Progress.Should().Be(TimeSpan.FromMilliseconds(7_000));
 
-        _ingest.ReleaseConnection(CONNECTION_A);
+        _ingest.Submit(CONNECTION_A, _session, Update(2))
+            .Should().Be(LocalPublishResult.NotPublisher, "the connection whose claim was taken must not take it back");
         _ingest.Submit(CONNECTION_B, _session, Update(2)).Should().Be(LocalPublishResult.Accepted);
-        _ingest.Submit(CONNECTION_A, _session, Update(3)).Should().Be(LocalPublishResult.NotPublisher);
+    }
+
+    [Fact]
+    public async Task Submit_AfterAReconnect_IsNotFrozenWhenTheHalfOpenOldConnectionTimesOut()
+    {
+        _ingest.Submit(CONNECTION_A, _session, Update(1));
+        await WaitForUpdatesAsync(1);
+
+        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+        await WaitForUpdatesAsync(2);
+        _time.Advance(TimeSpan.FromSeconds(30));
+        Disconnect(CONNECTION_A);
+        _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS * 2));
+
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.OfflineSessions.Should().BeEmpty("the live publisher still holds the claim");
+    }
+
+    [Fact]
+    public void Submit_FromADisplacedConnection_TakesTheClaimBackOnceItIsFree()
+    {
+        _ingest.Submit(CONNECTION_A, _session, Update(1));
+        _ingest.Submit(CONNECTION_B, _session, Update(1));
+        _ingest.Submit(CONNECTION_A, _session, Update(2)).Should().Be(LocalPublishResult.NotPublisher);
+
+        Disconnect(CONNECTION_B);
+
+        _ingest.Submit(CONNECTION_A, _session, Update(3)).Should().Be(LocalPublishResult.Accepted);
+        _ingest.Submit(CONNECTION_C, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+        _ingest.Submit(CONNECTION_A, _session, Update(4)).Should().Be(LocalPublishResult.NotPublisher);
+    }
+
+    [Fact]
+    public async Task Submit_FromAConnectionAlreadyClosed_IsRefusedAndHoldsNoClaim()
+    {
+        Disconnect(CONNECTION_A);
+
+        _ingest.Submit(CONNECTION_A, _session, Update(1)).Should().Be(LocalPublishResult.NotPublisher);
+
+        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+        await WaitForUpdatesAsync(1);
+        Disconnect(CONNECTION_B);
+        _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS));
+        await WaitUntilAsync(() => _applier.OfflineSessions.Count > 0);
+        _applier.Updates.Should().HaveCount(1, "the closed connection's publish was never applied");
     }
 
     [Fact]
@@ -346,6 +415,33 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
+    public async Task GracePeriodEndingWhileAnApplyIsRunning_StillAppliesThePublishersLastUpdateFirst()
+    {
+        TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource firstStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _applier.OnApply = async update =>
+        {
+            if (update.State.Progress == TimeSpan.FromMilliseconds(1_000))
+            {
+                firstStarted.TrySetResult();
+                await release.Task;
+            }
+        };
+
+        _ingest.Submit(CONNECTION_A, _session, Update(1) with { PositionMs = 1_000 });
+        await firstStarted.Task.WaitAsync(WAIT_TIMEOUT);
+        _ingest.Submit(CONNECTION_A, _session, TrackUpdate(2, "Next track") with { PositionMs = 2_000 });
+        Disconnect(CONNECTION_A);
+        _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS));
+        await Task.Delay(ABSENCE_WAIT);
+        release.TrySetResult();
+
+        await WaitUntilAsync(() => _applier.OfflineSessions.Count > 0);
+        _applier.Updates.Select(u => u.State.CurrentTrack!.Title).Should().Equal("Glimpse of Us", "Next track");
+        _applier.Events.Should().Equal("apply", "apply", "offline");
+    }
+
+    [Fact]
     public async Task Submit_OverTheLyricBudget_AppliesTrackChangesWithoutLyricsUntilTheWindowPasses()
     {
         long sequence = 0;
@@ -371,7 +467,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         _ingest.Submit(CONNECTION_A, _session, Update(1));
         await WaitForUpdatesAsync(1);
 
-        _ingest.ReleaseConnection(CONNECTION_A);
+        Disconnect(CONNECTION_A);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS - 1));
         await Task.Delay(ABSENCE_WAIT);
         _applier.OfflineSessions.Should().BeEmpty();
@@ -387,7 +483,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         _ingest.Submit(CONNECTION_A, _session, Update(1));
         await WaitForUpdatesAsync(1);
 
-        _ingest.ReleaseConnection(CONNECTION_A);
+        Disconnect(CONNECTION_A);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS / 2));
         _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS * 2));
@@ -401,10 +497,11 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     public async Task ReleaseConnection_OfANonPublisher_DoesNotStartTheGracePeriod()
     {
         _ingest.Submit(CONNECTION_A, _session, Update(1));
-        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.NotPublisher);
+        _ingest.Submit(CONNECTION_B, _session, Update(1));
+        _ingest.Submit(CONNECTION_A, _session, Update(2)).Should().Be(LocalPublishResult.NotPublisher);
         await WaitForUpdatesAsync(1);
 
-        _ingest.ReleaseConnection(CONNECTION_B);
+        Disconnect(CONNECTION_A);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS * 2));
 
         await Task.Delay(ABSENCE_WAIT);
@@ -412,18 +509,39 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
-    public async Task Forget_CancelsTheGracePeriodAndDropsThePublisherClaim()
+    public async Task Forget_CancelsTheGracePeriod()
     {
         _ingest.Submit(CONNECTION_A, _session, Update(1));
         await WaitForUpdatesAsync(1);
-        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.NotPublisher);
+        Disconnect(CONNECTION_A);
 
         _ingest.Forget(_session.Id);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS * 2));
 
         await Task.Delay(ABSENCE_WAIT);
         _applier.OfflineSessions.Should().BeEmpty();
-        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.Accepted);
+    }
+
+    [Fact]
+    public async Task Submit_ForAForgottenSession_IsRefusedSoALatePublishCannotRecreateIt()
+    {
+        _ingest.Submit(CONNECTION_A, _session, Update(1));
+        await WaitForUpdatesAsync(1);
+
+        _ingest.Forget(_session.Id);
+
+        _ingest.Submit(CONNECTION_A, _session, Update(2)).Should().Be(LocalPublishResult.NotLocalSession);
+        _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.NotLocalSession);
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.Updates.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void Forget_RefusesOnlyTheForgottenSession()
+    {
+        _ingest.Forget(_session.Id);
+
+        _ingest.Submit(CONNECTION_B, LocalSession("local-2"), Update(1)).Should().Be(LocalPublishResult.Accepted);
     }
 
     [Fact]
@@ -435,6 +553,13 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         await SubmitAndWaitAsync(Update(3) with { PositionMs = 2_000 });
 
         _localSessions.Verify(s => s.TouchAsync(_session.Id, It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    /// <summary>Mirrors the hub: the registry drops the connection before the ingest releases it.</summary>
+    private void Disconnect(string connectionId)
+    {
+        _registry.UnregisterConnection(connectionId);
+        _ingest.ReleaseConnection(connectionId);
     }
 
     private async Task<PlaybackUpdate> SubmitAndWaitAsync(LocalPlaybackUpdateDto update)
@@ -501,12 +626,15 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     {
         private readonly ConcurrentQueue<PlaybackUpdate> _updates = new();
         private readonly ConcurrentQueue<string> _offline = new();
+        private readonly ConcurrentQueue<string> _events = new();
 
         public Func<PlaybackUpdate, Task>? OnApply { get; set; }
 
         public IReadOnlyCollection<PlaybackUpdate> Updates => _updates;
 
         public IReadOnlyCollection<string> OfflineSessions => _offline;
+
+        public IReadOnlyCollection<string> Events => _events;
 
         public async Task ApplyAsync(
             PlaybackUpdate update,
@@ -520,6 +648,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
             }
 
             _updates.Enqueue(update);
+            _events.Enqueue("apply");
         }
 
         public Task MarkPublisherOfflineAsync(
@@ -528,6 +657,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
             CancellationToken cancellationToken = default)
         {
             _offline.Enqueue(sessionId);
+            _events.Enqueue("offline");
             return Task.CompletedTask;
         }
 

@@ -17,6 +17,12 @@ public sealed class LocalSessionOptions : IValidatableObject
     public const int MAX_IDLE_EXPIRY_DAYS = 3650;
     public const int MAX_PUBLISHER_GRACE_SECONDS = 600;
 
+    /// <summary>
+    /// Allows creating Local Sessions and publishing playback from them. Turning it off stops
+    /// both, so existing Local Sessions can no longer start lyric lookups; they stay valid
+    /// credentials (to view, manage Displays and log out) until they expire after
+    /// <see cref="IdleExpiryDays"/> or are revoked.
+    /// </summary>
     public bool Enabled { get; set; }
 
     /// <summary>

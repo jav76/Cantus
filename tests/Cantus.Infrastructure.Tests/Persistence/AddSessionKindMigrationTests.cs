@@ -112,6 +112,55 @@ public sealed class AddSessionKindMigrationTests : IDisposable
             .Should().Be(2);
     }
 
+    [Fact]
+    public async Task MigrateToHead_KeepsTheUniqueIndexOnSpotifyUserId()
+    {
+        await MigrateAsync(PREVIOUS_MIGRATION);
+        await SeedPreviousSchemaAsync();
+
+        await MigrateAsync(null);
+
+        await using SqliteConnection connection = await OpenAsync();
+        Func<Task> duplicate = () => ExecuteAsync(
+            connection,
+            "INSERT INTO \"UserSessions\" (\"Id\", \"Kind\", \"SpotifyUserId\", \"DisplayName\", \"ExpiresAtUtc\", \"CreatedAtUtc\", \"UpdatedAtUtc\") "
+            + $"VALUES ('session-2', 'Spotify', '{SPOTIFY_USER_ID}', 'Owner', '2026-01-01 00:00:00+00:00', '2026-01-01 00:00:00+00:00', '2026-01-01 00:00:00+00:00');");
+        await duplicate.Should().ThrowAsync<SqliteException>("a Spotify account still maps to one Session");
+    }
+
+    [Fact]
+    public async Task MigrateDown_DeletesLocalSessionsAndTheirDisplaysAndKeepsSpotifyOnes()
+    {
+        await MigrateAsync(PREVIOUS_MIGRATION);
+        await SeedPreviousSchemaAsync();
+        await MigrateAsync(null);
+        await using (SqliteConnection seed = await OpenAsync())
+        {
+            await ExecuteAsync(
+                seed,
+                "INSERT INTO \"UserSessions\" (\"Id\", \"Kind\", \"DisplayName\", \"ExpiresAtUtc\", \"CreatedAtUtc\", \"UpdatedAtUtc\") "
+                + "VALUES ('local-1', 'Local', 'Desktop', '2026-01-01 00:00:00+00:00', '2026-01-01 00:00:00+00:00', '2026-01-01 00:00:00+00:00');");
+            await ExecuteAsync(
+                seed,
+                "INSERT INTO \"Displays\" (\"Id\", \"OwnerSessionId\", \"Name\", \"TokenHash\", \"CreatedAtUtc\") "
+                + "VALUES ('local-display', 'local-1', 'TV', 'hash-local', '2026-01-01 00:00:00+00:00');");
+        }
+
+        await MigrateAsync(PREVIOUS_MIGRATION);
+
+        await using SqliteConnection connection = await OpenAsync();
+        (await ScalarAsync<long>(connection, "SELECT COUNT(*) FROM \"UserSessions\""))
+            .Should().Be(1, "only the Spotify Session fits the old schema");
+        (await ScalarAsync<string>(connection, $"SELECT \"SpotifyUserId\" FROM \"UserSessions\" WHERE \"Id\" = '{SESSION_ID}'"))
+            .Should().Be(SPOTIFY_USER_ID);
+        (await ScalarAsync<string>(connection, "SELECT group_concat(\"Id\") FROM \"Displays\""))
+            .Should().Be(DISPLAY_ID, "the Local Session's Display goes with it");
+        await using SqliteCommand check = connection.CreateCommand();
+        check.CommandText = "PRAGMA foreign_key_check;";
+        await using SqliteDataReader reader = await check.ExecuteReaderAsync();
+        (await reader.ReadAsync()).Should().BeFalse("the down migration must not orphan any Display");
+    }
+
     private async Task MigrateAsync(string? targetMigration)
     {
         DbContextOptions<CantusDbContext> options = new DbContextOptionsBuilder<CantusDbContext>()

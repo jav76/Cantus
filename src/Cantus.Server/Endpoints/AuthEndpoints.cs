@@ -444,6 +444,7 @@ public static class AuthEndpoints
         // Listed before the deletion removes them, but closed only after it, so a closed
         // Display that reconnects presents a token that no longer validates.
         IReadOnlyList<DisplayInfo> displays = await services.Displays.ListAsync(sessionId, cancellationToken);
+        UserSession? session = await services.Auth.GetSessionByIdAsync(sessionId, cancellationToken);
 
         bool revoked = await services.Auth.RevokeSessionAsync(sessionId, cancellationToken);
         if (!revoked)
@@ -451,9 +452,13 @@ public static class AuthEndpoints
             return false;
         }
 
-        services.LocalIngest.Forget(sessionId);
-        services.Applier.Forget(sessionId);
-        services.Registry.RemoveUserState(sessionId);
+        // A Spotify Session's snapshot is left to the poller until it moves onto the applier.
+        if (session?.Kind == SessionKind.Local)
+        {
+            services.LocalIngest.Forget(sessionId);
+            services.Applier.Forget(sessionId);
+            services.Registry.RemoveUserState(sessionId);
+        }
 
         foreach (DisplayInfo display in displays)
         {

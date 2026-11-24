@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Cantus.Core.Models;
 using Cantus.Infrastructure.Persistence.Entities;
 using Cantus.Infrastructure.Sessions;
@@ -61,6 +62,49 @@ public sealed class LocalSessionEndpointTests : IClassFixture<WebApplicationFact
 
         UserSessionEntity? row = await host.Store.FindSessionAsync(session.Id);
         row!.Kind.Should().Be(SessionKind.Local);
+    }
+
+    [Fact]
+    public async Task Create_ResponseUsesTheContractFieldNames()
+    {
+        await using DisplayTestHost host = CreateHost();
+
+        HttpResponseMessage response = await host.CreateClient().PostAsync(
+            LOCAL_PATH,
+            new StringContent("""{ "displayName": "jaret-desktop", "joinCode": null }""", System.Text.Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using JsonDocument body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement root = body.RootElement;
+        root.GetProperty("id").GetString().Should().NotBeNullOrEmpty();
+        root.GetProperty("kind").GetString().Should().Be("Local");
+        root.GetProperty("spotifyUserId").ValueKind.Should().Be(JsonValueKind.Null);
+        root.GetProperty("displayName").GetString().Should().Be("jaret-desktop");
+    }
+
+    [Theory]
+    [InlineData(false, null, 403, "local_sessions_disabled")]
+    [InlineData(true, null, 401, "join_code_required")]
+    [InlineData(true, "wrong-horse", 401, "join_code_invalid")]
+    public async Task Create_ErrorBodiesUseTheContractShape(bool enabled, string? joinCode, int status, string error)
+    {
+        await using DisplayTestHost host = CreateHost(options =>
+        {
+            options.Enabled = enabled;
+            options.JoinCode = JOIN_CODE;
+        });
+        string requestJson = JsonSerializer.Serialize(new Dictionary<string, string?>
+        {
+            ["displayName"] = "Desktop",
+            ["joinCode"] = joinCode
+        });
+
+        HttpResponseMessage response = await host.CreateClient().PostAsync(
+            LOCAL_PATH,
+            new StringContent(requestJson, System.Text.Encoding.UTF8, "application/json"));
+
+        ((int)response.StatusCode).Should().Be(status);
+        (await response.Content.ReadAsStringAsync()).Should().Be($$"""{"error":"{{error}}"}""");
     }
 
     [Fact]
