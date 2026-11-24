@@ -23,6 +23,14 @@ services:
       # - Spotify__RedirectUri=${Spotify__RedirectUri}
       # - Lrclib__BaseUrl=https://lrclib.net
 
+      # Local Sessions: lets the Linux desktop app show lyrics for this computer's
+      # media players (MPRIS) with no Spotify account. Off by default. On a server
+      # reachable from the internet, also set a join code (8+ characters) in .env,
+      # or anyone who can reach it can start lyrics lookups. Creation is rate
+      # limited per client address, so behind a proxy set the trust below too.
+      # - LocalSessions__Enabled=true
+      # - LocalSessions__JoinCode=${LocalSessions__JoinCode}
+
       # Reverse proxy trust. Forwarded headers (X-Forwarded-For/-Proto) are
       # only honoured from proxies listed here; the default trusts loopback
       # only. If you front Cantus with a proxy in another container, either
