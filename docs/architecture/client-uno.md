@@ -317,9 +317,11 @@ flowchart LR
 
 | Platform Target | Target Framework | UI Backend | Packaging (release workflow) |
 | :--- | :--- | :--- | :--- |
-| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries). |
+| **WebAssembly (WASM)** | `net10.0-browserwasm` | Uno WebAssembly | Served by the server from `wwwroot` (Docker image and server binaries), as the `.br` or `.gz` files the publish writes next to each asset when the browser accepts them (`PrecompressedStaticFiles`). |
 | **Linux Desktop / Raspberry Pi** | `net10.0-desktop` (`linux-x64`, `linux-arm64`) | Skia (X11, or Linux framebuffer) | `.tar.gz` and AppImage (`packaging/linux`) for `linux-x64`. `linux-arm64` is build-from-source. |
 | **Windows Desktop** | `net10.0-desktop` (`win-x64`) | Skia (Win32) | `.zip` and Inno Setup installer (`packaging/windows`). |
 | **macOS Desktop** | `net10.0-desktop` (`osx-x64`, `osx-arm64`) | Skia (macOS) | `.tar.gz`. |
+
+The WASM build runs C# in the Mono interpreter (no AOT) and keeps the SDK's Release defaults for the native runtime: `dotnet.native.wasm` is linked at `-O2` and stripped of DWARF debug info. Turning the strip off made that file 13.3 MB instead of 2.9 MB. AOT (`WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT`) made the brotli download 2x larger and the publish about 6x slower, for CPU gains the app does not need.
 
 The client project also has a `net10.0-windows10.0.26100` (WinUI) target when built on Windows, but releases ship the Skia desktop build.

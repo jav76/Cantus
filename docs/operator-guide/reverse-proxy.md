@@ -11,6 +11,7 @@ Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse 
 - **WebSocket Upgrade Headers**: `Upgrade $http_upgrade; Connection "upgrade";`
 - **Forwarded Headers**: `X-Forwarded-For`, `X-Forwarded-Proto`, and `Host` (or `X-Forwarded-Host`, which Cantus also honours from a trusted proxy)
 - **Idle Timeouts above 30 seconds**: the server sends a SignalR keep-alive every 15 seconds and clients give up after 30 seconds of silence, so any proxy idle timeout above 30 seconds is enough. The `300s` in the examples leaves plenty of headroom.
+- **Compression is optional**: Cantus already sends the web client's precompressed brotli or gzip files (about 7 MB instead of 30 MB). Proxy compression still helps API responses but is not needed for the client.
 
 > **Trusting your proxy.** Cantus only honours `X-Forwarded-*` headers from proxies it trusts, and trusts **loopback only** by default. A proxy on the same host (the nginx example below, proxying `127.0.0.1:5000`) works unchanged. A proxy in another container or on another host must be trusted explicitly, or its forwarded scheme and client address are ignored. This typically shows up as OAuth callbacks being built with `http://` instead of `https://`:
 >

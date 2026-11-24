@@ -271,7 +271,7 @@ contentTypeProvider.Mappings[".woff"] = "font/woff";
 contentTypeProvider.Mappings[".woff2"] = "font/woff2";
 contentTypeProvider.Mappings[".ttf"] = "font/ttf";
 
-app.UseStaticFiles(new StaticFileOptions
+app.UsePrecompressedStaticFiles(app.Environment.WebRootFileProvider, new StaticFileOptions
 {
     ContentTypeProvider = contentTypeProvider,
     ServeUnknownFileTypes = true,

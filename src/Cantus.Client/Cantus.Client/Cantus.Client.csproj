@@ -26,8 +26,6 @@
       Material;
       Toolkit;
     </UnoFeatures>
-    <WasmOpt>false</WasmOpt>
-    <WasmNativeStrip>false</WasmNativeStrip>
   </PropertyGroup>
 
   <!-- [JSImport] interop for the VU meter's browser audio source. -->
