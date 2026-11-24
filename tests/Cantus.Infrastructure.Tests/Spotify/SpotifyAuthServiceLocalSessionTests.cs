@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Xunit;
 
@@ -24,6 +25,7 @@ public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly CantusDbContext _dbContext;
     private readonly ITokenEncryptionService _encryptionService = Substitute.For<ITokenEncryptionService>();
+    private readonly FakeTimeProvider _time = new(DateTimeOffset.UtcNow);
     private readonly SpotifyAuthService _authService;
 
     public SpotifyAuthServiceLocalSessionTests()
@@ -42,7 +44,8 @@ public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
             _dbContext,
             _encryptionService,
             Options.Create(new SpotifyOptions { ClientId = "client", ClientSecret = "secret" }),
-            NullLogger<SpotifyAuthService>.Instance);
+            NullLogger<SpotifyAuthService>.Instance,
+            timeProvider: _time);
     }
 
     public void Dispose()
@@ -80,6 +83,21 @@ public sealed class SpotifyAuthServiceLocalSessionTests : IDisposable
         UserSession? session = await _authService.GetSessionByIdAsync(id);
 
         session!.DisplayName.Should().Be("Desktop", "an expired Local Session is still a cache hit");
+    }
+
+    [Fact]
+    public async Task GetSessionByIdAsync_ForCachedLocalSessionDeletedBehindTheCache_StopsWorkingWithinAMinute()
+    {
+        // Stands in for a reader that loaded the row just before a revoke and cached it again
+        // after the eviction: the row is gone but the cache still holds it.
+        string id = await SeedLocalAsync();
+        (await _authService.GetSessionByIdAsync(id)).Should().NotBeNull();
+        await _dbContext.UserSessions.Where(u => u.Id == id).ExecuteDeleteAsync();
+
+        _time.Advance(TimeSpan.FromSeconds(61));
+        UserSession? session = await _authService.GetSessionByIdAsync(id);
+
+        session.Should().BeNull("a Local cache entry is rechecked against the database once a minute");
     }
 
     [Fact]

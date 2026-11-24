@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Logging;
@@ -16,25 +17,29 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 {
     private const int TOKEN_REFRESH_WINDOW_MINUTES = 2;
 
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, UserSession> _sessionCache = new();
+    private static readonly TimeSpan LocalSessionRecheckInterval = TimeSpan.FromMinutes(1);
+    private static readonly ConcurrentDictionary<string, CachedSession> _sessionCache = new();
     private readonly CantusDbContext _dbContext;
     private readonly ITokenEncryptionService _encryptionService;
     private readonly SpotifyOptions _options;
     private readonly ILogger<SpotifyAuthService> _logger;
     private readonly ISpotifyTokenClient _tokenClient;
+    private readonly TimeProvider _timeProvider;
 
     public SpotifyAuthService(
         CantusDbContext dbContext,
         ITokenEncryptionService encryptionService,
         IOptions<SpotifyOptions> options,
         ILogger<SpotifyAuthService> logger,
-        ISpotifyTokenClient? tokenClient = null)
+        ISpotifyTokenClient? tokenClient = null,
+        TimeProvider? timeProvider = null)
     {
         _dbContext = dbContext;
         _encryptionService = encryptionService;
         _options = options.Value;
         _logger = logger;
         _tokenClient = tokenClient ?? new SpotifyTokenClient();
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public Uri GetAuthorizationUri(
@@ -73,7 +78,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         PrivateUser me = await _tokenClient.GetCurrentUserAsync(tokenResponse.AccessToken, cancellationToken);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         DateTimeOffset expiresAt = now.AddSeconds(tokenResponse.ExpiresIn);
 
         string encAccessToken = _encryptionService.Encrypt(tokenResponse.AccessToken);
@@ -148,7 +153,7 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         PKCETokenRefreshRequest refreshRequest = new(ResolveClientId(sessionEntity.SpotifyClientId), rawRefreshToken);
         PKCETokenResponse refreshResponse = await _tokenClient.RefreshTokenAsync(refreshRequest, cancellationToken);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         sessionEntity.EncryptedAccessToken = _encryptionService.Encrypt(refreshResponse.AccessToken);
         if (!string.IsNullOrEmpty(refreshResponse.RefreshToken))
         {
@@ -197,16 +202,15 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
         Expression<Func<UserSessionEntity, bool>> entityMatches,
         CancellationToken cancellationToken)
     {
-        DateTimeOffset refreshThreshold = DateTimeOffset.UtcNow.AddMinutes(TOKEN_REFRESH_WINDOW_MINUTES);
-        UserSession? cached = _sessionCache.TryGetValue(key, out UserSession? entry) && cacheEntryMatches(entry)
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        DateTimeOffset refreshThreshold = now.AddMinutes(TOKEN_REFRESH_WINDOW_MINUTES);
+        CachedSession? cached = _sessionCache.TryGetValue(key, out CachedSession? entry) && cacheEntryMatches(entry.Session)
             ? entry
             : null;
 
-        // A Local Session has no token to expire, so its cache entry stays valid until the
-        // Session is revoked or pruned, which evict it.
-        if (cached is not null && (cached.Kind == SessionKind.Local || cached.ExpiresAtUtc > refreshThreshold))
+        if (cached is not null && IsFresh(cached, now, refreshThreshold))
         {
-            return cached;
+            return cached.Session;
         }
 
         UserSessionEntity? sessionEntity = await _dbContext.UserSessions
@@ -274,8 +278,8 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
 
         if (entity is null)
         {
-            if (_sessionCache.TryGetValue(sessionId, out UserSession? cached)
-                && string.Equals(cached.Id, sessionId, StringComparison.Ordinal))
+            if (_sessionCache.TryGetValue(sessionId, out CachedSession? cached)
+                && string.Equals(cached.Session.Id, sessionId, StringComparison.Ordinal))
             {
                 _sessionCache.TryRemove(sessionId, out _);
             }
@@ -283,14 +287,12 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
             return false;
         }
 
-        _sessionCache.TryRemove(entity.Id, out _);
-        if (entity.SpotifyUserId is not null)
-        {
-            _sessionCache.TryRemove(entity.SpotifyUserId, out _);
-        }
-
+        RemoveFromCache(entity.Id, entity.SpotifyUserId);
         _dbContext.UserSessions.Remove(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // A reader that loaded the row before the delete committed may have cached it again.
+        RemoveFromCache(entity.Id, entity.SpotifyUserId);
         return true;
     }
 
@@ -316,11 +318,32 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     /// </summary>
     internal static void EvictCachedSession(string sessionId)
     {
-        if (_sessionCache.TryRemove(sessionId, out UserSession? cached) && cached.SpotifyUserId is not null)
+        if (_sessionCache.TryRemove(sessionId, out CachedSession? cached) && cached.Session.SpotifyUserId is not null)
         {
-            _sessionCache.TryRemove(cached.SpotifyUserId, out _);
+            _sessionCache.TryRemove(cached.Session.SpotifyUserId, out _);
         }
     }
+
+    private static void RemoveFromCache(string sessionId, string? spotifyUserId)
+    {
+        _sessionCache.TryRemove(sessionId, out _);
+        if (spotifyUserId is not null)
+        {
+            _sessionCache.TryRemove(spotifyUserId, out _);
+        }
+    }
+
+    /// <summary>
+    /// A Spotify entry is fresh until its token nears expiry. A Local Session has no token, so
+    /// its entry is rechecked against the database every
+    /// <see cref="LocalSessionRecheckInterval"/>: a reader that loaded the row just before a
+    /// revoke or prune deleted it can cache it again after the eviction, and the recheck bounds
+    /// how long that stale entry keeps working as a credential.
+    /// </summary>
+    private static bool IsFresh(CachedSession cached, DateTimeOffset now, DateTimeOffset refreshThreshold) =>
+        cached.Session.Kind == SessionKind.Local
+            ? now - cached.CachedAtUtc < LocalSessionRecheckInterval
+            : cached.Session.ExpiresAtUtc > refreshThreshold;
 
     internal static UserSession ToModel(UserSessionEntity entity, string? accessToken, string? refreshToken)
     {
@@ -357,12 +380,15 @@ public sealed class SpotifyAuthService : ISpotifyAuthService
     /// Caches under the Session id and, for a Spotify Session, the Spotify user id. Local
     /// Sessions have no Spotify id, so they are never cached under a shared null key.
     /// </summary>
-    private static void CacheSession(UserSession session)
+    private void CacheSession(UserSession session)
     {
-        _sessionCache[session.Id] = session;
+        CachedSession entry = new(session, _timeProvider.GetUtcNow());
+        _sessionCache[session.Id] = entry;
         if (session.SpotifyUserId is not null)
         {
-            _sessionCache[session.SpotifyUserId] = session;
+            _sessionCache[session.SpotifyUserId] = entry;
         }
     }
+
+    private sealed record CachedSession(UserSession Session, DateTimeOffset CachedAtUtc);
 }
