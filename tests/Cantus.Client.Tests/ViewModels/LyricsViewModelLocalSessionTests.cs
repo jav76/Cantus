@@ -37,7 +37,7 @@ public sealed class LyricsViewModelLocalSessionTests
         await vm.Session.RefreshLocalAvailabilityAsync();
 
         // Assert
-        vm.CurrentArtist.Should().Be(LyricsViewModel.SIGNED_OUT_LOCAL_HINT);
+        vm.CurrentArtist.Should().Be(LyricsViewModel.SIGNED_OUT_LOCAL_SHORT_HINT);
         vm.EmptyStateSubtitle.Should().Be($"{LyricsViewModel.SIGNED_OUT_LOCAL_HINT}.");
     }
 
@@ -68,7 +68,7 @@ public sealed class LyricsViewModelLocalSessionTests
         _client.RaisePlaybackStateReceived(new PlaybackStatePayload { Source = PlaybackStatePayload.SOURCE_LOCAL });
 
         // Assert
-        vm.CurrentArtist.Should().Be(LyricsViewModel.LOCAL_NO_TRACK_HINT);
+        vm.CurrentArtist.Should().Be(LyricsViewModel.LOCAL_NO_TRACK_SHORT_HINT);
         vm.EmptyStateSubtitle.Should().Be($"{LyricsViewModel.LOCAL_NO_TRACK_HINT}.");
     }
 
@@ -95,13 +95,13 @@ public sealed class LyricsViewModelLocalSessionTests
         LyricsViewModel vm = CreateViewModel();
         await vm.Session.RefreshLocalAvailabilityAsync();
         SignIn(AuthorizedSessionPayload.KIND_LOCAL);
-        vm.CurrentArtist.Should().Be(LyricsViewModel.LOCAL_NO_TRACK_HINT);
+        vm.CurrentArtist.Should().Be(LyricsViewModel.LOCAL_NO_TRACK_SHORT_HINT);
 
         // Act
         await vm.Session.LogoutAsync();
 
         // Assert
-        vm.CurrentArtist.Should().Be(LyricsViewModel.SIGNED_OUT_LOCAL_HINT);
+        vm.CurrentArtist.Should().Be(LyricsViewModel.SIGNED_OUT_LOCAL_SHORT_HINT);
         _local.CreatedWithJoinCodes.Should().BeEmpty();
     }
 
@@ -145,6 +145,25 @@ public sealed class LyricsViewModelLocalSessionTests
 
         // Assert
         vm.DeviceName.Should().Be(LyricsViewModel.LOCAL_DEVICE_FALLBACK);
+    }
+
+    [Theory]
+    [InlineData(LyricsViewModel.LOCAL_NO_TRACK_SHORT_HINT)]
+    [InlineData(LyricsViewModel.SIGNED_OUT_LOCAL_SHORT_HINT)]
+    [InlineData(LyricsViewModel.SPOTIFY_NO_TRACK_HINT)]
+    public void ArtistLineHints_FitTheNarrowTrackCard(string hint)
+    {
+        hint.Length.Should().BeLessThanOrEqualTo(36, "the artist line is cut off at about 40 characters");
+    }
+
+    [Fact]
+    public void DeviceName_BeforeAnyPlayback_DoesNotSaySpotify()
+    {
+        // Act
+        LyricsViewModel vm = CreateViewModel();
+
+        // Assert: signed out, Spotify is only one of the sources.
+        vm.DeviceName.Should().Be(LyricsViewModel.NO_DEVICE);
     }
 
     private LyricsViewModel CreateViewModel() =>

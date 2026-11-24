@@ -48,15 +48,21 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     internal const string SPOTIFY_NO_TRACK_HINT = "Play music on Spotify to begin";
     internal const string LOCAL_NO_TRACK_HINT = "Play something in a media player on this computer";
     internal const string SIGNED_OUT_LOCAL_HINT = "Connect Spotify or use this computer's players";
+
+    // The artist line holds about 40 characters on the narrow track card; the lyrics stage
+    // has room for the full sentences above.
+    internal const string LOCAL_NO_TRACK_SHORT_HINT = "Play something in a local player";
+    internal const string SIGNED_OUT_LOCAL_SHORT_HINT = "Connect Spotify or a local player";
     internal const string SPOTIFY_EMPTY_STAGE_HINT = "Connect Spotify and play music to see lyrics.";
     internal const string LOCAL_DEVICE_FALLBACK = "This computer";
     internal const string SPOTIFY_DEVICE_FALLBACK = "Spotify";
+    internal const string NO_DEVICE = "No Device";
 
     private string _currentTitle = "No Track Playing";
     private string _currentArtist = SPOTIFY_NO_TRACK_HINT;
     private string _currentAlbum = string.Empty;
     private string? _albumArtUrl;
-    private string _deviceName = "Spotify";
+    private string _deviceName = NO_DEVICE;
 
     private double _progressFraction;
     private string _progressText = "00:00";
@@ -295,14 +301,16 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
 
     public string EmptyStateSubtitle => _transport.PlaybackState?.CurrentTrack is not null
         ? "Lyrics for this track aren't available yet."
-        : _session.IsLocalSession || _session.LocalChoiceVisibility == Visibility.Visible
-            ? $"{NoTrackHint}."
-            : SPOTIFY_EMPTY_STAGE_HINT;
+        : _session.IsLocalSession
+            ? $"{LOCAL_NO_TRACK_HINT}."
+            : _session.LocalChoiceVisibility == Visibility.Visible
+                ? $"{SIGNED_OUT_LOCAL_HINT}."
+                : SPOTIFY_EMPTY_STAGE_HINT;
 
     /// <summary>What to do to see a track, by Session kind; shown in place of the artist while nothing plays.</summary>
     internal string NoTrackHint => _session.IsLocalSession
-        ? LOCAL_NO_TRACK_HINT
-        : _session.LocalChoiceVisibility == Visibility.Visible ? SIGNED_OUT_LOCAL_HINT : SPOTIFY_NO_TRACK_HINT;
+        ? LOCAL_NO_TRACK_SHORT_HINT
+        : _session.LocalChoiceVisibility == Visibility.Visible ? SIGNED_OUT_LOCAL_SHORT_HINT : SPOTIFY_NO_TRACK_HINT;
 
     private void NotifyEmptyStateText()
     {
@@ -797,7 +805,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             CurrentArtist = NoTrackHint;
             CurrentAlbum = string.Empty;
             AlbumArtUrl = null;
-            DeviceName = "No Device";
+            DeviceName = NO_DEVICE;
             _themeManager.UpdateTrackMetadata(null, null, null);
             NotifyEmptyStateText();
             _lyricsPicker.NotifyTrackChanged();
