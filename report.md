@@ -2,7 +2,7 @@
 
 - **Project**: `Cantus`
 - **Quality Gate**: **OK**
-- **Generated (UTC)**: `2026-11-23T01:36:06Z`
+- **Generated (UTC)**: `2026-11-24T00:41:58Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
@@ -11,12 +11,12 @@
 | Quality Gate | OK |
 | Reliability Rating / Issues | D (10) |
 | Security Rating / Issues | A (0) |
-| Maintainability Rating / Issues | A (1763) |
+| Maintainability Rating / Issues | A (1765) |
 | Coverage | 74.7% |
 | Duplicated Lines | 0.8% |
 | Lines of Code (NCLOC) | 27.4k |
 | Technical Debt | 3h4min |
-| Open Issues (total) | 1773 |
+| Open Issues (total) | 1775 |
 | Open Security Hotspots | 0 |
 | SARIF Exported Findings | 0 |
 
@@ -24,7 +24,7 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 85.6 | LT 50 |
+| `new_coverage` | OK | 83.3 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.0 | GT 5 |
 | `new_software_quality_reliability_rating` | OK | 1 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
@@ -39,7 +39,7 @@
 | Issue | MAJOR/MEDIUM | `csharpsquid:S1244` | `src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:201` | Do not check floating point equality with exact values, use a range instead. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S1244` | `src/Cantus.Client/Cantus.Client/Models/ColorExtractionHelper.cs:205` | Do not check floating point equality with exact values, use a range instead. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:146` | Refactor this method to reduce its Cognitive Complexity from 69 to the 25 allowed. |
-| Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:911` | Refactor this method to reduce its Cognitive Complexity from 29 to the 25 allowed. |
+| Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:918` | Refactor this method to reduce its Cognitive Complexity from 29 to the 25 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Infrastructure/Lyrics/Lookup/SongLookupService.cs:161` | Refactor this method to reduce its Cognitive Complexity from 28 to the 25 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Core/Search/SmithWatermanAligner.cs:19` | Refactor this method to reduce its Cognitive Complexity from 26 to the 25 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Server/Program.cs` | Refactor this top-level file to reduce its Cognitive Complexity from 27 to the 25 allowed. |

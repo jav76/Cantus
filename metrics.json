@@ -1,6 +1,6 @@
 {
   "projectKey": "Cantus",
-  "generatedAt": "2026-11-23T01:36:06Z",
+  "generatedAt": "2026-11-24T00:41:58Z",
   "qualityGate": {
     "status": "OK",
     "conditions": [
@@ -9,7 +9,7 @@
         "metricKey": "new_coverage",
         "comparator": "LT",
         "errorThreshold": "50",
-        "actualValue": "85.6"
+        "actualValue": "83.3"
       },
       {
         "status": "OK",
@@ -38,7 +38,7 @@
     "coverage": "74.7",
     "reliability_rating": "3.0",
     "duplicated_lines_density": "0.8",
-    "code_smells": "1769",
+    "code_smells": "1771",
     "software_quality_security_rating": "1.0",
     "security_rating": "1.0",
     "software_quality_security_issues": "0",
@@ -49,38 +49,38 @@
     "bugs": "4",
     "alert_status": "OK",
     "software_quality_reliability_issues": "10",
-    "ncloc": "27359",
-    "software_quality_maintainability_issues": "1763",
+    "ncloc": "27384",
+    "software_quality_maintainability_issues": "1765",
     "software_quality_reliability_rating": "4.0",
     "vulnerabilities": "0",
     "software_quality_maintainability_rating": "1.0"
   },
   "issueSummary": {
-    "totalOpenIssues": 1773,
+    "totalOpenIssues": 1775,
     "openHotspots": 0,
     "sarifResults": 0,
     "bySoftwareQuality": {
       "RELIABILITY": 10,
       "SECURITY": 0,
-      "MAINTAINABILITY": 1763
+      "MAINTAINABILITY": 1765
     },
     "byImpactSeverity": {
       "BLOCKER": 0,
       "HIGH": 2,
       "MEDIUM": 23,
       "LOW": 13,
-      "INFO": 1735
+      "INFO": 1737
     },
     "byLegacySeverity": {
       "BLOCKER": 0,
       "CRITICAL": 1,
       "MAJOR": 29,
       "MINOR": 8,
-      "INFO": 1735
+      "INFO": 1737
     }
   },
   "totalsReported": {
-    "issues": 1773,
+    "issues": 1775,
     "hotspots": 0
   },
   "repoUrl": "https://github.com/jav76/Cantus"
