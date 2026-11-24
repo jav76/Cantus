@@ -1,13 +1,13 @@
 namespace Cantus.Client.Models;
 
 /// <summary>
-/// Where the seek bar VU meter gets its levels. <see cref="Decorative"/> is a
-/// beat-like pattern that only looks like audio; the others analyse real sound.
-/// Which live sources exist depends on the platform.
+/// Where the seek bar VU meter gets its levels. <see cref="None"/> leaves the
+/// seek bar plain; the others analyse real sound. Which live sources exist
+/// depends on the platform.
 /// </summary>
 public enum VuMeterSource
 {
-    Decorative,
+    None,
 
     /// <summary>Whatever this device is playing (PulseAudio/PipeWire monitor or WASAPI loopback).</summary>
     SystemAudio,
@@ -19,10 +19,10 @@ public enum VuMeterSource
     SharedAudio,
 }
 
-/// <summary>Whether the meter is currently showing real levels or the decorative pattern.</summary>
+/// <summary>Whether the meter is showing real levels or leaving the seek bar plain.</summary>
 public enum VuMeterMode
 {
-    Decorative,
+    Static,
     Live,
 }
 
@@ -30,7 +30,7 @@ public static class VuMeterSourceExtensions
 {
     public static string GetDisplayName(this VuMeterSource source) => source switch
     {
-        VuMeterSource.Decorative => "Decorative (no audio)",
+        VuMeterSource.None => "None (plain seek bar)",
         VuMeterSource.SystemAudio => "System audio",
         VuMeterSource.Microphone => "Microphone",
         VuMeterSource.SharedAudio => "Tab or screen audio",

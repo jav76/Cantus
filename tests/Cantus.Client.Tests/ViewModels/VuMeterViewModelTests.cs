@@ -14,7 +14,6 @@ namespace Cantus.Client.Tests.ViewModels;
 
 public sealed class VuMeterViewModelTests
 {
-    private const string TRACK_ID = "track-a";
     private const long FRAME = VuMeterViewModel.FRAME_INTERVAL_MS;
 
     [Fact]
@@ -42,7 +41,7 @@ public sealed class VuMeterViewModelTests
         // Act
         FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio)
         {
-            AvailableSources = [VuMeterSource.Decorative, VuMeterSource.SystemAudio],
+            AvailableSources = [VuMeterSource.None, VuMeterSource.SystemAudio],
         };
         VuMeterViewModel meter = new(preferences, provider);
 
@@ -51,19 +50,19 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public void Constructor_WithoutAProvider_OffersDecorativeOnly()
+    public void Constructor_WithoutAProvider_OffersNoSourceAndStaysPlain()
     {
         // Act
         VuMeterViewModel meter = new(Preferences());
 
         // Assert
-        meter.AvailableSources.Should().Equal(VuMeterSource.Decorative);
+        meter.AvailableSources.Should().Equal(VuMeterSource.None);
         meter.HasLiveSources.Should().BeFalse();
-        meter.StatusText.Should().StartWith("Decorative");
+        meter.StatusText.Should().Be("No audio source on this device; the seek bar stays plain.");
     }
 
     [Fact]
-    public void Update_PlayingWithoutLiveAudio_DrawsTheDecorativePattern()
+    public void Update_PlayingWithoutLiveAudio_LeavesTheSeekBarPlain()
     {
         // Arrange
         VuMeterViewModel meter = new(Preferences());
@@ -71,26 +70,46 @@ public sealed class VuMeterViewModelTests
         meter.LevelsUpdated += (s, e) => updates++;
 
         // Act
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        for (long now = 1_000; now < 1_000 + FRAME * 10; now += FRAME)
+        {
+            meter.Update(now, isPlaying: true);
+        }
 
         // Assert
-        updates.Should().Be(1);
-        meter.Mode.Should().Be(VuMeterMode.Decorative);
-        Peak(meter).Should().BeGreaterThan(0);
+        updates.Should().Be(0);
+        meter.Mode.Should().Be(VuMeterMode.Static);
+        Peak(meter).Should().Be(0);
     }
 
     [Fact]
-    public void Update_CalledFasterThanTheFrameInterval_UpdatesOncePerInterval()
+    public async Task ActivateAsync_NoneSelected_StartsNoCapture()
     {
         // Arrange
-        VuMeterViewModel meter = new(Preferences());
+        FakeProvider provider = new(defaultSource: VuMeterSource.None);
+        VuMeterViewModel meter = new(Preferences(), provider);
+
+        // Act
+        await meter.ActivateAsync();
+        meter.Update(1_000, isPlaying: true);
+
+        // Assert
+        provider.Created.Should().BeEmpty();
+        Peak(meter).Should().Be(0);
+        meter.StatusText.Should().Be("No audio source picked; the seek bar stays plain.");
+    }
+
+    [Fact]
+    public async Task Update_CalledFasterThanTheFrameInterval_UpdatesOncePerInterval()
+    {
+        // Arrange
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
         int updates = 0;
         meter.LevelsUpdated += (s, e) => updates++;
 
         // Act: the playback clock ticks every 16 ms.
         for (long now = 1_000; now < 1_000 + FRAME * 3; now += 16)
         {
-            meter.Update(now, TRACK_ID, now * 10, isPlaying: true);
+            meter.Update(now, isPlaying: true);
         }
 
         // Assert
@@ -98,28 +117,28 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public void Update_ClockJumpsBackwards_KeepsUpdating()
+    public async Task Update_ClockJumpsBackwards_KeepsUpdating()
     {
         // Arrange
-        VuMeterViewModel meter = new(Preferences());
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
         int updates = 0;
         meter.LevelsUpdated += (s, e) => updates++;
-        meter.Update(10_000, TRACK_ID, 1_000, isPlaying: true);
+        meter.Update(10_000, isPlaying: true);
 
         // Act
-        meter.Update(5_000, TRACK_ID, 1_200, isPlaying: true);
+        meter.Update(5_000, isPlaying: true);
 
         // Assert
         updates.Should().Be(2);
     }
 
     [Fact]
-    public void Update_Paused_FallsToRestThenStopsRaisingUpdates()
+    public async Task Update_Paused_FallsToRestThenStopsRaisingUpdates()
     {
         // Arrange
-        VuMeterViewModel meter = new(Preferences());
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
         long now = 1_000;
-        meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(now, isPlaying: true);
         int updates = 0;
         meter.LevelsUpdated += (s, e) => updates++;
 
@@ -127,14 +146,14 @@ public sealed class VuMeterViewModelTests
         for (int frame = 0; frame < 200; frame++)
         {
             now += FRAME;
-            meter.Update(now, TRACK_ID, 20_000, isPlaying: false);
+            meter.Update(now, isPlaying: false);
         }
 
         int updatesWhileFalling = updates;
         for (int frame = 0; frame < 10; frame++)
         {
             now += FRAME;
-            meter.Update(now, TRACK_ID, 20_000, isPlaying: false);
+            meter.Update(now, isPlaying: false);
         }
 
         // Assert
@@ -144,30 +163,67 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public void SetPointerOver_True_HoldsTheBarsStillUntilThePointerLeaves()
+    public async Task SetPointerOver_True_FadesTheBarsToRestUntilThePointerLeaves()
     {
         // Arrange
-        VuMeterViewModel meter = new(Preferences());
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
-        float[] before = meter.Levels.ToArray();
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
+        long now = 1_000;
+        for (int frame = 0; frame < 10; frame++, now += FRAME)
+        {
+            meter.Update(now, isPlaying: true);
+        }
+
+        float beforeHover = Peak(meter);
+
+        // Act
+        meter.SetPointerOver(true);
+        meter.Update(now, isPlaying: true);
+        now += FRAME;
+        float afterOneFrame = Peak(meter);
+        for (int frame = 0; frame < 40; frame++, now += FRAME)
+        {
+            meter.Update(now, isPlaying: true);
+        }
+
+        float whileHovered = Peak(meter);
+        VuMeterMode modeWhileHovered = meter.Mode;
+        meter.SetPointerOver(false);
+        meter.Update(now, isPlaying: true);
+
+        // Assert: the bars fade out gradually rather than vanishing, and the source stays live.
+        afterOneFrame.Should().BeLessThan(beforeHover).And.BeGreaterThan(VuMeterViewModel.INVISIBLE_LEVEL);
+        whileHovered.Should().Be(0);
+        modeWhileHovered.Should().Be(VuMeterMode.Live);
+        meter.IsPointerOver.Should().BeFalse();
+        Peak(meter).Should().BeGreaterThan(VuMeterViewModel.INVISIBLE_LEVEL);
+    }
+
+    [Fact]
+    public async Task SetPointerOver_OnceTheBarsAreFlat_StopsRaisingUpdates()
+    {
+        // Arrange
+        VuMeterViewModel meter = await LiveMeterAsync(0.8f);
+        long now = 1_000;
+        meter.Update(now, isPlaying: true);
+        meter.SetPointerOver(true);
+        for (int frame = 0; frame < 60; frame++)
+        {
+            now += FRAME;
+            meter.Update(now, isPlaying: true);
+        }
+
         int updates = 0;
         meter.LevelsUpdated += (s, e) => updates++;
 
         // Act
-        meter.SetPointerOver(true);
-        meter.Update(1_000 + FRAME, TRACK_ID, 20_500, isPlaying: true);
-        meter.Update(1_000 + FRAME * 2, TRACK_ID, 21_000, isPlaying: true);
-        bool frozen = meter.IsFrozen;
-        float[] during = meter.Levels.ToArray();
-        meter.SetPointerOver(false);
-        meter.Update(1_000 + FRAME * 3, TRACK_ID, 21_500, isPlaying: true);
+        for (int frame = 0; frame < 10; frame++)
+        {
+            now += FRAME;
+            meter.Update(now, isPlaying: true);
+        }
 
         // Assert
-        frozen.Should().BeTrue();
-        during.Should().Equal(before);
-        updates.Should().Be(1);
-        meter.IsFrozen.Should().BeFalse();
-        meter.Levels.ToArray().Should().NotEqual(before);
+        updates.Should().Be(0);
     }
 
     [Fact]
@@ -183,7 +239,7 @@ public sealed class VuMeterViewModelTests
         // Act
         for (long now = 1_000; now < 1_000 + FRAME * 20; now += FRAME)
         {
-            meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+            meter.Update(now, isPlaying: true);
         }
 
         // Assert
@@ -194,7 +250,7 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public async Task Update_LiveSourceSilentTooLong_FallsBackToDecorative()
+    public async Task Update_LiveSourceSilentTooLong_LeavesTheSeekBarPlain()
     {
         // Arrange
         FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio);
@@ -203,24 +259,24 @@ public sealed class VuMeterViewModelTests
         FakeSource source = provider.Created[0];
         source.Bands.AsSpan().Fill(0.8f);
         long now = 1_000;
-        meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(now, isPlaying: true);
 
         // Act
         source.Bands.AsSpan().Clear();
         while (now < 1_000 + VuMeterViewModel.SILENCE_FALLBACK_MS + FRAME)
         {
             now += FRAME;
-            meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+            meter.Update(now, isPlaying: true);
         }
 
         // Assert
-        meter.Mode.Should().Be(VuMeterMode.Decorative);
-        meter.StatusText.Should().StartWith("Waiting for sound from system audio");
-        Peak(meter).Should().BeGreaterThan(0);
+        meter.Mode.Should().Be(VuMeterMode.Static);
+        meter.StatusText.Should().Be("Waiting for sound from system audio.");
+        Peak(meter).Should().Be(0);
     }
 
     [Fact]
-    public async Task Update_LiveSourceStalls_FallsBackToDecorative()
+    public async Task Update_LiveSourceStalls_LetsTheBarsFallToRest()
     {
         // Arrange
         FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio);
@@ -229,18 +285,19 @@ public sealed class VuMeterViewModelTests
         FakeSource source = provider.Created[0];
         source.Bands.AsSpan().Fill(0.8f);
         long now = 1_000;
-        meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(now, isPlaying: true);
 
         // Act
         source.HasData = false;
-        while (now < 1_000 + VuMeterViewModel.STALL_MS + FRAME)
+        while (now < 1_000 + VuMeterViewModel.STALL_MS + FRAME * 40)
         {
             now += FRAME;
-            meter.Update(now, TRACK_ID, 20_000, isPlaying: true);
+            meter.Update(now, isPlaying: true);
         }
 
         // Assert
-        meter.Mode.Should().Be(VuMeterMode.Decorative);
+        meter.Mode.Should().Be(VuMeterMode.Static);
+        Peak(meter).Should().Be(0);
     }
 
     [Fact]
@@ -255,11 +312,11 @@ public sealed class VuMeterViewModelTests
 
         // Act
         source.IsActive = false;
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(1_000, isPlaying: true);
 
         // Assert
         source.IsDisposed.Should().BeTrue();
-        meter.Mode.Should().Be(VuMeterMode.Decorative);
+        meter.Mode.Should().Be(VuMeterMode.Static);
         meter.StatusText.Should().StartWith("Tab or screen audio stopped. Pick it again");
     }
 
@@ -302,7 +359,7 @@ public sealed class VuMeterViewModelTests
     {
         // Arrange
         ClientPreferences preferences = Preferences();
-        FakeProvider provider = new(defaultSource: VuMeterSource.Decorative);
+        FakeProvider provider = new(defaultSource: VuMeterSource.None);
         VuMeterViewModel meter = new(preferences, provider);
         List<string?> changed = [];
         meter.PropertyChanged += (s, e) => changed.Add(e.PropertyName);
@@ -365,10 +422,10 @@ public sealed class VuMeterViewModelTests
         provider.Created[0].Bands.AsSpan().Fill(0.5f);
 
         // Act
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(1_000, isPlaying: true);
 
         // Assert
-        before.Should().Be("Showing decorative bars");
+        before.Should().Be("No live audio: plain seek bar");
         meter.ModeSummary.Should().Be("Showing live microphone");
         changed.Should().Contain(nameof(VuMeterViewModel.ModeSummary));
     }
@@ -377,15 +434,15 @@ public sealed class VuMeterViewModelTests
     public void SourcePickerVisibility_NeedsALiveSourceAndTheMeterOn()
     {
         // Arrange
-        VuMeterViewModel decorativeOnly = new(Preferences());
-        VuMeterViewModel withLive = new(Preferences(), new FakeProvider(defaultSource: VuMeterSource.Decorative));
+        VuMeterViewModel noSources = new(Preferences());
+        VuMeterViewModel withLive = new(Preferences(), new FakeProvider(defaultSource: VuMeterSource.None));
 
         // Act
         Visibility liveWhileOn = withLive.SourcePickerVisibility;
         withLive.IsEnabled = false;
 
         // Assert
-        decorativeOnly.SourcePickerVisibility.Should().Be(Visibility.Collapsed);
+        noSources.SourcePickerVisibility.Should().Be(Visibility.Collapsed);
         liveWhileOn.Should().Be(Visibility.Visible);
         withLive.SourcePickerVisibility.Should().Be(Visibility.Collapsed);
     }
@@ -400,7 +457,7 @@ public sealed class VuMeterViewModelTests
         meter.SelectSource(VuMeterSource.Microphone);
 
         // Assert
-        meter.SelectedSource.Should().Be(VuMeterSource.Decorative);
+        meter.SelectedSource.Should().Be(VuMeterSource.None);
     }
 
     [Fact]
@@ -410,11 +467,11 @@ public sealed class VuMeterViewModelTests
         FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio);
         VuMeterViewModel meter = new(Preferences(), provider);
         await meter.ActivateAsync();
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(1_000, isPlaying: true);
 
         // Act
         meter.IsEnabled = false;
-        meter.Update(1_000 + FRAME, TRACK_ID, 20_500, isPlaying: true);
+        meter.Update(1_000 + FRAME, isPlaying: true);
 
         // Assert
         provider.Created[0].IsDisposed.Should().BeTrue();
@@ -451,7 +508,7 @@ public sealed class VuMeterViewModelTests
         meter.LevelsUpdated += (s, e) => updates++;
 
         // Act
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        meter.Update(1_000, isPlaying: true);
 
         // Assert
         meter.IsEnabled.Should().BeFalse();
@@ -459,11 +516,18 @@ public sealed class VuMeterViewModelTests
     }
 
     [Fact]
-    public void SampleLevel_InterpolatesBetweenBands()
+    public async Task SampleLevel_InterpolatesBetweenBands()
     {
         // Arrange
-        VuMeterViewModel meter = new(Preferences());
-        meter.Update(1_000, TRACK_ID, 20_000, isPlaying: true);
+        FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio);
+        VuMeterViewModel meter = new(Preferences(), provider);
+        await meter.ActivateAsync();
+        for (int band = 0; band < VuMeterViewModel.BAND_COUNT; band++)
+        {
+            provider.Created[0].Bands[band] = (float)band / VuMeterViewModel.BAND_COUNT;
+        }
+
+        meter.Update(1_000, isPlaying: true);
         float first = meter.Levels[0];
         float second = meter.Levels[1];
         double betweenFirstAndSecond = 0.5 / (VuMeterViewModel.BAND_COUNT - 1);
@@ -515,6 +579,15 @@ public sealed class VuMeterViewModelTests
 
     private static ClientPreferences Preferences() => new(new InMemorySettingsStore());
 
+    private static async Task<VuMeterViewModel> LiveMeterAsync(float level)
+    {
+        FakeProvider provider = new(defaultSource: VuMeterSource.SystemAudio);
+        VuMeterViewModel meter = new(Preferences(), provider);
+        await meter.ActivateAsync();
+        provider.Created[0].Bands.AsSpan().Fill(level);
+        return meter;
+    }
+
     private static float Peak(VuMeterViewModel meter)
     {
         float peak = 0;
@@ -534,7 +607,7 @@ public sealed class VuMeterViewModelTests
         }
 
         public IReadOnlyList<VuMeterSource> AvailableSources { get; init; } =
-            [VuMeterSource.Decorative, VuMeterSource.SystemAudio, VuMeterSource.Microphone, VuMeterSource.SharedAudio];
+            [VuMeterSource.None, VuMeterSource.SystemAudio, VuMeterSource.Microphone, VuMeterSource.SharedAudio];
 
         public VuMeterSource DefaultSource { get; }
 

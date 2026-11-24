@@ -80,7 +80,7 @@ With the **Karaoke** toggle on, an underline fills beneath the active line:
 A signed-in owner can control Spotify from Cantus (Spotify Premium required):
 
 - The track card has **Shuffle**, **Previous track**, **Play / Pause**, **Next track**, **Repeat** (off, context, track) and a **Volume** slider. The kiosk bar has previous, play/pause and next.
-- Click or tap the progress bar to seek. Hovering it shows a scrub thumb and holds the [VU meter](theming.md#seek-bar-vu-meter) still.
+- Click or tap the progress bar to seek. Hovering it shows a scrub thumb and fades out the [VU meter](theming.md#seek-bar-vu-meter).
 - Click or tap a synced lyric line to jump to it. This works in live mode only, and also resumes autoscroll.
 
 A paired Display shows playback but cannot control it. If Spotify refuses a command, Cantus shows why, for example that Premium is required or that no device is active.

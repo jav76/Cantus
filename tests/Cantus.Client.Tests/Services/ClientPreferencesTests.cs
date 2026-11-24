@@ -41,7 +41,7 @@ public sealed class ClientPreferencesTests
     }
 
     [Theory]
-    [InlineData(VuMeterSource.Decorative)]
+    [InlineData(VuMeterSource.None)]
     [InlineData(VuMeterSource.SharedAudio)]
     public void VuMeterSettings_RoundTripUnderTheirKeys(VuMeterSource source)
     {
@@ -76,6 +76,7 @@ public sealed class ClientPreferencesTests
 
     [Theory]
     [InlineData("Theremin")]
+    [InlineData("Decorative")]
     [InlineData("99")]
     [InlineData(NON_BOOLEAN_VALUE)]
     public void VuMeterSource_UnknownStoredValue_ReadsAsNull(object stored)

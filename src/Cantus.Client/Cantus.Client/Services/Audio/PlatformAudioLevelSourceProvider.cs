@@ -8,13 +8,13 @@ namespace Cantus.Client.Services.Audio;
 /// The meter sources this device offers. Desktop and WinUI capture system
 /// audio (Linux monitor or Windows loopback) and use it by default, since it
 /// needs no permission. The browser offers the microphone and shared tab or
-/// screen audio, each behind a browser prompt, so it defaults to decorative.
+/// screen audio, each behind a browser prompt, so it defaults to none.
 /// </summary>
 public sealed class PlatformAudioLevelSourceProvider : IAudioLevelSourceProvider
 {
     public PlatformAudioLevelSourceProvider()
     {
-        List<VuMeterSource> sources = [VuMeterSource.Decorative];
+        List<VuMeterSource> sources = [VuMeterSource.None];
 #if __WASM__
         foreach (VuMeterSource source in new[] { VuMeterSource.Microphone, VuMeterSource.SharedAudio })
         {
@@ -24,7 +24,7 @@ public sealed class PlatformAudioLevelSourceProvider : IAudioLevelSourceProvider
             }
         }
 
-        DefaultSource = VuMeterSource.Decorative;
+        DefaultSource = VuMeterSource.None;
 #else
         if (OperatingSystem.IsWindows() || MonitorCaptureLevelSource.IsSupported())
         {
@@ -42,7 +42,7 @@ public sealed class PlatformAudioLevelSourceProvider : IAudioLevelSourceProvider
 
     public IAudioLevelSource? Create(VuMeterSource source)
     {
-        if (!Contains(source) || source == VuMeterSource.Decorative)
+        if (!Contains(source) || source == VuMeterSource.None)
         {
             return null;
         }

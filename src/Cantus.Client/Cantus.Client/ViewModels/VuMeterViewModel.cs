@@ -16,17 +16,17 @@ namespace Cantus.Client.ViewModels;
 /// Levels for the seek bar VU meter. The playback clock calls
 /// <see cref="Update"/> every frame; it produces new levels at most every
 /// <see cref="FRAME_INTERVAL_MS"/> and raises <see cref="LevelsUpdated"/>.
-/// Real levels come from the selected live source while it hears sound;
-/// otherwise the decorative <see cref="SyntheticLevels"/> pattern plays.
-/// Levels fall to rest when playback pauses, hold still while the pointer is
-/// over the seek bar, and stop updating entirely once at rest.
+/// Levels only ever come from the selected live source while it hears sound;
+/// without one the bars fall to rest and the seek bar stays plain.
+/// Levels also fall to rest when playback pauses or while the pointer is over
+/// the seek bar, and stop updating entirely once at rest.
 /// </summary>
 public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 {
     public const int BAND_COUNT = 48;
     public const long FRAME_INTERVAL_MS = 33;
 
-    /// <summary>How long a live source may stay silent before the decorative pattern takes over.</summary>
+    /// <summary>How long a live source may stay silent before the meter counts as waiting for sound.</summary>
     public const long SILENCE_FALLBACK_MS = 1500;
 
     /// <summary>A live source that sends nothing for this long counts as stalled.</summary>
@@ -61,7 +61,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     private long _lastLiveDataMs = long.MinValue;
     private long _lastSoundMs = long.MinValue;
     private bool _isAtRest = true;
-    private VuMeterMode _mode = VuMeterMode.Decorative;
+    private VuMeterMode _mode = VuMeterMode.Static;
     private string _statusText = string.Empty;
 
     public VuMeterViewModel(
@@ -70,7 +70,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         ILogger? logger = null)
     {
         _preferences = preferences;
-        _provider = provider ?? DecorativeOnlyAudioLevelSourceProvider.Instance;
+        _provider = provider ?? NoAudioLevelSourceProvider.Instance;
         _logger = logger ?? NullLogger.Instance;
         _isEnabled = preferences.IsVuMeterEnabled;
 
@@ -177,7 +177,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    /// <summary>Says which source is in use and whether the bars are real or decorative.</summary>
+    /// <summary>Says which source is in use and whether it is showing levels.</summary>
     public string StatusText
     {
         get => _statusText;
@@ -193,16 +193,20 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    /// <summary>A few words for menus: whether the bars are live or decorative right now.</summary>
+    /// <summary>A few words for menus: whether the bars are live right now.</summary>
     public string ModeSummary => _mode == VuMeterMode.Live
         ? $"Showing live {_selectedSource.GetDisplayName().ToLowerInvariant()}"
-        : "Showing decorative bars";
+        : "No live audio: plain seek bar";
 
     /// <summary>The source picker only matters when the meter is on and the platform has a live source.</summary>
     public Visibility SourcePickerVisibility => _isEnabled && HasLiveSources ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>True while the pointer is over a clickable seek bar; the bars hold still.</summary>
-    public bool IsFrozen => _isPointerOver && _isEnabled;
+    /// <summary>
+    /// True while the pointer is over a clickable seek bar. The bars fade to
+    /// rest so the plain seek bar reads as a control, and come back when the
+    /// pointer leaves.
+    /// </summary>
+    public bool IsPointerOver => _isPointerOver;
 
     public void SetPointerOver(bool isOver)
     {
@@ -212,7 +216,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         }
 
         _isPointerOver = isOver;
-        OnPropertyChanged(nameof(IsFrozen));
+        OnPropertyChanged(nameof(IsPointerOver));
     }
 
     /// <summary>
@@ -276,12 +280,10 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 
     /// <summary>One frame of the meter.</summary>
     /// <param name="nowMs">A monotonic clock in milliseconds.</param>
-    /// <param name="trackId">Seeds the decorative pattern.</param>
-    /// <param name="positionMs">The rendered playback position.</param>
     /// <param name="isPlaying">When false the bars fall to rest.</param>
-    public void Update(long nowMs, string? trackId, long positionMs, bool isPlaying)
+    public void Update(long nowMs, bool isPlaying)
     {
-        if (!_isEnabled || IsFrozen)
+        if (!_isEnabled)
         {
             return;
         }
@@ -294,19 +296,15 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         _lastFrameMs = nowMs;
 
         bool isLive = ReadLiveSource(nowMs);
-        Mode = isLive ? VuMeterMode.Live : VuMeterMode.Decorative;
+        Mode = isLive ? VuMeterMode.Live : VuMeterMode.Static;
 
-        if (!isPlaying)
-        {
-            Array.Clear(_target);
-        }
-        else if (isLive)
+        if (isPlaying && isLive && !_isPointerOver)
         {
             Array.Copy(_live, _target, BAND_COUNT);
         }
         else
         {
-            SyntheticLevels.Fill(_target, trackId, positionMs);
+            Array.Clear(_target);
         }
 
         Smooth();
@@ -391,7 +389,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         _startResult = null;
         _sourceEnded = false;
 
-        if (!_isEnabled || _selectedSource == VuMeterSource.Decorative)
+        if (!_isEnabled || _selectedSource == VuMeterSource.None)
         {
             return;
         }
@@ -457,7 +455,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 
         _source?.Dispose();
         _source = null;
-        Mode = VuMeterMode.Decorative;
+        Mode = VuMeterMode.Static;
     }
 
     private void RefreshStatus() => StatusText = BuildStatusText();
@@ -470,9 +468,11 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         }
 
         string name = _selectedSource.GetDisplayName();
-        if (_selectedSource == VuMeterSource.Decorative)
+        if (_selectedSource == VuMeterSource.None)
         {
-            return "Decorative: the bars follow an invented beat, not the audio.";
+            return HasLiveSources
+                ? "No audio source picked; the seek bar stays plain."
+                : "No audio source on this device; the seek bar stays plain.";
         }
 
         if (_mode == VuMeterMode.Live)
@@ -482,15 +482,15 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 
         if (_sourceEnded)
         {
-            return $"{name} stopped. Pick it again to resume; showing decorative bars.";
+            return $"{name} stopped. Pick it again to resume.";
         }
 
         return _startResult switch
         {
-            AudioLevelSourceStartResult.Denied => $"{name} access was denied; showing decorative bars.",
-            AudioLevelSourceStartResult.Unavailable => $"{name} is not available on this device; showing decorative bars.",
-            AudioLevelSourceStartResult.NeedsUserAction => $"Pick {name.ToLowerInvariant()} again to share audio; showing decorative bars.",
-            AudioLevelSourceStartResult.Started => $"Waiting for sound from {name.ToLowerInvariant()}; showing decorative bars.",
+            AudioLevelSourceStartResult.Denied => $"{name} access was denied; the seek bar stays plain.",
+            AudioLevelSourceStartResult.Unavailable => $"{name} is not available on this device; the seek bar stays plain.",
+            AudioLevelSourceStartResult.NeedsUserAction => $"Pick {name.ToLowerInvariant()} again to share audio.",
+            AudioLevelSourceStartResult.Started => $"Waiting for sound from {name.ToLowerInvariant()}.",
             _ => $"Starting {name.ToLowerInvariant()}...",
         };
     }

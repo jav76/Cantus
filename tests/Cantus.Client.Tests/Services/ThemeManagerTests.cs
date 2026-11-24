@@ -623,6 +623,9 @@ public sealed class ThemeManagerTests
     [InlineData("ComboBoxBackgroundDisabled", ThemeManager.ThemeBrush.SurfaceCard)]
     [InlineData("CheckBoxGlyphForegroundChecked", ThemeManager.ThemeBrush.OnPrimaryAccent)]
     [InlineData("ProgressRingForeground", ThemeManager.ThemeBrush.PrimaryAccent)]
+    [InlineData("SliderTrackValueFill", ThemeManager.ThemeBrush.PrimaryAccent)]
+    [InlineData("SliderThumbBackground", ThemeManager.ThemeBrush.PrimaryAccent)]
+    [InlineData("SliderTrackFill", ThemeManager.ThemeBrush.CardBorder)]
     public void ResourceBrushKeys_MapControlKeysToThemeBrushes(string key, ThemeManager.ThemeBrush expected)
     {
         // Assert

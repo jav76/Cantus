@@ -1090,7 +1090,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             ProgressText = "00:00";
             TotalDurationText = "00:00";
             IsInstrumentalBreak = false;
-            _vuMeter.Update(Environment.TickCount64, null, 0, isPlaying: false);
+            _vuMeter.Update(Environment.TickCount64, isPlaying: false);
             return;
         }
 
@@ -1107,7 +1107,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ProgressFraction = (double)currentWithOffset / durationMs;
         ProgressText = FormatTime(currentWithOffset);
         TotalDurationText = FormatTime(durationMs);
-        _vuMeter.Update(Environment.TickCount64, track.Id, currentWithOffset, state.IsPlaying);
+        _vuMeter.Update(Environment.TickCount64, state.IsPlaying);
 
         UpdateActiveLyricLine(currentWithOffset);
     }
