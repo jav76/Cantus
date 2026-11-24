@@ -64,6 +64,19 @@ Settings for [pairing a Display](rest-api.md#display-endpoints). Values outside 
 | **`DisplayPairing__RateLimitPermitLimit`** | `int` | `10` | Pairing requests, and separately approvals, allowed per client address per window (at least 1). IPv6 addresses in the same `/64` count as one client. Over the limit returns `429`. | No |
 | **`DisplayPairing__RateLimitWindowSeconds`** | `int` | `60` | Length of the fixed rate limit window in seconds (1 to 3600). | No |
 
+### Local Sessions (`LocalSessions`)
+Settings for [Local Sessions](../operator-guide/self-hosting.md#6-let-people-use-their-own-players), which show what a desktop app's own players are playing, with no Spotify account. Values outside the allowed range stop the server at startup.
+
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`LocalSessions__Enabled`** | `bool` | `false` | Allows creating Local Sessions and publishing playback from them. Turning it off stops both; existing Local Sessions stay valid for viewing, managing Displays and signing out until they expire. | No |
+| **`LocalSessions__JoinCode`** | `string` | *(empty)* | Code required to create a Local Session. Blank means no code. A set code must be at least 8 characters. It is never sent to clients. Set one on internet-facing servers. | Recommended |
+| **`LocalSessions__RateLimitPermitLimit`** | `int` | `5` | Local Session creations allowed per client address per window (at least 1). IPv6 addresses in the same `/64` count as one client. Over the limit returns `429`. | No |
+| **`LocalSessions__RateLimitWindowSeconds`** | `int` | `600` | Length of the fixed creation rate limit window in seconds (1 to 86400). | No |
+| **`LocalSessions__MaxSessions`** | `int` | `500` | Most Local Sessions stored at once (at least 1). Further creations get `503`. | No |
+| **`LocalSessions__IdleExpiryDays`** | `int` | `90` | Days a Local Session may go without publishing before it is deleted, with its Displays (1 to 3650). Idle Sessions are removed when the next Local Session is created. | No |
+| **`LocalSessions__PublisherGraceSeconds`** | `int` | `20` | Seconds a Local Session's playback stays live after its desktop app disconnects, before viewers see it paused (1 to 600). | No |
+
 ### Lyrics Provider: LRCLIB (`Lrclib`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |

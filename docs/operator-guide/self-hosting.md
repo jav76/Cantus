@@ -109,3 +109,20 @@ To update your Cantus container to the newest release:
 docker compose pull
 docker compose up -d --remove-orphans
 ```
+
+---
+
+## 6. Let People Use Their Own Players
+
+The Linux desktop app can show lyrics for what a media player on the user's computer plays, with no Spotify account (see [Use this computer's players](../user-guide/local-players.md)). This creates a Local Session on your server. It is off by default:
+
+```yaml
+    environment:
+      - LocalSessions__Enabled=true
+      - LocalSessions__JoinCode=choose-a-long-code
+```
+
+!!! warning "Set a join code on internet-facing servers"
+    Without `LocalSessions__JoinCode`, anyone who can reach the server can create a Local Session and start lyrics lookups, with no Spotify allowlist in the way. A join code (at least 8 characters) limits that to people you give it to. Creation is also rate limited per client address, so behind a reverse proxy configure [forwarded headers](../reference/configuration.md#reverse-proxy-trust-forwardedheaders), or every user shares the proxy's limit.
+
+Local Sessions unused for `LocalSessions__IdleExpiryDays` (90 days) are deleted with their Displays. Turning `LocalSessions__Enabled` off again stops new Local Sessions and stops existing ones from sending playback; they can still sign out. All settings are in the [Configuration Reference](../reference/configuration.md#local-sessions-localsessions).
