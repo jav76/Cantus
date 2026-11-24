@@ -37,6 +37,10 @@ Cantus relies on ASP.NET Core SignalR for real-time communication. Your reverse 
 
 The QR code on a waiting screen encodes the address the screen loaded Cantus from. Open screens at the public address phones use (for example `https://cantus.yourdomain.com`), not an internal one such as `http://cantus:5000`.
 
+## Local Sessions Behind a Reverse Proxy
+
+[Local Sessions](self-hosting.md#6-let-people-use-their-own-players) (`LocalSessions__Enabled`) need no extra proxy rules either. Creating one is also limited per client address (`LocalSessions__RateLimitPermitLimit`, 5 per 10 minutes by default), so the same rule applies: trust the proxy, or every desktop app shares the proxy's limit and gets `429` once a few people start Local Sessions. On an internet-facing server, also set `LocalSessions__JoinCode`.
+
 !!! warning "Credentials in access logs"
     A browser cannot set headers on a WebSocket, so the web app's SignalR client puts the connection's credential (a Session id or a Display token) in the `access_token` query parameter of `/hubs/playback`. A proxy that logs full request URLs writes these credentials to its access log. Drop query strings from logged URLs, or keep the logs as private as the database.
 
