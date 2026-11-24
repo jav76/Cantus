@@ -2,21 +2,21 @@
 
 - **Project**: `Cantus`
 - **Quality Gate**: **ERROR**
-- **Generated (UTC)**: `2026-11-24T22:00:33Z`
+- **Generated (UTC)**: `2026-11-24T22:21:18Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
 | Metric | Value |
 | :--- | :--- |
 | Quality Gate | ERROR |
-| Reliability Rating / Issues | D (10) |
+| Reliability Rating / Issues | D (9) |
 | Security Rating / Issues | A (0) |
-| Maintainability Rating / Issues | A (2364) |
-| Coverage | 74.1% |
+| Maintainability Rating / Issues | A (2381) |
+| Coverage | 74.2% |
 | Duplicated Lines | 0.5% |
-| Lines of Code (NCLOC) | 34.1k |
-| Technical Debt | 3h44min |
-| Open Issues (total) | 2374 |
+| Lines of Code (NCLOC) | 34.3k |
+| Technical Debt | 3h49min |
+| Open Issues (total) | 2390 |
 | Open Security Hotspots | 0 |
 | SARIF Exported Findings | 0 |
 
@@ -24,7 +24,7 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 70.1 | LT 50 |
+| `new_coverage` | OK | 70.7 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.0 | GT 5 |
 | `new_software_quality_reliability_rating` | ERROR | 3 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
@@ -52,9 +52,9 @@
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Infrastructure/Lyrics/ProviderResponseReader.cs:39` | Await WriteAsync instead. |
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:971` | Await DisposeAsync instead. |
 | Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Client/Cantus.Client/Services/SignalRPlaybackClient.cs:972` | Await DisposeAsync instead. |
-| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Server/Program.cs:294` | Await RunAsync instead. |
+| Issue | MAJOR/LOW | `csharpsquid:S6966` | `src/Cantus.Server/Program.cs:296` | Await RunAsync instead. |
 | Issue | MAJOR/MEDIUM | `css:S7924` | `docs/stylesheets/extra.css:156` | Text does not meet the minimal contrast requirement with its background. |
 | Issue | MAJOR/MEDIUM | `css:S9423` | `docs/stylesheets/extra.css:71` | Remove this "!important" and resolve the specificity conflict instead. |
 | Issue | MAJOR/MEDIUM | `css:S9423` | `docs/stylesheets/extra.css:81` | Remove this "!important" and resolve the specificity conflict instead. |
 | Issue | MAJOR/MEDIUM | `css:S9423` | `docs/stylesheets/extra.css:92` | Remove this "!important" and resolve the specificity conflict instead. |
-| Issue | MAJOR/MEDIUM | `css:S9423` | `src/Cantus.Client/Cantus.Client/WasmScripts/index.html:180` | Remove this "!important" and resolve the specificity conflict instead. |
+| Issue | MAJOR/MEDIUM | `css:S9423` | `src/Cantus.Client/Cantus.Client/WasmScripts/index.html:205` | Remove this "!important" and resolve the specificity conflict instead. |
