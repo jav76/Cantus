@@ -923,6 +923,32 @@ public sealed class ActiveUsersPlaybackMonitorTests
             Times.Never);
     }
 
+    [Fact]
+    public async Task WhenALocalSessionRequestsAnImmediatePoll_TheLoopKeepsItsActiveCadence()
+    {
+        const int ACTIVE_POLL_INTERVAL_MS = 5_000;
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "local-1" });
+        TaskCompletionSource firstLookup = SignalAfterSessionLookups(1);
+
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions { ActivePollIntervalMs = ACTIVE_POLL_INTERVAL_MS }),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+        monitor.TriggerImmediateUserPoll("local-1");
+
+        // A fixed wait is correct here: it asserts an absence. Pinned at the 500 ms minimum,
+        // the loop would look the Session up again well within this window.
+        await RunUntilAsync(monitor, "the first lookup of the Local Session", firstLookup.Task, Task.Delay(1_500));
+
+        _mockAuthService.Verify(
+            a => a.GetSessionForUserAsync("local-1", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
     private TaskCompletionSource SignalAfterSessionLookups(int lookups)
     {
         UserSession localSession = new()

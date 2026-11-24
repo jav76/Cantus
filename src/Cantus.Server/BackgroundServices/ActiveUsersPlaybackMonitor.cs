@@ -214,10 +214,19 @@ public sealed class ActiveUsersPlaybackMonitor : BackgroundService
             try
             {
                 // A Local Session's playback is pushed by its client, so polling Spotify would only
-                // reach the idle branch below and wipe the pushed snapshot.
+                // reach the idle branch below and wipe the pushed snapshot. Its schedule entry is
+                // dropped too: an immediate-poll request leaves it at MinValue, which would hold
+                // the whole loop at its minimum delay.
                 UserSession? session = await authService.GetSessionForUserAsync(userId, cancellationToken);
-                if (session is null || session.Kind == SessionKind.Local || session.AccessToken is not { } accessToken)
+                if (session is null || session.Kind == SessionKind.Local)
                 {
+                    _nextPollUtc.TryRemove(userId, out _);
+                    continue;
+                }
+
+                if (session.AccessToken is not { } accessToken)
+                {
+                    _nextPollUtc[userId] = DateTimeOffset.UtcNow.AddMilliseconds(_cadence.PollErrorIntervalMs);
                     continue;
                 }
 
