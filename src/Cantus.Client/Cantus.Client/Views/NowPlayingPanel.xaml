@@ -25,7 +25,7 @@
                                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" />
-                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
+                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" AutomationProperties.Name="Album art" />
             </Grid>
         </Border>
 

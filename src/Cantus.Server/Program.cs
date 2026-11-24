@@ -271,12 +271,14 @@ contentTypeProvider.Mappings[".woff"] = "font/woff";
 contentTypeProvider.Mappings[".woff2"] = "font/woff2";
 contentTypeProvider.Mappings[".ttf"] = "font/ttf";
 
-app.UseStaticFiles(new StaticFileOptions
+StaticFileOptions CreateStaticFileOptions() => new()
 {
     ContentTypeProvider = contentTypeProvider,
     ServeUnknownFileTypes = true,
     DefaultContentType = "application/octet-stream"
-});
+};
+
+app.UsePrecompressedStaticFiles(app.Environment.WebRootFileProvider, CreateStaticFileOptions());
 
 // 15. SignalR Hub Mapping
 app.MapHub<PlaybackHub>("/hubs/playback");
@@ -289,7 +291,7 @@ app.MapSongLookupEndpoints();
 app.MapHealthEndpoints();
 
 // 17. SPA Fallback
-app.MapFallbackToFile("index.html");
+app.MapPrecompressedFallbackToFile("index.html", app.Environment.WebRootFileProvider, CreateStaticFileOptions());
 
 app.Run();
 

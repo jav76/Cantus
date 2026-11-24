@@ -4,16 +4,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Cantus shows real-time synced lyrics for the music playing on your Spotify account or this computer." />
     <title>Cantus - Real-Time Synced Lyrics</title>
+    <!-- Inline so the tab icon needs no request; a separate .svg file would be rasterised by Uno's image resizer. -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23c084fc'/%3E%3Cstop offset='1' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cg fill='%23fff'%3E%3Crect x='13' y='28' width='7' height='20' rx='3.5'/%3E%3Crect x='24' y='16' width='7' height='32' rx='3.5'/%3E%3Crect x='35' y='22' width='7' height='26' rx='3.5'/%3E%3Crect x='46' y='32' width='7' height='16' rx='3.5'/%3E%3C/g%3E%3C/svg%3E" />
 
     <script type="text/javascript" src="./require.js"></script>
     <script type="module" src="./uno-bootstrap.js"></script>
     $(ADDITIONAL_CSS)
     $(ADDITIONAL_HEAD)
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <!-- The loader uses the app's own bundled fonts, so nothing is fetched from another site and the files
+         are already cached when the app asks for them. Their folder name changes per build, so it is read
+         from the bootstrap script tag above, which the build rewrites. -->
+    <script>
+        (function() {
+            var bootstrap = document.querySelector('script[src*="uno-bootstrap.js"]');
+            if (!bootstrap) return;
+            var fonts = bootstrap.getAttribute("src").replace(/uno-bootstrap\.js.*$/, "") + "Assets/Fonts/";
+            var faces = [
+                ["Cantus Loader", "400 500", "Figtree-Regular.ttf"],
+                ["Cantus Loader", "600 800", "Figtree-SemiBold.ttf"],
+                ["Cantus Loader Mono", "400", "NotoSansMono-Regular.ttf"]
+            ];
+            var css = faces.map(function(face) {
+                return "@font-face { font-family: '" + face[0] + "'; font-weight: " + face[1] +
+                    "; font-display: swap; src: url('" + fonts + face[2] + "') format('truetype'); }";
+            }).join("\n");
+            var style = document.createElement("style");
+            style.textContent = css;
+            document.head.appendChild(style);
+        })();
+    </script>
 
     <style>
         * {
@@ -23,7 +45,7 @@
         body {
             background-color: #0c0d14;
             color: #f8fafc;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Cantus Loader', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -97,21 +119,24 @@
 
         .audio-bar {
             width: 6px;
+            height: 46px;
             background: linear-gradient(180deg, #c084fc 0%, #8b5cf6 50%, #6366f1 100%);
             border-radius: 9999px;
-            animation: wave 1.2s ease-in-out infinite alternate;
+            transform-origin: bottom;
+            animation: wave 1.2s ease-in-out infinite alternate backwards;
         }
 
-        .audio-bar:nth-child(1) { height: 16px; animation-delay: 0.1s; }
-        .audio-bar:nth-child(2) { height: 32px; animation-delay: 0.3s; }
-        .audio-bar:nth-child(3) { height: 44px; animation-delay: 0.5s; }
-        .audio-bar:nth-child(4) { height: 26px; animation-delay: 0.2s; }
-        .audio-bar:nth-child(5) { height: 38px; animation-delay: 0.4s; }
-        .audio-bar:nth-child(6) { height: 20px; animation-delay: 0.15s; }
+        .audio-bar:nth-child(1) { animation-delay: 0.1s; }
+        .audio-bar:nth-child(2) { animation-delay: 0.3s; }
+        .audio-bar:nth-child(3) { animation-delay: 0.5s; }
+        .audio-bar:nth-child(4) { animation-delay: 0.2s; }
+        .audio-bar:nth-child(5) { animation-delay: 0.4s; }
+        .audio-bar:nth-child(6) { animation-delay: 0.15s; }
 
+        /* Scaling keeps the animation on the compositor; animating height forced a layout per frame. */
         @keyframes wave {
-            0% { height: 10px; opacity: 0.5; }
-            100% { height: 46px; opacity: 1; }
+            0% { transform: scaleY(0.22); opacity: 0.5; }
+            100% { transform: scaleY(1); opacity: 1; }
         }
 
         .loader-title {
@@ -161,7 +186,7 @@
             width: 100%;
             margin-top: 12px;
             font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Cantus Loader Mono', ui-monospace, monospace;
             color: #64748b;
             z-index: 1;
         }
@@ -220,7 +245,6 @@
 
     <div id="uno-body" class="container-fluid uno-body">
         <div class="uno-loader" loading-position="bottom" loading-alert="none">
-            <img class="logo" src="" title="Uno is loading your application" />
             <progress></progress>
             <span class="alert"></span>
         </div>
@@ -373,6 +397,31 @@
             };
         })();
 
+        // Uno's DOM renderer creates <img> elements without an alt attribute. Each one takes the accessible
+        // name of its Image control (AutomationProperties.Name, on the parent element), or is marked decorative.
+        (function() {
+            function describe(img) {
+                if (img.hasAttribute("alt")) return;
+                var owner = img.parentElement;
+                img.alt = (owner && owner.getAttribute("aria-label")) || "";
+            }
+
+            function describeAll(node) {
+                if (node.nodeType !== 1) return;
+                if (node.tagName === "IMG") {
+                    describe(node);
+                } else if (node.firstElementChild) {
+                    node.querySelectorAll("img:not([alt])").forEach(describe);
+                }
+            }
+
+            new MutationObserver(function(mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    mutations[i].addedNodes.forEach(describeAll);
+                }
+            }).observe(document.documentElement, { childList: true, subtree: true });
+        })();
+
         (function() {
             function initLoader() {
                 var defaultLoader = document.querySelector(".uno-loader");
@@ -421,6 +470,7 @@
                     loadComplete = true;
                     if (simInterval) clearInterval(simInterval);
                     if (pollInterval) clearInterval(pollInterval);
+                    if (bodyObserver) bodyObserver.disconnect();
                     updateProgress(100);
 
                     setTimeout(function() {
@@ -473,9 +523,10 @@
                 }
 
                 var pollInterval = setInterval(checkUnoReadiness, 200);
+                var bodyObserver = null;
 
                 if (unoBody) {
-                    var bodyObserver = new MutationObserver(function(mutations) {
+                    bodyObserver = new MutationObserver(function(mutations) {
                         checkUnoReadiness();
                     });
                     bodyObserver.observe(unoBody, { childList: true, subtree: true });

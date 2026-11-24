@@ -26,7 +26,7 @@
             <!-- Mini Album Art -->
             <Border Grid.Column="0" CornerRadius="8" Width="44" Height="44" Background="#1E1E2D" Margin="0,0,14,0" VerticalAlignment="Center"
                     Visibility="{x:Bind GetWideBarVisibility(Layout.IsKioskBarStacked), Mode=OneWay}">
-                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" />
+                <Image Source="{x:Bind ViewModel.AlbumArtUrl, Mode=OneWay}" Stretch="UniformToFill" AutomationProperties.Name="Album art" />
             </Border>
 
             <!-- Mini Track Info -->
