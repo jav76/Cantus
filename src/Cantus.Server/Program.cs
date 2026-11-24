@@ -293,7 +293,7 @@ app.MapHealthEndpoints();
 // 17. SPA Fallback
 app.MapPrecompressedFallbackToFile("index.html", app.Environment.WebRootFileProvider, CreateStaticFileOptions());
 
-app.Run();
+await app.RunAsync();
 
 // Make Program accessible to WebApplicationFactory in tests
 public partial class Program { }

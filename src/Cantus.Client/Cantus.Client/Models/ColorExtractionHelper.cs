@@ -187,22 +187,22 @@ public static class ColorExtractionHelper
         float min = Math.Min(r, Math.Min(g, b));
         float lightness = (max + min) / 2f;
 
-        if (max == min)
+        float delta = max - min;
+        if (delta <= 0f)
         {
             return (0f, 0f, lightness); // achromatic
         }
 
-        float delta = max - min;
         float saturation = lightness > 0.5f
             ? delta / (2f - max - min)
             : delta / (max + min);
 
         float hue;
-        if (max == r)
+        if (r >= g && r >= b)
         {
             hue = (g - b) / delta + (g < b ? 6f : 0f);
         }
-        else if (max == g)
+        else if (g >= b)
         {
             hue = (b - r) / delta + 2f;
         }

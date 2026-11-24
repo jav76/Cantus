@@ -33,9 +33,9 @@ public class SqliteBatchLogAppender : AppenderSkeleton
             SingleReader = true
         });
         _cts = new();
-        // No token here: a token cancelled before the worker starts would skip it entirely,
+        // Not _cts.Token: a token cancelled before the worker starts would skip it entirely,
         // and with it the shutdown flush. The worker observes _cts itself.
-        _workerTask = Task.Run(ProcessQueueAsync);
+        _workerTask = Task.Run(ProcessQueueAsync, CancellationToken.None);
     }
 
     protected override void Append(LoggingEvent loggingEvent)

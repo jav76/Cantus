@@ -61,4 +61,35 @@ public class GlobalExceptionHandlerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task TryHandleAsync_WhenPathAndQueryContainLineBreaks_LogsThemOnOneLine()
+    {
+        Mock<ILogger<GlobalExceptionHandler>> mockLogger = new();
+        Mock<IHostEnvironment> mockEnv = new();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        GlobalExceptionHandler handler = new(mockLogger.Object, mockEnv.Object);
+
+        DefaultHttpContext httpContext = new();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = "/api/test\r\nFATAL forged entry";
+        httpContext.Request.QueryString = new QueryString("?q=1\nERROR forged again");
+        httpContext.TraceIdentifier = "test-trace-12345";
+        httpContext.Response.Body = new MemoryStream();
+
+        await handler.TryHandleAsync(httpContext, new InvalidOperationException("boom"), CancellationToken.None);
+
+        mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) =>
+                    !v.ToString()!.Contains('\n')
+                    && !v.ToString()!.Contains('\r')
+                    && v.ToString()!.Contains("/api/test  FATAL forged entry?q=1 ERROR forged again")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }

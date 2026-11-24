@@ -240,8 +240,10 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
 
     private async Task ReadAndStorePlayerAsync(MprisBus bus, string busName, string owner, int generation)
     {
-        for (int attempt = 1; ; attempt++)
+        int attempt = 0;
+        while (true)
         {
+            attempt++;
             int signals;
             lock (_gate)
             {
@@ -535,8 +537,10 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
 
         bool needsPosition = false;
         bool overtaken;
-        for (int attempt = 1; ; attempt++)
+        int attempt = 0;
+        while (true)
         {
+            attempt++;
             MprisPlayerState? target;
             int signals;
             lock (_gate)
