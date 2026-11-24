@@ -25,8 +25,17 @@ public sealed class LocalPlaybackPublisher : IDisposable
     public static readonly TimeSpan TICK_INTERVAL = TimeSpan.FromMilliseconds(250);
     public static readonly TimeSpan RATE_LIMIT_FIRST_BACKOFF = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan RATE_LIMIT_MAX_BACKOFF = TimeSpan.FromSeconds(30);
-    public static readonly TimeSpan NOT_PUBLISHER_RETRY = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan NOT_PUBLISHER_FIRST_BACKOFF = TimeSpan.FromSeconds(5);
+    public static readonly TimeSpan NOT_PUBLISHER_MAX_BACKOFF = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan SERVER_ERROR_FIRST_BACKOFF = TimeSpan.FromSeconds(2);
+    public static readonly TimeSpan SERVER_ERROR_MAX_BACKOFF = TimeSpan.FromSeconds(60);
     public static readonly TimeSpan SEND_FAILURE_RETRY = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// Viewers project at 1x, so at any other rate they drift from the player by |rate - 1| per second.
+    /// The drift threshold grows with that so corrections go out at most about this often.
+    /// </summary>
+    public static readonly TimeSpan MIN_RATE_CORRECTION_INTERVAL = TimeSpan.FromSeconds(1);
 
     private static readonly ILogger _logger = ClientLoggingManager.CreateLogger<LocalPlaybackPublisher>();
 
@@ -47,6 +56,8 @@ public sealed class LocalPlaybackPublisher : IDisposable
     private string? _sequenceConnectionId;
     private TimeSpan _blockedUntil;
     private TimeSpan _rateLimitBackoff = RATE_LIMIT_FIRST_BACKOFF;
+    private TimeSpan _notPublisherBackoff = NOT_PUBLISHER_FIRST_BACKOFF;
+    private TimeSpan _serverErrorBackoff = SERVER_ERROR_FIRST_BACKOFF;
     private PublishedState? _lastSent;
     private LocalPlayerSnapshot? _followed;
     private string? _lastPlayerId;
@@ -179,7 +190,14 @@ public sealed class LocalPlaybackPublisher : IDisposable
         _lastSent = null;
         _dirty = true;
         _blockedUntil = TimeSpan.Zero;
+        ResetBackoffs();
+    }
+
+    private void ResetBackoffs()
+    {
         _rateLimitBackoff = RATE_LIMIT_FIRST_BACKOFF;
+        _notPublisherBackoff = NOT_PUBLISHER_FIRST_BACKOFF;
+        _serverErrorBackoff = SERVER_ERROR_FIRST_BACKOFF;
     }
 
     private void Pump()
@@ -299,15 +317,20 @@ public sealed class LocalPlaybackPublisher : IDisposable
             return false;
         }
 
+        // Compared with what viewers show, which is the last sent position projected at 1x.
         double expectedMs = last.PositionMs;
+        double thresholdMs = DRIFT_THRESHOLD_MS;
         if (last.Key.IsPlaying)
         {
-            expectedMs += (now - last.SampledAt).TotalMilliseconds * last.Key.Rate;
+            expectedMs += (now - last.SampledAt).TotalMilliseconds;
+            thresholdMs = Math.Max(
+                thresholdMs,
+                Math.Abs(last.Key.Rate - 1.0) * MIN_RATE_CORRECTION_INTERVAL.TotalMilliseconds);
         }
 
         double durationMs = desired.Key.Track.Duration.TotalMilliseconds;
         expectedMs = Math.Clamp(expectedMs, 0, durationMs);
-        return Math.Abs(desired.PositionMs - expectedMs) > DRIFT_THRESHOLD_MS;
+        return Math.Abs(desired.PositionMs - expectedMs) > thresholdMs;
     }
 
     private LocalPlaybackUpdatePayload BuildPayload(TimeSpan now)
@@ -381,22 +404,31 @@ public sealed class LocalPlaybackPublisher : IDisposable
         switch ((LocalPublishResult)result)
         {
             case LocalPublishResult.Accepted:
-                _rateLimitBackoff = RATE_LIMIT_FIRST_BACKOFF;
+                ResetBackoffs();
                 _logger.LogDebug("Published local playback {Sequence}", payload.Sequence);
                 break;
 
             case LocalPublishResult.RateLimited:
                 _logger.LogWarning("Local playback publish rate limited; retrying in {Delay}", _rateLimitBackoff);
                 RetryAt(now + _rateLimitBackoff);
-                _rateLimitBackoff = TimeSpan.FromTicks(
-                    Math.Min(_rateLimitBackoff.Ticks * 2, RATE_LIMIT_MAX_BACKOFF.Ticks));
+                _rateLimitBackoff = DoubleUpTo(_rateLimitBackoff, RATE_LIMIT_MAX_BACKOFF);
                 break;
 
             case LocalPublishResult.NotPublisher:
                 _logger.LogInformation(
                     "Another connection publishes for this Session; retrying in {Delay}",
-                    NOT_PUBLISHER_RETRY);
-                RetryAt(now + NOT_PUBLISHER_RETRY);
+                    _notPublisherBackoff);
+                RetryAt(now + _notPublisherBackoff);
+                _notPublisherBackoff = DoubleUpTo(_notPublisherBackoff, NOT_PUBLISHER_MAX_BACKOFF);
+                break;
+
+            case LocalPublishResult.ServerError:
+                _logger.LogWarning(
+                    "The server failed local playback update {Sequence}; retrying in {Delay}",
+                    payload.Sequence,
+                    _serverErrorBackoff);
+                RetryAt(now + _serverErrorBackoff);
+                _serverErrorBackoff = DoubleUpTo(_serverErrorBackoff, SERVER_ERROR_MAX_BACKOFF);
                 break;
 
             case LocalPublishResult.NotLocalSession:
@@ -420,6 +452,9 @@ public sealed class LocalPlaybackPublisher : IDisposable
         _lastSent = null;
         _dirty = true;
     }
+
+    private static TimeSpan DoubleUpTo(TimeSpan backoff, TimeSpan max) =>
+        TimeSpan.FromTicks(Math.Min(backoff.Ticks * 2, max.Ticks));
 
     private static string Truncate(string value, int maxLength) =>
         value.Length > maxLength ? value[..maxLength] : value;

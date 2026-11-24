@@ -801,8 +801,8 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
         }
         catch (HubException)
         {
-            // The server answered but refused the call, as a server without local playback does.
-            return (int)LocalPublishResult.Invalid;
+            // The server failed the call: a transient fault, or a server without local playback.
+            return (int)LocalPublishResult.ServerError;
         }
         catch
         {

@@ -240,6 +240,24 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
         _sink.Published.Should().HaveCount(expectedPublishes);
     }
 
+    [Theory]
+    [InlineData(1.25, 1750)]
+    [InlineData(0.5, 1250)]
+    [InlineData(4.0, 1250)]
+    public void AtAnotherRate_RepublishesBecauseViewersProjectAtOneX(double rate, int firstRepublishMs)
+    {
+        // Arrange: the player keeps the projection it reports, so only the viewers' 1x projection drifts.
+        _source.SetPlayers(Spotify(Song()) with { Rate = rate });
+        _publisher.Start();
+
+        // Act & Assert
+        _clock.Advance(TimeSpan.FromMilliseconds(firstRepublishMs) - LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.Published.Should().ContainSingle();
+        _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.Published.Should().HaveCount(2);
+        _sink.Published[1].PositionMs.Should().BeCloseTo((long)(firstRepublishMs * rate), 1);
+    }
+
     [Fact]
     public void StatusTrackSeekAndCapabilityChanges_EachPublish()
     {
@@ -341,22 +359,89 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
     }
 
     [Fact]
-    public void NotPublisher_RetriesEveryTenSeconds()
+    public void NotPublisher_BacksOffFromFiveSecondsDoublingToThirtySeconds()
     {
         // Arrange
-        _sink.EnqueueResults(LocalPublishResult.NotPublisher, LocalPublishResult.NotPublisher);
+        _sink.EnqueueResults(
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher);
         _source.SetPlayers(Spotify(Song()));
         _publisher.Start();
 
         // Act & Assert
-        _clock.Advance(LocalPlaybackPublisher.NOT_PUBLISHER_RETRY - LocalPlaybackPublisher.TICK_INTERVAL);
+        int[] expectedDelaysSeconds = [5, 10, 20, 30, 30];
+        foreach (int delaySeconds in expectedDelaysSeconds)
+        {
+            int before = _sink.Published.Count;
+            _clock.Advance(TimeSpan.FromSeconds(delaySeconds) - LocalPlaybackPublisher.TICK_INTERVAL);
+            _sink.Published.Should().HaveCount(before, $"the {delaySeconds} s backoff has not elapsed");
+            _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
+            _sink.Published.Should().HaveCount(before + 1, $"the {delaySeconds} s backoff has elapsed");
+        }
+    }
+
+    [Fact]
+    public void NotPublisher_RetriesTheLatestStateAndResetsAfterAcceptedOrAReconnect()
+    {
+        // Arrange
+        _sink.EnqueueResults(
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.Accepted,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher,
+            LocalPublishResult.NotPublisher);
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+
+        // Act & Assert: changes wait for the retry, which then sends the latest state.
+        _clock.Advance(LocalPlaybackPublisher.NOT_PUBLISHER_FIRST_BACKOFF - LocalPlaybackPublisher.TICK_INTERVAL);
         _source.SetPlayers(Spotify(Song(), LocalPlayerStatus.Paused));
         _sink.Published.Should().ContainSingle("changes wait for the retry too");
         _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
         _sink.Published.Should().HaveCount(2);
         _sink.Published[1].IsPlaying.Should().BeFalse("the retry sends the latest state");
-        _clock.Advance(LocalPlaybackPublisher.NOT_PUBLISHER_RETRY);
+        _clock.Advance(TimeSpan.FromSeconds(10));
+        _sink.Published.Should().HaveCount(3, "the second retry waits 10 s and is accepted");
+
+        // After Accepted the backoff starts again at 5 s.
+        _source.SetPlayers(Spotify(Song("Next", "Artist"), LocalPlayerStatus.Paused));
+        _sink.Published.Should().HaveCount(4);
+        _clock.Advance(LocalPlaybackPublisher.NOT_PUBLISHER_FIRST_BACKOFF);
+        _sink.Published.Should().HaveCount(5);
+
+        // A reconnect also starts it again at 5 s, after the immediate snapshot.
+        _sink.ConnectionId = "connection-2";
+        _sink.RaiseConnected();
+        _sink.Published.Should().HaveCount(6);
+        _clock.Advance(LocalPlaybackPublisher.NOT_PUBLISHER_FIRST_BACKOFF);
+        _sink.Published.Should().HaveCount(7);
+    }
+
+    [Fact]
+    public void ServerError_RetriesTheSameStateWithAGrowingBackoff()
+    {
+        // Arrange
+        _sink.EnqueueResults(LocalPublishResult.ServerError, LocalPublishResult.ServerError);
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+
+        // Act & Assert: the player does not change, yet the snapshot is sent again.
+        _clock.Advance(LocalPlaybackPublisher.SERVER_ERROR_FIRST_BACKOFF - LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.Published.Should().ContainSingle();
+        _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.Published.Should().HaveCount(2);
+        _clock.Advance(LocalPlaybackPublisher.SERVER_ERROR_FIRST_BACKOFF * 2 - LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.Published.Should().HaveCount(2, "the backoff doubled");
+        _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
         _sink.Published.Should().HaveCount(3);
+        _sink.Published[2].Track!.Title.Should().Be("Ballin");
+
+        _clock.Advance(TimeSpan.FromMinutes(2));
+        _sink.Published.Should().HaveCount(3, "the accepted snapshot is not sent again");
     }
 
     [Fact]
