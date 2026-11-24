@@ -9,6 +9,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
+using static Cantus.Client.Tests.LocalPlayback.LocalPlayers;
 
 namespace Cantus.Client.Tests.LocalPlayback;
 
@@ -20,28 +21,20 @@ public sealed class LocalPlaybackBootstrapTests
     private readonly Mock<ILocalSessionApi> _sessionApi = new();
     private readonly FakeLocalPlayerSource _source = new();
     private readonly FakeLocalPlaybackSink _sink = new();
+    private readonly InMemorySettingsStore _settings = new();
+    private readonly LocalPlayerPreferences _preferences;
     private readonly LocalPlaybackPublisher _publisher;
 
     public LocalPlaybackBootstrapTests()
     {
+        _preferences = new LocalPlayerPreferences(_settings);
         _publisher = new LocalPlaybackPublisher(
             _source,
             _sink,
             new PlayerSelectionPolicy(),
-            new LocalPlayerPreferences(new InMemorySettingsStore()),
+            _preferences,
             new FakeTimeProvider());
-    }
-
-    [Theory]
-    [InlineData("1", true)]
-    [InlineData(" 1 ", true)]
-    [InlineData("0", false)]
-    [InlineData("true", false)]
-    [InlineData(null, false)]
-    public void IsEnabled_OnlyForOne(string? value, bool expected)
-    {
-        LocalPlaybackBootstrap.IsEnabled(name => name == LocalPlaybackBootstrap.ENABLE_VARIABLE ? value : null)
-            .Should().Be(expected);
+        _client.Setup(c => c.ReconnectWithTokenAsync(It.IsAny<string?>())).Returns(Task.CompletedTask);
     }
 
     [Theory]
@@ -62,22 +55,45 @@ public sealed class LocalPlaybackBootstrapTests
     }
 
     [Fact]
-    public async Task Start_WithoutASession_CreatesALocalSessionAndReconnectsWithIt()
+    public async Task Start_WithoutASession_StartsTheSourceButCreatesNoSession()
+    {
+        // Arrange
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        int availabilityChanges = 0;
+        bootstrap.AvailabilityChanged += () => availabilityChanges++;
+
+        // Act
+        await bootstrap.StartAsync();
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        _source.StartCount.Should().Be(1);
+        bootstrap.IsSupported.Should().BeTrue();
+        availabilityChanges.Should().Be(1);
+        bootstrap.IsPublishing.Should().BeFalse();
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateSessionAsync_CreatesALocalSessionReconnectsAndPublishes()
     {
         // Arrange
         _sessionApi
             .Setup(a => a.CreateAsync("jaret-desktop", "JOINCODE1", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new LocalSessionResult(
-                LocalSessionStatus.Created,
-                new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL }));
-        LocalPlaybackBootstrap bootstrap = CreateBootstrap(joinCode: "JOINCODE1");
-
-        // Act
+            .ReturnsAsync(Created());
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
         await bootstrap.StartAsync();
 
+        // Act
+        LocalSessionResult result = await bootstrap.CreateSessionAsync("JOINCODE1");
+
         // Assert
-        _source.StartCount.Should().Be(1);
+        result.Status.Should().Be(LocalSessionStatus.Created);
         _client.Verify(c => c.ReconnectWithTokenAsync(LOCAL_SESSION_ID), Times.Once);
+        bootstrap.IsPublishing.Should().BeTrue();
     }
 
     [Theory]
@@ -85,168 +101,94 @@ public sealed class LocalPlaybackBootstrapTests
     [InlineData(LocalSessionStatus.JoinCodeRequired)]
     [InlineData(LocalSessionStatus.JoinCodeInvalid)]
     [InlineData(LocalSessionStatus.LimitReached)]
+    [InlineData(LocalSessionStatus.RateLimited)]
     [InlineData(LocalSessionStatus.Failed)]
-    public async Task Start_WhenTheServerRefuses_DoesNothingElse(LocalSessionStatus status)
+    public async Task CreateSessionAsync_WhenTheServerRefuses_ReturnsTheRefusalAndStaysSignedOut(LocalSessionStatus status)
     {
         // Arrange
         _sessionApi
             .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LocalSessionResult(status));
         LocalPlaybackBootstrap bootstrap = CreateBootstrap();
-
-        // Act
         await bootstrap.StartAsync();
 
+        // Act
+        LocalSessionResult result = await bootstrap.CreateSessionAsync(null);
+        _client.Raise(c => c.Connected += null);
+
         // Assert
+        result.Status.Should().Be(status);
         _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
         bootstrap.IsPublishing.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task Start_WithASession_DoesNotCreateAnother()
-    {
-        // Arrange
-        _client.SetupGet(c => c.SessionToken).Returns("existing");
-        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
-
-        // Act
-        await bootstrap.StartAsync();
-
-        // Assert
         _sessionApi.Verify(
             a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+            Times.Once,
+            "a refusal is never retried on its own");
     }
 
     [Fact]
-    public async Task Start_OnAPairedDisplay_DoesNotCreateALocalSession()
+    public async Task CreateSessionAsync_WhenTheRequestThrows_ReportsAFailure()
+    {
+        // Arrange
+        _sessionApi
+            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+
+        // Act
+        LocalSessionResult result = await bootstrap.CreateSessionAsync(null);
+
+        // Assert
+        result.Status.Should().Be(LocalSessionStatus.Failed);
+        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateSessionAsync_OnAPairedDisplay_RefusesWithoutAskingTheServer()
     {
         // Arrange
         _client.SetupGet(c => c.DisplayToken).Returns("display-token");
         LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
 
         // Act
-        await bootstrap.StartAsync();
-        _client.Raise(c => c.Connected += null);
+        LocalSessionResult result = await bootstrap.CreateSessionAsync(null);
 
         // Assert
+        result.Status.Should().Be(LocalSessionStatus.Failed);
         _sessionApi.Verify(
             a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
-        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Start_WhenASessionOrDisplayArrivesDuringCreation_KeepsIt(bool spotifySignIn)
-    {
-        // Arrange: the sign-in handoff or a pairing lands while the request is in flight.
-        string? sessionToken = null;
-        string? displayToken = null;
-        _client.SetupGet(c => c.SessionToken).Returns(() => sessionToken);
-        _client.SetupGet(c => c.DisplayToken).Returns(() => displayToken);
-        _sessionApi
-            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback(() =>
-            {
-                if (spotifySignIn)
-                {
-                    sessionToken = "spotify-session";
-                }
-                else
-                {
-                    displayToken = "display-token";
-                }
-            })
-            .ReturnsAsync(new LocalSessionResult(
-                LocalSessionStatus.Created,
-                new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL }));
-        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
-
-        // Act
-        await bootstrap.StartAsync();
-        _client.Raise(c => c.Connected += null);
-
-        // Assert
-        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
-        _sessionApi.Verify(
-            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Theory]
-    [InlineData(LocalSessionStatus.Failed)]
-    [InlineData(LocalSessionStatus.RateLimited)]
-    public async Task Start_WhenCreationMayPass_RetriesOnTheNextConnect(LocalSessionStatus firstStatus)
-    {
-        // Arrange
-        _sessionApi
-            .SetupSequence(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new LocalSessionResult(firstStatus))
-            .ReturnsAsync(new LocalSessionResult(
-                LocalSessionStatus.Created,
-                new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL }));
-        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
-        await bootstrap.StartAsync();
-        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
-
-        // Act
-        _client.Raise(c => c.Connected += null);
-        _client.Raise(c => c.Connected += null);
-
-        // Assert
-        _client.Verify(c => c.ReconnectWithTokenAsync(LOCAL_SESSION_ID), Times.Once);
-        _sessionApi.Verify(
-            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(2));
-    }
-
-    [Theory]
-    [InlineData(LocalSessionStatus.Disabled)]
-    [InlineData(LocalSessionStatus.JoinCodeRequired)]
-    [InlineData(LocalSessionStatus.JoinCodeInvalid)]
-    [InlineData(LocalSessionStatus.InvalidDisplayName)]
-    [InlineData(LocalSessionStatus.LimitReached)]
-    public async Task Start_WhenTheServerRefusesForGood_DoesNotRetryOnConnect(LocalSessionStatus status)
-    {
-        // Arrange
-        _sessionApi
-            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new LocalSessionResult(status));
-        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
-        await bootstrap.StartAsync();
-
-        // Act
-        _client.Raise(c => c.Connected += null);
-
-        // Assert
-        _sessionApi.Verify(
-            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Fact]
-    public async Task Start_OnAnUnsupportedPlatform_DoesNothing()
+    public async Task Start_OnAnUnsupportedPlatform_OffersNothing()
     {
         // Arrange
         _source.IsSupported = false;
         LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        int availabilityChanges = 0;
+        bootstrap.AvailabilityChanged += () => availabilityChanges++;
 
         // Act
         await bootstrap.StartAsync();
         RaiseSessions(AuthorizedSessionPayload.KIND_LOCAL);
+        LocalSessionResult result = await bootstrap.CreateSessionAsync(null);
 
         // Assert
         _source.StartCount.Should().Be(0);
+        bootstrap.IsSupported.Should().BeFalse();
+        availabilityChanges.Should().Be(0);
         bootstrap.IsPublishing.Should().BeFalse();
+        result.Status.Should().Be(LocalSessionStatus.Failed);
         _sessionApi.Verify(
             a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task Start_WhenTheBusCannotBeReached_DoesNothing()
+    public async Task Start_WhenTheBusCannotBeReached_OffersNothing()
     {
         // Arrange
         _source.SupportedAfterStart = false;
@@ -257,10 +199,8 @@ public sealed class LocalPlaybackBootstrapTests
         RaiseSessions(AuthorizedSessionPayload.KIND_LOCAL);
 
         // Assert
+        bootstrap.IsSupported.Should().BeFalse();
         bootstrap.IsPublishing.Should().BeFalse();
-        _sessionApi.Verify(
-            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Never);
     }
 
     [Fact]
@@ -287,6 +227,28 @@ public sealed class LocalPlaybackBootstrapTests
     }
 
     [Fact]
+    public async Task NotifySignedOut_StopsPublishingAndNothingCreatesASessionAgain()
+    {
+        // Arrange
+        _client.SetupGet(c => c.SessionToken).Returns(LOCAL_SESSION_ID);
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+        RaiseSessions(AuthorizedSessionPayload.KIND_LOCAL);
+        bootstrap.IsPublishing.Should().BeTrue();
+
+        // Act
+        bootstrap.NotifySignedOut();
+        _client.SetupGet(c => c.SessionToken).Returns((string?)null);
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        bootstrap.IsPublishing.Should().BeFalse();
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task SessionList_UsesTheEntryForTheHeldToken()
     {
         // Arrange
@@ -307,8 +269,57 @@ public sealed class LocalPlaybackBootstrapTests
         bootstrap.IsPublishing.Should().BeTrue();
     }
 
-    private LocalPlaybackBootstrap CreateBootstrap(string? joinCode = null) =>
-        new(_client.Object, _source, _sessionApi.Object, _publisher, "jaret-desktop", joinCode);
+    [Fact]
+    public async Task SetPlayerEnabled_SavesTheSwitchAndFollowsAnotherPlayerRightAway()
+    {
+        // Arrange
+        _client.SetupGet(c => c.SessionToken).Returns(LOCAL_SESSION_ID);
+        _source.SetPlayers(
+            Player("spotify", LocalPlayerStatus.Playing, Song(), startedAt: TimeSpan.FromSeconds(1)),
+            Player("brave", LocalPlayerStatus.Playing, Song("Other"), startedAt: TimeSpan.FromSeconds(2)));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+        RaiseSessions(AuthorizedSessionPayload.KIND_LOCAL);
+        bootstrap.FollowedPlayer!.AppId.Should().Be("brave");
+        int followedChanges = 0;
+        bootstrap.FollowedPlayerChanged += () => followedChanges++;
+
+        // Act
+        bootstrap.SetPlayerEnabled("brave", false);
+
+        // Assert
+        _preferences.IsEnabled("brave").Should().BeFalse();
+        bootstrap.IsPlayerEnabled("brave").Should().BeFalse();
+        bootstrap.FollowedPlayer!.AppId.Should().Be("spotify");
+        followedChanges.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task PlayersChanged_IsForwardedFromTheSourceOnceStarted()
+    {
+        // Arrange
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        int changes = 0;
+        bootstrap.PlayersChanged += () => changes++;
+        _source.SetPlayers(Player("spotify", LocalPlayerStatus.Paused, Song()));
+        changes.Should().Be(0, "nothing is forwarded before the source starts");
+
+        // Act
+        await bootstrap.StartAsync();
+        _source.SetPlayers(Player("spotify", LocalPlayerStatus.Playing, Song()));
+
+        // Assert
+        changes.Should().Be(1);
+        bootstrap.Players.Should().ContainSingle();
+    }
+
+    private LocalPlaybackBootstrap CreateBootstrap(string? joinCodePrefill = null) =>
+        new(_client.Object, _source, _sessionApi.Object, _publisher, _preferences, "jaret-desktop", joinCodePrefill);
+
+    private static LocalSessionResult Created() =>
+        new(
+            LocalSessionStatus.Created,
+            new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL });
 
     private void RaiseSessions(string kind) =>
         _client.Raise(

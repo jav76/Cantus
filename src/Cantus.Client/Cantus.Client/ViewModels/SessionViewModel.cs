@@ -7,26 +7,39 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Cantus.Client.Icons;
+using Cantus.Client.LocalPlayback;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
 namespace Cantus.Client.ViewModels;
 
 /// <summary>
 /// Sign-in state for the account owner: the authorized Sessions the server
-/// reports, the active user, the connect button, subscribing to a user's
-/// playback, and logout. Raises <see cref="SessionEnded"/> and
-/// <see cref="LoggedOut"/> so the owner of the playback state can clear it.
-/// The owner's Displays live in <see cref="Displays"/>, which follows the sign-in state.
+/// reports, the active user, the account button and its menu, subscribing to a
+/// user's playback, logout, and switching between a Spotify Session and a Local
+/// Session. Raises <see cref="SessionEnded"/> and <see cref="LoggedOut"/> so the
+/// owner of the playback state can clear it. The owner's Displays live in
+/// <see cref="Displays"/>, which follows the sign-in state.
 /// </summary>
 public sealed class SessionViewModel : INotifyPropertyChanged
 {
     public const string SPOTIFY_LOGIN_PATH = "/api/auth/spotify/login";
     public const string SPOTIFY_CLIENT_ID_QUERY = "spotify_client_id";
+    public const string LOCAL_ACCOUNT_LABEL = "This computer";
+    public const string SPOTIFY_ACCOUNT_LABEL = "Spotify";
+    public const string CONNECT_SPOTIFY_INSTEAD_TEXT = "Connect Spotify instead";
+    public const string USE_LOCAL_INSTEAD_TEXT = "Use this computer's players instead";
+    public const string SIGN_OUT_TEXT = "Sign out";
+    public const string NO_FOLLOWED_PLAYER_TEXT = "No player playing";
     private const string NO_ACTIVE_USER_NAME = "None";
 
+    private static readonly ILogger _logger = ClientLoggingManager.CreateLogger<SessionViewModel>();
+
     private readonly ISignalRPlaybackClient _client;
+    private readonly ILocalPlayback? _localPlayback;
+    private readonly Action<Action> _runOnUiThread;
 
     private string _activeUserName = NO_ACTIVE_USER_NAME;
     private string? _activeUserId;
@@ -39,9 +52,12 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         Action<Action>? runOnUiThread = null,
         PendingPairCodeStore? pendingPairCodes = null,
         ISpotifySetupApi? spotifySetupApi = null,
-        OwnSpotifyAppStore? ownSpotifyApp = null)
+        OwnSpotifyAppStore? ownSpotifyApp = null,
+        ILocalPlayback? localPlayback = null)
     {
         _client = client;
+        _localPlayback = localPlayback;
+        _runOnUiThread = runOnUiThread ?? (action => action());
         Displays = new DisplaysViewModel(
             displaysApi,
             timeProvider,
@@ -52,6 +68,16 @@ public sealed class SessionViewModel : INotifyPropertyChanged
             spotifySetupApi ?? new SpotifySetupApi(client, new HttpClient()),
             ownSpotifyApp ?? new OwnSpotifyAppStore(new LocalSettingsStore()),
             BuildSpotifyLoginPath);
+        SpotifySetup.PropertyChanged += (_, _) => NotifyLocalAvailability();
+        LocalSetup = new LocalSessionSetupViewModel(UseLocalPlayersAsync);
+        LocalPlayers = new LocalPlayersViewModel(localPlayback, _runOnUiThread);
+
+        if (_localPlayback is not null)
+        {
+            _localPlayback.AvailabilityChanged += OnLocalAvailabilityMayHaveChanged;
+            _localPlayback.FollowedPlayerChanged += () => _runOnUiThread(NotifyFollowedPlayer);
+            _client.Connected += OnLocalAvailabilityMayHaveChanged;
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -69,6 +95,12 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     /// <summary>The Connect Spotify setup screen, for signing in with the user's own Spotify app.</summary>
     public SpotifySetupViewModel SpotifySetup { get; }
+
+    /// <summary>The "Use this computer's players" screen: join code and refusal messages.</summary>
+    public LocalSessionSetupViewModel LocalSetup { get; }
+
+    /// <summary>The "Players on this computer" section, active only for a Local Session.</summary>
+    public LocalPlayersViewModel LocalPlayers { get; }
 
     public AuthorizedSessionPayload? CurrentUserSession => Sessions.FirstOrDefault();
 
@@ -116,11 +148,99 @@ public sealed class SessionViewModel : INotifyPropertyChanged
 
     public bool IsAuthorized => AuthorizedSessionsCount > 0 || HasActiveUserName;
 
-    public string ConnectButtonText => IsAuthorized
-        ? (HasActiveUserName ? $"Connected: {ActiveUserName}" : "Connected")
-        : "Connect Spotify";
+    /// <summary>True when the current Session is a Local Session (this computer's players, no Spotify account).</summary>
+    public bool IsLocalSession => CurrentUserSession?.IsLocal == true;
 
-    public CantusIconKind ConnectButtonIcon => IsAuthorized ? CantusIconKind.SpotifyConnected : CantusIconKind.SpotifyConnect;
+    /// <summary>
+    /// This computer's players can be offered: the platform can read them and the server allows Local
+    /// Sessions. False on WASM, on desktops without a source and on servers without Local Sessions.
+    /// </summary>
+    public bool IsLocalAvailable =>
+        _localPlayback?.IsSupported == true && SpotifySetup.Info is { LocalSessionsEnabled: true };
+
+    public bool LocalJoinCodeRequired => SpotifySetup.Info?.LocalSessionJoinCodeRequired == true;
+
+    public string? JoinCodePrefill => _localPlayback?.JoinCodePrefill;
+
+    /// <summary>"Use this computer's players" next to every signed-out Connect Spotify.</summary>
+    public Visibility LocalChoiceVisibility =>
+        IsLocalAvailable && CurrentUserSession is null && AuthorizedSessionsCount == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+    /// <summary>
+    /// The account buttons open <see cref="AccountMenuItems"/> while a Session is held, and start a
+    /// Spotify sign-in otherwise.
+    /// </summary>
+    public bool HasAccountMenu => CurrentUserSession is not null;
+
+    public string ConnectButtonText => IsLocalSession
+        ? LOCAL_ACCOUNT_LABEL
+        : IsAuthorized
+            ? (HasActiveUserName ? $"Connected: {ActiveUserName}" : "Connected")
+            : "Connect Spotify";
+
+    public CantusIconKind ConnectButtonIcon => IsLocalSession
+        ? CantusIconKind.Display
+        : IsAuthorized ? CantusIconKind.SpotifyConnected : CantusIconKind.SpotifyConnect;
+
+    public string AccountButtonToolTip => IsLocalSession ? LocalAccountHeader : ConnectButtonText;
+
+    /// <summary>Where the signed-in account's playback comes from, shown under its name.</summary>
+    public string AccountSourceText => IsLocalSession ? LOCAL_ACCOUNT_LABEL : SPOTIFY_ACCOUNT_LABEL;
+
+    public CantusIconKind AccountIcon => IsLocalSession ? CantusIconKind.Display : CantusIconKind.Account;
+
+    /// <summary>Volume, shuffle and repeat: a local player cannot be driven through them.</summary>
+    public Visibility SpotifyControlsVisibility => IsLocalSession ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Find a song plays the pick on Spotify, so it is offered only for a Spotify Session.</summary>
+    public Visibility SongLookupVisibility =>
+        CurrentUserSession is not null && !IsLocalSession ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>The app name of the player a Local Session follows, or null when none is playing.</summary>
+    public string? FollowedPlayerName => _localPlayback?.FollowedPlayer?.AppName;
+
+    public string FollowingText =>
+        FollowedPlayerName is { Length: > 0 } name ? $"Following: {name}" : NO_FOLLOWED_PLAYER_TEXT;
+
+    public IReadOnlyList<AccountMenuItem> AccountMenuItems
+    {
+        get
+        {
+            if (CurrentUserSession is null)
+            {
+                return [];
+            }
+
+            if (IsLocalSession)
+            {
+                return
+                [
+                    AccountMenuItem.Header(LocalAccountHeader),
+                    AccountMenuItem.Header(FollowingText),
+                    AccountMenuItem.Separator,
+                    AccountMenuItem.Command(CONNECT_SPOTIFY_INSTEAD_TEXT, AccountMenuAction.ConnectSpotifyInstead),
+                    AccountMenuItem.Command(SIGN_OUT_TEXT, AccountMenuAction.SignOut),
+                ];
+            }
+
+            List<AccountMenuItem> items =
+            [
+                AccountMenuItem.Header($"{SPOTIFY_ACCOUNT_LABEL}: {ActiveUserName}"),
+                AccountMenuItem.Separator,
+            ];
+            if (IsLocalAvailable)
+            {
+                items.Add(AccountMenuItem.Command(USE_LOCAL_INSTEAD_TEXT, AccountMenuAction.UseLocalPlayersInstead));
+            }
+
+            items.Add(AccountMenuItem.Command(SIGN_OUT_TEXT, AccountMenuAction.SignOut));
+            return items;
+        }
+    }
+
+    private string LocalAccountHeader => $"{LOCAL_ACCOUNT_LABEL}: {ActiveUserName}";
 
     public Visibility NoSessionsVisibility =>
         AuthorizedSessionsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -266,14 +386,66 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         await _client.SubscribeToUserAsync(userId);
     }
 
+    /// <summary>Signs out. The account controls return to the signed-out choice; nothing signs in again on its own.</summary>
     public async Task LogoutAsync()
     {
+        _localPlayback?.NotifySignedOut();
         await _client.LogoutAsync();
         Sessions.Clear();
         ClearSignIn();
         NotifySessionList();
         LoggedOut?.Invoke();
     }
+
+    /// <summary>Signs out of the current Session, then starts the Spotify sign-in.</summary>
+    public async Task SwitchToSpotifyAsync(Func<Task> startSpotifySignIn)
+    {
+        await LogoutAsync();
+        await startSpotifySignIn();
+    }
+
+    /// <summary>
+    /// Signs out of any Session held, then creates a Local Session for this computer and connects with it.
+    /// A second try after a refusal is already signed out, so it only creates.
+    /// </summary>
+    public async Task<LocalSessionResult> UseLocalPlayersAsync(string? joinCode)
+    {
+        if (_localPlayback is null)
+        {
+            return new LocalSessionResult(LocalSessionStatus.Failed);
+        }
+
+        if (CurrentUserSession is not null || !string.IsNullOrWhiteSpace(_client.SessionToken))
+        {
+            await LogoutAsync();
+        }
+
+        return await _localPlayback.CreateSessionAsync(joinCode);
+    }
+
+    /// <summary>
+    /// Fetches the server's setup info when this computer's players can be read, to learn whether the
+    /// server allows them.
+    /// </summary>
+    public async Task RefreshLocalAvailabilityAsync()
+    {
+        if (_localPlayback?.IsSupported != true)
+        {
+            NotifyLocalAvailability();
+            return;
+        }
+
+        try
+        {
+            await SpotifySetup.RefreshInfoAsync();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Could not read whether the server allows this computer's players");
+        }
+    }
+
+    private void OnLocalAvailabilityMayHaveChanged() => _runOnUiThread(() => _ = RefreshLocalAvailabilityAsync());
 
     private void ClearSignIn()
     {
@@ -303,6 +475,36 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsAuthorized));
         OnPropertyChanged(nameof(ConnectButtonText));
         OnPropertyChanged(nameof(ConnectButtonIcon));
+        NotifySessionKind();
+    }
+
+    private void NotifySessionKind()
+    {
+        LocalPlayers.SetActive(IsLocalSession);
+        OnPropertyChanged(nameof(IsLocalSession));
+        OnPropertyChanged(nameof(HasAccountMenu));
+        OnPropertyChanged(nameof(AccountButtonToolTip));
+        OnPropertyChanged(nameof(AccountSourceText));
+        OnPropertyChanged(nameof(AccountIcon));
+        OnPropertyChanged(nameof(SpotifyControlsVisibility));
+        OnPropertyChanged(nameof(SongLookupVisibility));
+        OnPropertyChanged(nameof(LocalChoiceVisibility));
+        OnPropertyChanged(nameof(AccountMenuItems));
+    }
+
+    private void NotifyLocalAvailability()
+    {
+        OnPropertyChanged(nameof(IsLocalAvailable));
+        OnPropertyChanged(nameof(LocalJoinCodeRequired));
+        OnPropertyChanged(nameof(LocalChoiceVisibility));
+        OnPropertyChanged(nameof(AccountMenuItems));
+    }
+
+    private void NotifyFollowedPlayer()
+    {
+        OnPropertyChanged(nameof(FollowedPlayerName));
+        OnPropertyChanged(nameof(FollowingText));
+        OnPropertyChanged(nameof(AccountMenuItems));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

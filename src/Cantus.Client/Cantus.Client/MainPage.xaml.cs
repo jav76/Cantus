@@ -31,14 +31,14 @@ public sealed partial class MainPage : Page
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
         LyricsPreferences preferences = new(new LocalSettingsStore());
         SongLookupClient lookupClient = new(client, new HttpClient());
+        LocalPlaybackBootstrap localPlayback = LocalPlaybackBootstrap.Create(client, new LocalSettingsStore());
         ViewModel = new LyricsViewModel(
             client,
             ThemeManager.Instance,
             ResponsiveLayoutManager.Instance,
             preferences,
-            lookupClient: lookupClient);
-        LocalPlaybackBootstrap? localPlayback =
-            LocalPlaybackBootstrap.CreateFromEnvironment(client, new LocalSettingsStore());
+            lookupClient: lookupClient,
+            localPlayback: localPlayback);
         this.InitializeComponent();
         OpenPairLink();
 
@@ -49,8 +49,8 @@ public sealed partial class MainPage : Page
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
             await ViewModel.InitializeAsync();
-            // Not awaited: it logs its own failures, and a slow player or server must not hold up the page.
-            _ = localPlayback?.StartAsync();
+            // Not awaited: it logs its own failures, and a slow player bus must not hold up the page.
+            _ = localPlayback.StartAsync();
 
             await OpenConnectLinkAsync();
         };

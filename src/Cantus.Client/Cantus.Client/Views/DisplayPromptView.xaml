@@ -41,18 +41,33 @@
                                    FontSize="12"
                                    TextWrapping="Wrap"
                                    Foreground="#F59E0B" />
-                        <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
-                        <Button Click="OnConnectSpotifyClicked"
-                                Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
-                                CornerRadius="8"
-                                Padding="12,6"
-                                FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <views:CantusIcon Kind="SpotifyConnect" Size="14" />
-                                <TextBlock Text="Connect Spotify" FontSize="12" />
-                            </StackPanel>
-                        </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!-- Keeps the code through the sign-in, which leaves the page and comes back. -->
+                            <Button Click="OnConnectSpotifyClicked"
+                                    Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                    Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
+                                    CornerRadius="8"
+                                    Padding="12,6"
+                                    FontFamily="{StaticResource CantusTextSemiBoldFontFamily}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <views:CantusIcon Kind="SpotifyConnect" Size="14" />
+                                    <TextBlock Text="Connect Spotify" FontSize="12" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OnUseLocalPlayersClicked"
+                                    Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                    Background="#1AFFFFFF"
+                                    BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                                    BorderThickness="1"
+                                    Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                                    CornerRadius="8"
+                                    Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <views:CantusIcon Kind="Display" Size="14" />
+                                    <TextBlock Text="Use this computer's players" FontSize="12" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Spacing="6" Visibility="{x:Bind Displays.CodeFieldVisibility, Mode=OneWay}">

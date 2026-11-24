@@ -11,7 +11,7 @@ namespace Cantus.Client.Views;
 /// <summary>
 /// Starts a Spotify sign-in from any Connect Spotify button: shows the setup screen when the
 /// server lets the user choose their own Spotify app, then opens the sign-in page (same tab on
-/// WASM, the system browser elsewhere).
+/// WASM, the system browser elsewhere). The setup screen can hand over to this computer's players.
 /// </summary>
 internal static class SpotifySignIn
 {
@@ -29,9 +29,19 @@ internal static class SpotifySignIn
             {
                 SpotifySetupViewModel setup = session.SpotifySetup;
                 await setup.LoadAsync();
-                if (setup.NeedsDialog && !await ShowSetupAsync(setup, xamlRoot))
+                if (setup.NeedsDialog)
                 {
-                    return;
+                    ContentDialogResult choice = await ShowSetupAsync(setup, session.IsLocalAvailable, xamlRoot);
+                    if (choice == ContentDialogResult.Secondary)
+                    {
+                        await LocalSessionSignIn.StartAsync(session, xamlRoot);
+                        return;
+                    }
+
+                    if (choice != ContentDialogResult.Primary)
+                    {
+                        return;
+                    }
                 }
 
                 loginPath = setup.PrepareLoginPath();
@@ -50,15 +60,18 @@ internal static class SpotifySignIn
         }
     }
 
-    private static async Task<bool> ShowSetupAsync(SpotifySetupViewModel setup, XamlRoot? xamlRoot)
+    private static async Task<ContentDialogResult> ShowSetupAsync(
+        SpotifySetupViewModel setup,
+        bool offerLocalPlayers,
+        XamlRoot? xamlRoot)
     {
-        SpotifySetupDialog dialog = new(setup, ThemeManager.Instance);
+        SpotifySetupDialog dialog = new(setup, ThemeManager.Instance, offerLocalPlayers);
         if (xamlRoot is not null)
         {
             dialog.XamlRoot = xamlRoot;
         }
 
-        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+        return await dialog.ShowAsync();
     }
 
     private static async Task LaunchAsync(string? serverBaseUrl, string loginPath)

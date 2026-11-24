@@ -62,6 +62,7 @@ public sealed class LocalPlaybackPublisher : IDisposable
     private LocalPlayerSnapshot? _followed;
     private string? _lastPlayerId;
     private string? _lastPlayerName;
+    private LocalPlayerSnapshot? _reportedFollowed;
 
     public LocalPlaybackPublisher(
         ILocalPlayerSource source,
@@ -78,6 +79,9 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
         _sink.Connected += OnConnected;
     }
+
+    /// <summary>Raised after the followed player changes, including to none when publishing stops.</summary>
+    public event Action? FollowedPlayerChanged;
 
     public bool IsRunning
     {
@@ -140,6 +144,7 @@ public sealed class LocalPlaybackPublisher : IDisposable
     public void Stop()
     {
         ITimer? timer;
+        bool followedChanged;
         lock (_gate)
         {
             if (!_running)
@@ -151,11 +156,20 @@ public sealed class LocalPlaybackPublisher : IDisposable
             _source.PlayersChanged -= OnPlayersChanged;
             timer = _timer;
             _timer = null;
+            _followed = null;
+            followedChanged = TakeFollowedChange();
         }
 
         timer?.Dispose();
         _logger.LogInformation("Local playback publisher stopped");
+        if (followedChanged)
+        {
+            FollowedPlayerChanged?.Invoke();
+        }
     }
+
+    /// <summary>Chooses the followed player again now, for example after a player was switched off.</summary>
+    public void Refresh() => Pump();
 
     public void Dispose()
     {
@@ -202,6 +216,8 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
     private void Pump()
     {
+        bool followedChanged;
+        bool send = false;
         lock (_gate)
         {
             if (!_running || _stoppedByServer)
@@ -211,15 +227,31 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
             TimeSpan now = MonotonicClock.Now(_clock);
             Evaluate(now);
-            if (_sending || !CanSendNow(now))
+            followedChanged = TakeFollowedChange();
+            if (!_sending && CanSendNow(now))
             {
-                return;
+                _sending = true;
+                send = true;
             }
-
-            _sending = true;
         }
 
-        _ = SendLoopAsync();
+        if (followedChanged)
+        {
+            FollowedPlayerChanged?.Invoke();
+        }
+
+        if (send)
+        {
+            _ = SendLoopAsync();
+        }
+    }
+
+    private bool TakeFollowedChange()
+    {
+        bool changed = !string.Equals(_followed?.InstanceId, _reportedFollowed?.InstanceId, StringComparison.Ordinal)
+            || !string.Equals(_followed?.AppName, _reportedFollowed?.AppName, StringComparison.Ordinal);
+        _reportedFollowed = _followed;
+        return changed;
     }
 
     private bool CanSendNow(TimeSpan now) =>

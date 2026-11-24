@@ -383,6 +383,15 @@ public sealed class SessionViewModelTests
             nameof(SessionViewModel.IsAuthorized),
             nameof(SessionViewModel.ConnectButtonText),
             nameof(SessionViewModel.ConnectButtonIcon),
+            nameof(SessionViewModel.IsLocalSession),
+            nameof(SessionViewModel.HasAccountMenu),
+            nameof(SessionViewModel.AccountButtonToolTip),
+            nameof(SessionViewModel.AccountSourceText),
+            nameof(SessionViewModel.AccountIcon),
+            nameof(SessionViewModel.SpotifyControlsVisibility),
+            nameof(SessionViewModel.SongLookupVisibility),
+            nameof(SessionViewModel.LocalChoiceVisibility),
+            nameof(SessionViewModel.AccountMenuItems),
         });
         session.ConnectButtonText.Should().Be("Connected");
     }

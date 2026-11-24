@@ -602,6 +602,44 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
         _publisher.IsRunning.Should().BeFalse();
     }
 
+    [Fact]
+    public void FollowedPlayerChanged_IsRaisedOnStartOnASwitchAndOnStop()
+    {
+        // Arrange
+        int changes = 0;
+        _publisher.FollowedPlayerChanged += () => changes++;
+        _source.SetPlayers(Spotify(Song()));
+
+        // Act & Assert
+        _publisher.Start();
+        changes.Should().Be(1);
+
+        _source.SetPlayers(Spotify(Song("Next song")));
+        changes.Should().Be(1, "a new track on the same player is not a new followed player");
+
+        _publisher.Stop();
+        changes.Should().Be(2);
+        _publisher.FollowedPlayer.Should().BeNull();
+    }
+
+    [Fact]
+    public void Refresh_AfterThePlayerIsSwitchedOff_FollowsNoneRightAway()
+    {
+        // Arrange
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+        int changes = 0;
+        _publisher.FollowedPlayerChanged += () => changes++;
+
+        // Act
+        new LocalPlayerPreferences(_settings).SetEnabled("spotify", false);
+        _publisher.Refresh();
+
+        // Assert
+        _publisher.FollowedPlayer.Should().BeNull();
+        changes.Should().Be(1);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         DateTime deadline = DateTime.UtcNow.AddSeconds(5);

@@ -16,11 +16,18 @@ public sealed partial class SpotifySetupDialog : ContentDialog
 
     public ThemeManager Theme { get; }
 
-    public SpotifySetupDialog(SpotifySetupViewModel setup, ThemeManager theme)
+    public const string USE_LOCAL_PLAYERS_TEXT = "Use this computer's players instead";
+
+    /// <param name="offerLocalPlayers">Adds a secondary button that closes with <see cref="ContentDialogResult.Secondary"/>.</param>
+    public SpotifySetupDialog(SpotifySetupViewModel setup, ThemeManager theme, bool offerLocalPlayers = false)
     {
         Setup = setup;
         Theme = theme;
         this.InitializeComponent();
+        if (offerLocalPlayers)
+        {
+            SecondaryButtonText = USE_LOCAL_PLAYERS_TEXT;
+        }
     }
 
     // RadioButton.IsChecked is bool?, so the choice is written back from Checked
