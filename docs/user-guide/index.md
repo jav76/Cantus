@@ -24,6 +24,7 @@ flowchart LR
 - **Audio Delay Calibration**: Set a per-device latency compensation for Bluetooth or AirPlay speakers, and a per-track offset for lyrics that are timed early or late.
 - **Dynamic Artwork Palette Theming**: The ambient backdrop and accent colors adapt to the album artwork of the current track.
 - **Find a Song by Lyrics**: Type a half-remembered line to find the song, then play or queue it.
+- **No Spotify Account Needed on Linux**: The desktop app can [follow this computer's own players](local-players.md) instead, when the server allows it.
 - **Instrumental Break Detection**: Shows an instrumental countdown during long gaps between lines.
 - **Privacy First**: Your Spotify tokens are stored encrypted on your own server, and Cantus sends no telemetry. Track title, artist, album and duration are sent to the lyrics providers (LRCLIB, and NetEase when enabled) to look up lyrics.
 
@@ -34,8 +35,9 @@ flowchart LR
 Explore the sections below to get the most out of your Cantus setup:
 
 1. [**Connect Spotify**](connect-spotify.md): Sign in, and create your own Spotify app when the server's has no room for you.
-2. [**Playback & Display Modes**](playback-and-display.md): Fullscreen mode, TV/kiosk setup, responsive layouts, and keyboard shortcuts.
-3. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
-4. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
-5. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
-6. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.
+2. [**Use This Computer's Players**](local-players.md): Show lyrics for what a media player on your Linux computer plays, with no Spotify account.
+3. [**Playback & Display Modes**](playback-and-display.md): Fullscreen mode, TV/kiosk setup, responsive layouts, and keyboard shortcuts.
+4. [**Pairing & Managing Displays**](displays.md): Pair a TV or other shared screen from your phone, then rename or remove it.
+5. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
+6. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
+7. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.

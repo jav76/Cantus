@@ -14,6 +14,12 @@ public sealed class SpotifySetupInfoPayload
     public string RedirectUri { get; set; } = string.Empty;
     public bool RedirectUriAccepted { get; set; }
     public string DashboardUrl { get; set; } = string.Empty;
+
+    /// <summary>The server lets this computer's players be used without a Spotify account.</summary>
+    public bool LocalSessionsEnabled { get; set; }
+
+    /// <summary>Creating a Local Session needs the operator's join code.</summary>
+    public bool LocalSessionJoinCodeRequired { get; set; }
 }
 
 public interface ISpotifySetupApi

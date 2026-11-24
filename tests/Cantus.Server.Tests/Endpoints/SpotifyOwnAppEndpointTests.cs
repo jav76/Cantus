@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Server.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,6 +19,7 @@ public sealed class SpotifyOwnAppEndpointTests : IClassFixture<WebApplicationFac
     private const string SERVER_CLIENT_ID = "0123456789abcdef0123456789abcdef";
     private const string OWN_CLIENT_ID = "fedcba9876543210fedcba9876543210";
     private const string USER_CLIENT_ID_COOKIE = "cantus_spotify_client_id";
+    private const string JOIN_CODE = "join-code-never-sent";
 
     private readonly WebApplicationFactory<Program> _baseFactory;
     private readonly Mock<ISpotifyAuthService> _mockAuthService = new();
@@ -212,14 +214,65 @@ public sealed class SpotifyOwnAppEndpointTests : IClassFixture<WebApplicationFac
         info.UserClientIdsAllowed.Should().BeFalse();
     }
 
-    private HttpClient CreateClient(string? serverClientId, bool? allowUserClientIds, string? hostUrl = null)
+    [Theory]
+    [InlineData(false, null, false, false)]
+    [InlineData(false, JOIN_CODE, false, false)]
+    [InlineData(true, null, true, false)]
+    [InlineData(true, "   ", true, false)]
+    [InlineData(true, JOIN_CODE, true, true)]
+    public async Task SetupInfo_ReportsLocalSessionsAndWhetherAJoinCodeIsNeeded(
+        bool enabled,
+        string? joinCode,
+        bool expectedEnabled,
+        bool expectedJoinCodeRequired)
+    {
+        HttpClient client = CreateClient(SERVER_CLIENT_ID, allowUserClientIds: null, configureLocalSessions: options =>
+        {
+            options.Enabled = enabled;
+            options.JoinCode = joinCode;
+        });
+
+        HttpResponseMessage response = await client.GetAsync("/api/auth/spotify/setup");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        string body = await response.Content.ReadAsStringAsync();
+        body.Should().NotContain(JOIN_CODE);
+        SpotifySetupInfoDto? info = await response.Content.ReadFromJsonAsync<SpotifySetupInfoDto>();
+        info!.LocalSessionsEnabled.Should().Be(expectedEnabled);
+        info.LocalSessionJoinCodeRequired.Should().Be(expectedJoinCodeRequired);
+    }
+
+    [Fact]
+    public async Task SetupInfo_ByDefault_ReportsLocalSessionsOff()
+    {
+        HttpClient client = CreateClient(SERVER_CLIENT_ID, allowUserClientIds: null);
+
+        HttpResponseMessage response = await client.GetAsync("/api/auth/spotify/setup");
+
+        string body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("\"localSessionsEnabled\":false");
+        body.Should().Contain("\"localSessionJoinCodeRequired\":false");
+    }
+
+    private HttpClient CreateClient(
+        string? serverClientId,
+        bool? allowUserClientIds,
+        string? hostUrl = null,
+        Action<LocalSessionOptions>? configureLocalSessions = null)
     {
         WebApplicationFactory<Program> factory = _baseFactory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Spotify:ClientId", serverClientId ?? string.Empty);
             builder.UseSetting("Spotify:AllowUserClientIds", allowUserClientIds?.ToString() ?? string.Empty);
             builder.UseSetting("CANTUS_HOST_URL", hostUrl ?? string.Empty);
-            builder.ConfigureTestServices(services => services.AddScoped(_ => _mockAuthService.Object));
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddScoped(_ => _mockAuthService.Object);
+                if (configureLocalSessions is not null)
+                {
+                    services.Configure(configureLocalSessions);
+                }
+            });
         });
         return factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
     }

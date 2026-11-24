@@ -1,6 +1,6 @@
 # SignalR PlaybackHub Protocol Reference
 
-The Cantus real-time protocol runs over **ASP.NET Core SignalR** (JSON protocol, camelCase payloads). It pushes playback state, lyrics and offsets, takes player commands, and answers clock sync samples.
+The Cantus real-time protocol runs over **ASP.NET Core SignalR** (JSON protocol, camelCase payloads). It pushes playback state, lyrics and offsets, takes player commands and published local playback, and answers clock sync samples.
 
 ---
 
@@ -30,7 +30,8 @@ A connection holds a Session or a [Display token](rest-api.md#display-token). A 
 | `SyncClock` | Yes | Yes | Yes |
 | `ReportClientVisibility`, `RefreshPlayback` | Yes | Yes, forced polls throttled to one per owner every 5 seconds | No effect (no owner) |
 | `SubscribeToUser` | Yes | No-op (bound to its owner) | No-op |
-| `SendPlayerCommand`, `SetPlayerVolume`, `SeekPlayback`, `SetShuffle`, `SetRepeat` | Yes | Rejected: returns `3` (`Failed`) | Returns `3` (`Failed`) |
+| `SendPlayerCommand`, `SetPlayerVolume`, `SeekPlayback`, `SetShuffle`, `SetRepeat` | Yes (a Local Session gets `3`, `Failed`) | Rejected: returns `3` (`Failed`) | Returns `3` (`Failed`) |
+| `PublishLocalPlayback` | Local Session only (a Spotify Session gets `1`) | Returns `1` (`NotLocalSession`) | Returns `1` (`NotLocalSession`) |
 | `SetTrackOffset` | Yes | Rejected: ignored | Ignored |
 | `RegisterClientLogin` | Yes | Rejected: ignored | Yes |
 
@@ -111,7 +112,7 @@ Control the owner's Spotify playback. Each returns an `int` (`PlayerCommandResul
 | `0` | `Success` | Spotify accepted the command. The server polls again right away and twice more shortly after. |
 | `1` | `MissingPermissions` | Spotify returned `403`: the Session lacks the `user-modify-playback-state` scope (re-link to fix) or the account is not Premium. |
 | `2` | `NoActiveDevice` | Spotify returned `404`: no active device. |
-| `3` | `Failed` | Any other failure, including an unknown command, a Display or anonymous caller, or no stored Session. |
+| `3` | `Failed` | Any other failure, including an unknown command, a Display or anonymous caller, a Local Session, or no stored Session. |
 
 | Method | Parameter |
 | :--- | :--- |
@@ -120,6 +121,56 @@ Control the owner's Spotify playback. Each returns an `int` (`PlayerCommandResul
 | `SeekPlayback(positionMs)` | `positionMs` (`long`): position in the current track. |
 | `SetShuffle(enabled)` | `enabled` (`bool`). |
 | `SetRepeat(repeatMode)` | `repeatMode` (`string`): `off`, `track` or `context`. |
+
+### `PublishLocalPlayback(update)`
+Sends what a [Local Session](rest-api.md#post-apiauthlocal)'s followed player is doing. The desktop app sends a full snapshot after every (re)connect, then on each change of player, track, play status, capabilities or a seek, and when its projected position drifts more than 400 ms from what it last sent.
+
+- **Parameters**: `update` (`LocalPlaybackUpdateDto`):
+```json
+{
+  "sequence": 42,
+  "player": { "id": "spotify", "name": "Spotify" },
+  "deviceName": "Spotify",
+  "track": {
+    "title": "Glimpse of Us",
+    "artist": "Joji",
+    "album": "SMITHEREENS",
+    "durationMs": 233000,
+    "albumArtUrl": "https://i.scdn.co/image/...",
+    "spotifyTrackId": "2mlNgAeIBnL78ZriXgrRHz"
+  },
+  "isPlaying": true,
+  "positionMs": 98774,
+  "rate": 1.0,
+  "positionAtServerMs": 1795400000000,
+  "capabilities": { "canPlay": true, "canPause": true, "canGoNext": true, "canGoPrevious": true, "canSeek": true }
+}
+```
+
+| Field | Rule |
+| :--- | :--- |
+| `sequence` | `long`, strictly increasing per connection, starting at 1. An update at or below the last one is answered `0` and ignored. |
+| `player.id` | Required, at most 128 characters. `player.name` and `deviceName`: at most 128 characters. |
+| `track` | `null` means nothing worth showing: the server clears the snapshot and broadcasts an empty state. When set, `title` and `artist` are required; `title`, `artist` and `album` are at most 300 characters; `durationMs` is 30000 to 1200000. |
+| `track.albumArtUrl` | Kept only for `http`/`https` URLs of at most 2048 characters, otherwise dropped. |
+| `track.spotifyTrackId` | Kept only when it is 22 letters and digits, otherwise dropped. It does not change the [track key](#receiveplaybackstate). |
+| `positionMs` | Clamped to 0 to `durationMs`. |
+| `rate` | Clamped to 0.25 to 4.0. Stored only; viewers project at 1x. |
+| `positionAtServerMs` | Unix ms on the server's clock when `positionMs` was read (from [`SyncClock`](#syncclockclientsendtimems)), or `null` before the first sample. Used as the state's `timestampUtc` when within 15 seconds before to 500 ms after the server's time; otherwise the receipt time is used. |
+
+Text fields have control characters replaced by spaces and are trimmed before these checks.
+
+- **Returns**: an `int` (`LocalPublishResult`):
+
+| Value | Name | Meaning |
+| :--- | :--- | :--- |
+| `0` | `Accepted` | Queued. The server applies it in the background and broadcasts the result. |
+| `1` | `NotLocalSession` | The caller is not a Local Session (a Display, anonymous, or a Spotify Session), the Session ended, or `LocalSessions__Enabled` is off. |
+| `2` | `NotPublisher` | A newer connection of the same Session publishes now. Retry with backoff; the claim frees when that connection closes. |
+| `3` | `RateLimited` | The connection's budget (bursts of 10, refilled at 2 per second) is spent. Back off. |
+| `4` | `Invalid` | The update broke a rule above. |
+
+- **Behavior**: the newest connection of a Session to publish becomes its publisher. Each accepted update is sent to the owner and their Displays as a normal `ReceivePlaybackState` with `source: "Local"`, plus `ReceiveLyrics` and `ReceiveTrackOffset` when the track changes (playing or paused). A Session may start at most 20 lyric lookups per minute; a track over that budget gets empty lyrics first and its real lyrics once the budget frees. When the publisher disconnects and none takes over within `LocalSessions__PublisherGraceSeconds` (20 by default), viewers get the track paused at its projected position, with `pollerStatus` `"Publisher offline"`.
 
 ---
 
@@ -149,11 +200,17 @@ Sent after each playback poll while something is playing or paused, and in the c
   "isShuffled": false,
   "repeatMode": "off",
   "activeUserId": "<Session id>",
-  "activeUserDisplayName": "Rick"
+  "activeUserDisplayName": "Rick",
+  "source": "Spotify",
+  "capabilities": null
 }
 ```
 
 `currentTrack`, `deviceName`, `volumePercent` and `activeUserDisplayName` can be `null`, as can `album` and `albumArtUrl` inside `currentTrack`. `activeUserId` is the owner's Session id, and `null` on Display connections.
+
+`source` is `Spotify` (polled from the Spotify Web API) or `Local` (sent by a Local Session's [`PublishLocalPlayback`](#publishlocalplaybackupdate)). For `Local`, `capabilities` holds the player's `canPlay`, `canPause`, `canGoNext`, `canGoPrevious` and `canSeek`; it is `null` for `Spotify`. Local playback is sent while playing, paused, and as an empty state (`currentTrack` `null`) when the player stops.
+
+The track key in `currentTrack.id` is the Spotify track id for Spotify playback. For Local playback it is `local:` followed by 32 hex characters, derived from the artist, title and duration. Lyrics, overrides and offsets are stored under it; clients should use it as given and not parse it.
 
 ### `ReceiveLyrics`
 Sent when a new track starts, when a [lyrics override](rest-api.md#post-apilyricstrackidoverride) changes the lyrics, and in the connect snapshot. A track with no lyrics is sent as an empty payload (`lines` empty) so clients clear the previous track.
@@ -195,10 +252,16 @@ Poller telemetry. Sent on connect, after `SubscribeToUser`, after each playback 
 - `"Idle"`: nothing is playing on Spotify (10s, backing off to 60s).
 - `"Rate Limited (mm:ss)"`: cooldown after an HTTP 429 from the Spotify API, with the time left (`hh:mm:ss` from one hour).
 
+For a Local Session:
+
+- `"Local (Playing)"` and `"Local (Paused)"`: the publisher's followed player is playing or paused.
+- `"Local (Idle)"`: nothing worth showing is playing.
+- `"Publisher offline"`: the desktop app disconnected and the grace period ended.
+
 ### `ReceiveSessions`, `ReceiveAuthSession` and `ReceiveSessionRevoked`
 Never sent to a Display connection.
 
-- `ReceiveSessions`: a list of Session objects, shaped like [`GET /api/auth/sessions`](rest-api.md#get-apiauthsessions). Sent on connect (the caller's own Session, or an empty list when anonymous), after the OAuth callback, and as an empty list after a revoke or logout.
+- `ReceiveSessions`: a list of Session objects, shaped like [`GET /api/auth/sessions`](rest-api.md#get-apiauthsessions), with `kind` set to `Spotify` or `Local`. Sent on connect (the caller's own Session, or an empty list when anonymous), after the OAuth callback, and as an empty list after a revoke or logout.
 - `ReceiveAuthSession`: one Session object, sent after the OAuth callback to the `client_{clientId}` handoff group and to the connection whose id is `clientId`.
 - `ReceiveSessionRevoked`: the revoked Session id (`string`), sent to `user_{sessionId}` on [revoke](rest-api.md#delete-apiauthsessionsuserid) or [logout](rest-api.md#post-apiauthlogout).
 

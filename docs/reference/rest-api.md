@@ -2,7 +2,7 @@
 
 In addition to the real-time SignalR hub, Cantus provides ASP.NET Core Minimal API HTTP endpoints for authentication, lyrics, Displays and health checks.
 
-JSON bodies use camelCase property names in both directions (request property names are matched case-insensitively). Error responses for `400`, `404` and `502` carry `{ "message": "..." }`; `401`, `403` and `429` have no body. An unhandled error returns `500` as `application/problem+json` with a `traceId`. The sign-in endpoints are the exception: they answer a browser, so most of their failures are HTML pages.
+JSON bodies use camelCase property names in both directions (request property names are matched case-insensitively). Error responses for `400`, `404` and `502` carry `{ "message": "..." }`; `401`, `403` and `429` have no body. An unhandled error returns `500` as `application/problem+json` with a `traceId`. The sign-in endpoints are the exception: they answer a browser, so most of their failures are HTML pages. [`POST /api/auth/local`](#post-apiauthlocal) is another: its `400`, `401`, `403` and `503` carry `{ "error": "<code>" }`.
 
 In the Development environment the server also serves its OpenAPI document at `/openapi/v1.json` and a Scalar API browser under `/scalar`.
 
@@ -13,7 +13,7 @@ In the Development environment the server also serves its OpenAPI document at `/
 ### Session credential
 Endpoints that act on the caller's Session read its credential from these slots, in order: the `cantus_session_id` cookie, the `access_token`, `token` or `session_id` query parameter, or the `Authorization` header (`Bearer <id>` or the raw id). Only the first slot that holds a value is checked as a Session id.
 
-The credential is the Session id issued by the OAuth callback. The server matches it against that exact id only. A Spotify user id is not a credential: `/me` and `POST /api/lyrics/offset` return `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
+The credential is the Session id issued by the OAuth callback (a Spotify Session) or by [`POST /api/auth/local`](#post-apiauthlocal) (a Local Session). The server matches it against that exact id only. A Spotify user id is not a credential: `/me` and `POST /api/lyrics/offset` return `401`, `/sessions` returns an empty list, and revoke or logout leaves every Session untouched.
 
 ### Display token
 A Display (a paired screen) holds a view-only Display token instead of a Session. It presents the token in the `cantus_display_token` cookie, the `display_token` query parameter, or any of the Session credential slots (the SignalR client sends it as `access_token` or `Authorization: Bearer`). When a request carries both a valid Session and a Display token, the Session wins. When the first slot does not hold a valid Session, every slot is tried as a Display token, so a stale `cantus_session_id` cookie does not hide a Display token sent in `access_token` or `Authorization`.
@@ -46,12 +46,16 @@ Describes how this server signs in to Spotify. The **Connect Spotify** screen us
   "userClientIdsAllowed": false,
   "redirectUri": "https://cantus.yourdomain.com/api/auth/spotify/callback",
   "redirectUriAccepted": true,
-  "dashboardUrl": "https://developer.spotify.com/dashboard/create"
+  "dashboardUrl": "https://developer.spotify.com/dashboard/create",
+  "localSessionsEnabled": true,
+  "localSessionJoinCodeRequired": true
 }
 ```
 
   - `redirectUri`: the callback this server would send to Spotify for the current request.
   - `redirectUriAccepted`: `false` when Spotify will refuse that callback (plain `http` on anything but a loopback IP literal, which includes `localhost` and LAN addresses).
+  - `localSessionsEnabled`: `LocalSessions__Enabled`. When `true`, the Linux desktop app offers **Use this computer's players**.
+  - `localSessionJoinCodeRequired`: `true` when Local Sessions are enabled and `LocalSessions__JoinCode` is set, so the client asks for the code before calling [`POST /api/auth/local`](#post-apiauthlocal). The code itself is never sent.
 
 ---
 
@@ -78,6 +82,33 @@ Handles Spotify's redirect after user consent.
 
 ---
 
+### `POST /api/auth/local`
+Creates a [Local Session](../user-guide/local-players.md): a Session with no Spotify account, whose playback the desktop app publishes with [`PublishLocalPlayback`](signalr-api.md#publishlocalplaybackupdate). No credential needed. Off unless `LocalSessions__Enabled` is `true` (see [`LocalSessions`](configuration.md#local-sessions-localsessions)).
+
+Rate limited per client address: 5 requests per 600 seconds by default, counted before any other check. IPv6 addresses in the same `/64` count as one client.
+
+- **Request Body**:
+```json
+{ "displayName": "jaret-desktop", "joinCode": "choose-a-long-code" }
+```
+  - `displayName` (`string`, required): the Session's name, usually the computer's name. Trimmed, then 1 to 64 characters.
+  - `joinCode` (`string`, optional): required when the server sets `LocalSessions__JoinCode`. Compared in constant time.
+- **Behavior**: first deletes Local Sessions idle for longer than `LocalSessions__IdleExpiryDays` (with their Displays, as on [logout](#post-apiauthlogout)), then creates the Session and sets the `cantus_session_id` cookie (HTTP-only, 30 days), like the OAuth callback.
+- **Response `200 OK`**: one Session object, shaped like an item of [`GET /api/auth/sessions`](#get-apiauthsessions), with `kind: "Local"` and `spotifyUserId`, `email` and `profileImageUrl` set to `null`. Its `id` is the Session credential.
+- **Errors** (`{ "error": "<code>" }`, checked in this order):
+
+| Status | `error` | Meaning |
+| :--- | :--- | :--- |
+| `403 Forbidden` | `local_sessions_disabled` | `LocalSessions__Enabled` is off. |
+| `401 Unauthorized` | `join_code_required` | The server needs a join code and none was sent. |
+| `401 Unauthorized` | `join_code_invalid` | The join code is wrong. |
+| `400 Bad Request` | `invalid_display_name` | `displayName` is missing, blank or longer than 64 characters. |
+| `503 Service Unavailable` | `local_session_limit` | `LocalSessions__MaxSessions` Local Sessions already exist. |
+
+- **Response `429 Too Many Requests`**: over the rate limit. No body.
+
+---
+
 ### `GET /api/auth/sessions`
 Returns the caller's own Session as a one-item list.
 
@@ -86,6 +117,7 @@ Returns the caller's own Session as a one-item list.
 [
   {
     "id": "<Session id>",
+    "kind": "Spotify",
     "spotifyUserId": "spotify_user_12345",
     "displayName": "Jane Doe",
     "email": "jane@example.com",
@@ -96,7 +128,7 @@ Returns the caller's own Session as a one-item list.
   }
 ]
 ```
-  An empty list when the caller has no valid credential.
+  An empty list when the caller has no valid credential. `kind` is `Spotify` or `Local`; a Local Session has `spotifyUserId`, `email` and `profileImageUrl` set to `null`.
 - **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
 
 ---
@@ -123,7 +155,7 @@ The owner's Displays are deleted with the Session. Each of their live hub connec
 ---
 
 ### `POST /api/auth/logout`
-Revokes the caller's Session (if any) and deletes the `cantus_session_id` cookie. Like [`DELETE /api/auth/sessions/{userId}`](#delete-apiauthsessionsuserid), it deletes the owner's Displays, closes their live hub connections after sending each one [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked), and sends `ReceiveSessionRevoked` and an empty `ReceiveSessions` to the Session's hub group.
+Revokes the caller's Session (if any) and deletes the `cantus_session_id` cookie. For a Local Session it also drops the playback state the server holds for it. Like [`DELETE /api/auth/sessions/{userId}`](#delete-apiauthsessionsuserid), it deletes the owner's Displays, closes their live hub connections after sending each one [`ReceiveDisplayRevoked`](signalr-api.md#receivedisplayrevoked), and sends `ReceiveSessionRevoked` and an empty `ReceiveSessions` to the Session's hub group.
 
 - **Response `200 OK`**: `{ "message": "Logged out and session revoked." }`, also when the caller had no credential.
 - **Response `403 Forbidden`**: the caller holds a [Display token](#display-token).
@@ -379,7 +411,7 @@ Its token stops working at once. Each of its live hub connections receives [`Rec
 
 Find a song from a remembered, possibly misremembered, lyric line, then play or queue it on Spotify. See [Find a Song by Lyrics](../user-guide/song-lookup.md) for the user view and [Song Lookup](../architecture/lyrics-caching.md#song-lookup-by-remembered-lyrics) for how matching works.
 
-Both endpoints are owner-only and rate limited per client address, each counted on its own: 20 search requests and 12 plays per 60 seconds by default (see [`SongLookup`](configuration.md#song-lookup-songlookup)). The limit is counted before the credential check, so unauthenticated calls spend permits too. Over the limit they return `429 Too Many Requests` with no `Retry-After` header. IPv6 addresses in the same `/64` count as one client, as for the [pairing limits](#display-endpoints).
+Both endpoints need a Spotify Session: a Display token or a [Local Session](#post-apiauthlocal) gets `403 Forbidden`. They are rate limited per client address, each counted on its own: 20 search requests and 12 plays per 60 seconds by default (see [`SongLookup`](configuration.md#song-lookup-songlookup)). The limit is counted before the credential check, so unauthenticated calls spend permits too. Over the limit they return `429 Too Many Requests` with no `Retry-After` header. IPv6 addresses in the same `/64` count as one client, as for the [pairing limits](#display-endpoints).
 
 Enum values on the wire are strings. Spotify and provider problems never change the HTTP status: they are reported inside a `200` body, because `403` and `429` already mean "Display token" and "inbound limit".
 
@@ -443,7 +475,7 @@ Ranks songs that match a lyric fragment: the server's lyrics library first, then
   - `providers[].status`: `ok`, `skipped`, `disabled`, `unavailable` or `rateLimited`. `retryAfterSeconds` is set only for `rateLimited`.
 - **Response `400 Bad Request`**: `fragment` is missing, blank, too short or over 200 characters, or `scope` is unknown. The body is `{ "message": "..." }`.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
-- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token). No lyrics are read and no provider is called.
+- **Response `403 Forbidden`**: the caller holds a [Display token](#display-token) or a Local Session. No lyrics are read and no provider is called.
 - **Response `429 Too Many Requests`**: inbound rate limit reached.
 
 ---
@@ -490,7 +522,7 @@ Plays or queues a guess on the owner's active Spotify device.
   - `retryAfterSeconds`: whole seconds until Spotify may be called again, set only for `rateLimited`.
 - **Response `400 Bad Request`**: unknown `action`, a malformed `spotifyTrackId`, neither a track id nor both `title` and `artist`, or a `title` or `artist` over 300 characters. The body is `{ "message": "..." }`.
 - **Response `401 Unauthorized`**: no Session credential, or the Session is unknown.
-- **Response `403 Forbidden`**: the caller holds a Display token. Nothing is sent to Spotify.
+- **Response `403 Forbidden`**: the caller holds a Display token or a Local Session. Nothing is sent to Spotify.
 - **Response `429 Too Many Requests`**: inbound rate limit reached.
 
 ---

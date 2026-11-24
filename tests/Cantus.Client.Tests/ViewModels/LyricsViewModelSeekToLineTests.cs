@@ -314,6 +314,12 @@ public sealed class LyricsViewModelSeekToLineTests
         client.Setup(c => c.SeekPlaybackAsync(It.IsAny<long>())).ReturnsAsync(PlayerCommandResult.Success);
         LyricsViewModel vm = new(client.Object, new ThemeManager(), new ResponsiveLayoutManager());
         vm.Timing.LatencyCompensationMs = latencyMs;
+
+        // Seeking drives Spotify, so it needs a Spotify Session.
+        client.Raise(c => c.SessionsReceived += null, new List<AuthorizedSessionPayload>
+        {
+            new() { Id = "session-1", DisplayName = "Owner", Kind = AuthorizedSessionPayload.KIND_SPOTIFY },
+        });
         return (client, vm);
     }
 

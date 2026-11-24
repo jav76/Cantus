@@ -40,6 +40,10 @@ public sealed class LyricsViewModelDisplayTests
     {
         // Arrange
         (Mock<ISignalRPlaybackClient> client, LyricsViewModel vm, _) = CreateViewModel(paired: false);
+        client.Raise(c => c.SessionsReceived += null, new List<AuthorizedSessionPayload>
+        {
+            new() { Id = "session-1", DisplayName = "Owner", Kind = AuthorizedSessionPayload.KIND_SPOTIFY },
+        });
 
         // Act
         LoadLyricsAndPlayback(client);

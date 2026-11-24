@@ -22,6 +22,7 @@ public sealed partial class LyricsPickerDialog : ContentDialog
     {
         Picker = picker;
         InitializeComponent();
+        DialogLightDismiss.Enable(this);
         Picker.PropertyChanged += OnPickerPropertyChanged;
         Closed += OnDialogClosed;
     }

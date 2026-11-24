@@ -87,6 +87,19 @@ public sealed partial class AdaptiveTrackCard : UserControl
         private set => SetValue(LyricsPickerProperty, value);
     }
 
+    public static readonly DependencyProperty LocalPlayersProperty =
+        DependencyProperty.Register(
+            nameof(LocalPlayers),
+            typeof(LocalPlayersViewModel),
+            typeof(AdaptiveTrackCard),
+            new PropertyMetadata(null));
+
+    public LocalPlayersViewModel? LocalPlayers
+    {
+        get => (LocalPlayersViewModel?)GetValue(LocalPlayersProperty);
+        private set => SetValue(LocalPlayersProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -123,6 +136,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
         card.Session = viewModel?.Session;
         card.Pairing = viewModel?.Pairing;
         card.LyricsPicker = viewModel?.LyricsPicker;
+        card.LocalPlayers = viewModel?.Session.LocalPlayers;
         card.Theme = viewModel?.Theme;
         card.Layout = viewModel?.Layout;
     }
@@ -276,6 +290,16 @@ public sealed partial class AdaptiveTrackCard : UserControl
         await SpotifySignIn.StartAsync(Session, XamlRoot);
     }
 
+    private async void OnUseLocalPlayersClicked(object sender, RoutedEventArgs e)
+    {
+        await LocalSessionSignIn.StartAsync(Session, XamlRoot);
+    }
+
+    private async void OnAccountClicked(object sender, RoutedEventArgs e)
+    {
+        await AccountMenu.OpenAsync(Session, (FrameworkElement)sender);
+    }
+
     private async void OnPairAsDisplayClicked(object sender, RoutedEventArgs e)
     {
         if (Pairing is not null)
@@ -284,13 +308,11 @@ public sealed partial class AdaptiveTrackCard : UserControl
         }
     }
 
-    private async void OnLogoutClicked(object sender, RoutedEventArgs e)
-    {
-        if (Session is not null)
-        {
-            await Session.LogoutAsync();
-        }
-    }
+    /// <summary>Volume is owner-only and has no effect on a local player.</summary>
+    public Visibility GetSpotifyControlsVisibility(Visibility ownerControls, Visibility spotifyControls) =>
+        ownerControls == Visibility.Visible && spotifyControls == Visibility.Visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     /// <summary>The "Wrong lyrics?" button is owner-only, so it never shows on a Display.</summary>
     public Visibility GetLyricsPickerVisibility(Visibility ownerControls, Visibility pickerAction) =>

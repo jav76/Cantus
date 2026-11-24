@@ -35,7 +35,7 @@ flowchart TD
 
 Inside each layout, controls shrink before they overflow:
 
-- **Large header:** below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the Spotify button is trimmed; hover it for the full name.
+- **Large header:** below 1200px the **Find Song** and **Theme** buttons become icon-only and the brand subtitle is hidden. A long account name on the account button is trimmed; hover it for the full name.
 - **Track card:** the album art shrinks to fit the card. A long device name is trimmed; hover it for the full name.
 - **Lyrics stage:** when the stage is narrower than 420px, the Karaoke, Autoscroll and Static/Live buttons become icon-only (hover for the tooltip). The theme toast shows at the top of the lyrics, not beside these buttons.
 - **Phones under 380px:** the mobile tab bar stacks each icon above its label, and the now-playing strip drops its timestamp and offset column.
@@ -43,7 +43,7 @@ Inside each layout, controls shrink before they overflow:
 - **Diagnostics HUD:** drops its 420px minimum width on small screens.
 - **Desktop app:** the window cannot be made smaller than 360 x 560.
 
-On small layouts the header keeps only the brand, the connection dot, the Spotify button (hidden on a paired Display) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (signed-in owners only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk (F11)**, **Switch Mobile View** and **Log Out** (hidden on a paired Display). **Switch Mobile View** and <kbd>M</kbd> move between the **Lyrics**, **Track** and **Sync & Info** tabs, like the tab bar.
+On small layouts the header keeps only the brand, the connection dot, the account button (hidden on a paired Display) and an overflow menu (**≡**). The overflow menu holds **Find Song by Lyrics** (owners signed in with Spotify only), **Theme** (a submenu with every theme and the effect toggles), **Diagnostics HUD**, **Fullscreen Kiosk (F11)**, **Switch Mobile View** and **Log Out** (hidden on a paired Display). **Switch Mobile View** and <kbd>M</kbd> move between the **Lyrics**, **Track** and **Sync & Info** tabs, like the tab bar.
 
 ---
 

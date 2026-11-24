@@ -142,6 +142,22 @@ public sealed class SpotifySetupViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Fetches the server's setup info again without resetting the user's choices on the screen. A failed
+    /// fetch keeps the info already known, so one bad request during a reconnect hides nothing.
+    /// </summary>
+    public async Task RefreshInfoAsync(CancellationToken cancellationToken = default)
+    {
+        SpotifySetupInfoPayload? info = await _api.GetSetupInfoAsync(cancellationToken);
+        if (info is null)
+        {
+            return;
+        }
+
+        _info = info;
+        NotifyAll();
+    }
+
+    /// <summary>
     /// The sign-in path for the current choice. Choosing the own app saves its Client ID for the
     /// next sign-in. Returns null when the choice cannot sign in yet.
     /// </summary>

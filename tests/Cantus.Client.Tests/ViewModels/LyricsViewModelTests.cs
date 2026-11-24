@@ -368,6 +368,38 @@ public sealed class LyricsViewModelTests
     }
 
     [Fact]
+    public void EmptyStateText_ForAnInstrumentalTrack_SaysItHasNoLyrics()
+    {
+        // Arrange
+        SignalRPlaybackClient client = new("http://127.0.0.1:59999/hubs/playback");
+        LyricsViewModel vm = new(client);
+        client.RaisePlaybackStateReceived(new PlaybackStatePayload
+        {
+            CurrentTrack = new TrackInfoPayload { Id = "t-1", Title = "Viego, the Ruined King", Artist = "League of Legends" },
+            IsPlaying = true,
+            TimestampUtc = DateTimeOffset.UtcNow
+        });
+
+        // Act
+        client.RaiseLyricsReceived(new LyricsPayload { TrackId = "t-1", IsInstrumental = true });
+
+        // Assert
+        vm.EmptyStateTitle.Should().Be(LyricsViewModel.INSTRUMENTAL_TITLE);
+        vm.EmptyStateSubtitle.Should().Be(LyricsViewModel.INSTRUMENTAL_SUBTITLE);
+
+        // Act - the next track has words but no lyrics were found for it
+        client.RaisePlaybackStateReceived(new PlaybackStatePayload
+        {
+            CurrentTrack = new TrackInfoPayload { Id = "t-2", Title = "Sung Song", Artist = "Artist" },
+            IsPlaying = true,
+            TimestampUtc = DateTimeOffset.UtcNow
+        });
+
+        // Assert
+        vm.EmptyStateTitle.Should().Be("No Lyrics Found");
+    }
+
+    [Fact]
     public void OnLyricsReceived_RaisesLyricsReloadedAfterStateReset()
     {
         // Arrange - simulate mid-song state from a previous track
