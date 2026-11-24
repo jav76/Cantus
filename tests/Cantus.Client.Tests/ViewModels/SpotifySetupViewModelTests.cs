@@ -168,6 +168,29 @@ public sealed class SpotifySetupViewModelTests
         raised.Should().Contain(new[] { nameof(SpotifySetupViewModel.UseServerApp), nameof(SpotifySetupViewModel.OwnAppVisibility), nameof(SpotifySetupViewModel.CanConnect) });
     }
 
+    [Fact]
+    public async Task RefreshInfoAsync_TakesTheNewInfoAndKeepsTheChoicesOnTheScreen()
+    {
+        // Arrange
+        (SpotifySetupViewModel setup, Mock<ISpotifySetupApi> api) = Create(Info(serverApp: true, ownAppsAllowed: true));
+        await setup.LoadAsync();
+        setup.UseOwnApp = true;
+        setup.ClientIdText = "typed so far";
+        SpotifySetupInfoPayload refreshed = Info(serverApp: true, ownAppsAllowed: true);
+        refreshed.LocalSessionsEnabled = true;
+        refreshed.LocalSessionJoinCodeRequired = true;
+        api.Setup(a => a.GetSetupInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(refreshed);
+
+        // Act
+        await setup.RefreshInfoAsync();
+
+        // Assert
+        setup.Info!.LocalSessionsEnabled.Should().BeTrue();
+        setup.Info.LocalSessionJoinCodeRequired.Should().BeTrue();
+        setup.UseOwnApp.Should().BeTrue();
+        setup.ClientIdText.Should().Be("typed so far");
+    }
+
     [Theory]
     [InlineData("?connect=spotify", true)]
     [InlineData("connect=Spotify", true)]
