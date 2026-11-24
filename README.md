@@ -84,6 +84,9 @@ services:
       - Spotify__ClientId=your_spotify_client_id_here
       - CANTUS_HOST_URL=http://127.0.0.1:5000
       - ASPNETCORE_ENVIRONMENT=Production
+      # Optional: this computer's players on the Linux desktop app (see Configuration Reference)
+      # - LocalSessions__Enabled=true
+      # - LocalSessions__JoinCode=choose-a-long-code
     volumes:
       - cantus_data:/app/data
 
@@ -132,6 +135,8 @@ Cantus is configured through environment variables or `appsettings.json`. The mo
 | `Spotify__AllowUserClientIds` | No | Unset | Lets users sign in with their own Spotify app. Unset means only when `Spotify__ClientId` is unset. |
 | `CANTUS_HOST_URL` | Recommended | Unset | Public URL used to build the Spotify OAuth callback. When unset, Cantus uses the request's address. |
 | `ASPNETCORE_ENVIRONMENT` | No | `Production` | ASP.NET Core environment profile (`Production` or `Development`). |
+| `LocalSessions__Enabled` | No | `false` | Lets the Linux desktop app follow this computer's media players (Local Sessions) with no Spotify account. |
+| `LocalSessions__JoinCode` | Recommended with Local Sessions | Unset | Code needed to create a Local Session (8+ characters). Set it on internet-facing servers, or anyone who can reach the server can start lyrics lookups. |
 | `DATA_DIR` | No | `/app/data` if it exists | Parent directory of the Data Protection key ring (`keys/`). The database path is set by `ConnectionStrings__CantusDatabase`. |
 | `ConnectionStrings__CantusDatabase` | No | `Data Source=/app/data/cantus.db` (container) | SQLite connection string. |
 | `Lrclib__BaseUrl` | No | `https://lrclib.net` | Base endpoint for external LRCLIB lyrics lookups. |
@@ -193,7 +198,7 @@ Then open `http://127.0.0.1:5000`. Without `ASPNETCORE_ENVIRONMENT=Development`,
 dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop
 ```
 
-It connects to `http://127.0.0.1:5000`; add `-- --server-url <address>` to use another server.
+It connects to `http://127.0.0.1:5000`; add `-- --server-url <address>` to use another server. To follow this computer's players instead of Spotify, the server needs `LocalSessions__Enabled=true`; set `CANTUS_LOCAL_JOIN_CODE` to prefill the server's join code.
 
 ### Publishing the WebAssembly Client
 
