@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Cantus.Core.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Cantus.Client.Services;
 
@@ -250,6 +251,9 @@ public partial class CantusJsonContext : JsonSerializerContext
 
 public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 {
+    private static readonly ILogger<SignalRPlaybackClient> _logger =
+        ClientLoggingManager.CreateLogger<SignalRPlaybackClient>();
+
     private HubConnection? _connection;
     private Timer? _clockSyncTimer;
     private Timer? _reconnectPollerTimer;
@@ -715,25 +719,37 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
 
     private async Task<PlayerCommandResult> InvokePlayerActionAsync(string hubMethod, object argument)
     {
-        if (_connection is not null && _connection.State == HubConnectionState.Connected)
+        if (_connection is null || _connection.State != HubConnectionState.Connected)
         {
-            try
-            {
-                // The hub returns the result as an int: the trimmed WASM build
-                // cannot deserialize enum return values from SignalR.
-                object? raw = await _connection.InvokeCoreAsync(hubMethod, typeof(int), new[] { argument });
-                int result = raw is int i ? i : (int)PlayerCommandResult.Failed;
-                return result >= (int)PlayerCommandResult.Success && result <= (int)PlayerCommandResult.Failed
-                    ? (PlayerCommandResult)result
-                    : PlayerCommandResult.Failed;
-            }
-            catch
-            {
-                return PlayerCommandResult.Failed;
-            }
+            _logger.LogWarning(
+                "Player action {HubMethod} not sent: hub connection state is {State}",
+                hubMethod,
+                _connection?.State.ToString() ?? "not created");
+            return PlayerCommandResult.Failed;
         }
 
-        return PlayerCommandResult.Failed;
+        try
+        {
+            // The hub returns the result as an int: the trimmed WASM build
+            // cannot deserialize enum return values from SignalR.
+            object? raw = await _connection.InvokeCoreAsync(hubMethod, typeof(int), new[] { argument });
+            int result = raw is int i ? i : (int)PlayerCommandResult.Failed;
+            if (result < (int)PlayerCommandResult.Success || result > (int)PlayerCommandResult.Failed)
+            {
+                _logger.LogWarning(
+                    "Player action {HubMethod} returned unrecognised result {Result}",
+                    hubMethod,
+                    result);
+                return PlayerCommandResult.Failed;
+            }
+
+            return (PlayerCommandResult)result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Player action {HubMethod} failed before the server answered", hubMethod);
+            return PlayerCommandResult.Failed;
+        }
     }
 
     public async Task SubscribeToUserAsync(string? userId)

@@ -346,6 +346,7 @@ public sealed class LyricsPickerViewModelTests
     [InlineData(LyricsCorrectionStatus.SignedOut, "Sign in again to change lyrics.")]
     [InlineData(LyricsCorrectionStatus.NotAllowed, "Only the account owner can change lyrics.")]
     [InlineData(LyricsCorrectionStatus.Rejected, "The Cantus server turned down this request.")]
+    [InlineData(LyricsCorrectionStatus.ServerOutdated, "This Cantus server is too old to change lyrics. Update the server.")]
     public async Task OpenAsync_WhenTheListCannotBeLoaded_ShowsWhy(LyricsCorrectionStatus status, string expected)
     {
         // Arrange
@@ -505,6 +506,7 @@ public sealed class LyricsPickerViewModelTests
     [InlineData(LyricsCorrectionStatus.NotFound, "Those lyrics could not be loaded. The track may have changed.")]
     [InlineData(LyricsCorrectionStatus.Failed, "Could not reach the Cantus server. Try again.")]
     [InlineData(LyricsCorrectionStatus.Rejected, "Those lyrics can no longer be used. Pick another.")]
+    [InlineData(LyricsCorrectionStatus.ServerOutdated, "This Cantus server is too old to change lyrics. Update the server.")]
     public async Task AFailedChoice_KeepsThePickerOpenAndShowsWhy(LyricsCorrectionStatus status, string expected)
     {
         // Arrange

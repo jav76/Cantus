@@ -22,6 +22,7 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
     private const string EMPTY_TEXT = "No other lyrics were found for this track.";
     private const string NO_PROVIDER_TEXT = "No lyrics provider could be reached. Try again later.";
     private const string SERVER_UNREACHABLE_TEXT = "Could not reach the Cantus server. Try again.";
+    private const string SERVER_OUTDATED_TEXT = "This Cantus server is too old to change lyrics. Update the server.";
     private const string TRACK_GONE_TEXT = "This track is no longer playing.";
     private const string CHOICE_GONE_TEXT = "Those lyrics could not be loaded. The track may have changed.";
     private const string PROVIDER_UNAVAILABLE_TEXT =
@@ -360,6 +361,7 @@ public sealed class LyricsPickerViewModel : INotifyPropertyChanged
         LyricsCorrectionStatus.NotAllowed => NOT_ALLOWED_TEXT,
         LyricsCorrectionStatus.ProviderUnavailable => PROVIDER_UNAVAILABLE_TEXT,
         LyricsCorrectionStatus.Rejected => REQUEST_REJECTED_TEXT,
+        LyricsCorrectionStatus.ServerOutdated => SERVER_OUTDATED_TEXT,
         _ => SERVER_UNREACHABLE_TEXT
     };
 

@@ -370,12 +370,21 @@ public sealed class PlaybackHub : Hub<IPlaybackClient>
         string? userId = _registry.GetConnectionSubscription(Context.ConnectionId);
         if (string.IsNullOrEmpty(userId))
         {
+            _logger.LogWarning(
+                "Player command {Command} rejected: connection {ConnectionId} has no user subscription",
+                commandName,
+                Context.ConnectionId);
             return (int)PlayerCommandResult.Failed;
         }
 
         UserSession? session = await _authService.GetSessionForUserAsync(userId);
         if (session is null || string.IsNullOrWhiteSpace(session.AccessToken))
         {
+            _logger.LogWarning(
+                "Player command {Command} rejected: no session with an access token (Session: {SessionRef}, SessionFound: {SessionFound})",
+                commandName,
+                SessionLogRef.For(userId),
+                session is not null);
             return (int)PlayerCommandResult.Failed;
         }
 
