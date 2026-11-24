@@ -35,10 +35,11 @@ public interface ILocalPlaybackIngest
     void ReleaseConnection(string connectionId);
 
     /// <summary>
-    /// Drops everything held for a Session that ended, and refuses publishes for it that were
-    /// already in flight.
+    /// Drops everything held for a Session that ended, refuses publishes for it that were already
+    /// in flight, and completes once its worker has stopped, so a caller that then tells clients
+    /// the Session ended cannot be overtaken by a broadcast from an apply that was still running.
     /// </summary>
-    void Forget(string sessionId);
+    Task ForgetAsync(string sessionId);
 
     /// <summary>
     /// True once a Session's publisher left and the grace period ended with no new one, until a
@@ -76,6 +77,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
     private static readonly TimeSpan LyricBudgetWindow = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan TouchInterval = TimeSpan.FromHours(1);
     private static readonly TimeSpan ForgottenSessionRetention = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan WorkerStopTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IPlaybackUpdateApplier _applier;
@@ -178,8 +180,9 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         }
     }
 
-    public void Forget(string sessionId)
+    public async Task ForgetAsync(string sessionId)
     {
+        Task worker = Task.CompletedTask;
         lock (_lock)
         {
             DateTimeOffset now = _timeProvider.GetUtcNow();
@@ -205,7 +208,21 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             {
                 pipeline.Ended = true;
                 pipeline.Stop();
+                worker = pipeline.Worker;
             }
+        }
+
+        try
+        {
+            // Real time on purpose: a fake clock in tests would otherwise never end the wait.
+            await worker.WaitAsync(WorkerStopTimeout);
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogWarning(
+                "Worker for ended Session {SessionRef} did not stop within {Timeout}",
+                SessionLogRef.For(sessionId),
+                WorkerStopTimeout);
         }
     }
 
@@ -290,7 +307,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
         SessionPipeline pipeline = new(sessionId);
         _pipelines[sessionId] = pipeline;
-        _ = Task.Run(() => RunWorkerAsync(pipeline));
+        pipeline.Worker = Task.Run(() => RunWorkerAsync(pipeline));
         return pipeline;
     }
 
@@ -811,6 +828,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         });
 
         public CancellationTokenSource Stopping { get; } = new();
+
+        public Task Worker { get; set; } = Task.CompletedTask;
 
         /// <summary>Set when the Session ended, so the worker clears its state once it stops.</summary>
         public bool Ended { get; set; }

@@ -585,7 +585,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         await WaitForUpdatesAsync(1);
         Disconnect(CONNECTION_A);
 
-        _ingest.Forget(_session.Id);
+        await _ingest.ForgetAsync(_session.Id);
         _time.Advance(TimeSpan.FromSeconds(GRACE_SECONDS * 2));
 
         await Task.Delay(ABSENCE_WAIT);
@@ -598,7 +598,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         _ingest.Submit(CONNECTION_A, _session, Update(1));
         await WaitForUpdatesAsync(1);
 
-        _ingest.Forget(_session.Id);
+        await _ingest.ForgetAsync(_session.Id);
 
         _ingest.Submit(CONNECTION_A, _session, Update(2)).Should().Be(LocalPublishResult.NotLocalSession);
         _ingest.Submit(CONNECTION_B, _session, Update(1)).Should().Be(LocalPublishResult.NotLocalSession);
@@ -607,7 +607,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     }
 
     [Fact]
-    public async Task Forget_WhileAnApplyIsWriting_ClearsWhatThatApplyWritesAfterTheSessionEnded()
+    public async Task ForgetAsync_WhileAnApplyIsWriting_CompletesOnlyOnceThatApplyFinishedAndItsWritesAreCleared()
     {
         TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource started = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -621,19 +621,22 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         _ingest.Submit(CONNECTION_A, _session, Update(1));
         await started.Task.WaitAsync(WAIT_TIMEOUT);
 
-        _ingest.Forget(_session.Id);
+        Task forgetting = _ingest.ForgetAsync(_session.Id);
         _registry.RemoveUserState(_session.Id);
-        release.TrySetResult();
+        forgetting.IsCompleted.Should().BeFalse("the Session's apply is still running, so its broadcasts could follow a revoke");
 
-        await WaitForUpdatesAsync(1);
-        await WaitUntilAsync(() => _registry.GetUserState(_session.Id) is null);
+        release.TrySetResult();
+        await forgetting.WaitAsync(WAIT_TIMEOUT);
+
+        _applier.Updates.Should().HaveCount(1);
+        _registry.GetUserState(_session.Id).Should().BeNull("the worker clears late writes before ForgetAsync completes");
         _applier.ForgottenSessions.Should().Contain(_session.Id);
     }
 
     [Fact]
-    public void Forget_RefusesOnlyTheForgottenSession()
+    public async Task Forget_RefusesOnlyTheForgottenSession()
     {
-        _ingest.Forget(_session.Id);
+        await _ingest.ForgetAsync(_session.Id);
 
         _ingest.Submit(CONNECTION_B, LocalSession("local-2"), Update(1)).Should().Be(LocalPublishResult.Accepted);
     }

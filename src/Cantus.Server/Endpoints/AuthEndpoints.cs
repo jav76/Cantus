@@ -453,7 +453,7 @@ public static class AuthEndpoints
         // A Spotify Session's snapshot is left to the poller until it moves onto the applier.
         if (session?.Kind == SessionKind.Local)
         {
-            ForgetLocalPlayback(sessionId, services.LocalIngest, services.Applier, services.Registry);
+            await ForgetLocalPlaybackAsync(sessionId, services.LocalIngest, services.Applier, services.Registry);
         }
 
         foreach (DisplayInfo display in displays)
@@ -478,7 +478,7 @@ public static class AuthEndpoints
     {
         foreach (string sessionId in pruned.SessionIds)
         {
-            ForgetLocalPlayback(sessionId, localIngest, applier, registry);
+            await ForgetLocalPlaybackAsync(sessionId, localIngest, applier, registry);
             await NotifySessionEndedAsync(hubContext, sessionId);
         }
 
@@ -488,13 +488,13 @@ public static class AuthEndpoints
         }
     }
 
-    private static void ForgetLocalPlayback(
+    private static async Task ForgetLocalPlaybackAsync(
         string sessionId,
         ILocalPlaybackIngest localIngest,
         IPlaybackUpdateApplier applier,
         IPlaybackSessionRegistry registry)
     {
-        localIngest.Forget(sessionId);
+        await localIngest.ForgetAsync(sessionId);
         applier.Forget(sessionId);
         registry.RemoveUserState(sessionId);
     }
