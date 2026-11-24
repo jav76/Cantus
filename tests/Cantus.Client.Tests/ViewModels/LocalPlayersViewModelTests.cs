@@ -121,6 +121,59 @@ public sealed class LocalPlayersViewModelTests
     }
 
     [Fact]
+    public void WhenTheSourceBecomesReadyAfterActivation_ListsThePlayersAlreadyRunning()
+    {
+        // Arrange
+        _local.IsSupported = false;
+        _players.SetActive(true);
+        _players.EmptyVisibility.Should().Be(Visibility.Visible);
+
+        // Act
+        _local.IsSupported = true;
+        _local.SetPlayersSilently(Player("vlc", LocalPlayerStatus.Stopped, Song()));
+        _local.RaiseAvailabilityChanged();
+
+        // Assert
+        _players.Players.Should().ContainSingle(p => p.AppId == "vlc");
+        _players.EmptyVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public async Task WithARestoredLocalSession_ListsADisabledPlayerFoundWhenTheSourceStarts()
+    {
+        // Arrange: the saved Local Session is applied before the source has started.
+        InMemorySettingsStore settings = new();
+        FakeLocalPlayerSource source = new();
+        LocalPlayerPreferences preferences = new(settings);
+        preferences.SetEnabled("kdeconnect", false);
+        LocalPlaybackPublisher publisher = new(
+            source,
+            new FakeLocalPlaybackSink(),
+            new PlayerSelectionPolicy(),
+            preferences,
+            new FakeTimeProvider());
+        LocalPlaybackBootstrap bootstrap = new(
+            new Mock<ISignalRPlaybackClient>().Object,
+            source,
+            new Mock<ILocalSessionApi>().Object,
+            publisher,
+            preferences,
+            "jaret-desktop",
+            joinCodePrefill: null);
+        LocalPlayersViewModel players = new(bootstrap);
+        players.SetActive(true);
+        source.SetPlayers(Player("kdeconnect", LocalPlayerStatus.Playing, Song()));
+
+        // Act
+        await bootstrap.StartAsync();
+
+        // Assert
+        players.Players.Should().ContainSingle(p => p.AppId == "kdeconnect" && !p.IsEnabled);
+        players.EmptyVisibility.Should().Be(Visibility.Collapsed);
+        await bootstrap.DisposeAsync();
+    }
+
+    [Fact]
     public async Task WithTheRealPublisher_TogglingWritesThePreferenceAndTheMarkerFollows()
     {
         // Arrange

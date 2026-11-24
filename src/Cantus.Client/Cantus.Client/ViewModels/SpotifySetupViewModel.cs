@@ -141,10 +141,19 @@ public sealed class SpotifySetupViewModel : INotifyPropertyChanged
         NotifyAll();
     }
 
-    /// <summary>Fetches the server's setup info again without resetting the user's choices on the screen.</summary>
+    /// <summary>
+    /// Fetches the server's setup info again without resetting the user's choices on the screen. A failed
+    /// fetch keeps the info already known, so one bad request during a reconnect hides nothing.
+    /// </summary>
     public async Task RefreshInfoAsync(CancellationToken cancellationToken = default)
     {
-        _info = await _api.GetSetupInfoAsync(cancellationToken);
+        SpotifySetupInfoPayload? info = await _api.GetSetupInfoAsync(cancellationToken);
+        if (info is null)
+        {
+            return;
+        }
+
+        _info = info;
         NotifyAll();
     }
 

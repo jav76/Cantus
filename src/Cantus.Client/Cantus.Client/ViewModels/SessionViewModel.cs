@@ -70,6 +70,7 @@ public sealed class SessionViewModel : INotifyPropertyChanged
             BuildSpotifyLoginPath);
         SpotifySetup.PropertyChanged += (_, _) => NotifyLocalAvailability();
         LocalSetup = new LocalSessionSetupViewModel(UseLocalPlayersAsync);
+        LocalSetup.PropertyChanged += OnLocalSetupPropertyChanged;
         LocalPlayers = new LocalPlayersViewModel(localPlayback, _runOnUiThread);
 
         if (_localPlayback is not null)
@@ -167,6 +168,9 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         IsLocalAvailable && CurrentUserSession is null && AuthorizedSessionsCount == 0
             ? Visibility.Visible
             : Visibility.Collapsed;
+
+    /// <summary>False while an attempt to use this computer's players is running, so it cannot start twice.</summary>
+    public bool CanUseLocalPlayers => !LocalSetup.IsBusy;
 
     /// <summary>
     /// The account buttons open <see cref="AccountMenuItems"/> while a Session is held, and start a
@@ -405,8 +409,8 @@ public sealed class SessionViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Signs out of any Session held, then creates a Local Session for this computer and connects with it.
-    /// A second try after a refusal is already signed out, so it only creates.
+    /// Creates a Local Session for this computer and connects with it. Any Session held is signed out
+    /// only once the server accepts the new one, so a refusal keeps the owner signed in.
     /// </summary>
     public async Task<LocalSessionResult> UseLocalPlayersAsync(string? joinCode)
     {
@@ -415,12 +419,10 @@ public sealed class SessionViewModel : INotifyPropertyChanged
             return new LocalSessionResult(LocalSessionStatus.Failed);
         }
 
-        if (CurrentUserSession is not null || !string.IsNullOrWhiteSpace(_client.SessionToken))
-        {
-            await LogoutAsync();
-        }
-
-        return await _localPlayback.CreateSessionAsync(joinCode);
+        Func<Task>? signOutHeld = CurrentUserSession is not null || !string.IsNullOrWhiteSpace(_client.SessionToken)
+            ? LogoutAsync
+            : null;
+        return await _localPlayback.CreateSessionAsync(joinCode, signOutHeld);
     }
 
     /// <summary>
@@ -442,6 +444,14 @@ public sealed class SessionViewModel : INotifyPropertyChanged
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogWarning(ex, "Could not read whether the server allows this computer's players");
+        }
+    }
+
+    private void OnLocalSetupPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(LocalSessionSetupViewModel.IsBusy))
+        {
+            OnPropertyChanged(nameof(CanUseLocalPlayers));
         }
     }
 

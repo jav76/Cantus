@@ -9,8 +9,8 @@ using Microsoft.UI.Xaml;
 namespace Cantus.Client.ViewModels;
 
 /// <summary>
-/// The "Players on this computer" section, shown only for a Local Session: every player app seen since
-/// launch with its on/off switch, and which one is followed. Switching a player writes
+/// The "Players on this computer" section, shown only for a Local Session: every player app seen while
+/// a Local Session is current, with its on/off switch, and which one is followed. Switching a player writes
 /// <see cref="LocalPlayerPreferences"/> through <see cref="ILocalPlayback.SetPlayerEnabled"/>.
 /// </summary>
 public sealed class LocalPlayersViewModel : INotifyPropertyChanged
@@ -29,6 +29,7 @@ public sealed class LocalPlayersViewModel : INotifyPropertyChanged
         _runOnUiThread = runOnUiThread ?? (action => action());
         if (_playback is not null)
         {
+            _playback.AvailabilityChanged += OnPlaybackChanged;
             _playback.PlayersChanged += OnPlaybackChanged;
             _playback.FollowedPlayerChanged += OnPlaybackChanged;
         }

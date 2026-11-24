@@ -32,7 +32,7 @@ public sealed class LocalSessionSetupViewModel : INotifyPropertyChanged
     private string _errorText = string.Empty;
     private bool _isBusy;
 
-    /// <param name="create">Signs out of any Session held, then creates the Local Session with the join code.</param>
+    /// <param name="create">Creates the Local Session with the join code, signing out of any Session held once it is accepted.</param>
     public LocalSessionSetupViewModel(Func<string?, Task<LocalSessionResult>> create)
     {
         _create = create;
@@ -75,13 +75,20 @@ public sealed class LocalSessionSetupViewModel : INotifyPropertyChanged
 
     public bool CanConnect => !_isBusy && (!_isJoinCodeVisible || _joinCodeText.Trim().Length > 0);
 
-    /// <summary>Starts a fresh attempt. The join code field shows up front when the server said it needs one.</summary>
+    /// <summary>
+    /// Starts a fresh attempt. The join code field shows up front when the server said it needs one.
+    /// Does nothing while an attempt is running, so that attempt keeps its state.
+    /// </summary>
     public void Reset(bool joinCodeRequired, string? joinCodePrefill)
     {
+        if (_isBusy)
+        {
+            return;
+        }
+
         _isJoinCodeVisible = joinCodeRequired;
         _joinCodeText = joinCodePrefill?.Trim() ?? string.Empty;
         _errorText = string.Empty;
-        _isBusy = false;
         OnPropertyChanged(string.Empty);
     }
 

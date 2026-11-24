@@ -314,6 +314,7 @@
                             <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="8">
                                 <Button Click="OnUseLocalPlayersClicked"
                                         Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                        IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
                                         HorizontalAlignment="Stretch"
                                         Background="#1AFFFFFF"
                                         BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"

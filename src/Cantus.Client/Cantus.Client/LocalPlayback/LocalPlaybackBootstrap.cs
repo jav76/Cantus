@@ -181,7 +181,10 @@ public sealed class LocalPlaybackBootstrap : ILocalPlayback, IAsyncDisposable
         AvailabilityChanged?.Invoke();
     }
 
-    public async Task<LocalSessionResult> CreateSessionAsync(string? joinCode, CancellationToken cancellationToken = default)
+    public async Task<LocalSessionResult> CreateSessionAsync(
+        string? joinCode,
+        Func<Task>? beforeConnect = null,
+        CancellationToken cancellationToken = default)
     {
         if (!IsSupported)
         {
@@ -214,6 +217,11 @@ public sealed class LocalPlaybackBootstrap : ILocalPlayback, IAsyncDisposable
         }
 
         _logger.LogInformation("Created a Local Session for this computer");
+        if (beforeConnect is not null)
+        {
+            await beforeConnect();
+        }
+
         await _client.ReconnectWithTokenAsync(result.Session.Id);
         SetLocalSession(true);
         return result;

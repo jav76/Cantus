@@ -103,6 +103,23 @@ public sealed class SessionViewModelLocalTests
     }
 
     [Fact]
+    public async Task IsLocalAvailable_StaysOnWhenTheSetupInfoCannotBeReadOnAReconnect()
+    {
+        // Arrange
+        SessionViewModel session = await CreateAvailableSessionAsync();
+        session.IsLocalAvailable.Should().BeTrue();
+
+        // Act
+        _info = null;
+        _client.Raise(c => c.Connected += null);
+        await session.RefreshLocalAvailabilityAsync();
+
+        // Assert
+        session.IsLocalAvailable.Should().BeTrue();
+        session.LocalChoiceVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
     public async Task LocalJoinCodeRequired_FollowsTheSetupInfo()
     {
         // Arrange
@@ -260,7 +277,7 @@ public sealed class SessionViewModelLocalTests
     }
 
     [Fact]
-    public async Task UseLocalPlayersAsync_FromASpotifySession_SignsOutThenCreatesTheLocalSession()
+    public async Task UseLocalPlayersAsync_FromASpotifySession_CreatesTheLocalSessionThenSignsOut()
     {
         // Arrange
         SessionViewModel session = await CreateAvailableSessionAsync();
@@ -272,8 +289,60 @@ public sealed class SessionViewModelLocalTests
 
         // Assert
         result.Status.Should().Be(LocalSessionStatus.Created);
-        _calls.Should().Equal("logout", "create");
+        _calls.Should().Equal("create", "logout");
         _local.SignedOutCount.Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(LocalSessionStatus.RateLimited)]
+    [InlineData(LocalSessionStatus.LimitReached)]
+    [InlineData(LocalSessionStatus.JoinCodeInvalid)]
+    [InlineData(LocalSessionStatus.Failed)]
+    public async Task UseLocalPlayersAsync_FromASpotifySession_WhenRefused_KeepsTheSpotifySession(LocalSessionStatus status)
+    {
+        // Arrange
+        SessionViewModel session = await CreateAvailableSessionAsync();
+        session.ApplySessions([Spotify()]);
+        _local.EnqueueResults(status);
+
+        // Act
+        LocalSessionResult result = await session.UseLocalPlayersAsync(null);
+
+        // Assert
+        result.Status.Should().Be(status);
+        _calls.Should().Equal("create");
+        _local.SignedOutCount.Should().Be(0);
+        session.CurrentUserSession!.Id.Should().Be("user-1");
+    }
+
+    [Fact]
+    public async Task UseLocalPlayers_WhileAnAttemptIsRunning_DoesNotStartASecond()
+    {
+        // Arrange
+        SessionViewModel session = await CreateAvailableSessionAsync();
+        _local.EnqueueResults(LocalSessionStatus.Created);
+        _local.Gate = new TaskCompletionSource();
+        session.LocalSetup.Reset(joinCodeRequired: false, joinCodePrefill: null);
+        session.CanUseLocalPlayers.Should().BeTrue();
+
+        // Act
+        Task<bool> first = session.LocalSetup.ConnectAsync();
+        session.LocalSetup.Reset(joinCodeRequired: false, joinCodePrefill: null);
+        bool second = await session.LocalSetup.ConnectAsync();
+
+        // Assert
+        session.CanUseLocalPlayers.Should().BeFalse();
+        second.Should().BeFalse();
+        session.LocalSetup.IsBusy.Should().BeTrue("the second click must not clear the running attempt");
+
+        // Act
+        _local.Gate.SetResult();
+
+        // Assert
+        (await first).Should().BeTrue();
+        _local.CreatedWithJoinCodes.Should().HaveCount(1);
+        session.CanUseLocalPlayers.Should().BeTrue();
+        session.LocalSetup.ErrorVisibility.Should().Be(Visibility.Collapsed);
     }
 
     [Fact]

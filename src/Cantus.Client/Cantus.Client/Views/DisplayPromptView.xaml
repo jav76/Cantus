@@ -56,6 +56,7 @@
                             </Button>
                             <Button Click="OnUseLocalPlayersClicked"
                                     Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                    IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
                                     Background="#1AFFFFFF"
                                     BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                                     BorderThickness="1"

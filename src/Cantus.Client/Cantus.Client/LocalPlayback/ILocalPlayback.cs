@@ -36,8 +36,15 @@ public interface ILocalPlayback
     /// <summary>Saves the player's switch; the followed player is chosen again right away.</summary>
     void SetPlayerEnabled(string appId, bool enabled);
 
-    /// <summary>Creates a Local Session for this computer and, when the server accepts, connects with it.</summary>
-    Task<LocalSessionResult> CreateSessionAsync(string? joinCode, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Creates a Local Session for this computer and, when the server accepts, connects with it.
+    /// <paramref name="beforeConnect"/> runs only after the server accepted, before connecting, so a
+    /// Session already held can be signed out without losing it on a refusal.
+    /// </summary>
+    Task<LocalSessionResult> CreateSessionAsync(
+        string? joinCode,
+        Func<Task>? beforeConnect = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Stops publishing because the owner signed out.</summary>
     void NotifySignedOut();

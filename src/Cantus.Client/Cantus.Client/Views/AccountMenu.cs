@@ -67,8 +67,13 @@ internal static class AccountMenu
             case AccountMenuItemKind.Header:
                 return new MenuFlyoutItem { Text = item.Text, IsEnabled = false };
             default:
-                MenuFlyoutItem command = new() { Text = item.Text, Icon = CreateIcon(item.Action) };
                 AccountMenuAction action = item.Action;
+                MenuFlyoutItem command = new()
+                {
+                    Text = item.Text,
+                    Icon = CreateIcon(action),
+                    IsEnabled = action != AccountMenuAction.UseLocalPlayersInstead || session.CanUseLocalPlayers,
+                };
                 command.Click += async (_, _) => await RunAsync(session, action, xamlRoot);
                 return command;
         }

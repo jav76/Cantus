@@ -170,6 +170,38 @@ public sealed class LocalSessionSetupViewModelTests
     }
 
     [Fact]
+    public async Task Reset_WhileAnAttemptIsRunning_KeepsItBusy()
+    {
+        // Arrange
+        TaskCompletionSource<LocalSessionResult> pending = new();
+        int creations = 0;
+        LocalSessionSetupViewModel setup = new(_ =>
+        {
+            creations++;
+            return pending.Task;
+        });
+        setup.Reset(joinCodeRequired: false, joinCodePrefill: null);
+        Task<bool> first = setup.ConnectAsync();
+
+        // Act
+        setup.Reset(joinCodeRequired: false, joinCodePrefill: null);
+        bool second = await setup.ConnectAsync();
+
+        // Assert
+        second.Should().BeFalse();
+        setup.IsBusy.Should().BeTrue();
+        setup.CanConnect.Should().BeFalse();
+        creations.Should().Be(1);
+
+        // Act
+        pending.SetResult(new LocalSessionResult(LocalSessionStatus.Created));
+
+        // Assert
+        (await first).Should().BeTrue();
+        setup.IsBusy.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task Reset_ClearsAnEarlierError()
     {
         // Arrange

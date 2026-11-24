@@ -25,6 +25,11 @@ internal static class LocalSessionSignIn
         try
         {
             LocalSessionSetupViewModel setup = session.LocalSetup;
+            if (setup.IsBusy)
+            {
+                return;
+            }
+
             setup.Reset(session.LocalJoinCodeRequired, session.JoinCodePrefill);
             if (!setup.IsJoinCodeVisible && await setup.ConnectAsync())
             {

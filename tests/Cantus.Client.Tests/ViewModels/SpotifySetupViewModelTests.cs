@@ -191,6 +191,23 @@ public sealed class SpotifySetupViewModelTests
         setup.ClientIdText.Should().Be("typed so far");
     }
 
+    [Fact]
+    public async Task RefreshInfoAsync_WhenTheFetchFails_KeepsTheInfoAlreadyKnown()
+    {
+        // Arrange
+        SpotifySetupInfoPayload known = Info(serverApp: true, ownAppsAllowed: true);
+        known.LocalSessionsEnabled = true;
+        (SpotifySetupViewModel setup, Mock<ISpotifySetupApi> api) = Create(known);
+        await setup.RefreshInfoAsync();
+        api.Setup(a => a.GetSetupInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync((SpotifySetupInfoPayload?)null);
+
+        // Act
+        await setup.RefreshInfoAsync();
+
+        // Assert
+        setup.Info.Should().BeSameAs(known);
+    }
+
     [Theory]
     [InlineData("?connect=spotify", true)]
     [InlineData("connect=Spotify", true)]

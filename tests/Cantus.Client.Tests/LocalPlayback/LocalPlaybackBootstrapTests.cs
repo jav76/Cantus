@@ -96,6 +96,55 @@ public sealed class LocalPlaybackBootstrapTests
         bootstrap.IsPublishing.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task CreateSessionAsync_RunsBeforeConnectOnlyOnceAcceptedAndBeforeReconnecting()
+    {
+        // Arrange
+        List<string> calls = new();
+        _sessionApi
+            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("create"))
+            .ReturnsAsync(Created());
+        _client
+            .Setup(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()))
+            .Callback(() => calls.Add("reconnect"))
+            .Returns(Task.CompletedTask);
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+
+        // Act
+        await bootstrap.CreateSessionAsync(null, () =>
+        {
+            calls.Add("sign out held");
+            return Task.CompletedTask;
+        });
+
+        // Assert
+        calls.Should().Equal("create", "sign out held", "reconnect");
+    }
+
+    [Fact]
+    public async Task CreateSessionAsync_WhenRefused_DoesNotRunBeforeConnect()
+    {
+        // Arrange
+        _sessionApi
+            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LocalSessionResult(LocalSessionStatus.RateLimited));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+        bool signedOut = false;
+
+        // Act
+        await bootstrap.CreateSessionAsync(null, () =>
+        {
+            signedOut = true;
+            return Task.CompletedTask;
+        });
+
+        // Assert
+        signedOut.Should().BeFalse();
+    }
+
     [Theory]
     [InlineData(LocalSessionStatus.Disabled)]
     [InlineData(LocalSessionStatus.JoinCodeRequired)]

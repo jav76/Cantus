@@ -30,6 +30,9 @@ internal sealed class FakeLocalPlayback : ILocalPlayback
     /// <summary>Runs when a creation starts, so a test can record the order of calls.</summary>
     public Action? OnCreate { get; set; }
 
+    /// <summary>When set, a creation waits on this until the test completes it.</summary>
+    public TaskCompletionSource? Gate { get; set; }
+
     public event Action? AvailabilityChanged;
 
     public event Action? PlayersChanged;
@@ -56,6 +59,9 @@ internal sealed class FakeLocalPlayback : ILocalPlayback
         PlayersChanged?.Invoke();
     }
 
+    /// <summary>Replaces the players without raising <see cref="PlayersChanged"/>, as a source that is still starting does.</summary>
+    public void SetPlayersSilently(params LocalPlayerSnapshot[] players) => Players = players;
+
     public void SetFollowed(LocalPlayerSnapshot? player)
     {
         FollowedPlayer = player;
@@ -70,14 +76,27 @@ internal sealed class FakeLocalPlayback : ILocalPlayback
         Switches.Add((appId, enabled));
     }
 
-    public Task<LocalSessionResult> CreateSessionAsync(string? joinCode, CancellationToken cancellationToken = default)
+    public async Task<LocalSessionResult> CreateSessionAsync(
+        string? joinCode,
+        Func<Task>? beforeConnect = null,
+        CancellationToken cancellationToken = default)
     {
         OnCreate?.Invoke();
         CreatedWithJoinCodes.Add(joinCode);
+        if (Gate is not null)
+        {
+            await Gate.Task;
+        }
+
         LocalSessionResult result = _results.Count > 0
             ? _results.Dequeue()
             : new LocalSessionResult(LocalSessionStatus.Failed);
-        return Task.FromResult(result);
+        if (result.Status == LocalSessionStatus.Created && beforeConnect is not null)
+        {
+            await beforeConnect();
+        }
+
+        return result;
     }
 
     public void NotifySignedOut() => SignedOutCount++;

@@ -125,6 +125,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <Button Click="OnUseLocalPlayersClicked"
                                 Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
                                 Background="#1AFFFFFF"
                                 BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                                 BorderThickness="1"
@@ -255,6 +256,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="6" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <Button Click="OnUseLocalPlayersClicked"
                                 Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
                                 Background="#1AFFFFFF"
                                 BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                                 BorderThickness="1"
@@ -302,6 +304,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="6" Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}">
                         <Button Click="OnUseLocalPlayersClicked"
                                 Visibility="{x:Bind Session.LocalChoiceVisibility, Mode=OneWay}"
+                                IsEnabled="{x:Bind Session.CanUseLocalPlayers, Mode=OneWay}"
                                 Background="#1AFFFFFF"
                                 BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
                                 BorderThickness="1"
