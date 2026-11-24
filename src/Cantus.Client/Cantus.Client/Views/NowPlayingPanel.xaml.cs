@@ -13,6 +13,8 @@ public sealed partial class NowPlayingPanel : UserControl
 {
     private const double SEEK_BAR_HEIGHT = 6.0;
     private const double SEEK_BAR_HOVER_HEIGHT = 8.0;
+    private const double MIN_FITTED_ART_SIZE = 120.0;
+    private const double ART_CAP_TOLERANCE = 0.5;
 
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.Register(
@@ -42,6 +44,51 @@ public sealed partial class NowPlayingPanel : UserControl
     {
         get => (ScrollViewer?)GetValue(ScrollerProperty);
         set => SetValue(ScrollerProperty, value);
+    }
+
+    /// <summary>
+    /// Shrinks the art so the whole panel fits the <see cref="Scroller"/>'s viewport, down to a minimum
+    /// size below which the panel scrolls. For a host where the player is the whole page.
+    /// </summary>
+    public static readonly DependencyProperty FitArtToHeightProperty =
+        DependencyProperty.Register(
+            nameof(FitArtToHeight),
+            typeof(bool),
+            typeof(NowPlayingPanel),
+            new PropertyMetadata(false, OnFitArtToHeightChanged));
+
+    public bool FitArtToHeight
+    {
+        get => (bool)GetValue(FitArtToHeightProperty);
+        set => SetValue(FitArtToHeightProperty, value);
+    }
+
+    /// <summary>Alignment of the title, artist and album lines.</summary>
+    public static readonly DependencyProperty TrackTextAlignmentProperty =
+        DependencyProperty.Register(
+            nameof(TrackTextAlignment),
+            typeof(TextAlignment),
+            typeof(NowPlayingPanel),
+            new PropertyMetadata(TextAlignment.Left));
+
+    public TextAlignment TrackTextAlignment
+    {
+        get => (TextAlignment)GetValue(TrackTextAlignmentProperty);
+        set => SetValue(TrackTextAlignmentProperty, value);
+    }
+
+    public static readonly DependencyProperty ArtHeightCapProperty =
+        DependencyProperty.Register(
+            nameof(ArtHeightCap),
+            typeof(double),
+            typeof(NowPlayingPanel),
+            new PropertyMetadata(double.PositiveInfinity));
+
+    /// <summary>The art's largest side under <see cref="FitArtToHeight"/>; unbounded otherwise.</summary>
+    public double ArtHeightCap
+    {
+        get => (double)GetValue(ArtHeightCapProperty);
+        private set => SetValue(ArtHeightCapProperty, value);
     }
 
     public static readonly DependencyProperty TransportProperty =
@@ -133,6 +180,13 @@ public sealed partial class NowPlayingPanel : UserControl
         {
             newScroller.SizeChanged += panel.OnScrollerSizeChanged;
         }
+
+        panel.UpdateArtHeightCap();
+    }
+
+    private static void OnFitArtToHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((NowPlayingPanel)d).UpdateArtHeightCap();
     }
 
     public NowPlayingPanel()
@@ -260,8 +314,35 @@ public sealed partial class NowPlayingPanel : UserControl
 
     private void OnScrollerSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        UpdateArtHeightCap();
         UpdateAlbumArtHeight(AlbumArtFrame.ActualWidth);
     }
+
+    // Sections such as transport feedback come and go, which changes the room left for the art.
+    private void OnPanelRootSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateArtHeightCap();
+    }
+
+    private void UpdateArtHeightCap()
+    {
+        double cap = double.PositiveInfinity;
+        if (FitArtToHeight && Scroller is ScrollViewer scroller)
+        {
+            cap = SquareArtSizing.GetHeightCap(
+                scroller.ViewportHeight,
+                PanelRoot.ActualHeight,
+                AlbumArtFrame.ActualHeight,
+                MIN_FITTED_ART_SIZE);
+        }
+
+        if (double.IsInfinity(cap) != double.IsInfinity(ArtHeightCap) || Math.Abs(cap - ArtHeightCap) > ART_CAP_TOLERANCE)
+        {
+            ArtHeightCap = cap;
+        }
+    }
+
+    public double GetArtMaxWidth(double layoutArtSize, double artHeightCap) => Math.Min(layoutArtSize, artHeightCap);
 
     private void UpdateAlbumArtHeight(double width)
     {

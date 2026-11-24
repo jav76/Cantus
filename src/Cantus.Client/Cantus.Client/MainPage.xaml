@@ -84,10 +84,27 @@
                         <views:LyricsStageView x:Name="MobileLyricsStage" Grid.Row="1" ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
                     </Grid>
 
-                    <!-- Tab 2: Full Track / Now Playing Mode -->
-                    <Grid Visibility="{x:Bind GetMobileNowPlayingVisibility(Layout.MobileView), Mode=OneWay}">
-                        <views:AdaptiveTrackCard ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
-                    </Grid>
+                    <!-- Tab 2: Track, the full player. The art fits the height so transport and volume
+                         stay on screen; the scroller only takes over on very short windows. The scroller
+                         extends into the card's right padding so its scrollbar sits in that gutter. -->
+                    <Border Visibility="{x:Bind GetMobileNowPlayingVisibility(Layout.MobileView), Mode=OneWay}"
+                            Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            CornerRadius="20"
+                            Padding="16">
+                        <ScrollViewer x:Name="MobileTrackScroller"
+                                      Margin="0,0,-12,0"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <views:NowPlayingPanel Margin="0,0,12,0"
+                                                   VerticalAlignment="Center"
+                                                   FitArtToHeight="True"
+                                                   TrackTextAlignment="Center"
+                                                   Scroller="{x:Bind MobileTrackScroller}"
+                                                   ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
+                        </ScrollViewer>
+                    </Border>
 
                     <!-- Tab 3: Settings & Precision Sync Mode -->
                     <Grid Visibility="{x:Bind GetMobileSettingsVisibility(Layout.MobileView), Mode=OneWay}">
