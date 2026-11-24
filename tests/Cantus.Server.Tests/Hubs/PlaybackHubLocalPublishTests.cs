@@ -233,9 +233,7 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
         await owner.StopAsync();
         await _host.WaitForServerDisconnectAsync(ownerConnectionId);
 
-        _host.Time.Advance(TimeSpan.FromSeconds(PUBLISHER_GRACE_SECONDS));
-
-        PlaybackStateDto frozen = await DisplayTestHost.WaitAsync(paused);
+        PlaybackStateDto frozen = await _host.AdvanceTimeUntilAsync(paused, TimeSpan.FromSeconds(PUBLISHER_GRACE_SECONDS));
         frozen.CurrentTrack.Should().NotBeNull("the track and lyrics are kept while the publisher is away");
         frozen.ActiveUserId.Should().BeNull();
         await DisplayTestHost.WaitAsync(offline);
@@ -256,8 +254,7 @@ public sealed class PlaybackHubLocalPublishTests : IClassFixture<WebApplicationF
         string publisherConnectionId = publisher.ConnectionId!;
         await publisher.StopAsync();
         await _host.WaitForServerDisconnectAsync(publisherConnectionId);
-        _host.Time.Advance(TimeSpan.FromSeconds(PUBLISHER_GRACE_SECONDS));
-        await DisplayTestHost.WaitAsync(offline);
+        await _host.AdvanceTimeUntilAsync(offline, TimeSpan.FromSeconds(PUBLISHER_GRACE_SECONDS));
 
         HubConnection ownerTab = await _host.ConnectAsync(local.Id);
         Task<DiagnosticsDto> subscribed = NextAsync<DiagnosticsDto>(ownerTab, nameof(IPlaybackClient.ReceiveDiagnostics));

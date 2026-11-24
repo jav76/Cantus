@@ -33,6 +33,7 @@ public sealed class DisplayTestHost : IAsyncDisposable
 
     private static readonly TimeSpan WAIT_TIMEOUT = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan POLL_INTERVAL = TimeSpan.FromMilliseconds(20);
+    private static readonly TimeSpan ADVANCE_SETTLE_INTERVAL = TimeSpan.FromMilliseconds(200);
 
     private readonly List<HubConnection> _connections = new();
 
@@ -139,11 +140,33 @@ public sealed class DisplayTestHost : IAsyncDisposable
             new DisplayPairingApprovalDto { Code = code, Name = name });
     }
 
-    /// <summary>Waits until the server has processed a connection's disconnect.</summary>
+    /// <summary>
+    /// Waits until the registry has dropped a connection. The hub's disconnect handler goes on to
+    /// release it elsewhere (for example the Local playback ingest) after that, so a test that needs
+    /// those later steps advances time with <see cref="AdvanceTimeUntilAsync{T}"/>.
+    /// </summary>
     public async Task WaitForServerDisconnectAsync(string connectionId)
     {
         IPlaybackSessionRegistry registry = Factory.Services.GetRequiredService<IPlaybackSessionRegistry>();
         await WaitUntilAsync(() => !registry.IsConnected(connectionId));
+    }
+
+    /// <summary>
+    /// Advances <see cref="Time"/> by <paramref name="step"/> until <paramref name="task"/> completes.
+    /// A timer the server arms just after an advance (such as a grace timer started later in a
+    /// disconnect handler) is still reached by the next step instead of hanging the test.
+    /// </summary>
+    public async Task<T> AdvanceTimeUntilAsync<T>(Task<T> task, TimeSpan step)
+    {
+        using CancellationTokenSource timeout = new(WAIT_TIMEOUT);
+        while (!task.IsCompleted)
+        {
+            Time.Advance(step);
+            await Task.WhenAny(task, Task.Delay(ADVANCE_SETTLE_INTERVAL, timeout.Token));
+            timeout.Token.ThrowIfCancellationRequested();
+        }
+
+        return await task;
     }
 
     public static Task<T> WaitAsync<T>(Task<T> task) => task.WaitAsync(WAIT_TIMEOUT);
