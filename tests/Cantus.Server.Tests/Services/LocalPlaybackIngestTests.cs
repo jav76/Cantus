@@ -88,6 +88,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         "null update",
         "no player",
         "blank player id",
+        "control-only player id",
         "long player id",
         "long player name",
         "long device name",
@@ -113,6 +114,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
             "null update" => null,
             "no player" => valid with { Player = null },
             "blank player id" => valid with { Player = new LocalPlayerDto { Id = "  ", Name = "Spotify" } },
+            "control-only player id" => valid with { Player = new LocalPlayerDto { Id = "\r\n\u0000", Name = "Spotify" } },
             "long player id" => valid with { Player = new LocalPlayerDto { Id = tooLongPlayerField } },
             "long player name" => valid with { Player = new LocalPlayerDto { Id = "spotify", Name = tooLongPlayerField } },
             "long device name" => valid with { DeviceName = tooLongPlayerField },
@@ -173,6 +175,33 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         state.CurrentTrack.Album.Should().Be("SMITHEREENS");
         state.CurrentTrack.AlbumArtUrl.Should().Be("https://i.scdn.co/image/abc");
         state.CurrentTrack.Duration.Should().Be(TimeSpan.FromMilliseconds(DURATION_MS));
+    }
+
+    [Fact]
+    public async Task Submit_WithControlCharactersInText_ReplacesThemSoTheyCannotForgeLogLines()
+    {
+        LocalPlaybackUpdateDto update = Update(1) with
+        {
+            DeviceName = "Spot\tify",
+            Track = Update(1).Track! with
+            {
+                Title = "Glimpse\r\n2026-11-23 12:00:00,000 INFO fake",
+                Artist = "Jo\u2028ji ",
+                Album = "\u0007"
+            }
+        };
+
+        _ingest.Submit(CONNECTION_A, _session, update).Should().Be(LocalPublishResult.Accepted);
+
+        PlaybackState state = (await WaitForUpdatesAsync(1))[0].State;
+        state.DeviceName.Should().Be("Spot ify");
+        state.CurrentTrack!.Title.Should().Be("Glimpse 2026-11-23 12:00:00,000 INFO fake");
+        state.CurrentTrack.Artist.Should().Be("Jo ji");
+        state.CurrentTrack.Album.Should().BeNull();
+        state.CurrentTrack.Id.Should().Be(TrackIdentity.DeriveLocalKey(
+            state.CurrentTrack.Title,
+            state.CurrentTrack.Artist,
+            TimeSpan.FromMilliseconds(DURATION_MS)));
     }
 
     public static TheoryData<long, double, string?, string?, long, double, string?, string?> ClampCases() => new()

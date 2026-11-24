@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Threading.Channels;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Logging;
@@ -455,8 +456,9 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
     }
 
     /// <summary>
-    /// Turns a publish into a Local playback state, or rejects it. Over-long or missing required
-    /// fields reject; a bad art URL or Spotify id is dropped; position and rate are clamped.
+    /// Turns a publish into a Local playback state, or rejects it. Text fields are cleaned first;
+    /// over-long or missing required fields reject; a bad art URL or Spotify id is dropped;
+    /// position and rate are clamped.
     /// </summary>
     private static bool TryBuildState(
         [NotNullWhen(true)] LocalPlaybackUpdateDto? update,
@@ -467,11 +469,17 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         state = null;
         claimedSpotifyTrackId = null;
 
-        if (update?.Player is not { Id: { } playerId } player
-            || string.IsNullOrWhiteSpace(playerId)
+        if (update?.Player is not { } player)
+        {
+            return false;
+        }
+
+        string? playerId = CleanText(player.Id);
+        string? deviceName = CleanText(update.DeviceName);
+        if (string.IsNullOrEmpty(playerId)
             || playerId.Length > MAX_PLAYER_FIELD_LENGTH
-            || (player.Name?.Length ?? 0) > MAX_PLAYER_FIELD_LENGTH
-            || (update.DeviceName?.Length ?? 0) > MAX_PLAYER_FIELD_LENGTH)
+            || (CleanText(player.Name)?.Length ?? 0) > MAX_PLAYER_FIELD_LENGTH
+            || (deviceName?.Length ?? 0) > MAX_PLAYER_FIELD_LENGTH)
         {
             return false;
         }
@@ -480,7 +488,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         {
             IsPlaying = false,
             TimestampUtc = ResolveTimestamp(update.PositionAtServerMs, receivedAt),
-            DeviceName = update.DeviceName,
+            DeviceName = deviceName,
             Source = PlaybackSource.Local,
             Capabilities = update.Capabilities.ToModel(),
             PlaybackRate = ClampRate(update.Rate)
@@ -493,19 +501,20 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         }
 
         LocalTrackDto track = update.Track;
-        if (string.IsNullOrWhiteSpace(track.Title)
-            || string.IsNullOrWhiteSpace(track.Artist)
-            || track.Title.Length > MAX_TRACK_FIELD_LENGTH
-            || track.Artist.Length > MAX_TRACK_FIELD_LENGTH
-            || (track.Album?.Length ?? 0) > MAX_TRACK_FIELD_LENGTH
+        string? title = CleanText(track.Title);
+        string? artist = CleanText(track.Artist);
+        string? album = CleanText(track.Album);
+        if (string.IsNullOrEmpty(title)
+            || string.IsNullOrEmpty(artist)
+            || title.Length > MAX_TRACK_FIELD_LENGTH
+            || artist.Length > MAX_TRACK_FIELD_LENGTH
+            || (album?.Length ?? 0) > MAX_TRACK_FIELD_LENGTH
             || track.DurationMs < MIN_DURATION_MS
             || track.DurationMs > MAX_DURATION_MS)
         {
             return false;
         }
 
-        string title = track.Title.Trim();
-        string artist = track.Artist.Trim();
         TimeSpan duration = TimeSpan.FromMilliseconds(track.DurationMs);
         claimedSpotifyTrackId = TrackIdentity.TryParseSpotifyTrackId(track.SpotifyTrackId, out string? spotifyId)
             ? spotifyId
@@ -518,7 +527,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
                 Id = TrackIdentity.DeriveLocalKey(title, artist, duration),
                 Title = title,
                 Artist = artist,
-                Album = string.IsNullOrWhiteSpace(track.Album) ? null : track.Album.Trim(),
+                Album = string.IsNullOrEmpty(album) ? null : album,
                 AlbumArtUrl = SanitizeArtUrl(track.AlbumArtUrl),
                 Duration = duration
             },
@@ -526,6 +535,33 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             Progress = TimeSpan.FromMilliseconds(Math.Clamp(update.PositionMs, 0, track.DurationMs))
         };
         return true;
+    }
+
+    /// <summary>
+    /// Replaces control characters and the Unicode line and paragraph separators with a space,
+    /// so a published name cannot start a forged line in a log, then collapses runs of spaces
+    /// and trims.
+    /// </summary>
+    private static string? CleanText(string? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        StringBuilder cleaned = new(value.Length);
+        foreach (char c in value)
+        {
+            char mapped = char.IsControl(c) || c is '\u2028' or '\u2029' ? ' ' : c;
+            if (mapped == ' ' && cleaned.Length > 0 && cleaned[^1] == ' ')
+            {
+                continue;
+            }
+
+            cleaned.Append(mapped);
+        }
+
+        return cleaned.ToString().Trim();
     }
 
     /// <summary>
