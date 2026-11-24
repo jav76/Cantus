@@ -10,8 +10,8 @@ namespace Cantus.Client.LocalPlayback;
 
 /// <summary>
 /// Opt-in wiring for local player publishing (<c>CANTUS_LOCAL_PLAYER=1</c>, desktop only). Starts the
-/// platform source, creates a Local Session when the client holds no Session, and runs the publisher
-/// only while the server says the authorized Session is a Local one.
+/// platform source, creates a Local Session when the client holds neither a Session nor a Display token,
+/// and runs the publisher only while the server says the authorized Session is a Local one.
 /// </summary>
 public sealed class LocalPlaybackBootstrap : IAsyncDisposable
 {
@@ -33,6 +33,9 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
     private bool _started;
     private bool _sourceReady;
     private bool _isLocalSession;
+    private bool _creatingSession;
+    private bool _retryCreationOnConnect;
+    private bool _disposed;
 
     public LocalPlaybackBootstrap(
         ISignalRPlaybackClient client,
@@ -53,6 +56,7 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
         _client.SessionsReceived += OnSessionsReceived;
         _client.AuthSessionReceived += OnAuthSessionReceived;
         _client.SessionRevoked += OnSessionRevoked;
+        _client.Connected += OnConnected;
     }
 
     public static bool IsEnabled(Func<string, string?> readVariable) =>
@@ -136,29 +140,87 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
 
         UpdatePublisher();
 
-        if (string.IsNullOrWhiteSpace(_client.SessionToken))
+        if (!string.IsNullOrWhiteSpace(_client.DisplayToken) && string.IsNullOrWhiteSpace(_client.SessionToken))
         {
-            try
-            {
-                await CreateLocalSessionAsync(cancellationToken);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.LogWarning(ex, "Could not create a Local Session");
-            }
+            _logger.LogInformation("This client is a paired Display, so no Local Session is created");
+            return;
         }
+
+        await TryCreateLocalSessionAsync(cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
+        lock (_gate)
+        {
+            _disposed = true;
+        }
+
         _client.SessionsReceived -= OnSessionsReceived;
         _client.AuthSessionReceived -= OnAuthSessionReceived;
         _client.SessionRevoked -= OnSessionRevoked;
+        _client.Connected -= OnConnected;
         _publisher.Dispose();
         await _source.DisposeAsync();
     }
 
-    private async Task CreateLocalSessionAsync(CancellationToken cancellationToken)
+    private bool NeedsLocalSession =>
+        string.IsNullOrWhiteSpace(_client.SessionToken) && string.IsNullOrWhiteSpace(_client.DisplayToken);
+
+    private void OnConnected()
+    {
+        lock (_gate)
+        {
+            if (!_retryCreationOnConnect)
+            {
+                return;
+            }
+        }
+
+        _ = TryCreateLocalSessionAsync(CancellationToken.None);
+    }
+
+    private async Task TryCreateLocalSessionAsync(CancellationToken cancellationToken)
+    {
+        lock (_gate)
+        {
+            if (_disposed || !NeedsLocalSession)
+            {
+                _retryCreationOnConnect = false;
+                return;
+            }
+
+            if (_creatingSession)
+            {
+                return;
+            }
+
+            _creatingSession = true;
+            _retryCreationOnConnect = false;
+        }
+
+        bool retry = false;
+        try
+        {
+            retry = await CreateLocalSessionAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Could not create a Local Session");
+            retry = true;
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _creatingSession = false;
+                _retryCreationOnConnect = retry;
+            }
+        }
+    }
+
+    /// <summary>Returns true when the failure may pass, so creation is tried again on the next connect.</summary>
+    private async Task<bool> CreateLocalSessionAsync(CancellationToken cancellationToken)
     {
         LocalSessionResult result = await _sessionApi.CreateAsync(_displayName, _joinCode, cancellationToken);
         switch (result.Status)
@@ -166,11 +228,11 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
             case LocalSessionStatus.Created when result.Session is not null:
                 _logger.LogInformation("Created a Local Session for this computer");
                 await _client.ReconnectWithTokenAsync(result.Session.Id);
-                break;
+                return false;
 
             case LocalSessionStatus.Disabled:
                 _logger.LogWarning("The server does not allow Local Sessions");
-                break;
+                return false;
 
             case LocalSessionStatus.JoinCodeRequired:
             case LocalSessionStatus.JoinCodeInvalid:
@@ -178,15 +240,20 @@ public sealed class LocalPlaybackBootstrap : IAsyncDisposable
                     "The server needs a valid join code for a Local Session ({Status}); set {Variable}",
                     result.Status,
                     JOIN_CODE_VARIABLE);
-                break;
+                return false;
 
             case LocalSessionStatus.LimitReached:
                 _logger.LogWarning("The server holds its maximum number of Local Sessions");
-                break;
+                return false;
+
+            case LocalSessionStatus.Failed:
+            case LocalSessionStatus.RateLimited:
+                _logger.LogWarning("Could not create a Local Session ({Status}); retrying on the next connect", result.Status);
+                return true;
 
             default:
                 _logger.LogWarning("Could not create a Local Session: {Status}", result.Status);
-                break;
+                return false;
         }
     }
 

@@ -157,6 +157,37 @@ public sealed class MprisPlayerStateTests
     }
 
     [Fact]
+    public void TimelineGeneration_MovesOnTrackStatusAndSeekChangesButNotOnAPositionRead()
+    {
+        // Arrange
+        MprisPlayerState state = new(MprisHostMaps.SPOTIFY_BUS_NAME, ":1.1");
+        state.ApplyPlayerProperties(MprisHostMaps.SpotifyPlayer(), T0);
+        int initial = state.TimelineGeneration;
+        Dictionary<string, object?> metadata = MprisHostMaps.SpotifyMetadata();
+        metadata["xesam:title"] = "Next Song";
+        metadata["mpris:trackid"] = "/com/spotify/track/2mlNgAeIBnL78ZriXgrRHz";
+
+        // Act & Assert
+        state.SetPosition(5_000_000, T0 + TimeSpan.FromSeconds(1));
+        state.TimelineGeneration.Should().Be(initial, "a read answers for the current timeline");
+
+        state.ApplyPlayerProperties(MprisHostMaps.SpotifyPlayer(), T0 + TimeSpan.FromSeconds(1));
+        state.TimelineGeneration.Should().Be(initial + 1, "GetAll carried a position");
+
+        state.ApplyPlayerProperties(new Dictionary<string, object?> { ["Metadata"] = metadata }, T0 + TimeSpan.FromSeconds(2));
+        state.TimelineGeneration.Should().Be(initial + 2);
+
+        state.ApplyPlayerProperties(new Dictionary<string, object?> { ["PlaybackStatus"] = "Paused" }, T0 + TimeSpan.FromSeconds(3));
+        state.TimelineGeneration.Should().Be(initial + 3);
+
+        state.ApplySeeked(30_000_000, T0 + TimeSpan.FromSeconds(4));
+        state.TimelineGeneration.Should().Be(initial + 4);
+
+        state.ApplyPlayerProperties(new Dictionary<string, object?> { ["CanSeek"] = false }, T0 + TimeSpan.FromSeconds(5));
+        state.TimelineGeneration.Should().Be(initial + 4, "a capability change leaves the timeline alone");
+    }
+
+    [Fact]
     public void ProjectPosition_ExtrapolatesWithTheRateAndStopsAtTheEnd()
     {
         // Arrange

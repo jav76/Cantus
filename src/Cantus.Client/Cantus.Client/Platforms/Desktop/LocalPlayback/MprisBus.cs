@@ -25,6 +25,12 @@ internal sealed class MprisBus : IDisposable
 
     public static bool HasSessionBusAddress => !string.IsNullOrWhiteSpace(Address.Session);
 
+    /// <summary>True when a call failed because the player's bus name no longer has an owner.</summary>
+    public static bool IsNameGone(Exception exception) => exception is DBusException
+    {
+        ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown" or "org.freedesktop.DBus.Error.NameHasNoOwner",
+    };
+
     public async Task ConnectAsync()
     {
         string? address = Address.Session;

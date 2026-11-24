@@ -119,6 +119,75 @@ public sealed class LocalPlaybackBootstrapTests
     }
 
     [Fact]
+    public async Task Start_OnAPairedDisplay_DoesNotCreateALocalSession()
+    {
+        // Arrange
+        _client.SetupGet(c => c.DisplayToken).Returns("display-token");
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+
+        // Act
+        await bootstrap.StartAsync();
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(LocalSessionStatus.Failed)]
+    [InlineData(LocalSessionStatus.RateLimited)]
+    public async Task Start_WhenCreationMayPass_RetriesOnTheNextConnect(LocalSessionStatus firstStatus)
+    {
+        // Arrange
+        _sessionApi
+            .SetupSequence(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LocalSessionResult(firstStatus))
+            .ReturnsAsync(new LocalSessionResult(
+                LocalSessionStatus.Created,
+                new AuthorizedSessionPayload { Id = LOCAL_SESSION_ID, Kind = AuthorizedSessionPayload.KIND_LOCAL }));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+        _client.Verify(c => c.ReconnectWithTokenAsync(It.IsAny<string?>()), Times.Never);
+
+        // Act
+        _client.Raise(c => c.Connected += null);
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        _client.Verify(c => c.ReconnectWithTokenAsync(LOCAL_SESSION_ID), Times.Once);
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData(LocalSessionStatus.Disabled)]
+    [InlineData(LocalSessionStatus.JoinCodeRequired)]
+    [InlineData(LocalSessionStatus.JoinCodeInvalid)]
+    [InlineData(LocalSessionStatus.InvalidDisplayName)]
+    [InlineData(LocalSessionStatus.LimitReached)]
+    public async Task Start_WhenTheServerRefusesForGood_DoesNotRetryOnConnect(LocalSessionStatus status)
+    {
+        // Arrange
+        _sessionApi
+            .Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LocalSessionResult(status));
+        LocalPlaybackBootstrap bootstrap = CreateBootstrap();
+        await bootstrap.StartAsync();
+
+        // Act
+        _client.Raise(c => c.Connected += null);
+
+        // Assert
+        _sessionApi.Verify(
+            a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task Start_OnAnUnsupportedPlatform_DoesNothing()
     {
         // Arrange

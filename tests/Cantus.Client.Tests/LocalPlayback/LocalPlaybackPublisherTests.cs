@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Cantus.Client.LocalPlayback;
 using Cantus.Client.Services;
@@ -105,7 +106,7 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
     }
 
     [Fact]
-    public void Connected_RestartsTheSequenceWithAFullSnapshot()
+    public void ANewConnection_RestartsTheSequenceWithAFullSnapshot()
     {
         // Arrange
         _source.SetPlayers(Spotify(Song()));
@@ -115,6 +116,7 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
         _sink.Published[1].Sequence.Should().Be(2);
 
         // Act
+        _sink.ConnectionId = "connection-2";
         _sink.RaiseConnected();
 
         // Assert
@@ -123,6 +125,61 @@ public sealed class LocalPlaybackPublisherTests : IDisposable
         snapshot.Sequence.Should().Be(1);
         snapshot.Track!.Title.Should().Be("Ballin");
         snapshot.IsPlaying.Should().BeFalse();
+    }
+
+    [Fact]
+    public void APublishOnANewConnectionBeforeConnectedIsRaised_StillRestartsTheSequence()
+    {
+        // Arrange
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+        _source.SetPlayers(Spotify(Song(), LocalPlayerStatus.Paused));
+        _sink.IsConnected = false;
+        _source.SetPlayers(Spotify(Song("Next", "Artist"), LocalPlayerStatus.Paused));
+
+        // Act: the hub reports Connected on the new connection before the client raises Connected.
+        _sink.ConnectionId = "connection-2";
+        _sink.IsConnected = true;
+        _clock.Advance(LocalPlaybackPublisher.TICK_INTERVAL);
+        _sink.RaiseConnected();
+
+        // Assert
+        _sink.Published.Select(p => p.Sequence).Should().Equal(1, 2, 1, 2);
+        _sink.Published[2].Track!.Title.Should().Be("Next");
+    }
+
+    [Fact]
+    public void Connected_OnTheSameConnection_SendsASnapshotWithTheNextSequence()
+    {
+        // Arrange: the first publish can go out before Connected is raised for the first connection.
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+
+        // Act
+        _sink.RaiseConnected();
+
+        // Assert
+        _sink.Published.Select(p => p.Sequence).Should().Equal(1, 2);
+    }
+
+    [Fact]
+    public async Task AResultFromAnEarlierConnection_IsIgnored()
+    {
+        // Arrange
+        TaskCompletionSource<int> inFlight = new();
+        _sink.Pending = inFlight;
+        _source.SetPlayers(Spotify(Song()));
+        _publisher.Start();
+
+        // Act: the connection changes while the first publish is in flight, and that publish fails.
+        _sink.ConnectionId = "connection-2";
+        _sink.RaiseConnected();
+        inFlight.SetResult((int)LocalPublishResult.RateLimited);
+
+        // Assert: the snapshot goes out on the new connection without waiting out a backoff.
+        await WaitUntilAsync(() => _sink.Published.Count >= 2);
+        _sink.Published.Should().HaveCount(2);
+        _sink.Published[1].Sequence.Should().Be(1);
     }
 
     [Fact]

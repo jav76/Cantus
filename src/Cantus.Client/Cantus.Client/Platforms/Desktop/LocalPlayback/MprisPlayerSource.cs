@@ -23,6 +23,10 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
     private readonly TimeProvider _clock;
     private readonly object _gate = new();
     private readonly Dictionary<string, MprisPlayerState> _players = new(StringComparer.Ordinal);
+
+    // Bumped on every NameOwnerChanged for a name, so an add that was still reading the player when
+    // its owner changed does not store a result for the old owner.
+    private readonly Dictionary<string, int> _ownerGenerations = new(StringComparer.Ordinal);
     private readonly List<IDisposable> _subscriptions = new();
 
     private MprisBus? _bus;
@@ -162,6 +166,12 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             return;
         }
 
+        int generation;
+        lock (_gate)
+        {
+            generation = OwnerGenerationLocked(busName);
+        }
+
         try
         {
             owner ??= await bus.GetNameOwnerAsync(busName);
@@ -174,6 +184,12 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
 
             lock (_gate)
             {
+                if (generation != OwnerGenerationLocked(busName))
+                {
+                    _logger.LogDebug("MPRIS player {Player} changed owner while it was being read", busName);
+                    return;
+                }
+
                 _players[busName] = state;
                 PublishSnapshotsLocked();
             }
@@ -210,23 +226,21 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             return;
         }
 
-        if (!string.IsNullOrEmpty(oldOwner))
+        bool removed;
+        lock (_gate)
         {
-            bool removed;
-            lock (_gate)
-            {
-                removed = _players.Remove(name);
-                if (removed)
-                {
-                    PublishSnapshotsLocked();
-                }
-            }
-
+            _ownerGenerations[name] = OwnerGenerationLocked(name) + 1;
+            removed = _players.Remove(name);
             if (removed)
             {
-                _logger.LogDebug("MPRIS player {Player} left", name);
-                RaisePlayersChanged();
+                PublishSnapshotsLocked();
             }
+        }
+
+        if (removed)
+        {
+            _logger.LogDebug("MPRIS player {Player} left", name);
+            RaisePlayersChanged();
         }
 
         if (!string.IsNullOrEmpty(newOwner))
@@ -348,6 +362,18 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
             return;
         }
 
+        MprisPlayerState? before;
+        int timeline;
+        lock (_gate)
+        {
+            if (!_players.TryGetValue(busName, out before))
+            {
+                return;
+            }
+
+            timeline = before.TimelineGeneration;
+        }
+
         long microseconds;
         try
         {
@@ -362,12 +388,21 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "Could not read the position of {Player}", busName);
+            if (MprisBus.IsNameGone(ex))
+            {
+                RemovePlayer(busName, before);
+            }
+
             return;
         }
 
         lock (_gate)
         {
-            if (!_players.TryGetValue(busName, out MprisPlayerState? state))
+            // Dropped when the player was replaced, or its track, status, rate or position changed while
+            // the read was in flight: the answer may describe the old timeline.
+            if (!_players.TryGetValue(busName, out MprisPlayerState? state)
+                || state != before
+                || state.TimelineGeneration != timeline)
             {
                 return;
             }
@@ -445,6 +480,26 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
 
         RaisePlayersChanged();
     }
+
+    private void RemovePlayer(string busName, MprisPlayerState expected)
+    {
+        lock (_gate)
+        {
+            if (!_players.TryGetValue(busName, out MprisPlayerState? state) || state != expected)
+            {
+                return;
+            }
+
+            _players.Remove(busName);
+            PublishSnapshotsLocked();
+        }
+
+        _logger.LogDebug("MPRIS player {Player} no longer has an owner; dropped it", busName);
+        RaisePlayersChanged();
+    }
+
+    private int OwnerGenerationLocked(string busName) =>
+        _ownerGenerations.TryGetValue(busName, out int generation) ? generation : 0;
 
     private List<MprisPlayerState> StatesOwnedByLocked(string owner) =>
         _players.Values.Where(p => p.Owner == owner).ToList();

@@ -59,6 +59,12 @@ public sealed class MprisPlayerState
 
     public int SeekGeneration { get; private set; }
 
+    /// <summary>
+    /// Bumped whenever the position base changes for a reason other than <see cref="SetPosition"/>, so a
+    /// position read that was started earlier can tell its answer is stale.
+    /// </summary>
+    public int TimelineGeneration { get; private set; }
+
     public string AppId => LocalPlayerIdentity.ResolveAppId(BusName, _desktopEntry);
 
     public string AppName => LocalPlayerIdentity.ResolveAppName(_identity, AppId);
@@ -142,7 +148,13 @@ public sealed class MprisPlayerState
             && MprisMetadataParser.ToInt64(positionValue) is long microseconds)
         {
             SetPosition(microseconds, now);
+            TimelineGeneration++;
             return false;
+        }
+
+        if (timelineChanged)
+        {
+            TimelineGeneration++;
         }
 
         return timelineChanged;
@@ -159,6 +171,7 @@ public sealed class MprisPlayerState
     {
         SetPosition(microseconds, now);
         SeekGeneration++;
+        TimelineGeneration++;
     }
 
     public LocalPlayerSnapshot ToSnapshot() => new(

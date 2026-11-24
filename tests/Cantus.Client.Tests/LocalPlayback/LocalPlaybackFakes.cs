@@ -80,6 +80,8 @@ internal sealed class FakeLocalPlaybackSink : ILocalPlaybackSink
 
     public bool IsConnected { get; set; } = true;
 
+    public string? ConnectionId { get; set; } = "connection-1";
+
     public long? ServerClockOffsetMs { get; set; } = 250;
 
     public List<LocalPlaybackUpdatePayload> Published { get; } = new();

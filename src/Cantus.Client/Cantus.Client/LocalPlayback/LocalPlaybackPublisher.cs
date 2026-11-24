@@ -44,7 +44,7 @@ public sealed class LocalPlaybackPublisher : IDisposable
     private bool _dirty;
     private bool _disposed;
     private long _sequence;
-    private long _connectionEpoch;
+    private string? _sequenceConnectionId;
     private TimeSpan _blockedUntil;
     private TimeSpan _rateLimitBackoff = RATE_LIMIT_FIRST_BACKOFF;
     private PublishedState? _lastSent;
@@ -65,8 +65,6 @@ public sealed class LocalPlaybackPublisher : IDisposable
         _preferences = preferences;
         _clock = clock;
 
-        // Subscribed for the publisher's lifetime so the sequence restarts on every new connection,
-        // even one made while the publisher is stopped.
         _sink.Connected += OnConnected;
     }
 
@@ -165,8 +163,6 @@ public sealed class LocalPlaybackPublisher : IDisposable
     {
         lock (_gate)
         {
-            _connectionEpoch++;
-            _sequence = 0;
             if (!_running)
             {
                 return;
@@ -216,7 +212,7 @@ public sealed class LocalPlaybackPublisher : IDisposable
         while (true)
         {
             LocalPlaybackUpdatePayload payload;
-            long epoch;
+            string? sentOn;
             lock (_gate)
             {
                 TimeSpan now = MonotonicClock.Now(_clock);
@@ -228,7 +224,7 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
                 Evaluate(now);
                 payload = BuildPayload(now);
-                epoch = _connectionEpoch;
+                sentOn = _sequenceConnectionId;
             }
 
             int result;
@@ -244,9 +240,8 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
             lock (_gate)
             {
-                // A result from an earlier connection says nothing about this one, which has
-                // already been asked for a fresh snapshot.
-                if (epoch == _connectionEpoch)
+                // A result from an earlier connection says nothing about the current one.
+                if (string.Equals(sentOn, _sink.ConnectionId, StringComparison.Ordinal))
                 {
                     HandleResult(result, payload);
                 }
@@ -317,6 +312,15 @@ public sealed class LocalPlaybackPublisher : IDisposable
 
     private LocalPlaybackUpdatePayload BuildPayload(TimeSpan now)
     {
+        // The server orders updates per connection, so the sequence follows the connection the payload
+        // goes out on. The Connected event can arrive after the first send on a new connection.
+        string? connectionId = _sink.ConnectionId;
+        if (!string.Equals(connectionId, _sequenceConnectionId, StringComparison.Ordinal))
+        {
+            _sequenceConnectionId = connectionId;
+            _sequence = 0;
+        }
+
         PublishedState state = Describe(_followed, now);
         long? offsetMs = _sink.ServerClockOffsetMs;
         long? positionAtServerMs = offsetMs is long offset

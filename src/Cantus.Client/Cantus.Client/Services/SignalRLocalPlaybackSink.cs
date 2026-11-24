@@ -17,6 +17,8 @@ public sealed class SignalRLocalPlaybackSink : ILocalPlaybackSink
 
     public bool IsConnected => _client.State == HubConnectionState.Connected;
 
+    public string? ConnectionId => _client.ConnectionId;
+
     public long? ServerClockOffsetMs => _client.IsClockSynced ? _client.ClockOffsetMs : null;
 
     public event Action? Connected
