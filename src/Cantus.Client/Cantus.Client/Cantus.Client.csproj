@@ -58,6 +58,27 @@
     <PackageReference Include="NAudio.Wasapi" />
   </ItemGroup>
 
+  <!--
+    Desktop app identity. The assembly stays Cantus.Client, because Uno names the settings folder after it
+    (~/.local/share/Cantus.Client), so only the published executable is renamed.
+  -->
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net10.0-browserwasm'">
+    <Product>Cantus</Product>
+    <AssemblyTitle>Cantus</AssemblyTitle>
+    <ApplicationIcon>..\..\..\packaging\icons\cantus.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-browserwasm'">
+    <Content Include="..\..\..\packaging\icons\cantus.png" Link="cantus.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="RenamePublishedDesktopExecutable" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net10.0-desktop'">
+    <PropertyGroup>
+      <_PublishedExecutable>$(PublishDir)$(AssemblyName)$(_NativeExecutableExtension)</_PublishedExecutable>
+    </PropertyGroup>
+    <Move SourceFiles="$(_PublishedExecutable)" DestinationFiles="$(PublishDir)Cantus$(_NativeExecutableExtension)" Condition="Exists('$(_PublishedExecutable)')" />
+  </Target>
+
   <!-- MPRIS on the desktop head. Pinned to the version Uno's X11 host is built against. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-desktop'">
     <PackageReference Include="Tmds.DBus.Protocol" />

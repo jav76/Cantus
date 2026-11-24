@@ -7,7 +7,7 @@
 #endif
 #define MyAppPublisher "Cantus"
 #define MyAppURL "https://github.com/jav76/Cantus"
-#define MyAppExeName "Cantus.Client.exe"
+#define MyAppExeName "Cantus.exe"
 
 [Setup]
 AppId={{D37E86E2-868C-4C67-9DC9-8BF9032A99E5}
@@ -26,12 +26,17 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=..\icons\cantus.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+; Installs before v0.5.1 named the executable Cantus.Client.exe.
+[InstallDelete]
+Type: files; Name: "{app}\Cantus.Client.exe"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs

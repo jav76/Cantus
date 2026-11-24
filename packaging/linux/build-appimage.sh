@@ -18,7 +18,7 @@ echo "    Source directory: ${SOURCE_DIR}"
 echo "    Output directory: ${OUTPUT_DIR}"
 
 # If no custom source directory was explicitly passed as argument, or if binaries don't exist, publish fresh binaries
-if [ "${PUBLISH_EXPLICIT}" -eq 0 ] || [ ! -d "${SOURCE_DIR}" ] || [ ! -f "${SOURCE_DIR}/Cantus.Client" ]; then
+if [ "${PUBLISH_EXPLICIT}" -eq 0 ] || [ ! -d "${SOURCE_DIR}" ] || [ ! -f "${SOURCE_DIR}/Cantus" ]; then
     echo "==> Running dotnet publish to ensure fresh Release binaries..."
     mkdir -p "${SOURCE_DIR}"
     dotnet publish "${REPO_ROOT}/src/Cantus.Client/Cantus.Client/Cantus.Client.csproj" \
@@ -38,18 +38,14 @@ mkdir -p "${APPDIR_TEMP}/usr/share/icons/hicolor/256x256/apps"
 
 # Copy published binaries
 cp -r "${SOURCE_DIR}/"* "${APPDIR_TEMP}/usr/bin/"
-chmod +x "${APPDIR_TEMP}/usr/bin/Cantus.Client"
+chmod +x "${APPDIR_TEMP}/usr/bin/Cantus"
 
 # Copy desktop and launcher scripts
 cp "${SCRIPT_DIR}/AppRun" "${APPDIR_TEMP}/AppRun"
 chmod +x "${APPDIR_TEMP}/AppRun"
 cp "${SCRIPT_DIR}/cantus.desktop" "${APPDIR_TEMP}/cantus.desktop"
 
-# Create minimal icon if none exists
-if [ ! -f "${APPDIR_TEMP}/cantus.png" ]; then
-    # Generate a clean placeholder PNG with valid base64
-    echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > "${APPDIR_TEMP}/cantus.png"
-fi
+cp "${REPO_ROOT}/packaging/icons/cantus.png" "${APPDIR_TEMP}/cantus.png"
 cp "${APPDIR_TEMP}/cantus.png" "${APPDIR_TEMP}/usr/share/icons/hicolor/256x256/apps/cantus.png"
 cp "${APPDIR_TEMP}/cantus.png" "${APPDIR_TEMP}/.DirIcon"
 

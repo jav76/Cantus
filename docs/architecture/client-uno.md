@@ -315,6 +315,16 @@ flowchart LR
 
 ---
 
+### Desktop App Identity
+
+- **Executable name.** The desktop head is published as `Cantus` (`Cantus.exe` on Windows): a target in `Cantus.Client.csproj` renames the file after `dotnet publish`. The assembly stays `Cantus.Client`, because Uno names the settings folder after it (`~/.local/share/Cantus.Client` on Linux); renaming the assembly would sign every user out. `dotnet run` and plain builds still produce `Cantus.Client`.
+- **Icon source.** `packaging/icons/cantus.svg` is the same artwork as the web tab icon in `WasmScripts/index.html`. `scripts/generate_app_icons.py` renders `cantus.png` (256 px) and `cantus.ico` (16 to 256 px) from it with librsvg; both are committed. Change the SVG and the inline tab icon together.
+- **Where the icon is used.** `cantus.ico` is the Windows executable icon (`ApplicationIcon`) and the installer icon. `cantus.png` ships next to the executable and is the AppImage icon.
+- **Linux window.** Uno's X11 host sets no `WM_CLASS` and reads an icon only from a package manifest. `App.ApplyDesktopWindowIdentity` (`Platforms/Desktop/App.Desktop.cs`) therefore calls `X11WindowIdentity`, which sets `WM_CLASS` to `cantus`/`Cantus` and `_NET_WM_ICON` from `cantus.png` through Xlib. `WM_CLASS` matches `StartupWMClass=Cantus` in `packaging/linux/cantus.desktop`, so the taskbar can group and pin the window. `WindowIconProperty` (in `Models`, unit tested) converts the PNG to the property's ARGB layout.
+- **Windows and macOS window.** These call `AppWindow.SetIcon` with `cantus.png`. Not yet verified on either platform.
+
+---
+
 ## Target Runtime Matrix
 
 | Platform Target | Target Framework | UI Backend | Packaging (release workflow) |

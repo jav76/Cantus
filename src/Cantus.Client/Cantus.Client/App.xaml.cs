@@ -53,8 +53,12 @@ public partial class App : Application
         MainWindow.Title = "Cantus - Real-Time Synced Lyrics";
         ApplyMinimumWindowSize(MainWindow);
 #endif
+        ApplyDesktopWindowIdentity(MainWindow);
         MainWindow.Activate();
     }
+
+    /// <summary>Sets the window icon and the app's window class. Implemented by the desktop head only.</summary>
+    partial void ApplyDesktopWindowIdentity(Window window);
 
 #if !__WASM__
     private static void ApplyMinimumWindowSize(Window window)
