@@ -23,6 +23,8 @@ public sealed class MprisPlayerState
     public const string PROPERTY_CAN_GO_PREVIOUS = "CanGoPrevious";
     public const string PROPERTY_CAN_SEEK = "CanSeek";
 
+    private const double RATE_CHANGE_TOLERANCE = 1e-6;
+
     private string? _identity;
     private string? _desktopEntry;
     private bool _canControl = true;
@@ -140,7 +142,7 @@ public sealed class MprisPlayerState
         if (properties.TryGetValue(PROPERTY_RATE, out object? rateValue)
             && rateValue is double rate
             && double.IsFinite(rate)
-            && rate != Rate)
+            && Math.Abs(rate - Rate) > RATE_CHANGE_TOLERANCE)
         {
             Freeze(now);
             Rate = rate;

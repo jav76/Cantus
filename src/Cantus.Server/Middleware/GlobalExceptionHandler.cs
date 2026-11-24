@@ -34,10 +34,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         _logger.LogError(
             exception,
             "Unhandled server exception occurred while processing HTTP {Method} {Path}{Query} [TraceId: {TraceId}]",
-            requestMethod,
-            requestPath,
-            queryString,
-            traceId);
+            LogSanitizer.SingleLine(requestMethod),
+            LogSanitizer.SingleLine(requestPath),
+            LogSanitizer.SingleLine(queryString),
+            LogSanitizer.SingleLine(traceId));
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
         httpContext.Response.ContentType = "application/problem+json";

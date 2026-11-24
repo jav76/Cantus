@@ -968,8 +968,14 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
     public async ValueTask DisposeAsync()
     {
         _isDisposed = true;
-        _reconnectPollerTimer?.Dispose();
-        _clockSyncTimer?.Dispose();
+        if (_reconnectPollerTimer is not null)
+        {
+            await _reconnectPollerTimer.DisposeAsync();
+        }
+        if (_clockSyncTimer is not null)
+        {
+            await _clockSyncTimer.DisposeAsync();
+        }
         if (_connection is not null)
         {
             await _connection.DisposeAsync();
