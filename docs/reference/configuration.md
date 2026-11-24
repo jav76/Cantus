@@ -161,6 +161,9 @@ CANTUS_SERVER_URL=https://lyrics.example.com ./Cantus-Linux-x64.AppImage
 
 > The WebAssembly client ignores both options: it is served by the Cantus server, so it always connects back to its own origin and uses the build's default log profile.
 
+### Environment Variable: `CANTUS_LOCAL_JOIN_CODE` (Desktop client only)
+Prefills the join code when you choose **Use this computer's players** on a server that requires one (`LocalSessions__JoinCode`). Optional: without it, Cantus asks for the code. See [Use This Computer's Players](../user-guide/local-players.md).
+
 ### Server Log Outputs
 | Profile | Console / Stdout | Rolling File | SQLite (`LogEntries` table) | `[TraceLog]` method tracing |
 | :--- | :--- | :---: | :---: | :---: |

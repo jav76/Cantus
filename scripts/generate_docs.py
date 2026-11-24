@@ -20,6 +20,7 @@ def validate_documentation_integrity():
         DOCS_DIR / INDEX_PAGE,
         DOCS_DIR / "user-guide" / INDEX_PAGE,
         DOCS_DIR / "user-guide" / "connect-spotify.md",
+        DOCS_DIR / "user-guide" / "local-players.md",
         DOCS_DIR / "user-guide" / "displays.md",
         DOCS_DIR / "user-guide" / "song-lookup.md",
         DOCS_DIR / "user-guide" / "playback-and-display.md",
