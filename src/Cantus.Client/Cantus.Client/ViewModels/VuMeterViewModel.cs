@@ -37,7 +37,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     private const float ATTACK = 0.6f;
     private const float RELEASE = 0.2f;
 
-    private readonly ILyricsPreferences _preferences;
+    private readonly IClientPreferences _preferences;
     private readonly IAudioLevelSourceProvider _provider;
     private readonly ILogger _logger;
     private readonly float[] _levels = new float[BAND_COUNT];
@@ -59,7 +59,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     private string _statusText = string.Empty;
 
     public VuMeterViewModel(
-        ILyricsPreferences preferences,
+        IClientPreferences preferences,
         IAudioLevelSourceProvider? provider = null,
         ILogger? logger = null)
     {

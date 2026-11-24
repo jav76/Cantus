@@ -195,6 +195,8 @@ internal sealed class OptimisticSeekAnchor
             RepeatMode = source.RepeatMode,
             ActiveUserId = source.ActiveUserId,
             ActiveUserDisplayName = source.ActiveUserDisplayName,
+            Source = source.Source,
+            Capabilities = source.Capabilities,
         };
     }
 }

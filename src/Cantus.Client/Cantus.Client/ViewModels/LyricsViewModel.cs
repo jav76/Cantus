@@ -22,7 +22,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private readonly ThemeManager _themeManager;
     private readonly ResponsiveLayoutManager _layoutManager;
     private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
-    private readonly ILyricsPreferences _preferences;
+    private readonly IClientPreferences _preferences;
     private readonly PlaybackTransport _transport;
     private readonly PlaybackTiming _timing;
     private readonly SessionViewModel _session;
@@ -488,7 +488,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         ISignalRPlaybackClient client,
         ThemeManager? themeManager = null,
         ResponsiveLayoutManager? layoutManager = null,
-        ILyricsPreferences? preferences = null,
+        IClientPreferences? preferences = null,
         IDisplayPairingApi? pairingApi = null,
         DisplayCredentialStore? displayCredentials = null,
         TimeProvider? timeProvider = null,
@@ -501,7 +501,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
         _layoutManager = layoutManager ?? ResponsiveLayoutManager.Instance;
-        _preferences = preferences ?? new LyricsPreferences(new LocalSettingsStore());
+        _preferences = preferences ?? new ClientPreferences(new LocalSettingsStore());
         _isAutoScrollEnabled = _preferences.IsAutoScrollEnabled;
         _isKaraokeModeEnabled = _preferences.IsKaraokeModeEnabled;
         _effects = new VisualEffectsViewModel(_preferences);
@@ -554,6 +554,14 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             timeProvider,
             RunOnUIThread);
         _pairing.DisplayEnded += () => ClearPlayback(resetTransport: true);
+        _effects.ApplyDeviceRole(_pairing.IsDisplay);
+        _pairing.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DisplayPairingViewModel.IsDisplay))
+            {
+                _effects.ApplyDeviceRole(_pairing.IsDisplay);
+            }
+        };
 
         _lyricsPicker = new LyricsPickerViewModel(
             lyricsCorrection ?? new LyricsCorrectionService(client),

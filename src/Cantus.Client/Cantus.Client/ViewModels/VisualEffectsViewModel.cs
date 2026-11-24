@@ -12,14 +12,16 @@ namespace Cantus.Client.ViewModels;
 /// The per-device post-processing effects. Grain, vignette and scanlines are
 /// overlay layers drawn over every theme; background blur swaps the Dynamic
 /// theme's album art backdrop for a blurred copy, and the VU meter draws level
-/// bars over the played part of the seek bar. Each toggle persists immediately;
-/// all default to off except the VU meter.
+/// bars over the played part of the seek bar. Each toggle persists immediately.
+/// Film grain, background blur and the VU meter default to on, vignette and
+/// scanlines to off, and a paired Display shows no grain until it is chosen
+/// there (<see cref="ApplyDeviceRole"/>).
 /// </summary>
 public sealed class VisualEffectsViewModel : INotifyPropertyChanged
 {
     public static IReadOnlyList<VisualEffect> AvailableEffects { get; } = Enum.GetValues<VisualEffect>();
 
-    private readonly ILyricsPreferences _preferences;
+    private readonly IClientPreferences _preferences;
 
     private bool _isFilmGrainEnabled;
     private bool _isVignetteEnabled;
@@ -27,7 +29,7 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
     private bool _isBackgroundBlurEnabled;
     private bool _isVuMeterEnabled;
 
-    public VisualEffectsViewModel(ILyricsPreferences preferences)
+    public VisualEffectsViewModel(IClientPreferences preferences)
     {
         _preferences = preferences;
         _isFilmGrainEnabled = preferences.IsFilmGrainEnabled;
@@ -120,6 +122,19 @@ public sealed class VisualEffectsViewModel : INotifyPropertyChanged
     /// <summary>Collapses the whole overlay when no overlay layer is on.</summary>
     public Visibility AnyOverlayEffectVisibility =>
         ToVisibility(_isFilmGrainEnabled || _isVignetteEnabled || _isScanlinesEnabled);
+
+    /// <summary>
+    /// Applies the film grain default for this device's role: off on a paired
+    /// Display, on otherwise. Does nothing once grain has been chosen on this
+    /// device, and never saves, so un-pairing restores the owner default.
+    /// </summary>
+    public void ApplyDeviceRole(bool isDisplay)
+    {
+        if (!_preferences.HasFilmGrainChoice)
+        {
+            SetOverlayEffect(ref _isFilmGrainEnabled, !isDisplay, nameof(FilmGrainVisibility), nameof(IsFilmGrainEnabled));
+        }
+    }
 
     public bool IsEnabled(VisualEffect effect) => effect switch
     {

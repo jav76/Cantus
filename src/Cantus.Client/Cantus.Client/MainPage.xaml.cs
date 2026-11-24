@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Cantus.Client.LocalPlayback;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.Services.Audio;
@@ -29,7 +30,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         SignalRPlaybackClient client = new(ClientStartupOptions.ServerUrl);
-        LyricsPreferences preferences = new(new LocalSettingsStore());
+        ClientPreferences preferences = new(new LocalSettingsStore());
         SongLookupClient lookupClient = new(client, new HttpClient());
         ViewModel = new LyricsViewModel(
             client,
@@ -38,6 +39,8 @@ public sealed partial class MainPage : Page
             preferences,
             lookupClient: lookupClient,
             audioLevelSources: new PlatformAudioLevelSourceProvider());
+        LocalPlaybackBootstrap? localPlayback =
+            LocalPlaybackBootstrap.CreateFromEnvironment(client, new LocalSettingsStore());
         this.InitializeComponent();
         OpenPairLink();
 
@@ -48,6 +51,9 @@ public sealed partial class MainPage : Page
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
             await ViewModel.InitializeAsync();
+            // Not awaited: it logs its own failures, and a slow player or server must not hold up the page.
+            _ = localPlayback?.StartAsync();
+
             await OpenConnectLinkAsync();
         };
 

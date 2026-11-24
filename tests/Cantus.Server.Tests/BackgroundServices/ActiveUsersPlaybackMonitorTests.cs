@@ -860,4 +860,134 @@ public sealed class ActiveUsersPlaybackMonitorTests
 
         registry.GetUserState("user-1")!.Lyrics.Should().BeSameAs(overridden);
     }
+
+    [Fact]
+    public async Task WhenSessionIsLocal_PollDoesNotWipeThePushedSnapshot()
+    {
+        const int LOOKUPS_FOR_ONE_FULL_ITERATION = 2;
+        PlaybackSessionRegistry registry = new();
+        PlaybackState pushed = CreateLocalPlayback();
+        registry.UpdateUserState("local-1", "Desktop", pushed, null, 0);
+        registry.RegisterConnection("conn-local", "local-1");
+        Mock<IPlaybackClient> localGroup = new();
+        _mockClients.Setup(c => c.Group("user_local-1")).Returns(localGroup.Object);
+        _mockClients.Setup(c => c.Group("display_local-1")).Returns(localGroup.Object);
+        TaskCompletionSource iterated = SignalAfterSessionLookups(LOOKUPS_FOR_ONE_FULL_ITERATION);
+
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            registry,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions { ActivePollIntervalMs = 50 }),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+
+        await RunUntilAsync(monitor, "two polls of the Local Session", iterated.Task);
+
+        registry.GetUserState("local-1")!.PlaybackState.Should().BeSameAs(pushed);
+        _mockSpotifyClient.Verify(
+            s => s.GetCurrentPlaybackAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        localGroup.Verify(c => c.ReceiveDiagnostics(It.IsAny<DiagnosticsDto>()), Times.Never);
+        localGroup.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task WhenRateLimitedAndSessionIsLocal_DoesNotBroadcastRateLimitedDiagnostics()
+    {
+        const int LOOKUPS_FOR_ONE_FULL_ITERATION = 2;
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "local-1" });
+        Mock<IPlaybackClient> localGroup = new();
+        _mockClients.Setup(c => c.Group("user_local-1")).Returns(localGroup.Object);
+        _mockClients.Setup(c => c.Group("display_local-1")).Returns(localGroup.Object);
+        TaskCompletionSource iterated = SignalAfterSessionLookups(LOOKUPS_FOR_ONE_FULL_ITERATION);
+
+        FakeTimeProvider timeProvider = new(DateTimeOffset.UtcNow);
+        SpotifyRateLimitGate gate = new(timeProvider);
+        gate.Report(TimeSpan.FromSeconds(1));
+
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions()),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance,
+            gate);
+
+        await RunUntilAsync(monitor, "two rate-limited passes over the Local Session", iterated.Task);
+
+        localGroup.Verify(c => c.ReceiveDiagnostics(It.IsAny<DiagnosticsDto>()), Times.Never);
+        _mockRegistry.Verify(
+            r => r.UpdateUserState(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<PlaybackState?>(), It.IsAny<SyncedLyrics?>(), It.IsAny<int>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task WhenALocalSessionRequestsAnImmediatePoll_TheLoopKeepsItsActiveCadence()
+    {
+        const int ACTIVE_POLL_INTERVAL_MS = 5_000;
+        _mockRegistry.Setup(r => r.HasConnectedClients).Returns(true);
+        _mockRegistry.Setup(r => r.GetActiveUserIdsWithConnectedClients())
+            .Returns(new HashSet<string> { "local-1" });
+        TaskCompletionSource firstLookup = SignalAfterSessionLookups(1);
+
+        ActiveUsersPlaybackMonitor monitor = new(
+            _mockScopeFactory.Object,
+            _mockRegistry.Object,
+            _mockHubContext.Object,
+            Options.Create(new PlaybackPollerOptions { ActivePollIntervalMs = ACTIVE_POLL_INTERVAL_MS }),
+            NullLogger<ActiveUsersPlaybackMonitor>.Instance);
+        monitor.TriggerImmediateUserPoll("local-1");
+
+        // A fixed wait is correct here: it asserts an absence. Pinned at the 500 ms minimum,
+        // the loop would look the Session up again well within this window.
+        await RunUntilAsync(monitor, "the first lookup of the Local Session", firstLookup.Task, Task.Delay(1_500));
+
+        _mockAuthService.Verify(
+            a => a.GetSessionForUserAsync("local-1", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    private TaskCompletionSource SignalAfterSessionLookups(int lookups)
+    {
+        UserSession localSession = new()
+        {
+            Id = "local-1",
+            Kind = SessionKind.Local,
+            DisplayName = "Desktop"
+        };
+
+        int calls = 0;
+        TaskCompletionSource signal = CreateSignal();
+        _mockAuthService.Setup(a => a.GetSessionForUserAsync("local-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(localSession)
+            .Callback(() =>
+            {
+                if (Interlocked.Increment(ref calls) >= lookups)
+                {
+                    signal.TrySetResult();
+                }
+            });
+        return signal;
+    }
+
+    private static PlaybackState CreateLocalPlayback()
+    {
+        return new PlaybackState
+        {
+            CurrentTrack = new TrackInfo
+            {
+                Id = "local:0123456789abcdef0123456789abcdef",
+                Title = "Song",
+                Artist = "Artist",
+                Duration = TimeSpan.FromMinutes(3)
+            },
+            IsPlaying = true,
+            Progress = TimeSpan.FromSeconds(30),
+            TimestampUtc = DateTimeOffset.UtcNow,
+            Source = PlaybackSource.Local,
+            Capabilities = new PlaybackCapabilities { CanPause = true }
+        };
+    }
 }

@@ -116,6 +116,7 @@ builder.Services.AddSingleton<IHostUrlResolver, HostUrlResolver>();
 builder.Services.AddSingleton<ISessionTokenResolver, SessionTokenResolver>();
 builder.Services.AddScoped<ICredentialResolver, CredentialResolver>();
 builder.Services.AddDisplayPairing(builder.Configuration);
+builder.Services.AddLocalSessions(builder.Configuration);
 builder.Services.AddSongLookup();
 builder.Services.AddScoped<SongPlaybackService>();
 builder.Services.AddScoped<ISongPlaybackService>(sp =>
@@ -222,7 +223,9 @@ using (IServiceScope scope = app.Services.CreateScope())
     }
 
     CantusDbContext dbContext = scope.ServiceProvider.GetRequiredService<CantusDbContext>();
-    dbContext.Database.Migrate();
+    bool backupBeforeMigrating = config.GetValue("Database:BackupBeforeMigrations", true);
+    ILogger migrationLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Cantus.Database");
+    DatabaseMigrator.Migrate(dbContext, backupBeforeMigrating, migrationLogger);
 }
 
 // 13. OpenAPI Endpoints

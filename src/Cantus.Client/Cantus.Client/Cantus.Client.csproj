@@ -60,6 +60,11 @@
     <PackageReference Include="NAudio.Wasapi" />
   </ItemGroup>
 
+  <!-- MPRIS on the desktop head. Pinned to the version Uno's X11 host is built against. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-desktop'">
+    <PackageReference Include="Tmds.DBus.Protocol" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <EmbeddedResource Include="WasmScripts\AppManifest.js" />
   </ItemGroup>

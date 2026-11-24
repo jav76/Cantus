@@ -26,7 +26,7 @@ public sealed class PlaybackTiming : INotifyPropertyChanged
     private const string ZERO_OFFSET_TEXT = "+0.0s";
 
     private readonly ISignalRPlaybackClient _client;
-    private readonly ILyricsPreferences _preferences;
+    private readonly IClientPreferences _preferences;
     private readonly Func<string?> _currentTrackId;
 
     private int _trackOffsetMs;
@@ -34,7 +34,7 @@ public sealed class PlaybackTiming : INotifyPropertyChanged
     private int _latencyCompensationMs;
 
     /// <param name="currentTrackId">The playing track's ID, or null when nothing plays.</param>
-    public PlaybackTiming(ISignalRPlaybackClient client, ILyricsPreferences preferences, Func<string?> currentTrackId)
+    public PlaybackTiming(ISignalRPlaybackClient client, IClientPreferences preferences, Func<string?> currentTrackId)
     {
         _client = client;
         _preferences = preferences;
@@ -81,7 +81,7 @@ public sealed class PlaybackTiming : INotifyPropertyChanged
         get => _latencyCompensationMs;
         internal set
         {
-            int clamped = LyricsPreferences.ClampLatency(value);
+            int clamped = ClientPreferences.ClampLatency(value);
             if (_latencyCompensationMs != clamped)
             {
                 _latencyCompensationMs = clamped;

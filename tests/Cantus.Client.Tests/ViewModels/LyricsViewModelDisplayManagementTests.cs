@@ -151,7 +151,7 @@ public sealed class LyricsViewModelDisplayManagementTests
                 Client.Object,
                 new ThemeManager(),
                 Layout,
-                new LyricsPreferences(new InMemorySettingsStore()),
+                new ClientPreferences(new InMemorySettingsStore()),
                 new Mock<IDisplayPairingApi>().Object,
                 new DisplayCredentialStore(new InMemorySettingsStore()),
                 displaysApi: Api.Object,

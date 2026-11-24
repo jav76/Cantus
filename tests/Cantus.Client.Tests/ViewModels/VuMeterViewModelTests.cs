@@ -36,7 +36,7 @@ public sealed class VuMeterViewModelTests
     public void Constructor_StoredSourceNotOnThisPlatform_FallsBackToTheDefault()
     {
         // Arrange
-        LyricsPreferences preferences = Preferences();
+        ClientPreferences preferences = Preferences();
         preferences.VuMeterSource = VuMeterSource.Microphone;
 
         // Act
@@ -301,7 +301,7 @@ public sealed class VuMeterViewModelTests
     public async Task SelectSource_StartsFromAClickAndPersistsTheChoice()
     {
         // Arrange
-        LyricsPreferences preferences = Preferences();
+        ClientPreferences preferences = Preferences();
         FakeProvider provider = new(defaultSource: VuMeterSource.Decorative);
         VuMeterViewModel meter = new(preferences, provider);
         List<string?> changed = [];
@@ -444,7 +444,7 @@ public sealed class VuMeterViewModelTests
     public void Constructor_StoredDisabled_DoesNotUpdate()
     {
         // Arrange
-        LyricsPreferences preferences = Preferences();
+        ClientPreferences preferences = Preferences();
         preferences.IsVuMeterEnabled = false;
         VuMeterViewModel meter = new(preferences);
         int updates = 0;
@@ -475,7 +475,7 @@ public sealed class VuMeterViewModelTests
         meter.SampleLevel(betweenFirstAndSecond).Should().BeApproximately((first + second) / 2, 1e-5f);
     }
 
-    private static LyricsPreferences Preferences() => new(new InMemorySettingsStore());
+    private static ClientPreferences Preferences() => new(new InMemorySettingsStore());
 
     private static float Peak(VuMeterViewModel meter)
     {

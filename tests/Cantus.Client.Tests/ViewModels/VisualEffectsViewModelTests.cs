@@ -12,47 +12,99 @@ namespace Cantus.Client.Tests.ViewModels;
 public sealed class VisualEffectsViewModelTests
 {
     [Fact]
-    public void Constructor_EmptyStore_OnlyTheVuMeterIsOn()
+    public void Constructor_EmptyStore_GrainBlurAndVuMeterOn_VignetteAndScanlinesOff()
     {
         // Act
-        VisualEffectsViewModel effects = new(new LyricsPreferences(new InMemorySettingsStore()));
+        VisualEffectsViewModel effects = new(new ClientPreferences(new InMemorySettingsStore()));
 
         // Assert
-        foreach (VisualEffect effect in VisualEffectsViewModel.AvailableEffects)
-        {
-            effects.IsEnabled(effect).Should().Be(effect == VisualEffect.VuMeter);
-        }
-
+        effects.IsFilmGrainEnabled.Should().BeTrue();
+        effects.IsBackgroundBlurEnabled.Should().BeTrue();
+        effects.IsVuMeterEnabled.Should().BeTrue();
+        effects.IsVignetteEnabled.Should().BeFalse();
+        effects.IsScanlinesEnabled.Should().BeFalse();
+        effects.FilmGrainVisibility.Should().Be(Visibility.Visible);
         effects.VuMeterVisibility.Should().Be(Visibility.Visible);
-
-        effects.FilmGrainVisibility.Should().Be(Visibility.Collapsed);
         effects.VignetteVisibility.Should().Be(Visibility.Collapsed);
         effects.ScanlinesVisibility.Should().Be(Visibility.Collapsed);
+        effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void ApplyDeviceRole_DisplayWithoutAChoice_TurnsGrainOffWithoutSaving()
+    {
+        // Arrange
+        InMemorySettingsStore store = new();
+        VisualEffectsViewModel effects = new(new ClientPreferences(store));
+        List<string?> notified = [];
+        effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        // Act
+        effects.ApplyDeviceRole(isDisplay: true);
+
+        // Assert
+        effects.IsFilmGrainEnabled.Should().BeFalse();
         effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Collapsed);
+        notified.Should().Contain([
+            nameof(VisualEffectsViewModel.IsFilmGrainEnabled),
+            nameof(VisualEffectsViewModel.FilmGrainVisibility),
+            nameof(VisualEffectsViewModel.AnyOverlayEffectVisibility)]);
+        store.Values.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ApplyDeviceRole_UnpairedAfterDisplay_RestoresTheOwnerDefault()
+    {
+        // Arrange
+        VisualEffectsViewModel effects = new(new ClientPreferences(new InMemorySettingsStore()));
+        effects.ApplyDeviceRole(isDisplay: true);
+
+        // Act
+        effects.ApplyDeviceRole(isDisplay: false);
+
+        // Assert
+        effects.IsFilmGrainEnabled.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ApplyDeviceRole_ExplicitGrainChoice_IsKeptOnADisplay(bool chosen)
+    {
+        // Arrange
+        ClientPreferences preferences = new(new InMemorySettingsStore()) { IsFilmGrainEnabled = chosen };
+        VisualEffectsViewModel effects = new(preferences);
+
+        // Act
+        effects.ApplyDeviceRole(isDisplay: true);
+        effects.ApplyDeviceRole(isDisplay: false);
+
+        // Assert
+        effects.IsFilmGrainEnabled.Should().Be(chosen);
     }
 
     [Fact]
     public void Constructor_ReadsStoredValues()
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore())
+        ClientPreferences preferences = new(new InMemorySettingsStore())
         {
-            IsFilmGrainEnabled = true,
-            IsVignetteEnabled = false,
+            IsFilmGrainEnabled = false,
+            IsVignetteEnabled = true,
             IsScanlinesEnabled = true,
-            IsBackgroundBlurEnabled = true,
+            IsBackgroundBlurEnabled = false,
         };
 
         // Act
         VisualEffectsViewModel effects = new(preferences);
 
         // Assert
-        effects.IsFilmGrainEnabled.Should().BeTrue();
-        effects.IsVignetteEnabled.Should().BeFalse();
+        effects.IsFilmGrainEnabled.Should().BeFalse();
+        effects.IsVignetteEnabled.Should().BeTrue();
         effects.IsScanlinesEnabled.Should().BeTrue();
-        effects.IsBackgroundBlurEnabled.Should().BeTrue();
-        effects.FilmGrainVisibility.Should().Be(Visibility.Visible);
-        effects.VignetteVisibility.Should().Be(Visibility.Collapsed);
+        effects.IsBackgroundBlurEnabled.Should().BeFalse();
+        effects.FilmGrainVisibility.Should().Be(Visibility.Collapsed);
+        effects.VignetteVisibility.Should().Be(Visibility.Visible);
         effects.ScanlinesVisibility.Should().Be(Visibility.Visible);
         effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Visible);
     }
@@ -65,7 +117,7 @@ public sealed class VisualEffectsViewModelTests
     public void SetEnabled_PersistsToTheMatchingPreference(VisualEffect effect)
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore());
+        ClientPreferences preferences = AllEffectsOff();
         VisualEffectsViewModel effects = new(preferences);
 
         // Act
@@ -93,7 +145,7 @@ public sealed class VisualEffectsViewModelTests
         string visibilityName)
     {
         // Arrange
-        VisualEffectsViewModel effects = new(new LyricsPreferences(new InMemorySettingsStore()));
+        VisualEffectsViewModel effects = new(AllEffectsOff());
         List<string?> notified = [];
         effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
@@ -109,7 +161,7 @@ public sealed class VisualEffectsViewModelTests
     public void EnablingBackgroundBlur_NotifiesWithoutShowingTheOverlay()
     {
         // Arrange
-        VisualEffectsViewModel effects = new(new LyricsPreferences(new InMemorySettingsStore()));
+        VisualEffectsViewModel effects = new(AllEffectsOff());
         List<string?> notified = [];
         effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
@@ -125,8 +177,9 @@ public sealed class VisualEffectsViewModelTests
     public void DisablingTheVuMeter_PersistsAndNotifiesWithoutShowingTheOverlay()
     {
         // Arrange
-        LyricsPreferences preferences = new(new InMemorySettingsStore());
+        ClientPreferences preferences = new(new InMemorySettingsStore());
         VisualEffectsViewModel effects = new(preferences);
+        Visibility overlayBefore = effects.AnyOverlayEffectVisibility;
         List<string?> notified = [];
         effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
@@ -137,7 +190,7 @@ public sealed class VisualEffectsViewModelTests
         notified.Should().Equal(nameof(VisualEffectsViewModel.IsVuMeterEnabled), nameof(VisualEffectsViewModel.VuMeterVisibility));
         effects.VuMeterVisibility.Should().Be(Visibility.Collapsed);
         preferences.IsVuMeterEnabled.Should().BeFalse();
-        effects.AnyOverlayEffectVisibility.Should().Be(Visibility.Collapsed);
+        effects.AnyOverlayEffectVisibility.Should().Be(overlayBefore);
     }
 
     [Theory]
@@ -149,7 +202,7 @@ public sealed class VisualEffectsViewModelTests
     public void SettingTheCurrentValue_DoesNotNotify(VisualEffect effect, bool defaultValue)
     {
         // Arrange
-        VisualEffectsViewModel effects = new(new LyricsPreferences(new InMemorySettingsStore()));
+        VisualEffectsViewModel effects = new(AllEffectsOff());
         List<string?> notified = [];
         effects.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
 
@@ -164,7 +217,7 @@ public sealed class VisualEffectsViewModelTests
     public void AnyOverlayEffectVisibility_StaysVisibleWhileAnotherLayerIsOn()
     {
         // Arrange
-        VisualEffectsViewModel effects = new(new LyricsPreferences(new InMemorySettingsStore()))
+        VisualEffectsViewModel effects = new(AllEffectsOff())
         {
             IsFilmGrainEnabled = true,
             IsVignetteEnabled = true,
@@ -190,4 +243,12 @@ public sealed class VisualEffectsViewModelTests
         VisualEffect.BackgroundBlur.GetDisplayName().Should().Contain("Dynamic theme");
         VisualEffect.VuMeter.GetDisplayName().Should().Be("Seek bar VU meter");
     }
+
+    private static ClientPreferences AllEffectsOff() => new(new InMemorySettingsStore())
+    {
+        IsFilmGrainEnabled = false,
+        IsVignetteEnabled = false,
+        IsScanlinesEnabled = false,
+        IsBackgroundBlurEnabled = false,
+    };
 }

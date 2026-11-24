@@ -147,7 +147,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
 
         _mockAuthService
             .Setup(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync(SessionKind.Spotify);
 
         HttpRequestMessage request = new(HttpMethod.Post, "/api/auth/logout");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");
@@ -219,7 +219,7 @@ public sealed class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Pro
 
         _mockAuthService
             .Setup(a => a.RevokeSessionAsync("sess-1", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync(SessionKind.Spotify);
 
         HttpRequestMessage message = new(HttpMethod.Delete, "/api/auth/sessions/sess-1");
         message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "sess-1");

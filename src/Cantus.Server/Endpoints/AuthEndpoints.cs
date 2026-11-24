@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cantus.Core.Interfaces;
 using Cantus.Core.Models;
+using Cantus.Infrastructure.Sessions;
 using Cantus.Infrastructure.Spotify;
 using Cantus.Server.Hubs;
 using Cantus.Server.Models;
@@ -23,6 +24,14 @@ public static class AuthEndpoints
 {
     public const string USER_CLIENT_ID_QUERY = "spotify_client_id";
     private const string USER_CLIENT_ID_COOKIE = "cantus_spotify_client_id";
+    public const string SESSION_COOKIE = "cantus_session_id";
+    public const string ERROR_LOCAL_SESSIONS_DISABLED = "local_sessions_disabled";
+    public const string ERROR_JOIN_CODE_REQUIRED = "join_code_required";
+    public const string ERROR_JOIN_CODE_INVALID = "join_code_invalid";
+    public const string ERROR_INVALID_DISPLAY_NAME = "invalid_display_name";
+    public const string ERROR_LOCAL_SESSION_LIMIT = "local_session_limit";
+
+    private const int SESSION_COOKIE_LIFETIME_DAYS = 30;
 
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -59,6 +68,11 @@ public static class AuthEndpoints
         group.MapDelete("/sessions/{userId}", HandleRevokeSession)
             .WithName("RevokeSession")
             .WithSummary("Revokes an authorized Spotify account session.");
+
+        group.MapPost("/local", HandleCreateLocalSession)
+            .RequireRateLimiting(LocalSessionOptions.RATE_LIMIT_POLICY)
+            .WithName("CreateLocalSession")
+            .WithSummary("Creates a Local Session, which shows what this computer's own players are playing.");
 
         group.MapPost("/logout", HandleLogout)
             .WithName("Logout")
@@ -269,13 +283,7 @@ public static class AuthEndpoints
 
             await BroadcastSessionAsync(hubContext, clientId, session.Id, dto);
 
-            context.Response.Cookies.Append("cantus_session_id", session.Id, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddDays(30)
-            });
+            AppendSessionCookie(context, session.Id);
 
             context.Response.Cookies.Delete("cantus_oauth_state");
             context.Response.Cookies.Delete("cantus_pkce_verifier");
@@ -347,6 +355,9 @@ public static class AuthEndpoints
         ICredentialResolver credentialResolver,
         IDisplayService displayService,
         IDisplayConnectionTracker displayConnections,
+        IPlaybackSessionRegistry registry,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -373,17 +384,14 @@ public static class AuthEndpoints
 
         bool revoked = await EndSessionAsync(
             userId,
-            authService,
-            displayService,
-            displayConnections,
+            new SessionEndServices(authService, displayService, displayConnections, registry, localIngest, applier),
             cancellationToken);
         if (!revoked)
         {
             return Results.NotFound(new { Message = $"Session '{userId}' not found." });
         }
 
-        await hubContext.Clients.Group($"user_{userId}").ReceiveSessionRevoked(userId);
-        await hubContext.Clients.Group($"user_{userId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+        await NotifySessionEndedAsync(hubContext, userId);
 
         return Results.Ok(new { Message = $"Session '{userId}' revoked." });
     }
@@ -394,6 +402,9 @@ public static class AuthEndpoints
         ICredentialResolver credentialResolver,
         IDisplayService displayService,
         IDisplayConnectionTracker displayConnections,
+        IPlaybackSessionRegistry registry,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
         IHubContext<PlaybackHub, IPlaybackClient> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -409,46 +420,169 @@ public static class AuthEndpoints
         {
             await EndSessionAsync(
                 sessionId,
-                authService,
-                displayService,
-                displayConnections,
+                new SessionEndServices(authService, displayService, displayConnections, registry, localIngest, applier),
                 cancellationToken);
-            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
-            await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+            await NotifySessionEndedAsync(hubContext, sessionId);
         }
 
-        context.Response.Cookies.Delete("cantus_session_id");
+        context.Response.Cookies.Delete(SESSION_COOKIE);
         return Results.Ok(new { Message = "Logged out and session revoked." });
     }
 
     /// <summary>
-    /// Revokes a Session and closes the live connections of its Displays, which the database
-    /// deletes along with it. Returns false when the Session does not exist.
+    /// Revokes a Session, drops its playback state and closes the live connections of its
+    /// Displays, which the database deletes along with it. Returns false when the Session does
+    /// not exist.
     /// </summary>
     private static async Task<bool> EndSessionAsync(
         string sessionId,
-        ISpotifyAuthService authService,
-        IDisplayService displayService,
-        IDisplayConnectionTracker displayConnections,
+        SessionEndServices services,
         CancellationToken cancellationToken)
     {
         // Listed before the deletion removes them, but closed only after it, so a closed
         // Display that reconnects presents a token that no longer validates.
-        IReadOnlyList<DisplayInfo> displays = await displayService.ListAsync(sessionId, cancellationToken);
-
-        bool revoked = await authService.RevokeSessionAsync(sessionId, cancellationToken);
-        if (!revoked)
+        IReadOnlyList<DisplayInfo> displays = await services.Displays.ListAsync(sessionId, cancellationToken);
+        SessionKind? revokedKind = await services.Auth.RevokeSessionAsync(sessionId, cancellationToken);
+        if (revokedKind is null)
         {
             return false;
         }
 
+        // A Spotify Session's snapshot is left to the poller until it moves onto the applier.
+        if (revokedKind == SessionKind.Local)
+        {
+            await ForgetLocalPlaybackAsync(sessionId, services.LocalIngest, services.Applier, services.Registry);
+        }
+
         foreach (DisplayInfo display in displays)
         {
-            await displayConnections.DisconnectAsync(display.Id);
+            await services.DisplayConnections.DisconnectAsync(display.Id);
         }
 
         return true;
     }
+
+    /// <summary>
+    /// Ends what the server holds live for Local Sessions the idle prune deleted, the same way a
+    /// logout does: their playback state, their clients' Session, and their Displays' connections.
+    /// </summary>
+    private static async Task ReleasePrunedSessionsAsync(
+        LocalSessionPruneResult pruned,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry,
+        IDisplayConnectionTracker displayConnections,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext)
+    {
+        foreach (string sessionId in pruned.SessionIds)
+        {
+            await ForgetLocalPlaybackAsync(sessionId, localIngest, applier, registry);
+            await NotifySessionEndedAsync(hubContext, sessionId);
+        }
+
+        foreach (string displayId in pruned.DisplayIds)
+        {
+            await displayConnections.DisconnectAsync(displayId);
+        }
+    }
+
+    private static async Task ForgetLocalPlaybackAsync(
+        string sessionId,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry)
+    {
+        await localIngest.ForgetAsync(sessionId);
+        applier.Forget(sessionId);
+        registry.RemoveUserState(sessionId);
+    }
+
+    private static async Task NotifySessionEndedAsync(IHubContext<PlaybackHub, IPlaybackClient> hubContext, string sessionId)
+    {
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessionRevoked(sessionId);
+        await hubContext.Clients.Group($"user_{sessionId}").ReceiveSessions(Array.Empty<AuthorizedSessionDto>());
+    }
+
+    /// <summary>
+    /// Creates a Local Session: no Spotify account, playback published by the desktop client.
+    /// Off unless the operator enables it; optionally gated by a join code compared in constant time.
+    /// </summary>
+    private static async Task<IResult> HandleCreateLocalSession(
+        [FromBody] LocalSessionRequestDto? request,
+        IOptions<LocalSessionOptions> options,
+        ILocalSessionService localSessions,
+        ILocalPlaybackIngest localIngest,
+        IPlaybackUpdateApplier applier,
+        IPlaybackSessionRegistry registry,
+        IDisplayConnectionTracker displayConnections,
+        IHubContext<PlaybackHub, IPlaybackClient> hubContext,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        LocalSessionOptions settings = options.Value;
+        if (!settings.Enabled)
+        {
+            return Error(StatusCodes.Status403Forbidden, ERROR_LOCAL_SESSIONS_DISABLED);
+        }
+
+        if (settings.RequiresJoinCode)
+        {
+            if (string.IsNullOrEmpty(request?.JoinCode))
+            {
+                return Error(StatusCodes.Status401Unauthorized, ERROR_JOIN_CODE_REQUIRED);
+            }
+
+            if (!JoinCodeMatches(request.JoinCode, settings.JoinCode))
+            {
+                return Error(StatusCodes.Status401Unauthorized, ERROR_JOIN_CODE_INVALID);
+            }
+        }
+
+        LocalSessionCreateResult result = await localSessions.CreateAsync(request?.DisplayName, cancellationToken);
+        await ReleasePrunedSessionsAsync(result.Pruned, localIngest, applier, registry, displayConnections, hubContext);
+        if (result is not { Status: LocalSessionCreateStatus.Created, Session: { } session })
+        {
+            return result.Status == LocalSessionCreateStatus.InvalidDisplayName
+                ? Error(StatusCodes.Status400BadRequest, ERROR_INVALID_DISPLAY_NAME)
+                : Error(StatusCodes.Status503ServiceUnavailable, ERROR_LOCAL_SESSION_LIMIT);
+        }
+
+        AppendSessionCookie(context, session.Id);
+        return Results.Ok(session.ToDto());
+    }
+
+    /// <summary>
+    /// Compares SHA-256 digests in constant time, so neither the code's content nor its length
+    /// leaks through timing.
+    /// </summary>
+    private static bool JoinCodeMatches(string candidate, string expected)
+    {
+        byte[] candidateHash = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(candidate));
+        byte[] expectedHash = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(expected));
+        return CryptographicOperations.FixedTimeEquals(candidateHash, expectedHash);
+    }
+
+    private static IResult Error(int statusCode, string error) =>
+        Results.Json(new ApiErrorDto(error), statusCode: statusCode);
+
+    private static void AppendSessionCookie(HttpContext context, string sessionId)
+    {
+        context.Response.Cookies.Append(SESSION_COOKIE, sessionId, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(SESSION_COOKIE_LIFETIME_DAYS)
+        });
+    }
+
+    private sealed record SessionEndServices(
+        ISpotifyAuthService Auth,
+        IDisplayService Displays,
+        IDisplayConnectionTracker DisplayConnections,
+        IPlaybackSessionRegistry Registry,
+        ILocalPlaybackIngest LocalIngest,
+        IPlaybackUpdateApplier Applier);
 
     private static IResult? TryValidateUserClientId(
         string? rawClientId,

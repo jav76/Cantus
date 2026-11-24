@@ -3,12 +3,19 @@ using Cantus.Client.Models;
 
 namespace Cantus.Client.Services;
 
-public sealed class LyricsPreferences : ILyricsPreferences
+public sealed class ClientPreferences : IClientPreferences
 {
     public const int DEFAULT_LATENCY_COMPENSATION_MS = 200;
     public const int MIN_LATENCY_COMPENSATION_MS = 0;
     public const int MAX_LATENCY_COMPENSATION_MS = 1000;
+    public const ThemeMode DEFAULT_THEME = ThemeMode.Dynamic;
+    public const bool DEFAULT_FILM_GRAIN_ENABLED = true;
+    public const bool DEFAULT_VIGNETTE_ENABLED = false;
+    public const bool DEFAULT_SCANLINES_ENABLED = false;
+    public const bool DEFAULT_BACKGROUND_BLUR_ENABLED = true;
+    public const bool DEFAULT_VU_METER_ENABLED = true;
 
+    private const string KEY_THEME = "cantus_theme";
     private const string KEY_AUTOSCROLL = "cantus_autoscroll";
     private const string KEY_KARAOKE = "cantus_karaoke";
     private const string KEY_LATENCY = "cantus_latency_ms";
@@ -20,54 +27,66 @@ public sealed class LyricsPreferences : ILyricsPreferences
     private const string KEY_VU_METER_SOURCE = "cantus_vu_meter_source";
     private const bool DEFAULT_AUTOSCROLL_ENABLED = true;
     private const bool DEFAULT_KARAOKE_ENABLED = true;
-    private const bool DEFAULT_EFFECT_ENABLED = false;
 
     private readonly ISettingsStore _store;
 
-    public LyricsPreferences(ISettingsStore store)
+    public ClientPreferences(ISettingsStore store)
     {
         _store = store;
     }
 
+    /// <summary>Stored by enum name, so reordering <see cref="ThemeMode"/> keeps saved choices.</summary>
+    public ThemeMode Theme
+    {
+        get => _store.GetValue(KEY_THEME) is string s
+            && Enum.TryParse(s, ignoreCase: true, out ThemeMode mode)
+            && Enum.IsDefined(mode)
+                ? mode
+                : DEFAULT_THEME;
+        set => _store.SetValue(KEY_THEME, value.ToString());
+    }
+
     public bool IsAutoScrollEnabled
     {
-        get => ReadBool(KEY_AUTOSCROLL, DEFAULT_AUTOSCROLL_ENABLED);
+        get => ReadBool(KEY_AUTOSCROLL) ?? DEFAULT_AUTOSCROLL_ENABLED;
         set => _store.SetValue(KEY_AUTOSCROLL, value);
     }
 
     public bool IsKaraokeModeEnabled
     {
-        get => ReadBool(KEY_KARAOKE, DEFAULT_KARAOKE_ENABLED);
+        get => ReadBool(KEY_KARAOKE) ?? DEFAULT_KARAOKE_ENABLED;
         set => _store.SetValue(KEY_KARAOKE, value);
     }
 
     public bool IsFilmGrainEnabled
     {
-        get => ReadBool(KEY_FILM_GRAIN, DEFAULT_EFFECT_ENABLED);
+        get => ReadBool(KEY_FILM_GRAIN) ?? DEFAULT_FILM_GRAIN_ENABLED;
         set => _store.SetValue(KEY_FILM_GRAIN, value);
     }
 
+    public bool HasFilmGrainChoice => ReadBool(KEY_FILM_GRAIN).HasValue;
+
     public bool IsVignetteEnabled
     {
-        get => ReadBool(KEY_VIGNETTE, DEFAULT_EFFECT_ENABLED);
+        get => ReadBool(KEY_VIGNETTE) ?? DEFAULT_VIGNETTE_ENABLED;
         set => _store.SetValue(KEY_VIGNETTE, value);
     }
 
     public bool IsScanlinesEnabled
     {
-        get => ReadBool(KEY_SCANLINES, DEFAULT_EFFECT_ENABLED);
+        get => ReadBool(KEY_SCANLINES) ?? DEFAULT_SCANLINES_ENABLED;
         set => _store.SetValue(KEY_SCANLINES, value);
     }
 
     public bool IsBackgroundBlurEnabled
     {
-        get => ReadBool(KEY_BACKGROUND_BLUR, DEFAULT_EFFECT_ENABLED);
+        get => ReadBool(KEY_BACKGROUND_BLUR) ?? DEFAULT_BACKGROUND_BLUR_ENABLED;
         set => _store.SetValue(KEY_BACKGROUND_BLUR, value);
     }
 
     public bool IsVuMeterEnabled
     {
-        get => ReadBool(KEY_VU_METER, true);
+        get => ReadBool(KEY_VU_METER) ?? DEFAULT_VU_METER_ENABLED;
         set => _store.SetValue(KEY_VU_METER, value);
     }
 
@@ -102,7 +121,7 @@ public sealed class LyricsPreferences : ILyricsPreferences
     public static int ClampLatency(int value) =>
         Math.Clamp(value, MIN_LATENCY_COMPENSATION_MS, MAX_LATENCY_COMPENSATION_MS);
 
-    private bool ReadBool(string key, bool defaultValue)
+    private bool? ReadBool(string key)
     {
         object? value = _store.GetValue(key);
         if (value is bool b)
@@ -115,6 +134,6 @@ public sealed class LyricsPreferences : ILyricsPreferences
             return parsed;
         }
 
-        return defaultValue;
+        return null;
     }
 }

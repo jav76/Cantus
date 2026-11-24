@@ -3,17 +3,26 @@ using Cantus.Client.Models;
 namespace Cantus.Client.Services;
 
 /// <summary>
-/// Per-device lyrics view preferences. Reads return the persisted value or the
-/// default; writes persist immediately.
+/// Per-device client preferences (theme, lyrics view, visual effects, latency).
+/// Reads return the persisted value or the default; writes persist immediately.
 /// </summary>
-public interface ILyricsPreferences
+public interface IClientPreferences
 {
+    /// <summary>The selected theme. Dynamic Palette by default.</summary>
+    ThemeMode Theme { get; set; }
+
     bool IsAutoScrollEnabled { get; set; }
 
     bool IsKaraokeModeEnabled { get; set; }
 
-    /// <summary>Animated film grain over the whole app. Off by default.</summary>
+    /// <summary>Animated film grain over the whole app. On by default.</summary>
     bool IsFilmGrainEnabled { get; set; }
+
+    /// <summary>
+    /// True once film grain has been saved on this device. Until then a paired
+    /// Display shows no grain while owners get the default.
+    /// </summary>
+    bool HasFilmGrainChoice { get; }
 
     /// <summary>Soft darkening towards the window edges. Off by default.</summary>
     bool IsVignetteEnabled { get; set; }
@@ -21,7 +30,7 @@ public interface ILyricsPreferences
     /// <summary>Faint horizontal CRT-style lines. Off by default.</summary>
     bool IsScanlinesEnabled { get; set; }
 
-    /// <summary>Blurs the album art backdrop of the Dynamic theme. Off by default.</summary>
+    /// <summary>Blurs the album art backdrop of the Dynamic theme. On by default.</summary>
     bool IsBackgroundBlurEnabled { get; set; }
 
     /// <summary>Level bars over the played part of the seek bar. On by default.</summary>

@@ -14,6 +14,9 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     TimeSpan ReconnectInterval { get; set; }
     long RttMs { get; }
     long ClockOffsetMs { get; }
+
+    /// <summary>False until the first clock-sync sample, while <see cref="ClockOffsetMs"/> is still a guess of 0.</summary>
+    bool IsClockSynced { get; }
     string TransportType { get; }
     HubConnectionState State { get; }
     string ClientId { get; }
@@ -23,6 +26,9 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     string ServerBaseUrl { get; }
 
     event Action<string>? ConnectionStateChanged;
+
+    /// <summary>Raised after every new hub connection, including automatic reconnects.</summary>
+    event Action? Connected;
     event Action<PlaybackStatePayload>? PlaybackStateReceived;
     event Action<LyricsPayload>? LyricsReceived;
     event Action<TrackOffsetPayload>? TrackOffsetReceived;
@@ -45,6 +51,11 @@ public interface ISignalRPlaybackClient : IAsyncDisposable
     Task<PlayerCommandResult> SeekPlaybackAsync(long positionMs);
     Task<PlayerCommandResult> SetShuffleAsync(bool enabled);
     Task<PlayerCommandResult> SetRepeatAsync(string repeatMode);
+    /// <summary>
+    /// Hub <c>PublishLocalPlayback</c>. Returns a <see cref="Cantus.Client.LocalPlayback.LocalPublishResult"/>
+    /// value: the server's code, or NotConnected when the call did not reach it.
+    /// </summary>
+    Task<int> PublishLocalPlaybackAsync(LocalPlaybackUpdatePayload update);
     Task SubscribeToUserAsync([Redact] string? userId);
     Task ReportVisibilityAsync(bool isVisible);
     Task RefreshPlaybackAsync();

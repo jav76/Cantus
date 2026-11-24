@@ -79,7 +79,7 @@ public sealed class PlaybackTimingTests
     public void AdjustLatencyCompensation_StepsClampsAndPersists()
     {
         // Arrange
-        (_, PlaybackTiming timing, LyricsPreferences preferences) = CreateTiming(DEFAULT_LATENCY_MS);
+        (_, PlaybackTiming timing, ClientPreferences preferences) = CreateTiming(DEFAULT_LATENCY_MS);
 
         // Act & Assert - one step earlier
         timing.AdjustLatencyCompensation(-PlaybackTiming.LATENCY_STEP_MS);
@@ -89,12 +89,12 @@ public sealed class PlaybackTimingTests
 
         // Act & Assert - clamped at both bounds
         timing.AdjustLatencyCompensation(-5000);
-        timing.LatencyCompensationMs.Should().Be(LyricsPreferences.MIN_LATENCY_COMPENSATION_MS);
+        timing.LatencyCompensationMs.Should().Be(ClientPreferences.MIN_LATENCY_COMPENSATION_MS);
 
         timing.AdjustLatencyCompensation(5000);
-        timing.LatencyCompensationMs.Should().Be(LyricsPreferences.MAX_LATENCY_COMPENSATION_MS);
+        timing.LatencyCompensationMs.Should().Be(ClientPreferences.MAX_LATENCY_COMPENSATION_MS);
         timing.CalibrationText.Should().Be("1000 ms");
-        preferences.LatencyCompensationMs.Should().Be(LyricsPreferences.MAX_LATENCY_COMPENSATION_MS);
+        preferences.LatencyCompensationMs.Should().Be(ClientPreferences.MAX_LATENCY_COMPENSATION_MS);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class PlaybackTimingTests
     public void AdjustLatencyCompensation_AtTheBound_RaisesNothing()
     {
         // Arrange
-        (_, PlaybackTiming timing, _) = CreateTiming(LyricsPreferences.MAX_LATENCY_COMPENSATION_MS);
+        (_, PlaybackTiming timing, _) = CreateTiming(ClientPreferences.MAX_LATENCY_COMPENSATION_MS);
         List<string?> raised = new();
         timing.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
 
@@ -249,13 +249,13 @@ public sealed class PlaybackTimingTests
         timing.OffsetText.Should().Be("+0.0s");
     }
 
-    private static (Mock<ISignalRPlaybackClient> Client, PlaybackTiming Timing, LyricsPreferences Preferences) CreateTiming(
+    private static (Mock<ISignalRPlaybackClient> Client, PlaybackTiming Timing, ClientPreferences Preferences) CreateTiming(
         int latencyMs,
         string? trackId = TRACK_ID)
     {
         Mock<ISignalRPlaybackClient> client = new();
         client.Setup(c => c.SetTrackOffsetAsync(It.IsAny<string>(), It.IsAny<int>())).Returns(Task.CompletedTask);
-        LyricsPreferences preferences = new(new InMemorySettingsStore())
+        ClientPreferences preferences = new(new InMemorySettingsStore())
         {
             LatencyCompensationMs = latencyMs,
         };

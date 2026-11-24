@@ -39,12 +39,12 @@ Pick a theme from either dropdown:
 - **Header bar:** the **Theme** button (a palette icon with a small arrow on tablet layouts) opens a menu that lists every theme, with a check next to the active one. On small screens the same list is under **Theme** in the overflow menu.
 - **Sync & Info tab (mobile):** the **Color theme** section has a dropdown of all themes.
 
-<kbd>T</kbd> still moves to the next theme in list order: Dynamic Palette, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, then back to Dynamic Palette. Every change shows a short toast with the theme name. The theme choice is not saved: each launch starts on Midnight Violet.
+<kbd>T</kbd> still moves to the next theme in list order: Dynamic Palette, Midnight Violet, Emerald Synth, Cyberpunk Sunset, Nordic Slate, OLED Monochrome, Solarized Dark, then back to Dynamic Palette. Every change shows a short toast with the theme name. The theme choice is saved per device, so the next launch opens on it. A device that has never chosen a theme starts on Dynamic Palette.
 
 | Theme Mode | Description | Ideal Use Case |
 | :--- | :--- | :--- |
-| **Dynamic Palette** | Adapts colors, glow, and text highlights to match the current album artwork. | Daily listening, TV living room display, visualizers. |
-| **Midnight Violet (Default)** | Deep indigo background with violet accents. | General use, low-light viewing. |
+| **Dynamic Palette (Default)** | Adapts colors, glow, and text highlights to match the current album artwork. | Daily listening, TV living room display, visualizers. |
+| **Midnight Violet** | Deep indigo background with violet accents. | General use, low-light viewing. |
 | **Emerald Synth** | Dark slate background with emerald green accents. | Night viewing, low eye strain. |
 | **Cyberpunk Sunset** | Dark purple-tinted background with neon rose and amber accents. | High-energy visuals. |
 | **Nordic Slate** | Deep slate-navy background with cyan and sky-blue accents. | Subtle, understated displays. |
@@ -57,7 +57,7 @@ Every theme is dark, and the whole interface follows it: text boxes, menus, drop
 
 ## Post-Processing Effects
 
-Optional effects you can combine freely. Each one is off by default, except the seek bar VU meter.
+Optional effects you can combine freely. **Film grain**, **Blur album background** and **Seek bar VU meter** are on by default, **Vignette** and **Scanlines** are off. A device paired as a [Display](displays.md) starts with film grain off to save power on TVs and small boards, until you switch it on there.
 
 | Effect | What it does | Applies to |
 | :--- | :--- | :--- |
@@ -68,7 +68,7 @@ Optional effects you can combine freely. Each one is off by default, except the 
 | **Seek bar VU meter** | Thin level bars behind the seek bar, low to high frequency from left to right, shown only over the part of the track that has played. | The track card and the kiosk bar |
 
 - Toggle them in the theme menu, below the list of themes (on small screens: overflow menu, **Theme**), or with the checkboxes under **Effects** in the **Color theme** section on the mobile **Sync & Info** tab.
-- Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices.
+- Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices. Once you switch an effect on or off, your choice is kept even if the defaults change in a later release.
 - **Blur album background** (labelled **Blur album background (Dynamic theme)** in the theme menu) can be switched on in any theme, but it only changes something in Dynamic Palette, the one theme with an album art backdrop. The sharp cover shows first and the blurred one replaces it a moment later. If the blur fails, the sharp cover stays.
 - All effects are subtle, so lyrics stay readable. The grain animation stops while film grain is off.
 
@@ -87,6 +87,13 @@ The bars use the theme's accent colour. They fall flat when playback pauses and 
 - When a live source hears nothing for a moment (nothing playing, or the music plays elsewhere), the decorative pattern takes over until sound returns.
 - Browsers only allow microphone and screen capture on HTTPS or `localhost`. Over plain HTTP on your network, only **Decorative** is offered.
 - Audio never leaves the device: it is analysed locally and nothing is sent to the server.
+
+### Where settings are saved
+
+The theme, effects, Karaoke, auto-scroll and device latency are kept on the device, never on the server:
+
+- **Web app:** in the browser's local storage for the Cantus address you opened. A different browser, a private window, or a different server address or port starts with the defaults. Clearing the site's data resets them.
+- **Desktop app:** in the app data folder of your OS user (`~/.local/share/Cantus.Client/Settings` on Linux).
 
 ---
 

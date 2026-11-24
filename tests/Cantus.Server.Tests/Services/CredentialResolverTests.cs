@@ -138,7 +138,7 @@ public sealed class CredentialResolverTests : IDisposable
     {
         UserSessionEntity owner = await _store.SeedSessionAsync("Owner");
 
-        CallerCredential? caller = await Resolve(WithCookie(cookie, owner.SpotifyUserId));
+        CallerCredential? caller = await Resolve(WithCookie(cookie, owner.RequiredSpotifyUserId()));
 
         caller.Should().BeNull();
     }

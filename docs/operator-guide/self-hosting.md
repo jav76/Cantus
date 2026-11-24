@@ -84,6 +84,10 @@ docker compose exec cantus tar -czf /tmp/cantus-backup.tar.gz -C /app/data .
 docker compose cp cantus:/tmp/cantus-backup.tar.gz ./cantus-backup-$(date +%Y%m%d).tar.gz
 ```
 
+### Automatic Copies Before Upgrades
+
+When a new version changes the database schema, Cantus copies the existing database before migrating it, as `cantus.db.pre-<migration>.bak` in the same folder (`/app/data` in Docker). The 3 newest copies are kept. If an upgrade is interrupted, stop the container, delete `cantus.db-wal` and `cantus.db-shm` if present, replace `cantus.db` with the newest copy and start again. The copy does not include the encryption keys, so keep making full backups as shown above. Set `Database__BackupBeforeMigrations=false` to turn this off.
+
 ### Restoring from Backup
 
 To restore on a new server:
