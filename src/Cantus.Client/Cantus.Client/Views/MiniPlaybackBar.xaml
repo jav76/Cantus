@@ -35,7 +35,7 @@
                 <TextBlock Text="{x:Bind ViewModel.CurrentArtist, Mode=OneWay}" FontSize="13" Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
-            <!-- Progress Bar (click to seek; hover shows a scrub thumb) -->
+            <!-- Progress Bar (click to seek; hover shows a scrub thumb and holds the VU meter still) -->
             <Grid x:Name="SeekArea"
                   Grid.Column="2"
                   Background="Transparent"
@@ -47,7 +47,15 @@
                   PointerEntered="OnSeekBarPointerEntered"
                   PointerMoved="OnSeekBarPointerMoved"
                   PointerExited="OnSeekBarPointerExited"
+                  PointerCanceled="OnSeekBarPointerExited"
                   ToolTipService.ToolTip="Seek">
+                <views:VuMeterBars Meter="{x:Bind ViewModel.VuMeter, Mode=OneWay}"
+                                   Progress="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
+                                   BarBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                   RestThickness="4"
+                                   Height="16"
+                                   Opacity="0.55"
+                                   VerticalAlignment="Center" />
                 <ProgressBar x:Name="SeekProgressBar"
                              Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                              Minimum="0"

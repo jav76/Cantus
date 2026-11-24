@@ -8,6 +8,7 @@ using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.UI.Xaml;
 
 namespace Cantus.Client.ViewModels;
 
@@ -115,6 +116,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 
             _isEnabled = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(SourcePickerVisibility));
             if (!value)
             {
                 StopSource();
@@ -135,13 +137,17 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         set => SelectSource(value);
     }
 
-    /// <summary>Index into <see cref="AvailableSources"/>, for a ComboBox.</summary>
+    /// <summary>
+    /// Index into <see cref="AvailableSources"/>, for a ComboBox. Writing the
+    /// current index does nothing, so a two-way binding echoing the value back
+    /// never restarts the source.
+    /// </summary>
     public int SelectedSourceIndex
     {
         get => IndexOf(_selectedSource);
         set
         {
-            if (value >= 0 && value < AvailableSources.Count)
+            if (value >= 0 && value < AvailableSources.Count && value != IndexOf(_selectedSource))
             {
                 SelectSource(AvailableSources[value]);
             }
@@ -160,6 +166,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
 
             _mode = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(ModeSummary));
             RefreshStatus();
         }
     }
@@ -179,6 +186,14 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged();
         }
     }
+
+    /// <summary>A few words for menus: whether the bars are live or decorative right now.</summary>
+    public string ModeSummary => _mode == VuMeterMode.Live
+        ? $"Showing live {_selectedSource.GetDisplayName().ToLowerInvariant()}"
+        : "Showing decorative bars";
+
+    /// <summary>The source picker only matters when the meter is on and the platform has a live source.</summary>
+    public Visibility SourcePickerVisibility => _isEnabled && HasLiveSources ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>True while the pointer is over a clickable seek bar; the bars hold still.</summary>
     public bool IsFrozen => _isPointerOver && _isEnabled;
@@ -212,6 +227,7 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         {
             OnPropertyChanged(nameof(SelectedSource));
             OnPropertyChanged(nameof(SelectedSourceIndex));
+            OnPropertyChanged(nameof(ModeSummary));
         }
 
         PendingStart = RestartSourceAsync(isUserInitiated: true);

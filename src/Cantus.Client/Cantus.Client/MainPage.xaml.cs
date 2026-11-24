@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
+using Cantus.Client.Services.Audio;
 using Cantus.Client.ViewModels;
 using Cantus.Client.Views;
 using Microsoft.UI.Xaml;
@@ -35,7 +36,8 @@ public sealed partial class MainPage : Page
             ThemeManager.Instance,
             ResponsiveLayoutManager.Instance,
             preferences,
-            lookupClient: lookupClient);
+            lookupClient: lookupClient,
+            audioLevelSources: new PlatformAudioLevelSourceProvider());
         this.InitializeComponent();
         OpenPairLink();
 

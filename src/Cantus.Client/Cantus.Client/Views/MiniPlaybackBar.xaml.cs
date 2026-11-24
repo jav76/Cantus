@@ -102,6 +102,13 @@ public sealed partial class MiniPlaybackBar : UserControl
     public MiniPlaybackBar()
     {
         this.InitializeComponent();
+        SeekArea.RegisterPropertyChangedCallback(IsHitTestVisibleProperty, (s, dp) =>
+        {
+            if (!SeekArea.IsHitTestVisible)
+            {
+                EndSeekHover();
+            }
+        });
         Loaded += (_, _) => AttachLayout(Layout);
         Unloaded += (_, _) => DetachLayout(Layout);
     }
@@ -170,6 +177,7 @@ public sealed partial class MiniPlaybackBar : UserControl
     {
         SeekHoverThumb.Visibility = Visibility.Visible;
         SeekProgressBar.Height = SEEK_BAR_HOVER_HEIGHT;
+        ViewModel?.VuMeter.SetPointerOver(true);
         PositionSeekThumb(sender, e);
     }
 
@@ -180,8 +188,15 @@ public sealed partial class MiniPlaybackBar : UserControl
 
     private void OnSeekBarPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
+        EndSeekHover();
+    }
+
+    // Also runs when the bar stops being clickable under the pointer, which raises no PointerExited.
+    private void EndSeekHover()
+    {
         SeekHoverThumb.Visibility = Visibility.Collapsed;
         SeekProgressBar.Height = SEEK_BAR_HEIGHT;
+        ViewModel?.VuMeter.SetPointerOver(false);
     }
 
     private void PositionSeekThumb(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

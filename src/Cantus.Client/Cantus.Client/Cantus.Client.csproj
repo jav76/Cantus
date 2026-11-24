@@ -30,6 +30,11 @@
     <WasmNativeStrip>false</WasmNativeStrip>
   </PropertyGroup>
 
+  <!-- [JSImport] interop for the VU meter's browser audio source. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Cantus.Core\Cantus.Core.csproj" />
     <ProjectReference Include="..\..\Cantus.Generators\Cantus.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -48,6 +53,11 @@
   <ItemGroup>
     <!-- The icon paths are compiled in (Icons/CantusIcons.g.cs); their licence ships as a file like the font licences. -->
     <Content Include="Icons\LICENSE-Phosphor.txt" />
+  </ItemGroup>
+
+  <!-- WASAPI loopback for the VU meter on Windows (desktop and WinUI heads); only loaded on Windows. -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-browserwasm'">
+    <PackageReference Include="NAudio.Wasapi" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">

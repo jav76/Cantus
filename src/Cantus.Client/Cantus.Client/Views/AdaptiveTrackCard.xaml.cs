@@ -130,6 +130,13 @@ public sealed partial class AdaptiveTrackCard : UserControl
     public AdaptiveTrackCard()
     {
         InitializeComponent();
+        SeekArea.RegisterPropertyChangedCallback(IsHitTestVisibleProperty, (s, dp) =>
+        {
+            if (!SeekArea.IsHitTestVisible)
+            {
+                EndSeekHover();
+            }
+        });
     }
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
@@ -182,6 +189,7 @@ public sealed partial class AdaptiveTrackCard : UserControl
     {
         SeekHoverThumb.Visibility = Visibility.Visible;
         SeekProgressBar.Height = SEEK_BAR_HOVER_HEIGHT;
+        ViewModel?.VuMeter.SetPointerOver(true);
         PositionSeekThumb(sender, e);
     }
 
@@ -192,8 +200,15 @@ public sealed partial class AdaptiveTrackCard : UserControl
 
     private void OnSeekBarPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
+        EndSeekHover();
+    }
+
+    // Also runs when the bar stops being clickable under the pointer, which raises no PointerExited.
+    private void EndSeekHover()
+    {
         SeekHoverThumb.Visibility = Visibility.Collapsed;
         SeekProgressBar.Height = SEEK_BAR_HEIGHT;
+        ViewModel?.VuMeter.SetPointerOver(false);
     }
 
     private void PositionSeekThumb(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

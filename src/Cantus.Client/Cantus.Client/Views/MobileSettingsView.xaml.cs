@@ -113,6 +113,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(EffectsProperty, value);
     }
 
+    public static readonly DependencyProperty VuMeterProperty =
+        DependencyProperty.Register(
+            nameof(VuMeter),
+            typeof(VuMeterViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public VuMeterViewModel? VuMeter
+    {
+        get => (VuMeterViewModel?)GetValue(VuMeterProperty);
+        private set => SetValue(VuMeterProperty, value);
+    }
+
     // Each composed part of the view model gets its own property so {x:Bind} paths stay one level deep.
     private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -125,6 +138,7 @@ public sealed partial class MobileSettingsView : UserControl
         settings.LyricsPicker = viewModel?.LyricsPicker;
         settings.Theme = viewModel?.Theme;
         settings.Effects = viewModel?.Effects;
+        settings.VuMeter = viewModel?.VuMeter;
     }
 
     public MobileSettingsView()
