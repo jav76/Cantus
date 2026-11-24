@@ -1,0 +1,50 @@
+<ContentDialog x:Class="Cantus.Client.Views.LocalSessionDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               Title="Use this computer's players"
+               TitleTemplate="{StaticResource CantusDialogTitleTemplate}"
+               PrimaryButtonText="{x:Bind Setup.PrimaryButtonText, Mode=OneWay}"
+               CloseButtonText="Cancel"
+               DefaultButton="Primary"
+               IsPrimaryButtonEnabled="{x:Bind Setup.CanConnect, Mode=OneWay}"
+               PrimaryButtonClick="OnConnectClicked"
+               Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+               Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+               CornerRadius="16">
+
+    <StackPanel Spacing="12" MinWidth="280" MaxWidth="440" Margin="0,8,0,0">
+
+        <TextBlock Text="{x:Bind Setup.IntroText, Mode=OneWay}"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+
+        <StackPanel Spacing="4" Visibility="{x:Bind Setup.JoinCodeVisibility, Mode=OneWay}">
+            <TextBlock Text="Join code" Style="{StaticResource CantusSectionLabelStyle}" />
+            <TextBox x:Name="JoinCodeBox"
+                     MaxLength="128"
+                     FontSize="14"
+                     IsSpellCheckEnabled="False"
+                     Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                     Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                     Text="{x:Bind Setup.JoinCodeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+
+        <TextBlock Text="{x:Bind Setup.ErrorText, Mode=OneWay}"
+                   Visibility="{x:Bind Setup.ErrorVisibility, Mode=OneWay}"
+                   FontSize="12"
+                   TextWrapping="Wrap"
+                   Foreground="#F87171" />
+
+        <ProgressRing IsActive="{x:Bind Setup.IsBusy, Mode=OneWay}"
+                      Width="20"
+                      Height="20"
+                      HorizontalAlignment="Left"
+                      Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+
+        <TextBlock Text="{x:Bind Setup.PrivacyText}"
+                   FontSize="12"
+                   TextWrapping="Wrap"
+                   Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
+    </StackPanel>
+</ContentDialog>

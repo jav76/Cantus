@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Cantus.Client.Icons;
+using Cantus.Client.LocalPlayback;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Core.Models;
@@ -44,11 +45,26 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private int _activePollIntervalMs = 1500;
     private string _transportType = "WebSockets";
 
+    internal const string SPOTIFY_NO_TRACK_HINT = "Play music on Spotify to begin";
+    internal const string LOCAL_NO_TRACK_HINT = "Play something in a media player on this computer";
+    internal const string SIGNED_OUT_LOCAL_HINT = "Connect Spotify or use this computer's players";
+
+    // The artist line holds about 40 characters on the narrow track card; the lyrics stage
+    // has room for the full sentences above.
+    internal const string LOCAL_NO_TRACK_SHORT_HINT = "Play something in a local player";
+    internal const string SIGNED_OUT_LOCAL_SHORT_HINT = "Connect Spotify or a local player";
+    internal const string SPOTIFY_EMPTY_STAGE_HINT = "Connect Spotify and play music to see lyrics.";
+    internal const string LOCAL_DEVICE_FALLBACK = "This computer";
+    internal const string SPOTIFY_DEVICE_FALLBACK = "Spotify";
+    internal const string NO_DEVICE = "No Device";
+    internal const string INSTRUMENTAL_TITLE = "Instrumental";
+    internal const string INSTRUMENTAL_SUBTITLE = "This track has no lyrics.";
+
     private string _currentTitle = "No Track Playing";
-    private string _currentArtist = "Play music on Spotify to begin";
+    private string _currentArtist = SPOTIFY_NO_TRACK_HINT;
     private string _currentAlbum = string.Empty;
     private string? _albumArtUrl;
-    private string _deviceName = "Spotify";
+    private string _deviceName = NO_DEVICE;
 
     private double _progressFraction;
     private string _progressText = "00:00";
@@ -277,18 +293,38 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         _transport.PlaybackState?.CurrentTrack is not null
         && HasSyncedLyrics
         && !IsStaticLyricsMode
-        && _pairing.CanControlPlayback;
+        && CanUsePlayerControls;
+
+    /// <summary>Whether the transport controls and seeking are offered. A Display never holds a Session.</summary>
+    public bool CanUsePlayerControls => _pairing.CanControlPlayback && _session.CanControlPlayer;
+
+    public Visibility PlayerControlsVisibility => CanUsePlayerControls ? Visibility.Visible : Visibility.Collapsed;
 
     // The empty lyrics stage previously always said "Connect Spotify and play
     // music" - misleading when a track is already playing and lyrics simply
     // don't exist for it.
     public string EmptyStateTitle =>
-        _transport.PlaybackState?.CurrentTrack is not null ? "No Lyrics Found" : "Waiting for Lyrics...";
+        _transport.PlaybackState?.CurrentTrack is null ? "Waiting for Lyrics..."
+        : IsCurrentTrackInstrumental ? INSTRUMENTAL_TITLE
+        : "No Lyrics Found";
 
-    public string EmptyStateSubtitle =>
-        _transport.PlaybackState?.CurrentTrack is not null
-            ? "Lyrics for this track aren't available yet."
-            : "Connect Spotify and play music to see lyrics.";
+    public string EmptyStateSubtitle => _transport.PlaybackState?.CurrentTrack is not null
+        ? IsCurrentTrackInstrumental ? INSTRUMENTAL_SUBTITLE : "Lyrics for this track aren't available yet."
+        : _session.IsLocalSession
+            ? $"{LOCAL_NO_TRACK_HINT}."
+            : _session.LocalChoiceVisibility == Visibility.Visible
+                ? $"{SIGNED_OUT_LOCAL_HINT}."
+                : SPOTIFY_EMPTY_STAGE_HINT;
+
+    /// <summary>What to do to see a track, by Session kind; shown in place of the artist while nothing plays.</summary>
+    internal string NoTrackHint => _session.IsLocalSession
+        ? LOCAL_NO_TRACK_SHORT_HINT
+        : _session.LocalChoiceVisibility == Visibility.Visible ? SIGNED_OUT_LOCAL_SHORT_HINT : SPOTIFY_NO_TRACK_HINT;
+
+    // The instrumental flag belongs to the lyrics of one track, so it must not carry over to the next track.
+    private bool IsCurrentTrackInstrumental =>
+        _lastLyrics is { IsInstrumental: true } lyrics
+        && lyrics.TrackId == _transport.PlaybackState?.CurrentTrack?.Id;
 
     private void NotifyEmptyStateText()
     {
@@ -493,7 +529,9 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         IDisplayManagementApi? displaysApi = null,
         PendingPairCodeStore? pendingPairCodes = null,
         ILyricsCorrectionService? lyricsCorrection = null,
-        ISongLookupClient? lookupClient = null)
+        ISongLookupClient? lookupClient = null,
+        ILocalPlayback? localPlayback = null,
+        ISpotifySetupApi? spotifySetupApi = null)
     {
         _client = client;
         _themeManager = themeManager ?? ThemeManager.Instance;
@@ -535,7 +573,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
             displaysApi ?? new DisplayManagementApi(client),
             timeProvider,
             RunOnUIThread,
-            pendingPairCodes ?? new PendingPairCodeStore(new LocalSettingsStore()));
+            pendingPairCodes ?? new PendingPairCodeStore(new LocalSettingsStore()),
+            spotifySetupApi: spotifySetupApi,
+            localPlayback: localPlayback);
+        _session.PropertyChanged += OnSessionPropertyChanged;
         _session.SessionEnded += () => EndAccountState(resetTransport: false);
         _session.LoggedOut += () => EndAccountState(resetTransport: true);
         _lookup = new SongLookupViewModel(lookupClient ?? new SongLookupClient(client, new HttpClient()));
@@ -775,10 +816,10 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         if (state.CurrentTrack is null)
         {
             CurrentTitle = "No Track Playing";
-            CurrentArtist = "Play music on Spotify to begin";
+            CurrentArtist = NoTrackHint;
             CurrentAlbum = string.Empty;
             AlbumArtUrl = null;
-            DeviceName = "No Device";
+            DeviceName = NO_DEVICE;
             _themeManager.UpdateTrackMetadata(null, null, null);
             NotifyEmptyStateText();
             _lyricsPicker.NotifyTrackChanged();
@@ -790,7 +831,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         CurrentArtist = track.Artist;
         CurrentAlbum = track.Album ?? string.Empty;
         AlbumArtUrl = track.AlbumArtUrl;
-        DeviceName = state.DeviceName ?? "Spotify";
+        DeviceName = ResolveDeviceName(state);
         NotifyEmptyStateText();
         _session.ApplyActiveUser(state.ActiveUserDisplayName, state.ActiveUserId);
         _lyricsPicker.NotifyTrackChanged();
@@ -924,6 +965,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         bool hasPlain = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
         HasLyrics = hasSynced || hasPlain;
         IsInstrumental = lyrics.IsInstrumental;
+        NotifyEmptyStateText();
 
         if (hasSynced)
         {
@@ -1016,7 +1058,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     private void ClearPlayback(bool resetTransport)
     {
         CurrentTitle = "No Track Playing";
-        CurrentArtist = "Play music on Spotify to begin";
+        CurrentArtist = NoTrackHint;
         CurrentAlbum = string.Empty;
         AlbumArtUrl = null;
         _transport.IsPlaying = false;
@@ -1038,6 +1080,42 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(HasSyncedLyrics));
         OnPropertyChanged(nameof(HasPlainLyrics));
         OnPropertyChanged(nameof(ModeToggleVisibility));
+    }
+
+    /// <summary>A local player's name is the device; a Local Session never falls back to "Spotify".</summary>
+    private string ResolveDeviceName(PlaybackStatePayload state)
+    {
+        if (!string.IsNullOrWhiteSpace(state.DeviceName))
+        {
+            return state.DeviceName;
+        }
+
+        bool isLocal = _session.IsLocalSession
+            || string.Equals(state.Source, PlaybackStatePayload.SOURCE_LOCAL, StringComparison.OrdinalIgnoreCase);
+        return isLocal ? LOCAL_DEVICE_FALLBACK : SPOTIFY_DEVICE_FALLBACK;
+    }
+
+    // The no-track copy depends on the Session kind and on whether this computer's players are offered.
+    private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SessionViewModel.CanControlPlayer))
+        {
+            OnPropertyChanged(nameof(CanUsePlayerControls));
+            OnPropertyChanged(nameof(PlayerControlsVisibility));
+            return;
+        }
+
+        if (e.PropertyName is not (nameof(SessionViewModel.IsLocalSession) or nameof(SessionViewModel.LocalChoiceVisibility)))
+        {
+            return;
+        }
+
+        if (_transport.PlaybackState?.CurrentTrack is null)
+        {
+            CurrentArtist = NoTrackHint;
+        }
+
+        NotifyEmptyStateText();
     }
 
     private void OnDiagnosticsReceived(DiagnosticsPayload? diag)

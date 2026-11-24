@@ -87,6 +87,19 @@ public sealed partial class MobileSettingsView : UserControl
         private set => SetValue(LyricsPickerProperty, value);
     }
 
+    public static readonly DependencyProperty LocalPlayersProperty =
+        DependencyProperty.Register(
+            nameof(LocalPlayers),
+            typeof(LocalPlayersViewModel),
+            typeof(MobileSettingsView),
+            new PropertyMetadata(null));
+
+    public LocalPlayersViewModel? LocalPlayers
+    {
+        get => (LocalPlayersViewModel?)GetValue(LocalPlayersProperty);
+        private set => SetValue(LocalPlayersProperty, value);
+    }
+
     public static readonly DependencyProperty ThemeProperty =
         DependencyProperty.Register(
             nameof(Theme),
@@ -123,6 +136,7 @@ public sealed partial class MobileSettingsView : UserControl
         settings.Pairing = viewModel?.Pairing;
         settings.Displays = viewModel?.Session.Displays;
         settings.LyricsPicker = viewModel?.LyricsPicker;
+        settings.LocalPlayers = viewModel?.Session.LocalPlayers;
         settings.Theme = viewModel?.Theme;
         settings.Effects = viewModel?.Effects;
     }
@@ -188,12 +202,14 @@ public sealed partial class MobileSettingsView : UserControl
         }
     }
 
-    private async void OnLogoutClicked(object sender, RoutedEventArgs e)
+    private async void OnUseLocalPlayersClicked(object sender, RoutedEventArgs e)
     {
-        if (Session is not null)
-        {
-            await Session.LogoutAsync();
-        }
+        await LocalSessionSignIn.StartAsync(Session, XamlRoot);
+    }
+
+    private async void OnAccountClicked(object sender, RoutedEventArgs e)
+    {
+        await AccountMenu.OpenAsync(Session, (FrameworkElement)sender);
     }
 
     /// <summary>The Displays card shows only for a signed-in owner, never on a Display.</summary>

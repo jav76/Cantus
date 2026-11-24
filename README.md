@@ -28,6 +28,7 @@ Full documentation is hosted at [cantus.docs.jav26122.net](https://cantus.docs.j
 - **Adaptive Polling**: Dynamically adjusts Spotify polling cadence (4.0s baseline playing, 2.5s/1.2s track-end acceleration, graduated backoff when paused/idle, and 20s background tab throttling) and halts polling when zero viewers are connected to conserve API quota.
 - **Multi-Tier Lyrics Resolution**: SQLite cache first, then LRCLIB, then the optional NetEase fallback, with negative caching for tracks no provider has. See [Lyrics Providers](#lyrics-providers).
 - **Find a Song by Lyrics**: Type a line you half remember. Cantus fuzzy-searches the lyrics it already has, falls back to NetEase and LRCLIB lyric search within rate limits, and lets you play or queue the best guess on Spotify.
+- **This Computer's Players**: On Linux, the desktop app can follow a local media player (MPRIS) instead of Spotify, with no Spotify account, when the server enables `LocalSessions__Enabled`.
 - **Playback Controls**: Play/pause, skip, seek, shuffle, repeat, and volume from any display (Spotify Premium required).
 - **Cross-Platform Client**: Uno Platform application supporting WebAssembly (modern web browsers and smart TVs) alongside native Linux, Windows, and macOS desktop targets.
 - **Dynamic Theming**: Extracts complementary palettes and ambient gradients from active album artwork in real time, alongside fixed themes.

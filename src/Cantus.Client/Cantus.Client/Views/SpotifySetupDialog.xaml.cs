@@ -16,11 +16,25 @@ public sealed partial class SpotifySetupDialog : ContentDialog
 
     public ThemeManager Theme { get; }
 
-    public SpotifySetupDialog(SpotifySetupViewModel setup, ThemeManager theme)
+    public Visibility LocalPlayersVisibility { get; }
+
+    /// <summary>Whether the dialog closed because the user picked this computer's players instead.</summary>
+    public bool ChoseLocalPlayers { get; private set; }
+
+    /// <param name="offerLocalPlayers">Shows a link that closes the dialog with <see cref="ChoseLocalPlayers"/> set.</param>
+    public SpotifySetupDialog(SpotifySetupViewModel setup, ThemeManager theme, bool offerLocalPlayers = false)
     {
         Setup = setup;
         Theme = theme;
+        LocalPlayersVisibility = offerLocalPlayers ? Visibility.Visible : Visibility.Collapsed;
         this.InitializeComponent();
+        DialogLightDismiss.Enable(this);
+    }
+
+    private void OnUseLocalPlayersClicked(object sender, RoutedEventArgs e)
+    {
+        ChoseLocalPlayers = true;
+        Hide();
     }
 
     // RadioButton.IsChecked is bool?, so the choice is written back from Checked
