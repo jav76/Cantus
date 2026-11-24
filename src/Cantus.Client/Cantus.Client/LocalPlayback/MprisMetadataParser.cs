@@ -58,7 +58,7 @@ public static class MprisMetadataParser
     public static TimeSpan MicrosecondsToTimeSpan(object? value)
     {
         long? microseconds = ToInt64(value);
-        return microseconds is > 0 ? TimeSpan.FromTicks(microseconds.Value * 10) : TimeSpan.Zero;
+        return microseconds is > 0 ? TimeSpan.FromTicks(microseconds.Value * TimeSpan.TicksPerMicrosecond) : TimeSpan.Zero;
     }
 
     public static long? ToInt64(object? value) => value switch

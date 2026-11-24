@@ -370,7 +370,7 @@ internal sealed class MprisBus : IDisposable
             string[] strings = new string[value.Count];
             for (int i = 0; i < strings.Length; i++)
             {
-                strings[i] = ToClr(value.GetItem(i)) as string ?? string.Empty;
+                strings[i] = ToClr(value.GetItem(i)) is string item ? item : string.Empty;
             }
 
             return strings;

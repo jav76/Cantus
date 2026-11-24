@@ -23,6 +23,8 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
     /// <summary>How often a <c>GetAll</c> is repeated when signals from the player overtook it.</summary>
     public const int MAX_SETTLE_ATTEMPTS = 3;
 
+    private const int INITIAL_ADD_RETRY_DELAY_SECONDS = 5;
+    private const int MAX_ADD_RETRY_DOUBLINGS = 3;
     private const int MAX_ADD_RETRY_DELAY_SECONDS = 30;
 
     private static readonly ILogger _logger = ClientLoggingManager.CreateLogger<MprisPlayerSource>();
@@ -140,7 +142,8 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
                         return false;
                     }
 
-                    await bus.SetPositionAsync(owner, trackPath, Math.Max(0, targetMs) * 1000).ConfigureAwait(false);
+                    long targetMicroseconds = Math.Max(0, targetMs) * TimeSpan.MicrosecondsPerMillisecond;
+                    await bus.SetPositionAsync(owner, trackPath, targetMicroseconds).ConfigureAwait(false);
                     return true;
 
                 default:
@@ -231,7 +234,9 @@ internal sealed class MprisPlayerSource : ILocalPlayerSource
 
     /// <summary>5, 10, 20, then every 30 seconds.</summary>
     private static TimeSpan AddRetryDelay(int previousTimeouts) =>
-        TimeSpan.FromSeconds(Math.Min(MAX_ADD_RETRY_DELAY_SECONDS, 5 << Math.Min(previousTimeouts, 3)));
+        TimeSpan.FromSeconds(Math.Min(
+            MAX_ADD_RETRY_DELAY_SECONDS,
+            INITIAL_ADD_RETRY_DELAY_SECONDS << Math.Min(previousTimeouts, MAX_ADD_RETRY_DOUBLINGS)));
 
     private async Task ReadAndStorePlayerAsync(MprisBus bus, string busName, string owner, int generation)
     {

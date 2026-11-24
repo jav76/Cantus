@@ -172,7 +172,7 @@ public sealed class MprisPlayerState
 
     public void SetPosition(long microseconds, TimeSpan now)
     {
-        Position = TimeSpan.FromTicks(Math.Max(0, microseconds) * 10);
+        Position = TimeSpan.FromTicks(Math.Max(0, microseconds) * TimeSpan.TicksPerMicrosecond);
         PositionCapturedAt = now;
     }
 
