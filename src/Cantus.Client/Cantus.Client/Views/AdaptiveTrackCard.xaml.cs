@@ -1,4 +1,3 @@
-using System;
 using Cantus.Client.Models;
 using Cantus.Client.Services;
 using Cantus.Client.ViewModels;
@@ -144,13 +143,6 @@ public sealed partial class AdaptiveTrackCard : UserControl
     public AdaptiveTrackCard()
     {
         InitializeComponent();
-        SeekArea.RegisterPropertyChangedCallback(IsHitTestVisibleProperty, (s, dp) =>
-        {
-            if (!SeekArea.IsHitTestVisible)
-            {
-                EndSeekHover();
-            }
-        });
     }
 
     private async void OnNudgeMinus500Clicked(object sender, RoutedEventArgs e)
@@ -184,90 +176,6 @@ public sealed partial class AdaptiveTrackCard : UserControl
         {
             await LyricsPickerDialog.ShowForAsync(LyricsPicker, XamlRoot);
         }
-    }
-
-    private async void OnShuffleClicked(object sender, RoutedEventArgs e)
-    {
-        if (Transport is not null) await Transport.ToggleShuffleAsync();
-    }
-
-    private async void OnRepeatClicked(object sender, RoutedEventArgs e)
-    {
-        if (Transport is not null) await Transport.CycleRepeatAsync();
-    }
-
-    private const double SEEK_BAR_HEIGHT = 6.0;
-    private const double SEEK_BAR_HOVER_HEIGHT = 8.0;
-
-    private void OnSeekBarPointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        SeekHoverThumb.Visibility = Visibility.Visible;
-        SeekProgressBar.Height = SEEK_BAR_HOVER_HEIGHT;
-        ViewModel?.VuMeter.SetPointerOver(true);
-        PositionSeekThumb(sender, e);
-    }
-
-    private void OnSeekBarPointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        PositionSeekThumb(sender, e);
-    }
-
-    private void OnSeekBarPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        EndSeekHover();
-    }
-
-    // Also runs when the bar stops being clickable under the pointer, which raises no PointerExited.
-    private void EndSeekHover()
-    {
-        SeekHoverThumb.Visibility = Visibility.Collapsed;
-        SeekProgressBar.Height = SEEK_BAR_HEIGHT;
-        ViewModel?.VuMeter.SetPointerOver(false);
-    }
-
-    private void PositionSeekThumb(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement element || element.ActualWidth <= 0)
-        {
-            return;
-        }
-
-        double half = SeekHoverThumb.Width / 2.0;
-        double pointerX = e.GetCurrentPoint(element).Position.X;
-        SeekHoverThumbTransform.X = Math.Clamp(
-            pointerX - half,
-            0,
-            Math.Max(0, element.ActualWidth - SeekHoverThumb.Width));
-    }
-
-    private async void OnProgressBarPointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        if (Transport is null || sender is not FrameworkElement element || element.ActualWidth <= 0)
-        {
-            return;
-        }
-
-        double fraction = e.GetCurrentPoint(element).Position.X / element.ActualWidth;
-        await Transport.SeekToFractionAsync(fraction);
-    }
-
-    private void OnVolumeSliderChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-    {
-        if (Transport is null)
-        {
-            return;
-        }
-
-        int requested = (int)Math.Round(e.NewValue);
-
-        // ValueChanged also fires when the binding pushes a state update into
-        // the slider; only user-initiated changes differ from the bound value.
-        if (requested == (int)Math.Round(Transport.VolumeSliderValue))
-        {
-            return;
-        }
-
-        Transport.RequestVolumeChange(requested);
     }
 
     private async void OnSkipPreviousClicked(object sender, RoutedEventArgs e)
@@ -308,41 +216,11 @@ public sealed partial class AdaptiveTrackCard : UserControl
         }
     }
 
-    /// <summary>Volume is owner-only and has no effect on a local player.</summary>
-    public Visibility GetSpotifyControlsVisibility(Visibility ownerControls, Visibility spotifyControls) =>
-        ownerControls == Visibility.Visible && spotifyControls == Visibility.Visible
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
     /// <summary>The "Wrong lyrics?" button is owner-only, so it never shows on a Display.</summary>
     public Visibility GetLyricsPickerVisibility(Visibility ownerControls, Visibility pickerAction) =>
         ownerControls == Visibility.Visible && pickerAction == Visibility.Visible
             ? Visibility.Visible
             : Visibility.Collapsed;
-
-    private void OnAlbumArtFrameSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        UpdateAlbumArtHeight(e.NewSize.Width);
-    }
-
-    private void OnStandardCardScrollerSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        UpdateAlbumArtHeight(AlbumArtFrame.ActualWidth);
-    }
-
-    private void UpdateAlbumArtHeight(double width)
-    {
-        double? height = SquareArtSizing.GetNextHeight(
-            AlbumArtFrame.Height,
-            width,
-            StandardCardScroller.ComputedVerticalScrollBarVisibility == Visibility.Visible,
-            StandardCardScroller.ExtentHeight,
-            StandardCardScroller.ViewportHeight);
-        if (height is double next)
-        {
-            AlbumArtFrame.Height = next;
-        }
-    }
 
     public Visibility GetNarrowPhoneHiddenVisibility(bool isNarrowPhone)
         => isNarrowPhone ? Visibility.Collapsed : Visibility.Visible;
@@ -373,47 +251,8 @@ public sealed partial class AdaptiveTrackCard : UserControl
     public double GetCardSpacing(LayoutBreakpoint? breakpoint = null)
     {
         LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
-        return bp switch
-        {
-            LayoutBreakpoint.Medium => 12.0,
-            _ => 18.0
-        };
+        return NowPlayingPanel.SectionSpacingFor(bp);
     }
-
-    public double GetAlbumIconSize(LayoutBreakpoint? breakpoint = null)
-    {
-        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
-        return bp switch
-        {
-            LayoutBreakpoint.Medium => 48.0,
-            _ => 64.0
-        };
-    }
-
-    public double GetTitleFontSize(LayoutBreakpoint? breakpoint = null)
-    {
-        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
-        return bp switch
-        {
-            LayoutBreakpoint.Medium => 20.0,
-            _ => 24.0
-        };
-    }
-
-    public double GetArtistFontSize(LayoutBreakpoint? breakpoint = null)
-    {
-        LayoutBreakpoint bp = breakpoint ?? ResponsiveLayoutManager.Instance.CurrentBreakpoint;
-        return bp switch
-        {
-            LayoutBreakpoint.Medium => 13.0,
-            _ => 15.0
-        };
-    }
-
-    public Visibility GetInstrumentalVisibility(bool? isInstrumentalBreak = null)
-        => isInstrumentalBreak.GetValueOrDefault() ? Visibility.Visible : Visibility.Collapsed;
-
-    public string GetPlaybackStatus(bool? isPlaying = null) => isPlaying.GetValueOrDefault() ? "Playing" : "Paused";
 
     public static Visibility GetPlayingVisibility(bool isPlaying)
         => isPlaying ? Visibility.Visible : Visibility.Collapsed;
