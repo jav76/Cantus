@@ -11,7 +11,7 @@ This is a **Local Session**. It works with any player that reports its track: th
 
 ## Choose It
 
-When you are signed out, Cantus offers **Use this computer's players** next to **Connect Spotify**: in the header, on the track card, and on the **Sync & Info** tab on small screens. The **Connect Spotify** setup screen also has **Use this computer's players instead**.
+When you are signed out, Cantus offers **Use this computer's players** wherever it offers **Connect Spotify**: in the header, on the track card, on the **Sync & Info** tab on small screens, and in the **Approve a display** prompt. The **Connect Spotify** setup screen also has **Use this computer's players instead**.
 
 Select it, and Cantus creates a Local Session named after this computer. If the server asks for a **join code**, Cantus asks you for it first; get the code from the server's owner. A wrong code keeps the box open so you can try again.
 
