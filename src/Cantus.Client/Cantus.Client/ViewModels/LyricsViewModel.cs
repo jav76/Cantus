@@ -57,6 +57,8 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     internal const string LOCAL_DEVICE_FALLBACK = "This computer";
     internal const string SPOTIFY_DEVICE_FALLBACK = "Spotify";
     internal const string NO_DEVICE = "No Device";
+    internal const string INSTRUMENTAL_TITLE = "Instrumental";
+    internal const string INSTRUMENTAL_SUBTITLE = "This track has no lyrics.";
 
     private string _currentTitle = "No Track Playing";
     private string _currentArtist = SPOTIFY_NO_TRACK_HINT;
@@ -297,10 +299,12 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     // music" - misleading when a track is already playing and lyrics simply
     // don't exist for it.
     public string EmptyStateTitle =>
-        _transport.PlaybackState?.CurrentTrack is not null ? "No Lyrics Found" : "Waiting for Lyrics...";
+        _transport.PlaybackState?.CurrentTrack is null ? "Waiting for Lyrics..."
+        : IsCurrentTrackInstrumental ? INSTRUMENTAL_TITLE
+        : "No Lyrics Found";
 
     public string EmptyStateSubtitle => _transport.PlaybackState?.CurrentTrack is not null
-        ? "Lyrics for this track aren't available yet."
+        ? IsCurrentTrackInstrumental ? INSTRUMENTAL_SUBTITLE : "Lyrics for this track aren't available yet."
         : _session.IsLocalSession
             ? $"{LOCAL_NO_TRACK_HINT}."
             : _session.LocalChoiceVisibility == Visibility.Visible
@@ -311,6 +315,11 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
     internal string NoTrackHint => _session.IsLocalSession
         ? LOCAL_NO_TRACK_SHORT_HINT
         : _session.LocalChoiceVisibility == Visibility.Visible ? SIGNED_OUT_LOCAL_SHORT_HINT : SPOTIFY_NO_TRACK_HINT;
+
+    // The instrumental flag belongs to the lyrics of one track, so it must not carry over to the next track.
+    private bool IsCurrentTrackInstrumental =>
+        _lastLyrics is { IsInstrumental: true } lyrics
+        && lyrics.TrackId == _transport.PlaybackState?.CurrentTrack?.Id;
 
     private void NotifyEmptyStateText()
     {
@@ -951,6 +960,7 @@ public sealed class LyricsViewModel : INotifyPropertyChanged
         bool hasPlain = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
         HasLyrics = hasSynced || hasPlain;
         IsInstrumental = lyrics.IsInstrumental;
+        NotifyEmptyStateText();
 
         if (hasSynced)
         {

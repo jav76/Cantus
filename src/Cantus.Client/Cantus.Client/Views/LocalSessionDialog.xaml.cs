@@ -15,6 +15,7 @@ public sealed partial class LocalSessionDialog : ContentDialog
         Setup = setup;
         Theme = theme;
         this.InitializeComponent();
+        DialogLightDismiss.Enable(this);
     }
 
     // The dialog stays open on a refusal so the message and join code field can be acted on.

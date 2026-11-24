@@ -134,6 +134,23 @@
                            TextWrapping="Wrap"
                            Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
             </StackPanel>
+
+            <!-- The alternative to Spotify; a fourth button would be clipped in the dialog's equal-width button row -->
+            <StackPanel Spacing="2"
+                        Padding="0,12,0,0"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                        Visibility="{x:Bind LocalPlayersVisibility}">
+                <TextBlock Text="No Spotify Premium, or no time for the dashboard?"
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+                <HyperlinkButton Content="Use this computer's players instead"
+                                 Click="OnUseLocalPlayersClicked"
+                                 Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                                 FontSize="13"
+                                 Padding="0,2" />
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </ContentDialog>

@@ -31,8 +31,16 @@ internal static class SpotifySignIn
                 await setup.LoadAsync();
                 if (setup.NeedsDialog)
                 {
-                    ContentDialogResult choice = await ShowSetupAsync(setup, session.IsLocalAvailable, xamlRoot);
-                    if (choice == ContentDialogResult.Secondary)
+                    // From a Local Session ("Connect Spotify instead") the way back is Cancel, not a second Local Session.
+                    bool offerLocalPlayers = session.IsLocalAvailable && !session.IsLocalSession;
+                    SpotifySetupDialog dialog = new(setup, ThemeManager.Instance, offerLocalPlayers);
+                    if (xamlRoot is not null)
+                    {
+                        dialog.XamlRoot = xamlRoot;
+                    }
+
+                    ContentDialogResult choice = await dialog.ShowAsync();
+                    if (dialog.ChoseLocalPlayers)
                     {
                         await LocalSessionSignIn.StartAsync(session, xamlRoot);
                         return;
@@ -58,20 +66,6 @@ internal static class SpotifySignIn
         {
             _logger.LogError(ex, "Error connecting to Spotify");
         }
-    }
-
-    private static async Task<ContentDialogResult> ShowSetupAsync(
-        SpotifySetupViewModel setup,
-        bool offerLocalPlayers,
-        XamlRoot? xamlRoot)
-    {
-        SpotifySetupDialog dialog = new(setup, ThemeManager.Instance, offerLocalPlayers);
-        if (xamlRoot is not null)
-        {
-            dialog.XamlRoot = xamlRoot;
-        }
-
-        return await dialog.ShowAsync();
     }
 
     private static async Task LaunchAsync(string? serverBaseUrl, string loginPath)
