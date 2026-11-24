@@ -217,6 +217,7 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
     {
         if (string.IsNullOrWhiteSpace(accessToken))
         {
+            _logger.LogWarning("Spotify player command {Command} skipped: no access token", commandName);
             return PlayerCommandResult.Failed;
         }
 
@@ -224,6 +225,11 @@ public sealed class SpotifyPlayerClient : ISpotifyPlayerClient
         {
             SpotifyClient spotify = _clientFactory(accessToken);
             bool accepted = await command(spotify);
+            if (!accepted)
+            {
+                _logger.LogWarning("Spotify did not accept player command {Command}", commandName);
+            }
+
             return accepted ? PlayerCommandResult.Success : PlayerCommandResult.Failed;
         }
         catch (APITooManyRequestsException ex)
