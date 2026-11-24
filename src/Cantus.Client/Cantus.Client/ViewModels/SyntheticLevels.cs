@@ -6,7 +6,8 @@ namespace Cantus.Client.ViewModels;
 /// The decorative meter pattern used where no real audio is available. It is
 /// not derived from the music: an invented tempo (seeded by the track id) drives
 /// a kick in the low bands, a snare on the backbeat in the mids and hi-hats on
-/// the eighths in the highs, over smooth per-band noise. Everything is a pure
+/// the eighths in the highs, over smooth per-band noise, gated so quieter bands
+/// drop to silence between hits. Everything is a pure
 /// function of the track id and playback position, so the bars stop when
 /// playback pauses, jump with a seek, and repeat exactly on replay.
 /// </summary>
@@ -15,6 +16,12 @@ internal static class SyntheticLevels
     private const double MIN_BPM = 84;
     private const int BPM_SPREAD = 60;
     private const double NOISE_STEP_MS = 170;
+
+    /// <summary>Raw levels below this read as silence, so only the louder bands of each moment show.</summary>
+    private const double GATE = 0.2;
+
+    /// <summary>Stretches what passes the gate so the louder hits reach the top of the meter.</summary>
+    private const double LIFT = 1.5;
 
     public static double GetBeatsPerMinute(string? trackId) => MIN_BPM + (StableHash(trackId) % BPM_SPREAD);
 
@@ -52,17 +59,18 @@ internal static class SyntheticLevels
             double noiseB = Unit(Mix(seed, (uint)band, (uint)(noiseIndex + 1)));
             double noise = noiseA + (noiseB - noiseA) * noiseT;
 
-            double tilt = 0.62 - 0.3 * x;
+            double tilt = 0.58 - 0.16 * x;
             double lowWeight = Math.Max(0, 1 - x * 4);
             double midWeight = Math.Exp(-Math.Pow((x - 0.45) / 0.18, 2));
             double highWeight = Math.Max(0, (x - 0.6) / 0.4);
 
             double level = tilt * (0.35 + 0.5 * noise)
                 + 0.45 * kick * lowWeight
-                + 0.3 * snare * midWeight
-                + 0.25 * hat * highWeight;
+                + 0.38 * snare * midWeight
+                + 0.4 * hat * highWeight;
 
-            bands[band] = (float)Math.Clamp(level * energy, 0, 1);
+            double gated = LIFT * (level * energy - GATE) / (1 - GATE);
+            bands[band] = (float)Math.Clamp(gated, 0, 1);
         }
     }
 

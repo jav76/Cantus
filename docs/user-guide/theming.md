@@ -65,7 +65,7 @@ Optional effects you can combine freely. **Film grain**, **Blur album background
 | **Vignette** | Darkens the window edges and leaves the centre clear. | Every theme and kiosk mode |
 | **Scanlines** | Thin, static horizontal lines, like a CRT screen. | Every theme and kiosk mode |
 | **Blur album background** | Shows a soft, blurred version of the album cover behind the lyrics instead of the sharp one, with a slightly lighter scrim. | The **Dynamic Palette** theme only |
-| **Seek bar VU meter** | Thin level bars behind the seek bar, low to high frequency from left to right, shown only over the part of the track that has played. | The track card and the kiosk bar |
+| **Seek bar VU meter** | Level bars above and below the seek bar, low to high frequency from left to right across the part of the track that has played. A bar only shows while its frequency is active. | The track card and the kiosk bar |
 
 - Toggle them in the theme menu, below the list of themes (on small screens: overflow menu, **Theme**), or with the checkboxes under **Effects** in the **Color theme** section on the mobile **Sync & Info** tab.
 - Each effect is saved per device (browser or desktop install), like the Karaoke toggle, and is not synced to other devices. Once you switch an effect on or off, your choice is kept even if the defaults change in a later release.

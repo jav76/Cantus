@@ -81,6 +81,34 @@ public sealed class SyntheticLevelsTests
     }
 
     [Fact]
+    public void Fill_BetweenHits_LeavesSomeBandsSilent()
+    {
+        // Arrange
+        const string trackId = "track-a";
+        double beatMs = 60000.0 / SyntheticLevels.GetBeatsPerMinute(trackId);
+        float[] bands = new float[BAND_COUNT];
+        int silentBands = 0;
+        int loudBands = 0;
+        const int beatCount = 32;
+
+        // Act: just before each beat, where every envelope has decayed.
+        for (int beat = 1; beat <= beatCount; beat++)
+        {
+            SyntheticLevels.Fill(bands, trackId, (long)Math.Floor(beatMs * (beat + 1)) - 5);
+            foreach (float level in bands)
+            {
+                silentBands += level <= VuMeterViewModel.INVISIBLE_LEVEL ? 1 : 0;
+                loudBands += level >= VuMeterViewModel.OPAQUE_LEVEL ? 1 : 0;
+            }
+        }
+
+        // Assert: quiet moments hide a good share of the bars but not all of them.
+        silentBands.Should().BeGreaterThan(BAND_COUNT * beatCount / 4);
+        silentBands.Should().BeLessThan(BAND_COUNT * beatCount);
+        loudBands.Should().BeLessThan(silentBands);
+    }
+
+    [Fact]
     public void GetBeatsPerMinute_IsStableAndInAMusicalRange()
     {
         // Act

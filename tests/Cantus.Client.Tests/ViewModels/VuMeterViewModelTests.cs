@@ -475,6 +475,44 @@ public sealed class VuMeterViewModelTests
         meter.SampleLevel(betweenFirstAndSecond).Should().BeApproximately((first + second) / 2, 1e-5f);
     }
 
+    [Theory]
+    [InlineData(0f, 0.0)]
+    [InlineData(VuMeterViewModel.INVISIBLE_LEVEL, 0.0)]
+    [InlineData(VuMeterViewModel.OPAQUE_LEVEL, 1.0)]
+    [InlineData(1f, 1.0)]
+    public void GetBarOpacity_HidesQuietBarsAndShowsLoudOnes(float level, double expected)
+    {
+        VuMeterViewModel.GetBarOpacity(level).Should().BeApproximately(expected, 1e-9);
+    }
+
+    [Fact]
+    public void GetBarOpacity_RisesSteadilyBetweenTheThresholds()
+    {
+        // Arrange
+        float middle = (VuMeterViewModel.INVISIBLE_LEVEL + VuMeterViewModel.OPAQUE_LEVEL) / 2;
+
+        // Act
+        double low = VuMeterViewModel.GetBarOpacity(VuMeterViewModel.INVISIBLE_LEVEL + 0.01f);
+        double mid = VuMeterViewModel.GetBarOpacity(middle);
+        double high = VuMeterViewModel.GetBarOpacity(VuMeterViewModel.OPAQUE_LEVEL - 0.01f);
+
+        // Assert
+        low.Should().BeGreaterThan(0);
+        mid.Should().BeApproximately(0.5, 1e-6);
+        high.Should().BeLessThan(1).And.BeGreaterThan(mid);
+    }
+
+    [Theory]
+    [InlineData(-0.5f, 0.0)]
+    [InlineData(0f, 0.0)]
+    [InlineData(0.25f, 0.5)]
+    [InlineData(1f, 1.0)]
+    [InlineData(2f, 1.0)]
+    public void GetBarHeight_LiftsMidLevelsAndStaysWithinTheMeter(float level, double expected)
+    {
+        VuMeterViewModel.GetBarHeight(level).Should().BeApproximately(expected, 1e-9);
+    }
+
     private static ClientPreferences Preferences() => new(new InMemorySettingsStore());
 
     private static float Peak(VuMeterViewModel meter)

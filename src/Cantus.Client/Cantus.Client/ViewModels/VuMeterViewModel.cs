@@ -32,6 +32,12 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>A live source that sends nothing for this long counts as stalled.</summary>
     public const long STALL_MS = 500;
 
+    /// <summary>Bars at or below this level are fully transparent, so quiet frequencies leave the seek bar clear.</summary>
+    public const float INVISIBLE_LEVEL = 0.08f;
+
+    /// <summary>Bars reach full opacity at this level.</summary>
+    public const float OPAQUE_LEVEL = 0.25f;
+
     internal const float SILENCE_LEVEL = 0.05f;
     internal const float REST_LEVEL = 0.002f;
     private const float ATTACK = 0.6f;
@@ -250,6 +256,23 @@ public sealed class VuMeterViewModel : INotifyPropertyChanged, IDisposable
         double t = position - lower;
         return (float)(_levels[lower] + (_levels[upper] - _levels[lower]) * t);
     }
+
+    /// <summary>
+    /// How visible a bar of the given level is: transparent up to
+    /// <see cref="INVISIBLE_LEVEL"/>, easing to opaque at <see cref="OPAQUE_LEVEL"/>.
+    /// </summary>
+    public static double GetBarOpacity(float level)
+    {
+        double t = Math.Clamp((level - INVISIBLE_LEVEL) / (OPAQUE_LEVEL - INVISIBLE_LEVEL), 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+
+    /// <summary>
+    /// How tall a bar of the given level is, as a fraction of the meter's
+    /// height. The curve lifts mid levels so a moderately loud band still
+    /// reads clearly on a thin seek bar.
+    /// </summary>
+    public static double GetBarHeight(float level) => Math.Sqrt(Math.Clamp(level, 0, 1));
 
     /// <summary>One frame of the meter.</summary>
     /// <param name="nowMs">A monotonic clock in milliseconds.</param>

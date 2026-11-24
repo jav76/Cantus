@@ -12,17 +12,19 @@ namespace Cantus.Client.Views;
 
 /// <summary>
 /// Draws <see cref="VuMeterViewModel"/> levels as thin vertical bars behind a
-/// seek bar, spread low to high frequency across the full width but shown only
-/// over the played part. Bars grow out of the seek bar's centre line and sit
-/// hidden behind it at rest. Only bars inside the played part are updated, and
-/// only when the meter raises <see cref="VuMeterViewModel.LevelsUpdated"/>.
+/// seek bar, only over the played part, with the whole spectrum (low to high
+/// frequency) spread across that part so it always shows every band. Bars grow out of the seek bar's centre line, and a
+/// quiet bar fades to fully transparent (<see cref="VuMeterViewModel.GetBarOpacity"/>),
+/// so silent frequencies leave the seek bar clear. Only bars inside the played
+/// part are updated, and only when the meter raises
+/// <see cref="VuMeterViewModel.LevelsUpdated"/>.
 /// </summary>
 public sealed partial class VuMeterBars : Canvas
 {
     private const double BAR_WIDTH = 3;
     private const double BAR_GAP = 2;
     private const double PITCH = BAR_WIDTH + BAR_GAP;
-    private const double MIN_SCALE_CHANGE = 0.01;
+    private const double MIN_CHANGE = 0.01;
 
     public static readonly DependencyProperty MeterProperty =
         DependencyProperty.Register(
@@ -45,15 +47,9 @@ public sealed partial class VuMeterBars : Canvas
             typeof(VuMeterBars),
             new PropertyMetadata(null, (d, e) => ((VuMeterBars)d).ApplyBrush()));
 
-    public static readonly DependencyProperty RestThicknessProperty =
-        DependencyProperty.Register(
-            nameof(RestThickness),
-            typeof(double),
-            typeof(VuMeterBars),
-            new PropertyMetadata(4.0, (d, e) => ((VuMeterBars)d).Rebuild()));
-
     private readonly List<Rectangle> _bars = [];
     private readonly List<ScaleTransform> _scales = [];
+    private double[] _shownOpacity = [];
     private VuMeterViewModel? _subscribed;
     private int _visibleBars;
     private double _clipWidth = -1;
@@ -92,13 +88,6 @@ public sealed partial class VuMeterBars : Canvas
     {
         get => (Brush?)GetValue(BarBrushProperty);
         set => SetValue(BarBrushProperty, value);
-    }
-
-    /// <summary>Bar height at silence; match the seek bar's thickness so resting bars hide behind it.</summary>
-    public double RestThickness
-    {
-        get => (double)GetValue(RestThicknessProperty);
-        set => SetValue(RestThicknessProperty, value);
     }
 
     private static void OnMeterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -160,10 +149,10 @@ public sealed partial class VuMeterBars : Canvas
         }
 
         int count = Math.Max(2, (int)((width + BAR_GAP) / PITCH));
-        double restScale = RestScale(height);
+        _shownOpacity = new double[count];
         for (int i = 0; i < count; i++)
         {
-            ScaleTransform scale = new() { CenterY = height / 2, ScaleY = restScale };
+            ScaleTransform scale = new() { CenterY = height / 2, ScaleY = 0 };
             Rectangle bar = new()
             {
                 Width = BAR_WIDTH,
@@ -172,6 +161,7 @@ public sealed partial class VuMeterBars : Canvas
                 RadiusY = BAR_WIDTH / 2,
                 Fill = BarBrush,
                 RenderTransform = scale,
+                Opacity = 0,
                 Visibility = Visibility.Collapsed,
             };
             SetLeft(bar, i * PITCH);
@@ -201,13 +191,10 @@ public sealed partial class VuMeterBars : Canvas
                 _bars[i].Visibility = i < visible ? Visibility.Visible : Visibility.Collapsed;
             }
 
-            bool grew = visible > _visibleBars;
-            int previous = _visibleBars;
             _visibleBars = visible;
-            if (grew)
-            {
-                ApplyLevels(force: true, from: previous);
-            }
+
+            // Every visible bar now maps to a slightly different band.
+            ApplyLevels(force: true);
         }
 
         if (Math.Abs(playedWidth - _clipWidth) >= 0.5)
@@ -217,23 +204,31 @@ public sealed partial class VuMeterBars : Canvas
         }
     }
 
-    private void ApplyLevels(bool force, int from = 0)
+    private void ApplyLevels(bool force)
     {
         if (_scales.Count == 0)
         {
             return;
         }
 
-        double restScale = RestScale(ActualHeight);
-        double lastIndex = Math.Max(1, _scales.Count - 1);
-        for (int i = from; i < _visibleBars; i++)
+        double lastIndex = Math.Max(1, _visibleBars - 1);
+        for (int i = 0; i < _visibleBars; i++)
         {
             float level = _subscribed?.SampleLevel(i / lastIndex) ?? 0;
-            double scale = restScale + (1 - restScale) * level;
-            ScaleTransform transform = _scales[i];
-            if (force || Math.Abs(transform.ScaleY - scale) >= MIN_SCALE_CHANGE)
+            double opacity = VuMeterViewModel.GetBarOpacity(level);
+            bool wasHidden = _shownOpacity[i] == 0;
+            if (force || Math.Abs(_shownOpacity[i] - opacity) >= MIN_CHANGE || (opacity == 0) != wasHidden)
             {
-                transform.ScaleY = scale;
+                _shownOpacity[i] = opacity;
+                _bars[i].Opacity = opacity;
+            }
+
+            // A transparent bar's height does not show, so it is left alone until it reappears.
+            ScaleTransform transform = _scales[i];
+            double height = VuMeterViewModel.GetBarHeight(level);
+            if (opacity > 0 && (force || wasHidden || Math.Abs(transform.ScaleY - height) >= MIN_CHANGE))
+            {
+                transform.ScaleY = height;
             }
         }
     }
@@ -245,6 +240,4 @@ public sealed partial class VuMeterBars : Canvas
             bar.Fill = BarBrush;
         }
     }
-
-    private double RestScale(double height) => height <= 0 ? 1 : Math.Clamp(RestThickness / height, 0, 1);
 }

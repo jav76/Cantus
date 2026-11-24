@@ -70,7 +70,7 @@
                     <StackPanel Spacing="6">
                         <Grid x:Name="SeekArea"
                               Background="Transparent"
-                              MinHeight="18"
+                              MinHeight="36"
                               IsHitTestVisible="{x:Bind Pairing.CanControlPlayback, Mode=OneWay}"
                               PointerReleased="OnProgressBarPointerReleased"
                               PointerEntered="OnSeekBarPointerEntered"
@@ -81,9 +81,8 @@
                             <views:VuMeterBars Meter="{x:Bind ViewModel.VuMeter, Mode=OneWay}"
                                                Progress="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
                                                BarBrush="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
-                                               RestThickness="3"
-                                               Height="18"
-                                               Opacity="0.55"
+                                               Height="36"
+                                               Opacity="0.85"
                                                VerticalAlignment="Center" />
                             <ProgressBar x:Name="SeekProgressBar"
                                          Value="{x:Bind ViewModel.ProgressFraction, Mode=OneWay}"
