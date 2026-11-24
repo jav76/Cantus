@@ -126,6 +126,7 @@ public sealed class LyricsCorrectionService : ILyricsCorrectionService
         HttpStatusCode.Forbidden => LyricsCorrectionStatus.NotAllowed,
         HttpStatusCode.NotFound => LyricsCorrectionStatus.NotFound,
         HttpStatusCode.BadGateway => LyricsCorrectionStatus.ProviderUnavailable,
+        HttpStatusCode.MethodNotAllowed => LyricsCorrectionStatus.ServerOutdated,
         _ => LyricsCorrectionStatus.Failed
     };
 }

@@ -27,7 +27,13 @@ public enum LyricsCorrectionStatus
     /// The server turned the request down (400), for example because the
     /// chosen candidate's provider is no longer enabled.
     /// </summary>
-    Rejected = 6
+    Rejected = 6,
+
+    /// <summary>
+    /// The server answered 405 because it has no such route: it is older than
+    /// this client and its SPA fallback took the request.
+    /// </summary>
+    ServerOutdated = 7
 }
 
 public sealed record LyricsCandidatesResult(LyricsCorrectionStatus Status, LyricsCandidatesPayload? Candidates);
