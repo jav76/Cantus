@@ -226,6 +226,15 @@ public sealed partial class MobileSettingsView : UserControl
         await AccountMenu.OpenAsync(Session, (FrameworkElement)sender);
     }
 
+    public Visibility ServerSectionVisibility => ServerSettingsEntry.SectionVisibility;
+
+    public string ServerText => ServerSettingsEntry.CurrentServerText;
+
+    private async void OnChangeServerClicked(object sender, RoutedEventArgs e)
+    {
+        await ServerSettingsEntry.OpenAsync(XamlRoot);
+    }
+
     /// <summary>The Displays card shows only for a signed-in owner, never on a Display.</summary>
     public Visibility GetDisplaysCardVisibility(Visibility ownerControls, Visibility displaysSection) =>
         BothVisible(ownerControls, displaysSection);

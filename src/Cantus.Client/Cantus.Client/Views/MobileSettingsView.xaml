@@ -244,6 +244,25 @@
                         <Border Style="{StaticResource CantusHairlineStyle}" />
                         <views:DisplaysCard ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
                     </StackPanel>
+
+                    <!-- Server (desktop app only) -->
+                    <StackPanel Spacing="14" Visibility="{x:Bind ServerSectionVisibility}">
+                        <Border Style="{StaticResource CantusHairlineStyle}" />
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Server" Style="{StaticResource CantusSectionLabelStyle}" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBlock Grid.Column="0" Text="{x:Bind ServerText}" FontSize="13" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1"
+                                        Content="Change"
+                                        Click="OnChangeServerClicked"
+                                        Background="#1AFFFFFF"
+                                        Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                        CornerRadius="6"
+                                        Padding="10,6"
+                                        FontSize="11" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

@@ -147,7 +147,18 @@ dotnet run --project src/Cantus.Server -- --log-configuration debug
 In Docker, set `CANTUS_LOG_CONFIGURATION=debug` in the service environment.
 
 ### CLI Option: `--server-url` (alias: `-s`, Desktop client only)
-Points the desktop client at a Cantus server other than the default `http://127.0.0.1:5000`. Accepts the same address you would open in a browser; the SignalR hub path (`/hubs/playback`) is appended when missing and any query string is dropped. Also readable from the `CANTUS_SERVER_URL` environment variable, with the CLI option taking precedence. A value that is not an absolute `http`/`https` URL is ignored with a warning rather than preventing startup.
+Points the desktop client at a Cantus server for this launch. Accepts the same address you would open in a browser; the SignalR hub path (`/hubs/playback`) is appended when missing and any query string is dropped. Also readable from the `CANTUS_SERVER_URL` environment variable. A value that is not an absolute `http`/`https` URL is ignored with a warning rather than preventing startup.
+
+The desktop client picks its server in this order:
+
+| Order | Source | Notes |
+| :--- | :--- | :--- |
+| 1 | `--server-url` | An invalid value is ignored and does not fall through to the environment variable. |
+| 2 | `CANTUS_SERVER_URL` | Used when the CLI option is absent or blank. |
+| 3 | Saved **Server** setting | Set by the first-launch prompt or under **Server** in the app's settings. Stored per device as `cantus_server_url`. |
+| 4 | `http://127.0.0.1:5000` | The default. On a first launch the app asks for the address instead, unless the prompt was skipped before. |
+
+With source 1 or 2 the first-launch prompt is not shown, nothing is saved, and the **Server** setting is read-only for that launch. See [Desktop App: Choose Your Server](../user-guide/desktop-app.md).
 
 ```bash
 # Connect the desktop client to a server behind an HTTPS reverse proxy

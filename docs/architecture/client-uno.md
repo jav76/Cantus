@@ -315,6 +315,20 @@ flowchart LR
 
 ---
 
+### Desktop Server Selection
+
+Desktop heads only (`#if !__WASM__`). The WASM client always uses its page origin and shows none of this.
+
+- **Precedence.** `--server-url`, then `CANTUS_SERVER_URL`, then the saved setting, then `http://127.0.0.1:5000`. `Program.Main` hands the first two to `ClientStartupOptions.ApplyServerOverride`; an invalid override is ignored with a warning and does not fall through to the next source. `App.OnLaunched` then calls `ClientStartupOptions.ResolveServer`, which applies `ServerSelection.Resolve` and sets `ClientStartupOptions.ServerUrl` (the hub URL `MainPage` gives `SignalRPlaybackClient`) and `ClientStartupOptions.Selection`.
+- **Storage.** `ServerSettingsStore` keeps `cantus_server_url` (the base URL) and `cantus_server_setup_done` through `ISettingsStore`, like `ClientPreferences`. `ServerAddress.TryNormalize` is the one validator: absolute `http`/`https`, with the trailing slash, hub path, query and fragment removed.
+- **First run.** `ServerSelection.NeedsSetup` is true when nothing overrides, nothing is saved and the prompt was never answered. `App.OnLaunched` then navigates the root `Frame` to `ServerSetupPage` instead of `MainPage`. Connect or Skip saves the choice, calls `ResolveServer` again and navigates to `MainPage`, so the hub connection is built once, against the chosen server.
+- **`ServerSetupViewModel`** backs both the page and `ServerSettingsDialog`. `SaveAsync` probes `GET /api/health` through `IServerProbe` (`ServerProbe`, 5 s timeout). An address nobody answers at returns `NotSaved` and shows a warning; saving the same address again keeps it. `Skip` records the choice without an address. An overridden launch is locked: the address is shown but cannot be saved.
+- **Changing it later.** The Server row on `AdaptiveTrackCard` and `MobileSettingsView` calls `ServerSettingsEntry.OpenAsync`. A changed address takes effect by restarting the process (`Environment.ProcessPath` with the original arguments; the `APPIMAGE` path inside an AppImage, whose mount goes away when the app exits). There is no live hub switch: `MainPage` builds the client and every view model once, and the theme and layout singletons outlive them. If the restart fails, a dialog asks the user to reopen the app.
+- **Credentials.** A Session token and a Display token are only valid on the server that issued them. When a save names a different server than the one in use, `ServerSetupViewModel` runs its `forgetCredentials` callback: `DisplayCredentialStore.Clear()` and `SignalRPlaybackClient.ForgetPersistedSession()`. Nothing is sent to the old server, so the Session and the Display it issued stay valid there until signed out or removed from another device.
+- **Not verified on Windows or macOS:** the self-restart, and the WinUI head, which has no `Program.Main` and so no overrides.
+
+---
+
 ### Desktop App Identity
 
 - **Executable name.** The desktop head is published as `Cantus` (`Cantus.exe` on Windows): a target in `Cantus.Client.csproj` renames the file after `dotnet publish`. The assembly stays `Cantus.Client`, because Uno names the settings folder after it (`~/.local/share/Cantus.Client` on Linux); renaming the assembly would sign every user out. `dotnet run` and plain builds still produce `Cantus.Client`.
