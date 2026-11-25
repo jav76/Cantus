@@ -17,6 +17,26 @@ namespace Cantus.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
+            modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.CachedCoverArtEntity", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArtUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("FetchedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TrackId");
+
+                    b.ToTable("CachedCoverArt");
+                });
+
             modelBuilder.Entity("Cantus.Infrastructure.Persistence.Entities.CachedLyricsEntity", b =>
                 {
                     b.Property<string>("TrackId")

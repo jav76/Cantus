@@ -52,6 +52,17 @@ public interface IPlaybackUpdateApplier
         ILyricsCacheRepository lyricsCache,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Gives the cover the catalogue found to a track that was broadcast without one, and
+    /// broadcasts the playback state again. Does nothing once the Session has moved on to
+    /// another track or the track has a cover. Lyrics, offset and position are left as they are.
+    /// </summary>
+    Task ApplyCoverArtAsync(
+        string sessionId,
+        string trackId,
+        string artUrl,
+        CancellationToken cancellationToken = default);
+
     void Forget(string sessionId);
 }
 
@@ -194,6 +205,25 @@ public sealed class PlaybackUpdateApplier : IPlaybackUpdateApplier
         IPlaybackClient viewers = _hubContext.Clients.Viewers(sessionId);
         await viewers.ReceiveLyrics(track.ToLyricsDto(lyrics));
         await viewers.ReceiveTrackOffset(new TrackOffsetDto { TrackId = trackId, OffsetMs = trackOffset });
+    }
+
+    public async Task ApplyCoverArtAsync(
+        string sessionId,
+        string trackId,
+        string artUrl,
+        CancellationToken cancellationToken = default)
+    {
+        if (SnapshotOnTrack(sessionId, trackId) is not { PlaybackState: { CurrentTrack: { AlbumArtUrl: null } track } state } snapshot)
+        {
+            return;
+        }
+
+        PlaybackState withArt = state with { CurrentTrack = track with { AlbumArtUrl = artUrl } };
+
+        cancellationToken.ThrowIfCancellationRequested();
+        _registry.UpdateUserPlayback(sessionId, snapshot.DisplayName, withArt);
+        await _hubContext.Clients.Viewers(sessionId)
+            .ReceivePlaybackState(withArt.ToDto(sessionId, snapshot.DisplayName));
     }
 
     public void Forget(string sessionId)

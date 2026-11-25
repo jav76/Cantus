@@ -18,11 +18,12 @@ internal static class ProviderResponseReader
         HttpResponseMessage response,
         JsonSerializerOptions options,
         string providerName,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int maxResponseBytes = MAX_LOOKUP_RESPONSE_BYTES)
     {
-        if (response.Content.Headers.ContentLength > MAX_LOOKUP_RESPONSE_BYTES)
+        if (response.Content.Headers.ContentLength > maxResponseBytes)
         {
-            throw TooLarge(providerName);
+            throw TooLarge(providerName, maxResponseBytes);
         }
 
         await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -31,9 +32,9 @@ internal static class ProviderResponseReader
         int read;
         while ((read = await stream.ReadAsync(chunk, cancellationToken)) > 0)
         {
-            if (buffer.Length + read > MAX_LOOKUP_RESPONSE_BYTES)
+            if (buffer.Length + read > maxResponseBytes)
             {
-                throw TooLarge(providerName);
+                throw TooLarge(providerName, maxResponseBytes);
             }
 
             await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken);
@@ -42,13 +43,13 @@ internal static class ProviderResponseReader
         return JsonSerializer.Deserialize<T>(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), options);
     }
 
-    private static HttpRequestException TooLarge(string providerName)
+    private static HttpRequestException TooLarge(string providerName, int maxResponseBytes)
     {
         return new HttpRequestException(
             string.Format(
                 CultureInfo.InvariantCulture,
                 "{0} returned a response larger than {1} bytes.",
                 providerName,
-                MAX_LOOKUP_RESPONSE_BYTES));
+                maxResponseBytes));
     }
 }

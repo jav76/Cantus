@@ -66,7 +66,7 @@ flowchart TB
 
 ### 4. Infrastructure & External Services
 - **Technology**: Entity Framework Core with SQLite, ASP.NET Core Data Protection, `HttpClient`.
-- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB (exact lookup, then search) with NetEase as a fallback, manages the SQLite lyrics cache with 30-day negative caching for tracks no provider has, stores owner overrides and Displays, and encrypts OAuth tokens at rest.
+- **Responsibilities**: Implements Spotify OAuth PKCE exchanges and token renewal, queries LRCLIB (exact lookup, then search) with NetEase as a fallback, manages the SQLite lyrics cache with 30-day negative caching for tracks no provider has, looks up covers in MusicBrainz and the Cover Art Archive for Local Session tracks that arrive without one, stores owner overrides and Displays, and encrypts OAuth tokens at rest.
 
 ### 5. DevOps & Containerization
 - **Technology**: Multi-stage Docker build, Docker Compose, GitHub Actions.
@@ -84,4 +84,5 @@ To explore specific subsystems in depth:
 - [**NTP Clock Synchronization**](ntp-clock-sync.md): How Cantus estimates the offset between client and server clocks.
 - [**Adaptive Polling Engine**](adaptive-polling.md): How Cantus tracks Spotify playback efficiently without exceeding API rate limits.
 - [**Multi-Tier Lyrics Caching**](lyrics-caching.md): How lyrics are resolved, cached, and validated.
+- [**Cover Art Lookup for Local Sessions**](cover-art.md): How a track with no cover gets one from an open catalogue without delaying playback.
 - [**Uno Platform Client Architecture**](client-uno.md): How the MVVM pattern and cross-platform UI rendering work under the hood.

@@ -24,6 +24,9 @@ _Avoid_: pairing code, invite code, password
 **Track key**: The id the server stores lyrics, overrides and offsets under. It is the Spotify track id for Spotify playback, and a key derived from artist, title and duration (starting `local:`) for Local playback.
 _Avoid_: track id (for Local playback), hash, fingerprint
 
+**Cover art catalogue**: The open catalogue the server asks for a cover when a Local player offers none: MusicBrainz for the match and the Cover Art Archive for the image.
+_Avoid_: provider (that term means a lyrics provider), art source, Spotify art
+
 **Display**: A screen paired to an owner's Session that shows their lyrics and playback. It holds its own view-only credential, and the owner can list and revoke each Display separately.
 _Avoid_: room, kiosk session, shared session
 

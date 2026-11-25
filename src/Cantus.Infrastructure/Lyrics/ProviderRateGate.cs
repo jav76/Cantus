@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Cantus.Infrastructure.CoverArt;
 using Cantus.Infrastructure.Lyrics.Lookup;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Cantus.Infrastructure.Lyrics;
 
 /// <summary>
-/// Shared outbound limits for the lyrics providers, consulted by
+/// Shared outbound limits for the lyrics providers and the cover art catalogue, consulted by
 /// <see cref="ProviderRateGateHandler"/> before every request.
 /// <list type="bullet">
 /// <item>Lookup-tagged requests draw from a small per-provider budget per
@@ -16,6 +17,8 @@ namespace Cantus.Infrastructure.Lyrics;
 /// all traffic to that provider for the provider's Retry-After.</item>
 /// <item>A throttle on a lookup-tagged NetEase request pauses lookups only, so
 /// its unofficial search endpoint cannot take down the now-playing fallback.</item>
+/// <item>The cover art catalogue sends no lookup-tagged requests, so only the
+/// throttle pause applies to it.</item>
 /// </list>
 /// </summary>
 public sealed class ProviderRateGate
@@ -266,10 +269,12 @@ public sealed class ProviderRateGate
             // LRCLIB's terms ask clients to honour its throttles on all traffic.
             LrclibLyricsProvider.PROVIDER_NAME => new(Math.Max(1, options.LrclibRequestsPerMinute), true),
             NeteaseLyricsProvider.PROVIDER_NAME => new(Math.Max(1, options.NeteaseRequestsPerMinute), false),
+            // The cover art catalogue never sends lookup-tagged requests, so its budget is unused.
+            MusicBrainzClient.PROVIDER_NAME or CoverArtArchiveClient.PROVIDER_NAME => new(1, true),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(providerName),
                 providerName,
-                "No rate policy is defined for this lyrics provider."),
+                "No rate policy is defined for this provider."),
         };
     }
 
