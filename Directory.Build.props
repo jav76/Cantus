@@ -3,7 +3,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <Version Condition="'$(Version)' == ''">0.5.1-dev</Version>
+    <Version Condition="'$(Version)' == ''">0.6.0-dev</Version>
 
     <!--
       NU1507: Warning when there are multiple package sources when using CPM with no source mapping
