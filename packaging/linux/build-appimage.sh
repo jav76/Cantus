@@ -40,6 +40,10 @@ mkdir -p "${APPDIR_TEMP}/usr/share/icons/hicolor/256x256/apps"
 cp -r "${SOURCE_DIR}/"* "${APPDIR_TEMP}/usr/bin/"
 chmod +x "${APPDIR_TEMP}/usr/bin/Cantus"
 
+# An AppImage unmounts when the app exits, which would take a still-running bundled server with
+# it. The AppImage ships the app only; the tar.gz carries the server.
+rm -rf "${APPDIR_TEMP}/usr/bin/server" "${APPDIR_TEMP}/usr/bin/dotnet/shared/Microsoft.AspNetCore.App"
+
 # Copy desktop and launcher scripts
 cp "${SCRIPT_DIR}/AppRun" "${APPDIR_TEMP}/AppRun"
 chmod +x "${APPDIR_TEMP}/AppRun"

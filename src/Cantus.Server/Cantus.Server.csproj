@@ -18,4 +18,27 @@
     <ProjectReference Include="..\Cantus.Generators\Cantus.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <!--
+    Lays out a private .NET install (host/fxr and shared/<framework>/<version>) from the runtime
+    packs, for the desktop bundle whose app and server both run on it. See packaging/publish-desktop.sh.
+  -->
+  <Target Name="AssembleSharedRuntime" DependsOnTargets="ResolveFrameworkReferences">
+    <Error Condition="'$(SharedRuntimeDir)' == ''" Text="Set SharedRuntimeDir to the folder to lay the runtime out in." />
+    <Error Condition="'@(ResolvedRuntimePack)' == ''" Text="No runtime packs resolved: pass -p:RuntimeIdentifier and -p:SelfContained=true." />
+    <ItemGroup>
+      <_SharedRuntimePackFile
+        Include="%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/lib/$(TargetFramework)/**;%(ResolvedRuntimePack.PackageDirectory)/runtimes/$(RuntimeIdentifier)/native/**"
+        Framework="%(ResolvedRuntimePack.FrameworkName)"
+        FrameworkVersion="%(ResolvedRuntimePack.NuGetPackageVersion)" />
+      <_SharedRuntimeHostResolver Include="@(_SharedRuntimePackFile)" Condition="$([System.String]::Copy('%(Filename)').EndsWith('hostfxr'))" />
+      <_SharedRuntimeFrameworkFile Include="@(_SharedRuntimePackFile)" Exclude="@(_SharedRuntimeHostResolver)" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_SharedRuntimeFrameworkFile)"
+      DestinationFiles="@(_SharedRuntimeFrameworkFile->'$(SharedRuntimeDir)/shared/%(Framework)/%(FrameworkVersion)/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy
+      SourceFiles="@(_SharedRuntimeHostResolver)"
+      DestinationFiles="@(_SharedRuntimeHostResolver->'$(SharedRuntimeDir)/host/fxr/%(FrameworkVersion)/%(Filename)%(Extension)')" />
+  </Target>
+
 </Project>

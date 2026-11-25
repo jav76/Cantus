@@ -50,6 +50,9 @@ public sealed partial class MainPage : Page
             {
                 ViewModel.Layout.UpdateDimensions(this.ActualWidth, this.ActualHeight);
             }
+#if !__WASM__
+            await LocalServerManager.ForThisApp.WhenStartedAsync();
+#endif
             await ViewModel.InitializeAsync();
             // Not awaited: it logs its own failures, and a slow player bus must not hold up the page.
             _ = localPlayback.StartAsync();

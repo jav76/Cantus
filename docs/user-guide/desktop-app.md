@@ -11,7 +11,11 @@ The first time the app starts, it asks **Which Cantus server do you use?**
 1. Enter the address you open Cantus at in a browser, such as `http://192.168.0.10:5000` or `https://lyrics.example.com`.
 2. Select **Connect**. The app checks that a Cantus server answers there, then opens.
 
-Select **Skip** if the server runs on this computer. The app then uses `http://127.0.0.1:5000`. Either choice is remembered, so the question is not asked again.
+No server yet? Select **Run it on this computer**. The app starts the Cantus server that ships with it and uses `http://127.0.0.1:5000`. See [The Server on This Computer](#the-server-on-this-computer).
+
+The Linux AppImage ships no server. Its button reads **Skip**, and uses a server you run yourself at `http://127.0.0.1:5000`.
+
+Either choice is remembered, so the question is not asked again.
 
 | Message | Meaning | What to do |
 | :--- | :--- | :--- |
@@ -33,6 +37,36 @@ When the address changes, Cantus restarts to connect to the new server. If it ca
 
 !!! warning "Changing the server signs this device out"
     A sign-in and a Display pairing belong to one server. After a change, sign in again, or pair the screen again if it was a [Display](displays.md). On the old server the Display stays in its owner's list until they remove it.
+
+---
+
+## The Server on This Computer
+
+The Windows installer and the Windows, macOS and Linux archives include a Cantus server. The app runs it for you when its server address is `http://127.0.0.1:5000`.
+
+- **It starts with the app.** If a Cantus server already answers at that address, the app uses it and starts nothing.
+- **It keeps running after you close the app**, so the next start is quick.
+- **It only listens on this computer.** Other devices on your network cannot reach it. To use phones or TVs as Displays, [self-host the server](../operator-guide/self-hosting.md) instead.
+- **This computer's players are allowed** with no join code, since only this computer can reach the server. See [Use This Computer's Players](local-players.md).
+
+**Stop it:** open **Server** in the settings, select **Change**, then **Stop the server on this computer**. It starts again the next time Cantus opens. A server you started yourself is never stopped by the app.
+
+**After an update:** the app replaces a server it started from an older version. The Windows installer stops the server before it updates the files.
+
+| Symptom | Cause | What to do |
+| :--- | :--- | :--- |
+| The app reports that no Cantus server answered at `http://127.0.0.1:5000` | Another program uses port 5000 (on macOS, often AirPlay Receiver). | Free the port, or run the server yourself on another port and enter that address. |
+| **Stop the server on this computer** says the app did not start it | The server was started outside the app. | Stop it where you started it. |
+
+Its data is in your user profile, separate from the app's settings:
+
+| OS | Folder |
+| :--- | :--- |
+| Windows | `%LOCALAPPDATA%\Cantus\server` |
+| Linux | `~/.local/share/Cantus/server` |
+| macOS | `~/Library/Application Support/Cantus/server` |
+
+Deleting that folder while the server is stopped removes its sign-ins, Displays and lyrics cache.
 
 ---
 

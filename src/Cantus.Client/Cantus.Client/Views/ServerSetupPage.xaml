@@ -61,7 +61,7 @@
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button x:Name="SkipButton"
                             Grid.Column="0"
-                            Content="Skip"
+                            Content="{x:Bind Setup.SkipButtonText}"
                             Click="OnSkipClicked"
                             Background="#1AFFFFFF"
                             BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
@@ -82,12 +82,10 @@
                             Padding="18,8" />
                 </Grid>
 
-                <TextBlock FontSize="12"
+                <TextBlock Text="{x:Bind Setup.SkipHintText}"
+                           FontSize="12"
                            TextWrapping="Wrap"
-                           Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}">
-                    <Run Text="Skip if the server runs on this computer. Cantus then uses" />
-                    <Run Text="{x:Bind Setup.DefaultServerUrl}" /><Run Text="." />
-                </TextBlock>
+                           Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}" />
             </StackPanel>
         </Border>
     </ScrollViewer>

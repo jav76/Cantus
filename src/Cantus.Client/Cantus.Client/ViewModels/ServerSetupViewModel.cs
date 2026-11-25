@@ -38,34 +38,43 @@ public sealed class ServerSetupViewModel : INotifyPropertyChanged
     public const string SAVE_TEXT = "Connect";
     public const string SAVE_ANYWAY_TEXT = "Save anyway";
     public const string INVALID_ADDRESS_TEXT = "Enter a full address that starts with http:// or https://, such as http://192.168.0.10:5000.";
+    public const string SKIP_TEXT = "Skip";
+    public const string RUN_HERE_TEXT = "Run it on this computer";
+    public const string LOCAL_SERVER_RUNNING_TEXT = "Cantus runs its own server on this computer. It keeps running after you close the app.";
+    public const string LOCAL_SERVER_STOPPED_TEXT = "The server on this computer is stopped. It starts again the next time Cantus opens.";
+    public const string LOCAL_SERVER_NOT_STOPPED_TEXT = "This app did not start the server on this computer, so it cannot stop it.";
 
     private readonly ServerSettingsStore _settings;
     private readonly ServerSelection _current;
     private readonly IServerProbe _probe;
     private readonly Action? _forgetCredentials;
+    private readonly ILocalServer? _localServer;
 
     private string _addressText;
     private ServerCheckState _checkState = ServerCheckState.None;
     private string _checkedBaseUrl = string.Empty;
+    private string _localServerText = LOCAL_SERVER_RUNNING_TEXT;
+    private bool _isStoppingLocalServer;
 
     /// <param name="current">The server this launch resolved.</param>
     /// <param name="forgetCredentials">Forgets the Session and Display pairing saved on this device; run when the server changes.</param>
+    /// <param name="localServer">The server shipped with this app, started before this computer's address is checked.</param>
     public ServerSetupViewModel(
         ServerSettingsStore settings,
         ServerSelection current,
         IServerProbe probe,
-        Action? forgetCredentials = null)
+        Action? forgetCredentials = null,
+        ILocalServer? localServer = null)
     {
         _settings = settings;
         _current = current;
         _probe = probe;
         _forgetCredentials = forgetCredentials;
+        _localServer = localServer;
         _addressText = current.NeedsSetup ? string.Empty : current.BaseUrl;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    public string DefaultServerUrl => ServerAddress.DEFAULT_BASE_URL;
 
     public string AddressText
     {
@@ -117,6 +126,7 @@ public sealed class ServerSetupViewModel : INotifyPropertyChanged
 
     public string StatusText => _checkState switch
     {
+        ServerCheckState.Checking when ManagesLocally(_checkedBaseUrl) => "Starting Cantus on this computer...",
         ServerCheckState.Checking => "Looking for a Cantus server...",
         ServerCheckState.Reachable => "Cantus server found.",
         ServerCheckState.Unreachable =>
@@ -137,6 +147,22 @@ public sealed class ServerSetupViewModel : INotifyPropertyChanged
         && !IsLocked
         && ServerAddress.TryNormalize(_addressText, out string baseUrl)
         && !ServerAddress.AreSame(baseUrl, _current.BaseUrl));
+
+    /// <summary>True when this app ships its own server, so this computer needs no server set up first.</summary>
+    public bool HasLocalServer => ManagesLocally(ServerAddress.DEFAULT_BASE_URL);
+
+    public string SkipButtonText => HasLocalServer ? RUN_HERE_TEXT : SKIP_TEXT;
+
+    public string SkipHintText => HasLocalServer
+        ? $"No server yet? Cantus can run its own on this computer, at {ServerAddress.DEFAULT_BASE_URL}."
+        : $"Skip if the server runs on this computer. Cantus then uses {ServerAddress.DEFAULT_BASE_URL}.";
+
+    /// <summary>Shown in the Server setting while this launch uses the server this app runs itself.</summary>
+    public Visibility LocalServerVisibility => ToVisibility(!_current.NeedsSetup && ManagesLocally(_current.BaseUrl));
+
+    public string LocalServerText => _localServerText;
+
+    public bool CanStopLocalServer => !_isStoppingLocalServer;
 
     /// <summary>Fills in this computer's address, the same server a skipped prompt uses.</summary>
     public void UseThisComputer()
@@ -162,6 +188,11 @@ public sealed class ServerSetupViewModel : INotifyPropertyChanged
             bool isReachable;
             try
             {
+                if (ManagesLocally(baseUrl))
+                {
+                    await _localServer!.EnsureRunningAsync(baseUrl, cancellationToken);
+                }
+
                 isReachable = await _probe.IsReachableAsync(baseUrl, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -196,6 +227,30 @@ public sealed class ServerSetupViewModel : INotifyPropertyChanged
 
         return Complete(ServerAddress.DEFAULT_BASE_URL);
     }
+
+    /// <summary>Stops the server this app runs on this computer, and says whether it could.</summary>
+    public async Task StopLocalServerAsync(CancellationToken cancellationToken = default)
+    {
+        if (_localServer is null || _isStoppingLocalServer)
+        {
+            return;
+        }
+
+        _isStoppingLocalServer = true;
+        OnPropertyChanged(string.Empty);
+        try
+        {
+            bool isStopped = await _localServer.StopAsync(_current.BaseUrl, cancellationToken);
+            _localServerText = isStopped ? LOCAL_SERVER_STOPPED_TEXT : LOCAL_SERVER_NOT_STOPPED_TEXT;
+        }
+        finally
+        {
+            _isStoppingLocalServer = false;
+            OnPropertyChanged(string.Empty);
+        }
+    }
+
+    private bool ManagesLocally(string baseUrl) => _localServer?.Manages(baseUrl) == true;
 
     private ServerSetupResult Complete(string baseUrl)
     {

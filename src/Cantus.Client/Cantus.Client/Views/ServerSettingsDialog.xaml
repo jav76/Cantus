@@ -57,6 +57,19 @@
                    TextWrapping="Wrap"
                    Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
 
+        <StackPanel Spacing="6" Visibility="{x:Bind Setup.LocalServerVisibility}">
+            <TextBlock Text="{x:Bind Setup.LocalServerText, Mode=OneWay}"
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+            <HyperlinkButton Content="Stop the server on this computer"
+                             Click="OnStopLocalServerClicked"
+                             IsEnabled="{x:Bind Setup.CanStopLocalServer, Mode=OneWay}"
+                             Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                             FontSize="12"
+                             Padding="0,2" />
+        </StackPanel>
+
         <TextBlock Text="Cantus restarts to connect to the new server. This device is signed out, and if it is a paired Display it has to be paired again."
                    Visibility="{x:Bind Setup.ChangeWarningVisibility, Mode=OneWay}"
                    FontSize="12"

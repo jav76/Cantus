@@ -67,8 +67,14 @@ public partial class App : Application
         return typeof(MainPage);
 #else
         ServerSelection selection = ClientStartupOptions.ResolveServer(new ServerSettingsStore(new LocalSettingsStore()));
+        if (selection.NeedsSetup)
+        {
+            return typeof(Views.ServerSetupPage);
+        }
 
-        return selection.NeedsSetup ? typeof(Views.ServerSetupPage) : typeof(MainPage);
+        LocalServerManager.ForThisApp.BeginStartup(selection.BaseUrl);
+
+        return typeof(MainPage);
 #endif
     }
 
