@@ -1,22 +1,22 @@
 ## SonarQube Quality Report
 
 - **Project**: `Cantus`
-- **Quality Gate**: **OK**
-- **Generated (UTC)**: `2026-11-25T00:55:45Z`
+- **Quality Gate**: **ERROR**
+- **Generated (UTC)**: `2026-11-25T22:13:55Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
 | Metric | Value |
 | :--- | :--- |
-| Quality Gate | OK |
-| Reliability Rating / Issues | A (0) |
+| Quality Gate | ERROR |
+| Reliability Rating / Issues | E (2) |
 | Security Rating / Issues | A (0) |
-| Maintainability Rating / Issues | A (2452) |
-| Coverage | 73.8% |
+| Maintainability Rating / Issues | A (2562) |
+| Coverage | 74.6% |
 | Duplicated Lines | 0.5% |
-| Lines of Code (NCLOC) | 35k |
-| Technical Debt | 3h9min |
-| Open Issues (total) | 2452 |
+| Lines of Code (NCLOC) | 36k |
+| Technical Debt | 3h39min |
+| Open Issues (total) | 2564 |
 | Open Security Hotspots | 0 |
 | SARIF Exported Findings | 0 |
 
@@ -24,15 +24,19 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 69.2 | LT 50 |
+| `new_coverage` | OK | 73.1 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.0 | GT 5 |
-| `new_software_quality_reliability_rating` | OK | 1 | GT 2 |
+| `new_software_quality_reliability_rating` | ERROR | 5 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
 
 ### Top Findings (Major / MEDIUM+ and Open Hotspots)
 
 | Kind | Severity | Rule | Location | Message |
 | :--- | :--- | :--- | :--- | :--- |
+| Issue | BLOCKER/BLOCKER | `csharpsquid:S2699` | `tests/Cantus.Server.Tests/Services/CoverArtBackfillTests.cs:123` | Add at least one assertion to this test case. |
+| Issue | BLOCKER/BLOCKER | `csharpsquid:S2930` | `src/Cantus.Server/Services/CoverArtBackfill.cs:56` | Dispose '_stopping' when it is no longer needed. |
+| Issue | CRITICAL/HIGH | `csharpsquid:S1994` | `src/Cantus.Server/Services/CoverArtBackfill.cs:157` | This loop's stop condition tests 'this' and 'track' but the incrementer updates 'attempt'. |
+| Issue | MAJOR/HIGH | `csharpsquid:S8949` | `src/Cantus.Server/Services/CoverArtBackfill.cs:103` | Pass the 'this._stopping.Token' to this method to allow cancellation of the operation, or use 'CancellationToken.None' to opt out explicitly. |
 | Issue | CRITICAL/HIGH | `python:S3776` | `scripts/generate_icons.py:119` | Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Server/BackgroundServices/ActiveUsersPlaybackMonitor.cs:146` | Refactor this method to reduce its Cognitive Complexity from 73 to the 25 allowed. |
 | Issue | MAJOR/MEDIUM | `csharpsquid:S3776` | `src/Cantus.Client/Cantus.Client/ViewModels/LyricsViewModel.cs:979` | Refactor this method to reduce its Cognitive Complexity from 29 to the 25 allowed. |
