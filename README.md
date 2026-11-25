@@ -211,9 +211,11 @@ The site is in `./wasm_dist/wwwroot`. Copy its contents into `src/Cantus.Server/
 ### Packaging Linux AppImage
 
 ```bash
-dotnet publish src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop -r linux-x64 -c Release -p:PublishSingleFile=true --self-contained true -o ./publish
+./packaging/publish-desktop.sh linux-x64 1.0.0 ./publish
 ./packaging/linux/build-appimage.sh ./publish ./artifacts 1.0.0
 ```
+
+`publish-desktop.sh` builds the desktop bundle for any runtime identifier: the app, the server it can run on this computer, and the one .NET runtime they share. The AppImage leaves the server out.
 
 ---
 

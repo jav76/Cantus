@@ -42,7 +42,16 @@ internal static class ServerSettingsEntry
         ServerSettingsStore settings = new(new LocalSettingsStore());
         ServerSelection current = ClientStartupOptions.Selection ?? ClientStartupOptions.ResolveServer(settings);
 
-        return new ServerSetupViewModel(settings, current, new ServerProbe(_httpClient), ForgetCredentials);
+        return new ServerSetupViewModel(
+            settings,
+            current,
+            new ServerProbe(_httpClient),
+            ForgetCredentials,
+#if __WASM__
+            localServer: null);
+#else
+            LocalServerManager.ForThisApp);
+#endif
     }
 
     public static Brush GetStatusBrush(ServerCheckState state, ThemeManager theme) => state switch

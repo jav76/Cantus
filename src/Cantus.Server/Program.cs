@@ -289,6 +289,7 @@ app.MapLyricsEndpoints();
 app.MapDisplayEndpoints();
 app.MapSongLookupEndpoints();
 app.MapHealthEndpoints();
+app.MapLocalServerEndpoints(app.Configuration);
 
 // 17. SPA Fallback
 app.MapPrecompressedFallbackToFile("index.html", app.Environment.WebRootFileProvider, CreateStaticFileOptions());

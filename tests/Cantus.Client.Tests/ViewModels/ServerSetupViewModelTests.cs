@@ -216,12 +216,94 @@ public sealed class ServerSetupViewModelTests
         raised.Should().Be(1);
     }
 
+    [Fact]
+    public void FirstRun_WithoutABundledServer_OffersToSkip()
+    {
+        Fixture fixture = new();
+
+        fixture.Setup.HasLocalServer.Should().BeFalse();
+        fixture.Setup.SkipButtonText.Should().Be(ServerSetupViewModel.SKIP_TEXT);
+        fixture.Setup.SkipHintText.Should().StartWith("Skip if the server runs on this computer.");
+        fixture.Setup.LocalServerVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void FirstRun_WithABundledServer_OffersToRunItHere()
+    {
+        Fixture fixture = new(hasLocalServer: true);
+
+        fixture.Setup.HasLocalServer.Should().BeTrue();
+        fixture.Setup.SkipButtonText.Should().Be(ServerSetupViewModel.RUN_HERE_TEXT);
+        fixture.Setup.SkipHintText.Should().Contain(ServerAddress.DEFAULT_BASE_URL);
+        fixture.Setup.LocalServerVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public async Task SaveAsync_ThisComputerWithABundledServer_StartsItBeforeChecking()
+    {
+        Fixture fixture = new(savedUrl: SERVER_URL, hasLocalServer: true);
+        fixture.Probe.IsReachable = false;
+        fixture.LocalServer.OnEnsureRunning = () => fixture.Probe.IsReachable = true;
+        fixture.Setup.UseThisComputer();
+
+        ServerSetupResult result = await fixture.Setup.SaveAsync();
+
+        result.Should().Be(ServerSetupResult.Changed);
+        fixture.LocalServer.EnsuredUrls.Should().Equal(ServerAddress.DEFAULT_BASE_URL);
+        fixture.Settings.SavedServerUrl.Should().Be(ServerAddress.DEFAULT_BASE_URL);
+    }
+
+    [Fact]
+    public async Task SaveAsync_AnotherServer_DoesNotStartTheBundledOne()
+    {
+        Fixture fixture = new(hasLocalServer: true);
+        fixture.Setup.AddressText = SERVER_URL;
+
+        await fixture.Setup.SaveAsync();
+
+        fixture.LocalServer.EnsuredUrls.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ServerSetting_OnTheBundledServer_ShowsThatItKeepsRunning()
+    {
+        Fixture fixture = new(savedUrl: ServerAddress.DEFAULT_BASE_URL, hasLocalServer: true);
+
+        fixture.Setup.LocalServerVisibility.Should().Be(Visibility.Visible);
+        fixture.Setup.LocalServerText.Should().Be(ServerSetupViewModel.LOCAL_SERVER_RUNNING_TEXT);
+        fixture.Setup.CanStopLocalServer.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ServerSetting_OnAnotherServer_HidesTheBundledServer()
+    {
+        Fixture fixture = new(savedUrl: SERVER_URL, hasLocalServer: true);
+
+        fixture.Setup.LocalServerVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Theory]
+    [InlineData(true, ServerSetupViewModel.LOCAL_SERVER_STOPPED_TEXT)]
+    [InlineData(false, ServerSetupViewModel.LOCAL_SERVER_NOT_STOPPED_TEXT)]
+    public async Task StopLocalServerAsync_SaysWhetherTheServerStopped(bool canStop, string expectedText)
+    {
+        Fixture fixture = new(savedUrl: ServerAddress.DEFAULT_BASE_URL, hasLocalServer: true);
+        fixture.LocalServer.CanStop = canStop;
+
+        await fixture.Setup.StopLocalServerAsync();
+
+        fixture.LocalServer.StoppedUrls.Should().Equal(ServerAddress.DEFAULT_BASE_URL);
+        fixture.Setup.LocalServerText.Should().Be(expectedText);
+        fixture.Setup.CanStopLocalServer.Should().BeTrue();
+    }
+
     private sealed class Fixture
     {
         public Fixture(
             string? savedUrl = null,
             string? overrideUrl = null,
-            ServerUrlSource overrideSource = ServerUrlSource.Default)
+            ServerUrlSource overrideSource = ServerUrlSource.Default,
+            bool hasLocalServer = false)
         {
             Settings = new ServerSettingsStore(Store);
             if (savedUrl is not null)
@@ -230,7 +312,12 @@ public sealed class ServerSetupViewModelTests
             }
 
             ServerSelection current = ServerSelection.Resolve(overrideUrl, overrideSource, Settings);
-            Setup = new ServerSetupViewModel(Settings, current, Probe, () => ForgetCount++);
+            Setup = new ServerSetupViewModel(
+                Settings,
+                current,
+                Probe,
+                () => ForgetCount++,
+                hasLocalServer ? LocalServer : null);
         }
 
         public InMemorySettingsStore Store { get; } = new();
@@ -239,9 +326,39 @@ public sealed class ServerSetupViewModelTests
 
         public FakeProbe Probe { get; } = new();
 
+        public FakeLocalServer LocalServer { get; } = new();
+
         public ServerSetupViewModel Setup { get; }
 
         public int ForgetCount { get; private set; }
+    }
+
+    private sealed class FakeLocalServer : ILocalServer
+    {
+        public bool CanStop { get; set; } = true;
+
+        public Action? OnEnsureRunning { get; set; }
+
+        public List<string> EnsuredUrls { get; } = new();
+
+        public List<string> StoppedUrls { get; } = new();
+
+        public bool Manages(string baseUrl) => ServerAddress.AreSame(baseUrl, ServerAddress.DEFAULT_BASE_URL);
+
+        public Task<LocalServerStartResult> EnsureRunningAsync(string baseUrl, CancellationToken cancellationToken = default)
+        {
+            EnsuredUrls.Add(baseUrl);
+            OnEnsureRunning?.Invoke();
+
+            return Task.FromResult(LocalServerStartResult.Started);
+        }
+
+        public Task<bool> StopAsync(string baseUrl, CancellationToken cancellationToken = default)
+        {
+            StoppedUrls.Add(baseUrl);
+
+            return Task.FromResult(CanStop);
+        }
     }
 
     private sealed class FakeProbe : IServerProbe

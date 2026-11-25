@@ -57,7 +57,8 @@ public sealed partial class ServerSetupPage : Page
 
     private void OpenMainPage()
     {
-        ClientStartupOptions.ResolveServer(new ServerSettingsStore(new LocalSettingsStore()));
+        ServerSelection selection = ClientStartupOptions.ResolveServer(new ServerSettingsStore(new LocalSettingsStore()));
+        LocalServerManager.ForThisApp.BeginStartup(selection.BaseUrl);
         Frame.Navigate(typeof(MainPage));
         Frame.BackStack.Clear();
     }

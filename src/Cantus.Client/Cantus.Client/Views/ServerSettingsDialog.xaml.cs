@@ -38,4 +38,6 @@ public sealed partial class ServerSettingsDialog : ContentDialog
     }
 
     private void OnUseThisComputerClicked(object sender, RoutedEventArgs e) => Setup.UseThisComputer();
+
+    private async void OnStopLocalServerClicked(object sender, RoutedEventArgs e) => await Setup.StopLocalServerAsync();
 }

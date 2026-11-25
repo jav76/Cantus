@@ -175,6 +175,9 @@ CANTUS_SERVER_URL=https://lyrics.example.com ./Cantus-Linux-x64.AppImage
 ### Environment Variable: `CANTUS_LOCAL_JOIN_CODE` (Desktop client only)
 Prefills the join code when you choose **Use this computer's players** on a server that requires one (`LocalSessions__JoinCode`). Optional: without it, Cantus asks for the code. See [Use This Computer's Players](../user-guide/local-players.md).
 
+### Setting: `LocalServer__ControlToken` (set by the desktop app)
+The desktop app sets this when it starts its bundled server. While it is set, `POST /api/local-server/shutdown` stops the server for a caller on this computer that sends the same value in `X-Cantus-Local-Token`. Leave it unset on a server you run yourself: the endpoint then does not exist.
+
 ### Server Log Outputs
 | Profile | Console / Stdout | Rolling File | SQLite (`LogEntries` table) | `[TraceLog]` method tracing |
 | :--- | :--- | :---: | :---: | :---: |
@@ -204,6 +207,8 @@ In the Docker image, `/app/data` must be writable:
 └── keys/                     # Data Protection key ring for OAuth token encryption at rest
     └── key-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xml
 ```
+
+The server bundled with the desktop app keeps the same files in a per-user folder (`%LOCALAPPDATA%\Cantus\server`, `~/.local/share/Cantus/server` or `~/Library/Application Support/Cantus/server`), next to `local-server.token`, the secret the app uses to stop it. See [The Server on This Computer](../user-guide/desktop-app.md#the-server-on-this-computer).
 
 ---
 
