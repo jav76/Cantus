@@ -2,7 +2,7 @@
 
 - **Project**: `Cantus`
 - **Quality Gate**: **OK**
-- **Generated (UTC)**: `2026-11-25T00:02:05Z`
+- **Generated (UTC)**: `2026-11-25T00:55:45Z`
 - **Repository**: https://github.com/jav76/Cantus
 - **Public Dashboard**: https://jav76.github.io/Cantus/
 
@@ -11,12 +11,12 @@
 | Quality Gate | OK |
 | Reliability Rating / Issues | A (0) |
 | Security Rating / Issues | A (0) |
-| Maintainability Rating / Issues | A (2394) |
-| Coverage | 74% |
+| Maintainability Rating / Issues | A (2452) |
+| Coverage | 73.8% |
 | Duplicated Lines | 0.5% |
-| Lines of Code (NCLOC) | 34.5k |
+| Lines of Code (NCLOC) | 35k |
 | Technical Debt | 3h9min |
-| Open Issues (total) | 2394 |
+| Open Issues (total) | 2452 |
 | Open Security Hotspots | 0 |
 | SARIF Exported Findings | 0 |
 
@@ -24,7 +24,7 @@
 
 | Metric | Status | Actual | Threshold |
 | :--- | :--- | :--- | :--- |
-| `new_coverage` | OK | 69.6 | LT 50 |
+| `new_coverage` | OK | 69.2 | LT 50 |
 | `new_duplicated_lines_density` | OK | 0.0 | GT 5 |
 | `new_software_quality_reliability_rating` | OK | 1 | GT 2 |
 | `new_software_quality_security_rating` | OK | 1 | GT 2 |
