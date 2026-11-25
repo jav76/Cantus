@@ -22,6 +22,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     private const string CONNECTION_C = "conn-c";
     private const long DURATION_MS = 233_000;
     private const int GRACE_SECONDS = 20;
+    private const string CATALOGUE_ART_URL = "https://coverartarchive.org/release-group/9162580e-5df4-32de-80cc-f45a8d8a9b1d/front-500";
 
     private static readonly TimeSpan WAIT_TIMEOUT = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan ABSENCE_WAIT = TimeSpan.FromMilliseconds(200);
@@ -31,6 +32,8 @@ public sealed class LocalPlaybackIngestTests : IDisposable
     private readonly PlaybackSessionRegistry _registry;
     private readonly LocalSessionOptions _options = new() { Enabled = true, PublisherGraceSeconds = GRACE_SECONDS };
     private readonly Mock<ILocalSessionService> _localSessions = new();
+    private readonly Mock<ICoverArtService> _coverArt = new();
+    private readonly FakeCoverArtBackfill _coverArtBackfill;
     private readonly ServiceProvider _services;
     private readonly LocalPlaybackIngest _ingest;
     private readonly UserSession _session = LocalSession("local-1");
@@ -41,7 +44,12 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         services.AddScoped(_ => Mock.Of<ILyricsProvider>());
         services.AddScoped(_ => Mock.Of<ILyricsCacheRepository>());
         services.AddScoped(_ => _localSessions.Object);
+        services.AddScoped(_ => _coverArt.Object);
         _services = services.BuildServiceProvider();
+
+        _coverArt.Setup(c => c.GetCachedAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CoverArtLookup.Unresolved());
+        _coverArtBackfill = new FakeCoverArtBackfill(_applier);
 
         _registry = new PlaybackSessionRegistry(_time);
         foreach (string connectionId in new[] { CONNECTION_A, CONNECTION_B, CONNECTION_C })
@@ -53,6 +61,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
             _services.GetRequiredService<IServiceScopeFactory>(),
             _applier,
             _registry,
+            _coverArtBackfill,
             _time,
             Options.Create(_options),
             NullLogger<LocalPlaybackIngest>.Instance);
@@ -652,6 +661,138 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         _localSessions.Verify(s => s.TouchAsync(_session.Id, It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
+    [Fact]
+    public async Task Apply_WhenThePlayerSuppliesACover_NeverConsultsTheCatalogue()
+    {
+        PlaybackUpdate applied = await SubmitAndWaitAsync(Update(1));
+
+        applied.State.CurrentTrack!.AlbumArtUrl.Should().Be("https://i.scdn.co/image/abc");
+        _coverArt.Verify(c => c.GetCachedAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()), Times.Never);
+        _coverArtBackfill.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Apply_ForATrackWithACachedCover_BroadcastsItWithTheCoverAndRequestsNothing()
+    {
+        CacheAnswers(CoverArtLookup.Found(CATALOGUE_ART_URL));
+
+        PlaybackUpdate applied = await SubmitAndWaitAsync(CoverlessUpdate(1));
+
+        applied.State.CurrentTrack!.AlbumArtUrl.Should().Be(CATALOGUE_ART_URL);
+        _coverArtBackfill.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Apply_ForATrackTheCacheHasNoCoverFor_RequestsNothing()
+    {
+        CacheAnswers(CoverArtLookup.NotFound());
+
+        PlaybackUpdate applied = await SubmitAndWaitAsync(CoverlessUpdate(1));
+
+        applied.State.CurrentTrack!.AlbumArtUrl.Should().BeNull();
+        await Task.Delay(ABSENCE_WAIT);
+        _coverArtBackfill.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Apply_ForATrackTheCacheDoesNotKnow_BroadcastsFirstAndThenRequestsALookup()
+    {
+        PlaybackUpdate applied = await SubmitAndWaitAsync(CoverlessUpdate(1));
+
+        applied.State.CurrentTrack!.AlbumArtUrl.Should().BeNull();
+        await WaitUntilAsync(() => _coverArtBackfill.Requests.Count == 1);
+        _coverArtBackfill.Requests.Single().Id.Should().Be(applied.State.CurrentTrack.Id);
+        _applier.Events.Should().Equal("apply", "cover-request");
+    }
+
+    [Fact]
+    public async Task Apply_ForLaterUpdatesOfTheSameTrack_ReadsTheCacheOnceAndKeepsTheCover()
+    {
+        CacheAnswers(CoverArtLookup.Found(CATALOGUE_ART_URL));
+        await SubmitAndWaitAsync(CoverlessUpdate(1));
+
+        PlaybackUpdate paused = await SubmitAndWaitAsync(CoverlessUpdate(2) with { IsPlaying = false });
+
+        paused.State.CurrentTrack!.AlbumArtUrl.Should().Be(CATALOGUE_ART_URL);
+        _coverArt.Verify(c => c.GetCachedAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Apply_ForTheSameTrackAfterAStop_AsksAgain()
+    {
+        await SubmitAndWaitAsync(CoverlessUpdate(1));
+        await SubmitAndWaitAsync(CoverlessUpdate(2) with { Track = null });
+
+        await SubmitAndWaitAsync(CoverlessUpdate(3));
+
+        await WaitUntilAsync(() => _coverArtBackfill.Requests.Count == 2);
+    }
+
+    [Fact]
+    public async Task CoverArtResolved_ForTheTrackOnScreen_AppliesItAndLaterUpdatesCarryIt()
+    {
+        PlaybackUpdate applied = await SubmitAndWaitAsync(CoverlessUpdate(1));
+        string trackId = applied.State.CurrentTrack!.Id;
+        await WaitUntilAsync(() => _coverArtBackfill.Requests.Count == 1);
+
+        _coverArtBackfill.Resolve(trackId, CATALOGUE_ART_URL);
+
+        await WaitUntilAsync(() => _applier.CoverArt.Count == 1);
+        _applier.CoverArt.Single().Should().Be((_session.Id, trackId, CATALOGUE_ART_URL));
+
+        PlaybackUpdate paused = await SubmitAndWaitAsync(CoverlessUpdate(2) with { IsPlaying = false });
+        paused.State.CurrentTrack!.AlbumArtUrl.Should().Be(CATALOGUE_ART_URL);
+    }
+
+    [Fact]
+    public async Task CoverArtResolved_ForATrackTheSessionMovedOnFrom_IsIgnored()
+    {
+        PlaybackUpdate first = await SubmitAndWaitAsync(CoverlessUpdate(1));
+        PlaybackUpdate second = await SubmitAndWaitAsync(CoverlessUpdate(2, "Another Song"));
+        await WaitUntilAsync(() => _coverArtBackfill.Requests.Count == 2);
+
+        _coverArtBackfill.Resolve(first.State.CurrentTrack!.Id, CATALOGUE_ART_URL);
+
+        await Task.Delay(ABSENCE_WAIT);
+        _applier.CoverArt.Should().BeEmpty();
+        PlaybackUpdate paused = await SubmitAndWaitAsync(CoverlessUpdate(3, "Another Song") with { IsPlaying = false });
+        paused.State.CurrentTrack!.Id.Should().Be(second.State.CurrentTrack!.Id);
+        paused.State.CurrentTrack.AlbumArtUrl.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CoverArtResolved_ReachesEverySessionWaitingForTheTrack()
+    {
+        UserSession other = LocalSession("local-2");
+        _registry.RegisterConnection("conn-other", other.Id);
+        await SubmitAndWaitAsync(CoverlessUpdate(1));
+        _ingest.Submit("conn-other", other, CoverlessUpdate(1)).Should().Be(LocalPublishResult.Accepted);
+        IReadOnlyList<PlaybackUpdate> updates = await WaitForUpdatesAsync(2);
+        await WaitUntilAsync(() => _coverArtBackfill.Requests.Count == 2);
+
+        _coverArtBackfill.Resolve(updates[0].State.CurrentTrack!.Id, CATALOGUE_ART_URL);
+
+        await WaitUntilAsync(() => _applier.CoverArt.Count == 2);
+        _applier.CoverArt.Select(c => c.SessionId).Should().BeEquivalentTo(_session.Id, other.Id);
+    }
+
+    [Fact]
+    public async Task Apply_WhenCoverArtIsTurnedOff_LeavesTheTrackWithoutACover()
+    {
+        _coverArtBackfill.IsEnabled = false;
+        CacheAnswers(CoverArtLookup.Found(CATALOGUE_ART_URL));
+
+        PlaybackUpdate applied = await SubmitAndWaitAsync(CoverlessUpdate(1));
+
+        applied.State.CurrentTrack!.AlbumArtUrl.Should().BeNull();
+        _coverArt.Verify(c => c.GetCachedAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()), Times.Never);
+        _coverArtBackfill.Requests.Should().BeEmpty();
+    }
+
+    private void CacheAnswers(CoverArtLookup lookup) =>
+        _coverArt.Setup(c => c.GetCachedAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(lookup);
+
     /// <summary>Mirrors the hub: the registry drops the connection before the ingest releases it.</summary>
     private void Disconnect(string connectionId)
     {
@@ -688,6 +829,10 @@ public sealed class LocalPlaybackIngestTests : IDisposable
 
     private static LocalPlaybackUpdateDto TrackUpdate(long sequence, string title) =>
         Update(sequence) with { Track = Update(sequence).Track! with { Title = title } };
+
+    /// <summary>What a player that offers only a local file, or any player on Windows, publishes.</summary>
+    private static LocalPlaybackUpdateDto CoverlessUpdate(long sequence, string title = "Glimpse of Us") =>
+        Update(sequence) with { Track = Update(sequence).Track! with { Title = title, AlbumArtUrl = null } };
 
     private static LocalPlaybackUpdateDto Update(long sequence)
     {
@@ -726,6 +871,7 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         private readonly ConcurrentQueue<string> _events = new();
         private readonly ConcurrentQueue<string> _forgotten = new();
         private readonly ConcurrentQueue<string> _refetches = new();
+        private readonly ConcurrentQueue<(string SessionId, string TrackId, string ArtUrl)> _coverArt = new();
 
         public Func<PlaybackUpdate, Task>? OnApply { get; set; }
 
@@ -738,6 +884,10 @@ public sealed class LocalPlaybackIngestTests : IDisposable
         public IReadOnlyCollection<string> ForgottenSessions => _forgotten;
 
         public IReadOnlyCollection<string> Refetches => _refetches;
+
+        public IReadOnlyCollection<(string SessionId, string TrackId, string ArtUrl)> CoverArt => _coverArt;
+
+        public void Record(string eventName) => _events.Enqueue(eventName);
 
         public async Task ApplyAsync(
             PlaybackUpdate update,
@@ -775,9 +925,45 @@ public sealed class LocalPlaybackIngestTests : IDisposable
             return Task.CompletedTask;
         }
 
+        public Task ApplyCoverArtAsync(
+            string sessionId,
+            string trackId,
+            string artUrl,
+            CancellationToken cancellationToken = default)
+        {
+            _coverArt.Enqueue((sessionId, trackId, artUrl));
+            return Task.CompletedTask;
+        }
+
         public void Forget(string sessionId)
         {
             _forgotten.Enqueue(sessionId);
         }
+    }
+
+    private sealed class FakeCoverArtBackfill : ICoverArtBackfill
+    {
+        private readonly RecordingApplier _applier;
+        private readonly ConcurrentQueue<TrackInfo> _requests = new();
+
+        public FakeCoverArtBackfill(RecordingApplier applier)
+        {
+            _applier = applier;
+        }
+
+        public bool IsEnabled { get; set; } = true;
+
+        public event EventHandler<CoverArtResolved>? Resolved;
+
+        public IReadOnlyCollection<TrackInfo> Requests => _requests;
+
+        public void Request(TrackInfo track)
+        {
+            _applier.Record("cover-request");
+            _requests.Enqueue(track);
+        }
+
+        public void Resolve(string trackId, string artUrl) =>
+            Resolved?.Invoke(this, new CoverArtResolved(trackId, artUrl));
     }
 }

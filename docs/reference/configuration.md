@@ -94,6 +94,21 @@ Settings for [Local Sessions](../operator-guide/self-hosting.md#6-let-people-use
 | **`Netease__SearchLimit`** | `int` | `10` | Maximum search candidates fetched per lookup. | No |
 | **`Netease__DurationToleranceSeconds`** | `int` | `5` | Maximum track-duration mismatch (seconds) accepted when matching search results. | No |
 
+### Cover Art Catalogue (`CoverArt`)
+When a Local player offers no cover, the server looks one up in MusicBrainz and the Cover Art Archive. See [Cover Art Lookup](../architecture/cover-art.md).
+
+| Variable | Type | Default | Description | Required |
+| :--- | :---: | :---: | :--- | :---: |
+| **`CoverArt__Enabled`** | `bool` | `true` | Looks up covers for Local Session tracks that arrive without one. Set `false` to send no track details to MusicBrainz; those tracks then show no cover. | No |
+| **`CoverArt__MusicBrainzBaseUrl`** | `string` | `https://musicbrainz.org` | MusicBrainz API base URL. | No |
+| **`CoverArt__CoverArtArchiveBaseUrl`** | `string` | `https://coverartarchive.org` | Cover Art Archive base URL. Cover URLs sent to viewers start with it. | No |
+| **`CoverArt__UserAgent`** | `string` | `CantusSyncedLyrics/1.0.0 ( https://github.com/jav76/Cantus )` | HTTP User-Agent header sent to both services. MusicBrainz requires an application name, a version and a contact URL or email, and throttles generic values. Set your own contact if you run a fork or a large server. | No |
+| **`CoverArt__TimeoutSeconds`** | `int` | `10` | HTTP request timeout (seconds) for both services. | No |
+| **`CoverArt__CacheDays`** | `int` | `90` | Days a found cover is kept before the catalogue is asked again. | No |
+| **`CoverArt__NegativeCacheDays`** | `int` | `30` | Days a "no cover" answer is kept before the catalogue is asked again. | No |
+
+Requests to MusicBrainz are spaced at least 1.1 seconds apart, server-wide. This is not configurable, because MusicBrainz blocks addresses that exceed one request per second.
+
 ### Lyrics Cache (`LyricsCache`)
 | Variable | Type | Default | Description | Required |
 | :--- | :---: | :---: | :--- | :---: |

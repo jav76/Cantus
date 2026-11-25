@@ -19,6 +19,7 @@ public sealed class PlaybackUpdateApplierTests
     private const string TRACK_ID = "local:0123456789abcdef0123456789abcdef";
     private const string OTHER_TRACK_ID = "local:fedcba9876543210fedcba9876543210";
     private const int SAVED_OFFSET_MS = 150;
+    private const string ART_URL = "https://coverartarchive.org/release-group/9162580e-5df4-32de-80cc-f45a8d8a9b1d/front-500";
 
     private readonly FakeTimeProvider _time = new(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero));
     private readonly PlaybackSessionRegistry _registry = new();
@@ -242,6 +243,71 @@ public sealed class PlaybackUpdateApplierTests
         await _applier.MarkPublisherOfflineAsync(SESSION_ID, DISPLAY_NAME);
 
         _registry.GetUserState(SESSION_ID)!.PlaybackState!.Progress.Should().Be(TimeSpan.FromMinutes(3));
+    }
+
+    [Fact]
+    public async Task ApplyCoverArtAsync_OnTheCurrentTrackWithoutACover_SetsItAndBroadcastsPlaybackOnly()
+    {
+        PlaybackState applied = State(TRACK_ID, isPlaying: true);
+        await ApplyAsync(applied);
+        SyncedLyrics lyricsBefore = _registry.GetUserState(SESSION_ID)!.Lyrics!;
+        _owners.Invocations.Clear();
+        _displays.Invocations.Clear();
+
+        await _applier.ApplyCoverArtAsync(SESSION_ID, TRACK_ID, ART_URL);
+
+        UserPlaybackSnapshot snapshot = _registry.GetUserState(SESSION_ID)!;
+        snapshot.PlaybackState.Should().Be(
+            applied with { CurrentTrack = applied.CurrentTrack! with { AlbumArtUrl = ART_URL } },
+            "only the cover changes, so viewers keep projecting from the same position and timestamp");
+        snapshot.Lyrics.Should().BeSameAs(lyricsBefore);
+        snapshot.TrackOffsetMs.Should().Be(SAVED_OFFSET_MS);
+
+        _owners.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(s =>
+            s.CurrentTrack!.AlbumArtUrl == ART_URL
+            && s.ActiveUserId == SESSION_ID
+            && s.ProgressMs == (long)applied.Progress.TotalMilliseconds
+            && s.TimestampUtc == applied.TimestampUtc)), Times.Once);
+        _displays.Verify(c => c.ReceivePlaybackState(It.Is<PlaybackStateDto>(s =>
+            s.CurrentTrack!.AlbumArtUrl == ART_URL && s.ActiveUserId == null)), Times.Once);
+        _owners.Verify(c => c.ReceiveLyrics(It.IsAny<LyricsDto>()), Times.Never);
+        _owners.Verify(c => c.ReceiveTrackOffset(It.IsAny<TrackOffsetDto>()), Times.Never);
+        _lyricsProvider.Verify(p => p.GetLyricsAsync(It.IsAny<TrackInfo>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ApplyCoverArtAsync_OnceTheSessionMovedOn_DoesNothing()
+    {
+        await ApplyAsync(State(OTHER_TRACK_ID, isPlaying: true));
+        _owners.Invocations.Clear();
+
+        await _applier.ApplyCoverArtAsync(SESSION_ID, TRACK_ID, ART_URL);
+
+        _registry.GetUserState(SESSION_ID)!.PlaybackState!.CurrentTrack!.AlbumArtUrl.Should().BeNull();
+        _owners.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ApplyCoverArtAsync_WhenTheTrackAlreadyHasACover_KeepsIt()
+    {
+        const string playerArtUrl = "https://i.scdn.co/image/abc";
+        PlaybackState state = State(TRACK_ID, isPlaying: true);
+        await ApplyAsync(state with { CurrentTrack = state.CurrentTrack! with { AlbumArtUrl = playerArtUrl } });
+        _owners.Invocations.Clear();
+
+        await _applier.ApplyCoverArtAsync(SESSION_ID, TRACK_ID, ART_URL);
+
+        _registry.GetUserState(SESSION_ID)!.PlaybackState!.CurrentTrack!.AlbumArtUrl.Should().Be(playerArtUrl);
+        _owners.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ApplyCoverArtAsync_ForASessionWithNoPlayback_DoesNothing()
+    {
+        await _applier.ApplyCoverArtAsync(SESSION_ID, TRACK_ID, ART_URL);
+
+        _registry.GetUserState(SESSION_ID).Should().BeNull();
+        _owners.Verify(c => c.ReceivePlaybackState(It.IsAny<PlaybackStateDto>()), Times.Never);
     }
 
     private Task ApplyAsync(PlaybackState state) =>

@@ -62,7 +62,7 @@ public sealed class DatabaseMigratorTests : IDisposable
 
         backup.Should().NotBeNull();
         File.Exists(backup).Should().BeTrue();
-        Path.GetFileName(backup).Should().StartWith("cantus.db.pre-").And.EndWith("_AddSessionKind.bak");
+        backup.Should().Be(BackupPathFor(LatestMigrationId()));
 
         using SqliteConnection old = Open(backup!);
         Scalar<string>(old, "SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\" ORDER BY \"MigrationId\" DESC LIMIT 1")

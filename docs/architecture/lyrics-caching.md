@@ -98,6 +98,7 @@ Every LRCLIB and NetEase request, for now-playing lyrics and for song lookups al
 
 - **Lookup budget**: lookup requests draw from a small per-provider budget per rolling minute (`SongLookup:LrclibRequestsPerMinute`, default 10; `SongLookup:NeteaseRequestsPerMinute`, default 6). Now-playing requests are never refused by a budget.
 - **Cooldowns**: a `429`, or a `503` with `Retry-After`, on a now-playing request or on any LRCLIB request pauses all traffic to that provider. `Retry-After` is honoured, clamped to 1 to 300 seconds, with 60 seconds when it is missing. A throttle or payload rejection on a NetEase lookup request pauses lookups only, so its unofficial search endpoint cannot take down the now-playing fallback. A normal `404` never starts a cooldown.
+- **Cover art catalogue**: MusicBrainz and Cover Art Archive requests pass through the same gate and get the all-traffic cooldown. They are never lookup-tagged, so no budget applies; see [Cover Art Lookup](cover-art.md).
 - **Behaviour change for now-playing**: during a cooldown no request is sent, and the fetch reports the provider as unavailable (logged at Debug). As with any transient failure, nothing is negative-cached, and a track that starts during a cooldown shows no lyrics until the next track change.
 
 ---
