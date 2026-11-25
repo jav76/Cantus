@@ -84,6 +84,7 @@ nav:
   - Home: index.md
   - User Guide:
       - Overview: user-guide/index.md
+      - Desktop App Server: user-guide/desktop-app.md
       - Connect Spotify: user-guide/connect-spotify.md
       - Use This Computer's Players: user-guide/local-players.md
       - Playback & Display: user-guide/playback-and-display.md

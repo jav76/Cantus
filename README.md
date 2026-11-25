@@ -198,7 +198,7 @@ Then open `http://127.0.0.1:5000`. Without `ASPNETCORE_ENVIRONMENT=Development`,
 dotnet run --project src/Cantus.Client/Cantus.Client/Cantus.Client.csproj -f net10.0-desktop
 ```
 
-It connects to `http://127.0.0.1:5000`; add `-- --server-url <address>` to use another server. To follow this computer's players instead of Spotify, the server needs `LocalSessions__Enabled=true`; set `CANTUS_LOCAL_JOIN_CODE` to prefill the server's join code.
+On first launch it asks for the server address; skip to use `http://127.0.0.1:5000`. Change it later under **Server** in the settings, or add `-- --server-url <address>` to override it for one launch. To follow this computer's players instead of Spotify, the server needs `LocalSessions__Enabled=true`; set `CANTUS_LOCAL_JOIN_CODE` to prefill the server's join code.
 
 ### Publishing the WebAssembly Client
 

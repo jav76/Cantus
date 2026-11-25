@@ -41,3 +41,4 @@ Explore the sections below to get the most out of your Cantus setup:
 5. [**Timing & Latency Calibration**](timing-and-calibration.md): Fine-tuning millisecond offsets for Bluetooth, AirPlay, and soundbars.
 6. [**Dynamic Theming & Visuals**](theming.md): Theme modes, album palette generation, and lyric animation states.
 7. [**Find a Song by Lyrics**](song-lookup.md): Look up a song from a line you remember, then play or queue it on Spotify.
+8. [**Desktop App: Choose Your Server**](desktop-app.md): Tell the desktop app which Cantus server to use, and change it later.

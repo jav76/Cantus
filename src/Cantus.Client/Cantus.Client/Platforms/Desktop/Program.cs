@@ -37,15 +37,13 @@ internal class Program
         LoggingConfiguration loggingConfig = ClientLoggingManager.ParseConfiguration(logConfigRaw);
         App.InitializeLogging(loggingConfig);
 
-        string? serverUrlValue = parseResult.GetValue(serverUrlOption);
-        bool fromCli = !string.IsNullOrWhiteSpace(serverUrlValue);
-        string? serverUrlRaw = fromCli
-            ? serverUrlValue
-            : Environment.GetEnvironmentVariable("CANTUS_SERVER_URL");
+        ServerOverrideResult serverOverride = ClientStartupOptions.ApplyServerOverride(
+            parseResult.GetValue(serverUrlOption),
+            Environment.GetEnvironmentVariable("CANTUS_SERVER_URL"));
 
-        if (!string.IsNullOrWhiteSpace(serverUrlRaw) && !ClientStartupOptions.TrySetServerUrl(serverUrlRaw))
+        if (serverOverride is ServerOverrideResult.InvalidCommandLine or ServerOverrideResult.InvalidEnvironmentVariable)
         {
-            string source = fromCli ? "--server-url" : "CANTUS_SERVER_URL";
+            string source = serverOverride == ServerOverrideResult.InvalidCommandLine ? "--server-url" : "CANTUS_SERVER_URL";
             Console.Error.WriteLine(
                 $"Ignoring invalid {source} value: expected an absolute http(s) URL.");
         }

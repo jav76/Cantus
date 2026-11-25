@@ -109,6 +109,6 @@ On the approving device, "That code is not valid or has expired" means the code 
 
 ## Desktop App as a Display
 
-The desktop app can be a Display too. The QR code and the address under the code use the server address the app connects to. Start it with `--server-url http://<your-server-ip>:5000` (or set `CANTUS_SERVER_URL`) so a phone can reach that address; the default `127.0.0.1` only works on the same machine.
+The desktop app can be a Display too. The QR code and the address under the code use the server address the app connects to. Set the address a phone can reach, such as `http://<your-server-ip>:5000`, under **Server** in the app's settings (see [Desktop App: Choose Your Server](desktop-app.md)), or start the app with `--server-url` or `CANTUS_SERVER_URL`. The default `127.0.0.1` only works on the same machine.
 
 For server-side details, such as what a Display token grants and how pairing behaves behind a reverse proxy, see [Displays & Display Tokens](../operator-guide/displays.md).

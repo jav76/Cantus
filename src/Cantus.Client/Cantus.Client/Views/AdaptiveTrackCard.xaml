@@ -163,6 +163,23 @@
                     <!-- Owner's Displays -->
                     <views:DisplaysCard Visibility="{x:Bind Pairing.OwnerControlsVisibility, Mode=OneWay}"
                                         ViewModel="{x:Bind ViewModel, Mode=OneWay}" />
+
+                    <!-- Server (desktop app only) -->
+                    <StackPanel Spacing="8" Visibility="{x:Bind ServerSectionVisibility}">
+                        <TextBlock Text="Server" Style="{StaticResource CantusSectionLabelStyle}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBlock Grid.Column="0" Text="{x:Bind ServerText}" FontSize="12" Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind ServerText}" />
+                            <Button Grid.Column="1"
+                                    Content="Change"
+                                    Click="OnChangeServerClicked"
+                                    Background="#1AFFFFFF"
+                                    Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}"
+                                    CornerRadius="6"
+                                    Padding="10,4"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Connect to another Cantus server" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
 

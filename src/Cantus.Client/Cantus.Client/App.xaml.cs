@@ -46,7 +46,7 @@ public partial class App : Application
 
         if (rootFrame.Content is null)
         {
-            rootFrame.Navigate(typeof(MainPage), args.Arguments);
+            rootFrame.Navigate(GetStartPage(), args.Arguments);
         }
 
 #if !__WASM__
@@ -55,6 +55,21 @@ public partial class App : Application
 #endif
         ApplyDesktopWindowIdentity(MainWindow);
         MainWindow.Activate();
+    }
+
+    /// <summary>
+    /// A desktop app with no server chosen yet opens on the server prompt. The WASM client is
+    /// served by its server, so it never asks.
+    /// </summary>
+    private static Type GetStartPage()
+    {
+#if __WASM__
+        return typeof(MainPage);
+#else
+        ServerSelection selection = ClientStartupOptions.ResolveServer(new ServerSettingsStore(new LocalSettingsStore()));
+
+        return selection.NeedsSetup ? typeof(Views.ServerSetupPage) : typeof(MainPage);
+#endif
     }
 
     /// <summary>Sets the window icon and the app's window class. Implemented by the desktop head only.</summary>

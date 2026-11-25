@@ -146,7 +146,7 @@ Recreating the container also removes the rolling log files, which live in its t
 
 ### Symptom: A phone cannot open the QR code from a waiting screen
 - **Cause**: The QR encodes the address the screen loaded Cantus from. An internal address such as `http://cantus:5000`, or `127.0.0.1` in the desktop app, does not work from a phone.
-- **Fix**: Open the screen at the public address, or start the desktop app with `--server-url`. See [Pairing & Managing Displays](../user-guide/displays.md#desktop-app-as-a-display).
+- **Fix**: Open the screen at the public address, or set the public address under **Server** in the desktop app's settings (or start it with `--server-url`). See [Pairing & Managing Displays](../user-guide/displays.md#desktop-app-as-a-display).
 
 ### Symptom: A Display went back to the pairing screen on its own
 - **Cause**: The owner removed it, or logged out (which removes all of their Displays). A server restart alone does not unpair a screen: it retries before giving up.

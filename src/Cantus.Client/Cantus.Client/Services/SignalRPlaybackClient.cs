@@ -427,10 +427,38 @@ public sealed class SignalRPlaybackClient : ISignalRPlaybackClient
             return SessionFilePath;
         }
 
+        return GetDefaultSessionFilePath();
+#endif
+    }
+
+#if !__WASM__
+    private static string GetDefaultSessionFilePath()
+    {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string cantusDir = System.IO.Path.Combine(appData, "Cantus");
         System.IO.Directory.CreateDirectory(cantusDir);
         return System.IO.Path.Combine(cantusDir, "session.txt");
+    }
+#endif
+
+    /// <summary>
+    /// Deletes the Session token saved on this device without telling the server. For use before a
+    /// client is built, when the token belongs to a server the app no longer points at.
+    /// </summary>
+    public static void ForgetPersistedSession(string? sessionFilePath = null)
+    {
+#if !__WASM__
+        try
+        {
+            string path = string.IsNullOrWhiteSpace(sessionFilePath) ? GetDefaultSessionFilePath() : sessionFilePath;
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+        }
+        catch
+        {
+        }
 #endif
     }
 

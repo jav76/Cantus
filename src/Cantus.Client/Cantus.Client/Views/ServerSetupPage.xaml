@@ -1,0 +1,94 @@
+<Page x:Class="Cantus.Client.Views.ServerSetupPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:views="using:Cantus.Client.Views"
+      Background="{x:Bind Theme.BackgroundBrush, Mode=OneWay}"
+      FontFamily="{StaticResource CantusTextFontFamily}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Border MaxWidth="480"
+                Margin="20"
+                VerticalAlignment="Center"
+                Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                BorderThickness="1"
+                CornerRadius="20"
+                Padding="24">
+            <StackPanel Spacing="14">
+
+                <views:CantusIcon Kind="Brand"
+                                  Size="36"
+                                  HorizontalAlignment="Left"
+                                  Foreground="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}" />
+
+                <TextBlock Text="Which Cantus server do you use?"
+                           FontFamily="{StaticResource CantusDisplaySemiBoldFontFamily}"
+                           FontSize="22"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}" />
+
+                <TextBlock Text="This app shows lyrics from a Cantus server. Enter the address you open Cantus at in a browser. You can change it later under Server in the settings."
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind Theme.TextSecondaryBrush, Mode=OneWay}" />
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Server address" Style="{StaticResource CantusSectionLabelStyle}" />
+                    <TextBox x:Name="AddressBox"
+                             MaxLength="2048"
+                             FontSize="14"
+                             IsSpellCheckEnabled="False"
+                             PlaceholderText="http://192.168.0.10:5000"
+                             PlaceholderForeground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}"
+                             AutomationProperties.Name="Server address"
+                             KeyDown="OnAddressKeyDown"
+                             Background="{x:Bind Theme.SurfaceCardBrush, Mode=OneWay}"
+                             Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                             Text="{x:Bind Setup.AddressText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{x:Bind Setup.AddressError, Mode=OneWay}"
+                               Visibility="{x:Bind Setup.AddressErrorVisibility, Mode=OneWay}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="#F87171" />
+                </StackPanel>
+
+                <TextBlock Text="{x:Bind Setup.StatusText, Mode=OneWay}"
+                           Visibility="{x:Bind Setup.StatusVisibility, Mode=OneWay}"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind GetStatusBrush(Setup.CheckState), Mode=OneWay}" />
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Button x:Name="SkipButton"
+                            Grid.Column="0"
+                            Content="Skip"
+                            Click="OnSkipClicked"
+                            Background="#1AFFFFFF"
+                            BorderBrush="{x:Bind Theme.CardBorderBrush, Mode=OneWay}"
+                            BorderThickness="1"
+                            Foreground="{x:Bind Theme.TextPrimaryBrush, Mode=OneWay}"
+                            CornerRadius="8"
+                            Padding="14,8"
+                            ToolTipService.ToolTip="Use the server on this computer" />
+                    <Button x:Name="ConnectButton"
+                            Grid.Column="1"
+                            Content="{x:Bind Setup.SaveButtonText, Mode=OneWay}"
+                            Click="OnConnectClicked"
+                            IsEnabled="{x:Bind Setup.CanSave, Mode=OneWay}"
+                            Background="{x:Bind Theme.PrimaryAccentBrush, Mode=OneWay}"
+                            Foreground="{x:Bind Theme.OnPrimaryAccentBrush, Mode=OneWay}"
+                            FontFamily="{StaticResource CantusTextSemiBoldFontFamily}"
+                            CornerRadius="8"
+                            Padding="18,8" />
+                </Grid>
+
+                <TextBlock FontSize="12"
+                           TextWrapping="Wrap"
+                           Foreground="{x:Bind Theme.TextMutedBrush, Mode=OneWay}">
+                    <Run Text="Skip if the server runs on this computer. Cantus then uses" />
+                    <Run Text="{x:Bind Setup.DefaultServerUrl}" /><Run Text="." />
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</Page>

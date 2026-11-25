@@ -234,6 +234,15 @@ public sealed partial class AdaptiveTrackCard : UserControl
         await AccountMenu.OpenAsync(Session, (FrameworkElement)sender);
     }
 
+    public Visibility ServerSectionVisibility => ServerSettingsEntry.SectionVisibility;
+
+    public string ServerText => ServerSettingsEntry.CurrentServerText;
+
+    private async void OnChangeServerClicked(object sender, RoutedEventArgs e)
+    {
+        await ServerSettingsEntry.OpenAsync(XamlRoot);
+    }
+
     private async void OnPairAsDisplayClicked(object sender, RoutedEventArgs e)
     {
         if (Pairing is not null)
