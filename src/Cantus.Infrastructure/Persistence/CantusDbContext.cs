@@ -13,6 +13,7 @@ public class CantusDbContext : DbContext
 
     public DbSet<UserSessionEntity> UserSessions => Set<UserSessionEntity>();
     public DbSet<CachedLyricsEntity> CachedLyrics => Set<CachedLyricsEntity>();
+    public DbSet<CachedCoverArtEntity> CachedCoverArt => Set<CachedCoverArtEntity>();
     public DbSet<TrackOffsetEntity> TrackOffsets => Set<TrackOffsetEntity>();
     public DbSet<LyricsOverrideEntity> LyricsOverrides => Set<LyricsOverrideEntity>();
     public DbSet<RoomEntity> Rooms => Set<RoomEntity>();
@@ -44,6 +45,12 @@ public class CantusDbContext : DbContext
             entity.Property(e => e.TrackName).HasMaxLength(512);
             entity.Property(e => e.ArtistName).HasMaxLength(512);
             entity.Property(e => e.AlbumName).HasMaxLength(512);
+        });
+
+        modelBuilder.Entity<CachedCoverArtEntity>(entity =>
+        {
+            entity.HasKey(e => e.TrackId);
+            entity.Property(e => e.ArtUrl).HasMaxLength(CachedCoverArtEntity.ART_URL_MAX_LENGTH);
         });
 
         modelBuilder.Entity<TrackOffsetEntity>(entity =>

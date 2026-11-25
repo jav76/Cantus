@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Cantus.Core.Interfaces;
+using Cantus.Infrastructure.CoverArt;
 using Cantus.Infrastructure.Displays;
 using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Lyrics.Lookup;
@@ -39,6 +40,8 @@ public static class DependencyInjection
             configuration.GetSection(NeteaseOptions.SECTION_NAME));
         services.Configure<LyricsCacheOptions>(
             configuration.GetSection(LyricsCacheOptions.SECTION_NAME));
+        services.Configure<CoverArtOptions>(
+            configuration.GetSection(CoverArtOptions.SECTION_NAME));
         services.AddOptions<SongLookupOptions>()
             .Bind(configuration.GetSection(SongLookupOptions.SECTION_NAME))
             .Validate(
@@ -146,7 +149,45 @@ public static class DependencyInjection
                 sp.GetRequiredService<SongLookupService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSongLookupServiceDecorator>>()));
 
-        // 6. Spotify Services
+        // 6. Cover art from the open catalogue
+        services.AddKeyedSingleton(
+            MusicBrainzClient.PROVIDER_NAME,
+            (sp, _) => new RequestPacer(sp.GetRequiredService<TimeProvider>(), MusicBrainzClient.MinimumRequestInterval));
+
+        // The gate is added first so a request refused during a pause does not wait for a turn.
+        services.AddHttpClient<MusicBrainzClient>((sp, client) =>
+        {
+            CoverArtOptions options = sp.GetRequiredService<IOptions<CoverArtOptions>>().Value;
+            client.BaseAddress = new Uri(options.MusicBrainzBaseUrl);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            MusicBrainzClient.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()))
+        .AddHttpMessageHandler(sp => new RequestPacingHandler(
+            sp.GetRequiredKeyedService<RequestPacer>(MusicBrainzClient.PROVIDER_NAME)));
+
+        services.AddHttpClient<CoverArtArchiveClient>((sp, client) =>
+        {
+            CoverArtOptions options = sp.GetRequiredService<IOptions<CoverArtOptions>>().Value;
+            client.BaseAddress = new Uri(options.CoverArtArchiveBaseUrl);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+        })
+        .AddHttpMessageHandler(sp => new ProviderRateGateHandler(
+            CoverArtArchiveClient.PROVIDER_NAME,
+            sp.GetRequiredService<ProviderRateGate>()));
+
+        services.AddScoped<ICoverArtCacheRepository, SqliteCoverArtCacheRepository>();
+        services.AddScoped<ICoverArtCatalog, MusicBrainzCoverArtCatalog>();
+        services.AddScoped<CachedCoverArtService>();
+        services.AddScoped<ICoverArtService>(sp =>
+            new TraceLoggingCoverArtServiceDecorator(
+                sp.GetRequiredService<CachedCoverArtService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingCoverArtServiceDecorator>>()));
+
+        // 7. Spotify Services
         services.AddScoped<SpotifyAuthService>();
         services.AddScoped<ISpotifyAuthService>(sp =>
             new TraceLoggingSpotifyAuthServiceDecorator(
@@ -166,14 +207,14 @@ public static class DependencyInjection
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingSpotifyCatalogClientDecorator>>()));
         services.AddScoped<SpotifyTrackResolver>();
 
-        // 7. Displays
+        // 8. Displays
         services.AddScoped<DisplayService>();
         services.AddScoped<IDisplayService>(sp =>
             new TraceLoggingDisplayServiceDecorator(
                 sp.GetRequiredService<DisplayService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TraceLoggingDisplayServiceDecorator>>()));
 
-        // 8. Local Sessions (options are bound by the server's AddLocalSessions)
+        // 9. Local Sessions (options are bound by the server's AddLocalSessions)
         services.AddScoped<ILocalSessionService, LocalSessionService>();
 
         return services;

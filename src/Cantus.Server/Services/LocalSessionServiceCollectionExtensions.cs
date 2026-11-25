@@ -11,8 +11,8 @@ namespace Cantus.Server.Services;
 public static class LocalSessionServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers Local Session settings, the publish ingest and applier, and the creation rate
-    /// limit: a fixed window per client address, which never uses the request path.
+    /// Registers Local Session settings, the publish ingest, applier and cover art backfill, and
+    /// the creation rate limit: a fixed window per client address, which never uses the request path.
     /// </summary>
     public static IServiceCollection AddLocalSessions(this IServiceCollection services, IConfiguration configuration)
     {
@@ -22,6 +22,7 @@ public static class LocalSessionServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddSingleton<IPlaybackUpdateApplier, PlaybackUpdateApplier>();
+        services.AddSingleton<ICoverArtBackfill, CoverArtBackfill>();
         services.AddSingleton<ILocalPlaybackIngest, LocalPlaybackIngest>();
 
         services.AddRateLimiter(options =>

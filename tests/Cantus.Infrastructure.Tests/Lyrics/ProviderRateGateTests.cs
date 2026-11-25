@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Cantus.Infrastructure.CoverArt;
 using Cantus.Infrastructure.Lyrics;
 using Cantus.Infrastructure.Lyrics.Lookup;
 using FluentAssertions;
@@ -41,6 +42,25 @@ public class ProviderRateGateTests
         Action act = () => gate.TryAcquire("Unknown", isLookup: false, out _);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Theory]
+    [InlineData(MusicBrainzClient.PROVIDER_NAME)]
+    [InlineData(CoverArtArchiveClient.PROVIDER_NAME)]
+    public void CoverArtCatalogue_WhenBusyWithRetryAfter_PausesItsRequestsForThatLong(string providerName)
+    {
+        ProviderRateGate gate = CreateGate();
+        RetryConditionHeaderValue retryAfter = new(TimeSpan.FromSeconds(5));
+
+        gate.ReportResponse(providerName, isLookup: false, HttpStatusCode.ServiceUnavailable, retryAfter)
+            .Should().BeTrue();
+
+        gate.TryAcquire(providerName, isLookup: false, out TimeSpan pausedFor).Should().BeFalse();
+        pausedFor.Should().Be(TimeSpan.FromSeconds(5));
+        gate.TryAcquire(LRCLIB, isLookup: false, out _).Should().BeTrue();
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(5));
+        gate.TryAcquire(providerName, isLookup: false, out _).Should().BeTrue();
     }
 
     [Fact]

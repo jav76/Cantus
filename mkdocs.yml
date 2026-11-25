@@ -104,6 +104,7 @@ nav:
       - NTP Clock Synchronization: architecture/ntp-clock-sync.md
       - Adaptive Polling Engine: architecture/adaptive-polling.md
       - Multi-Tier Lyrics Caching: architecture/lyrics-caching.md
+      - Cover Art Lookup: architecture/cover-art.md
       - Client & Uno Platform: architecture/client-uno.md
   - Reference:
       - SignalR PlaybackHub Protocol: reference/signalr-api.md

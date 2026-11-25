@@ -52,7 +52,7 @@ If you close the desktop app, your Displays show the track paused after about 20
 
 - **Playback controls from Cantus**: play, pause, skip and seek do not reach the player yet. Use the player itself. Volume, shuffle and repeat are hidden.
 - **Find a Song by Lyrics** is hidden: it searches and plays through Spotify.
-- **Cover art** from some players is missing, when the player only offers a file on this computer.
+- **Cover art** is missing for some tracks. When the player offers no usable cover (a file on this computer, or any player on Windows), Cantus looks the track up in the MusicBrainz catalogue and shows the cover from the Cover Art Archive. It only does so when title, artist and length all match, so a track that is not in the catalogue, is tagged differently or has no cover there shows none. The cover can appear a few seconds after the track starts. The picture the player itself shows is not used.
 
 Timing offsets work as usual and are saved per track.
 
@@ -61,3 +61,5 @@ Timing offsets work as usual and are saved per track.
 ## Privacy
 
 The server's owner can see this computer's name (the Session name) and the title, artist and album of what you play, as with Spotify playback. As always, title, artist, album and duration go to the lyrics providers to look up lyrics.
+
+When a player offers no cover, the server also sends the track's title, artist, album and duration to MusicBrainz. The cover itself is loaded by each device that shows it, directly from the Cover Art Archive (hosted by the Internet Archive), which sees that device's address. The server's operator can turn this off with `CoverArt__Enabled=false`.

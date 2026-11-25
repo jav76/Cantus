@@ -51,7 +51,9 @@ public interface ILocalPlaybackIngest
 /// <summary>
 /// Takes playback that Local Sessions publish and applies it in the background, one Session at
 /// a time. Each Session has one publisher connection, a slot that keeps only the newest update,
-/// and a lyric budget; each connection has a token bucket and a sequence check.
+/// and a lyric budget; each connection has a token bucket and a sequence check. A track that
+/// arrives without a cover gets the one the catalogue has for it: from the cache before the
+/// broadcast, or in a later broadcast once <see cref="ICoverArtBackfill"/> has found it.
 /// </summary>
 /// <remarks>
 /// The newest connection of a Session to publish takes the claim, because one Session is one
@@ -82,6 +84,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IPlaybackUpdateApplier _applier;
     private readonly IPlaybackSessionRegistry _registry;
+    private readonly ICoverArtBackfill _coverArtBackfill;
     private readonly TimeProvider _timeProvider;
     private readonly IOptions<LocalSessionOptions> _options;
     private readonly ILogger<LocalPlaybackIngest> _logger;
@@ -95,6 +98,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         IServiceScopeFactory scopeFactory,
         IPlaybackUpdateApplier applier,
         IPlaybackSessionRegistry registry,
+        ICoverArtBackfill coverArtBackfill,
         TimeProvider timeProvider,
         IOptions<LocalSessionOptions> options,
         ILogger<LocalPlaybackIngest> logger)
@@ -102,9 +106,11 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         _scopeFactory = scopeFactory;
         _applier = applier;
         _registry = registry;
+        _coverArtBackfill = coverArtBackfill;
         _timeProvider = timeProvider;
         _options = options;
         _logger = logger;
+        _coverArtBackfill.Resolved += OnCoverArtResolved;
     }
 
     public LocalPublishResult Submit(string connectionId, UserSession session, LocalPlaybackUpdateDto? update)
@@ -244,6 +250,7 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             }
 
             _disposed = true;
+            _coverArtBackfill.Resolved -= OnCoverArtResolved;
             foreach (SessionPipeline pipeline in _pipelines.Values)
             {
                 pipeline.Stop();
@@ -407,6 +414,13 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
                 }
             }
 
+            if (pipeline.ResolvedCoverArt is { } resolved)
+            {
+                pipeline.ResolvedCoverArt = null;
+                item = new CoverArtItem(resolved.TrackId, resolved.ArtUrl);
+                return true;
+            }
+
             if (pipeline.LyricRetryPending)
             {
                 pipeline.LyricRetryPending = false;
@@ -428,17 +442,40 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         {
             case ApplyItem apply:
                 bool allowLyrics = TrySpendLyricBudget(pipeline, apply.State);
+                (PlaybackState state, TrackInfo? trackToLookUp) = await FillCoverArtAsync(
+                    pipeline,
+                    apply.State,
+                    services,
+                    cancellationToken);
                 await _applier.ApplyAsync(
                     new PlaybackUpdate(
                         pipeline.SessionId,
                         apply.DisplayName,
-                        apply.State,
+                        state,
                         allowLyrics,
                         apply.ClaimedSpotifyTrackId),
                     services.GetRequiredService<ILyricsProvider>(),
                     services.GetRequiredService<ILyricsCacheRepository>(),
                     cancellationToken);
+                if (trackToLookUp is not null)
+                {
+                    _coverArtBackfill.Request(trackToLookUp);
+                }
+
                 await TouchIfDueAsync(pipeline, services, cancellationToken);
+                break;
+
+            case CoverArtItem coverArt:
+                if (string.Equals(pipeline.CoverArtTrackId, coverArt.TrackId, StringComparison.Ordinal))
+                {
+                    pipeline.CoverArtUrl = coverArt.ArtUrl;
+                    await _applier.ApplyCoverArtAsync(
+                        pipeline.SessionId,
+                        coverArt.TrackId,
+                        coverArt.ArtUrl,
+                        cancellationToken);
+                }
+
                 break;
 
             case PublisherOfflineItem offline:
@@ -448,6 +485,77 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
             case LyricRetryItem:
                 await RetryDeniedLyricsAsync(pipeline, services, cancellationToken);
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Gives a track the player sent without a cover the one the catalogue has for it. The cache
+    /// is read once per track; later updates for the same track reuse the answer, because the
+    /// player keeps sending them without a cover. A track the cache does not know is returned
+    /// for a background lookup, to request once its state is broadcast. Runs on the Session's
+    /// worker only.
+    /// </summary>
+    private async Task<(PlaybackState State, TrackInfo? TrackToLookUp)> FillCoverArtAsync(
+        SessionPipeline pipeline,
+        PlaybackState state,
+        IServiceProvider services,
+        CancellationToken cancellationToken)
+    {
+        if (state.CurrentTrack is null)
+        {
+            // Playing the same track again after a stop asks once more, in case the catalogue
+            // could not be reached the first time.
+            pipeline.CoverArtTrackId = null;
+            pipeline.CoverArtUrl = null;
+            lock (_lock)
+            {
+                pipeline.AwaitedCoverArtTrackId = null;
+                pipeline.ResolvedCoverArt = null;
+            }
+        }
+
+        if (state.CurrentTrack is not { AlbumArtUrl: null } track || !_coverArtBackfill.IsEnabled)
+        {
+            return (state, null);
+        }
+
+        TrackInfo? trackToLookUp = null;
+        if (!string.Equals(pipeline.CoverArtTrackId, track.Id, StringComparison.Ordinal))
+        {
+            CoverArtLookup cached = await services.GetRequiredService<ICoverArtService>()
+                .GetCachedAsync(track, cancellationToken);
+            pipeline.CoverArtTrackId = track.Id;
+            pipeline.CoverArtUrl = cached.ArtUrl;
+
+            bool lookUp = cached.Status == CoverArtLookupStatus.Unresolved;
+            lock (_lock)
+            {
+                pipeline.AwaitedCoverArtTrackId = lookUp ? track.Id : null;
+                pipeline.ResolvedCoverArt = null;
+            }
+
+            trackToLookUp = lookUp ? track : null;
+        }
+
+        return pipeline.CoverArtUrl is { } artUrl
+            ? (state with { CurrentTrack = track with { AlbumArtUrl = artUrl } }, trackToLookUp)
+            : (state, trackToLookUp);
+    }
+
+    /// <summary>Hands a found cover to the worker of every Session waiting for that track.</summary>
+    private void OnCoverArtResolved(object? sender, CoverArtResolved resolved)
+    {
+        lock (_lock)
+        {
+            foreach (SessionPipeline pipeline in _pipelines.Values)
+            {
+                if (string.Equals(pipeline.AwaitedCoverArtTrackId, resolved.TrackId, StringComparison.Ordinal))
+                {
+                    pipeline.AwaitedCoverArtTrackId = null;
+                    pipeline.ResolvedCoverArt = resolved;
+                    pipeline.Signal();
+                }
+            }
         }
     }
 
@@ -748,6 +856,8 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
 
     private sealed record LyricRetryItem : WorkItem;
 
+    private sealed record CoverArtItem(string TrackId, string ArtUrl) : WorkItem;
+
     private sealed class ConnectionState
     {
         private double _tokens = TOKEN_BUCKET_BURST;
@@ -837,6 +947,18 @@ public sealed class LocalPlaybackIngest : ILocalPlaybackIngest, IDisposable
         public string? LastTrackId { get; set; }
 
         public Queue<DateTimeOffset> LyricFetches { get; } = new();
+
+        /// <summary>The track <see cref="CoverArtUrl"/> was read for. Worker only.</summary>
+        public string? CoverArtTrackId { get; set; }
+
+        /// <summary>The catalogue's cover for <see cref="CoverArtTrackId"/>, or null when none is known. Worker only.</summary>
+        public string? CoverArtUrl { get; set; }
+
+        /// <summary>The track a background lookup was requested for. Guarded by the ingest lock.</summary>
+        public string? AwaitedCoverArtTrackId { get; set; }
+
+        /// <summary>A cover the background lookup found, for the worker to apply. Guarded by the ingest lock.</summary>
+        public CoverArtResolved? ResolvedCoverArt { get; set; }
 
         public DateTimeOffset LastTouchUtc { get; set; } = DateTimeOffset.MinValue;
 
